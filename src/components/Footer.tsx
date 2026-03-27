@@ -19,7 +19,7 @@ const Footer = () => {
                 {item}
               </a>
             ))}
-            <Link to="/contact" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
+            <Link to="/contact" title="Contact SimPilot.AI support team" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
               Contact
             </Link>
             <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
