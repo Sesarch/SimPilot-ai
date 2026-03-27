@@ -53,6 +53,36 @@ export const TrainingChat = ({
     prevLenRef.current = messages.length;
   }, [messages.length, saveMessage]);
 
+  // Parse debrief score from assistant message
+  const scoresSavedRef = useRef(false);
+  const parseAndSaveScore = useCallback(
+    async (content: string) => {
+      if (mode !== "oral_exam" || !user || scoresSavedRef.current) return;
+      // Match patterns like "Score: 7/10", "8 / 10", "Score: 8 out of 10"
+      const scoreMatch = content.match(/(\d+)\s*(?:\/|out of)\s*(\d+)/i);
+      const resultMatch = content.match(/\b(PASS|FAIL|INCOMPLETE)\b/i);
+      if (!scoreMatch) return;
+
+      const score = parseInt(scoreMatch[1], 10);
+      const total = parseInt(scoreMatch[2], 10);
+      if (isNaN(score) || isNaN(total) || total === 0) return;
+
+      scoresSavedRef.current = true;
+      const result = resultMatch ? resultMatch[1].toUpperCase() : (score / total >= 0.7 ? "PASS" : "FAIL");
+
+      const { error } = await supabase.from("exam_scores").insert({
+        user_id: user.id,
+        exam_type: "oral_exam",
+        score,
+        total_questions: total,
+        result,
+        session_id: sessionId.current,
+      });
+      if (error) console.error("Failed to save exam score:", error);
+    },
+    [mode, user, sessionId]
+  );
+
   // Save assistant message when streaming completes
   const prevLoadingRef = useRef(false);
   useEffect(() => {
@@ -60,10 +90,11 @@ export const TrainingChat = ({
       const last = messages[messages.length - 1];
       if (last.role === "assistant") {
         saveMessage(last, firstUserMsgRef.current);
+        parseAndSaveScore(last.content);
       }
     }
     prevLoadingRef.current = isLoading;
-  }, [isLoading, messages, saveMessage]);
+  }, [isLoading, messages, saveMessage, parseAndSaveScore]);
 
   // Auto-mark ground school topic as completed after meaningful engagement (6+ messages)
   useEffect(() => {
