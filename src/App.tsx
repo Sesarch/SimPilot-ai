@@ -20,6 +20,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.tsx";
 import CookiePreferencesPage from "./pages/CookiePreferencesPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
+import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/cookie-preferences" element={<CookiePreferencesPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/why-simpilot" element={<WhySimPilotPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
