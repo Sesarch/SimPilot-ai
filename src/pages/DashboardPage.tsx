@@ -128,8 +128,20 @@ const DashboardPage = () => {
             </div>
           </Link>
           <Link
+            to="/progress"
+            className="flex items-center gap-3 p-4 bg-gradient-card rounded-xl border border-border hover:border-primary/40 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <BarChart3 className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-display text-sm font-semibold text-foreground">Training Progress</h3>
+              <p className="text-xs text-muted-foreground">Topics completed & exam scores</p>
+            </div>
+          </Link>
+          <Link
             to="/session-history"
-            className="flex items-center gap-3 p-4 bg-gradient-card rounded-xl border border-border hover:border-primary/40 transition-all group sm:col-span-2"
+            className="flex items-center gap-3 p-4 bg-gradient-card rounded-xl border border-border hover:border-primary/40 transition-all group"
           >
             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center group-hover:bg-muted/80 transition-colors">
               <Clock className="w-5 h-5 text-muted-foreground" />
