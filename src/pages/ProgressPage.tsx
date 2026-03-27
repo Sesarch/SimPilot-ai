@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, CheckCircle2, Circle, TrendingUp, Award, BookOpen, BarChart3 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 
 const GROUND_SCHOOL_TOPICS = [
   { id: "regulations", title: "Regulations & Pilot Qualifications", acs: "PA.I.A", icon: "📋" },
@@ -200,6 +201,58 @@ const ProgressPage = () => {
               );
             })}
           </div>
+        </div>
+
+        {/* Score Trend Chart */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-accent" />
+            <h2 className="font-display text-lg font-semibold text-foreground">Score Trend</h2>
+          </div>
+          {examScores.length < 2 ? (
+            <div className="bg-gradient-card rounded-xl border border-border p-8 text-center">
+              <p className="text-muted-foreground text-sm">
+                {examScores.length === 0 ? "Complete at least 2 exams to see your trend." : "One more exam to unlock the trend chart!"}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-gradient-card rounded-xl border border-border p-4">
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart
+                  data={[...examScores]
+                    .reverse()
+                    .map((e) => ({
+                      date: new Date(e.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                      score: Math.round((e.score / e.total_questions) * 100),
+                      result: e.result,
+                    }))}
+                  margin={{ top: 8, right: 8, bottom: 0, left: -20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--background))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                    formatter={(value: number) => [`${value}%`, "Score"]}
+                  />
+                  <ReferenceLine y={70} stroke="hsl(var(--primary))" strokeDasharray="6 3" strokeOpacity={0.5} label={{ value: "Pass", position: "right", fill: "hsl(var(--primary))", fontSize: 10 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="hsl(var(--accent))"
+                    strokeWidth={2}
+                    dot={{ fill: "hsl(var(--accent))", r: 4, strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: "hsl(var(--accent))", stroke: "hsl(var(--background))", strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
         {/* Oral Exam Scores */}
