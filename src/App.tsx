@@ -37,6 +37,7 @@ const App = () => (
             <Route path="/session-history" element={<SessionHistoryPage />} />
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
