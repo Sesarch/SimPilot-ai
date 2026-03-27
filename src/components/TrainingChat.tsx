@@ -21,6 +21,7 @@ export const TrainingChat = ({
   placeholder = "Type your answer or question...",
   welcomeMessage,
   initialPrompt,
+  topicId,
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
