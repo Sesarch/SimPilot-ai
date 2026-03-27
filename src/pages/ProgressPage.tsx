@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, CheckCircle2, Circle, TrendingUp, Award, BookOpen, BarChart3 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
+import SEOHead from "@/components/SEOHead";
 
 const GROUND_SCHOOL_TOPICS = [
   { id: "regulations", title: "Regulations & Pilot Qualifications", acs: "PA.I.A", icon: "📋" },
