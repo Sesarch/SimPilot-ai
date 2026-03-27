@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
+import SEOHead from "@/components/SEOHead";
 
 const LESSON_AREAS = [
   {
