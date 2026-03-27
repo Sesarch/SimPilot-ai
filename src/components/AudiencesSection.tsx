@@ -40,7 +40,8 @@ const AudiencesSection = () => {
           >
             <img
               src={simulatorSetup}
-              alt="Professional flight simulator setup"
+              alt="Professional home flight simulator setup with multiple monitors for AI-powered pilot training with SimPilot.AI"
+              title="SimPilot.AI supports MSFS, X-Plane, and professional flight simulators"
               width={1280}
               height={720}
               loading="lazy"

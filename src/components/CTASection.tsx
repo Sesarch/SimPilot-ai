@@ -33,6 +33,8 @@ const CTASection = () => {
             </a>
             <a
               href="mailto:contact@simpilot.ai"
+              title="Contact SimPilot.AI for questions about AI pilot training"
+              aria-label="Contact SimPilot.AI support team via email"
               className="px-8 py-3 border border-accent/40 text-accent font-display text-sm font-semibold tracking-widest uppercase rounded hover:border-accent/70 hover:bg-accent/5 transition-all duration-300"
             >
               Contact Us
