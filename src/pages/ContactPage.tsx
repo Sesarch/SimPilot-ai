@@ -10,6 +10,46 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+const faqs = [
+  {
+    q: "Is SimPilot.AI a replacement for flight school?",
+    a: "No. SimPilot.AI is a supplemental study tool only. It is NOT FAA-approved and cannot replace training from certified flight instructors and accredited flight schools.",
+  },
+  {
+    q: "What topics does the Ground School cover?",
+    a: "Our AI tutor covers all major ground school subjects including aerodynamics, weather, regulations, navigation, aircraft systems, and flight operations — aligned with the FAA knowledge test areas.",
+  },
+  {
+    q: "How does the Oral Exam simulator work?",
+    a: "The oral exam simulator uses AI to ask you checkride-style questions, evaluate your responses, and provide a score with detailed feedback — just like a real DPE oral exam.",
+  },
+  {
+    q: "Is my data and chat history private?",
+    a: "Yes. Your conversations, scores, and progress are tied to your account and are not shared with anyone. Please review our Privacy Policy for full details.",
+  },
+  {
+    q: "Can I cancel my subscription anytime?",
+    a: "Absolutely. You can cancel your subscription at any time with no penalties. Your access will continue until the end of your current billing period.",
+  },
+  {
+    q: "How do I reset my password?",
+    a: "Click 'Forgot Password' on the sign-in page and follow the instructions sent to your email to reset your password.",
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.a,
+    },
+  })),
+};
+
 const ContactPage = () => {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -59,6 +99,7 @@ const ContactPage = () => {
         description="Get in touch with SimPilot.AI for questions about AI pilot training, ground school, oral exam prep, pricing, or technical support. We're here to help student pilots succeed."
         keywords="contact SimPilot.AI, pilot training support, aviation training help, flight school inquiry, ground school questions, oral exam prep support"
         canonical="/contact"
+        jsonLd={faqJsonLd}
       />
       <div className="container mx-auto px-6 py-12 max-w-2xl">
         <Link
@@ -161,32 +202,7 @@ const ContactPage = () => {
             <h2 className="font-display text-xl font-bold text-foreground">Frequently Asked Questions</h2>
           </div>
           <Accordion type="single" collapsible className="space-y-2">
-            {[
-              {
-                q: "Is SimPilot.AI a replacement for flight school?",
-                a: "No. SimPilot.AI is a supplemental study tool only. It is NOT FAA-approved and cannot replace training from certified flight instructors and accredited flight schools.",
-              },
-              {
-                q: "What topics does the Ground School cover?",
-                a: "Our AI tutor covers all major ground school subjects including aerodynamics, weather, regulations, navigation, aircraft systems, and flight operations — aligned with the FAA knowledge test areas.",
-              },
-              {
-                q: "How does the Oral Exam simulator work?",
-                a: "The oral exam simulator uses AI to ask you checkride-style questions, evaluate your responses, and provide a score with detailed feedback — just like a real DPE oral exam.",
-              },
-              {
-                q: "Is my data and chat history private?",
-                a: "Yes. Your conversations, scores, and progress are tied to your account and are not shared with anyone. Please review our Privacy Policy for full details.",
-              },
-              {
-                q: "Can I cancel my subscription anytime?",
-                a: "Absolutely. You can cancel your subscription at any time with no penalties. Your access will continue until the end of your current billing period.",
-              },
-              {
-                q: "How do I reset my password?",
-                a: "Click 'Forgot Password' on the sign-in page and follow the instructions sent to your email to reset your password.",
-              },
-            ].map((faq, i) => (
+            {faqs.map((faq, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-lg px-4">
                 <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
                   {faq.q}
