@@ -17,6 +17,10 @@ const AuthPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLogin && !agreedToTerms) {
+      toast.error("You must agree to the Terms & Conditions before signing up.");
+      return;
+    }
     setLoading(true);
 
     try {
