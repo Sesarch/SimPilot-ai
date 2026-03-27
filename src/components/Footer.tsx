@@ -25,7 +25,7 @@ const Footer = () => {
             <Link to="/terms" title="SimPilot.AI Terms & Conditions — not FAA-approved, supplemental training only" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
               Terms
             </Link>
-            <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
+            <Link to="/privacy" title="SimPilot.AI Privacy Policy — how we protect your pilot training data" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
               Privacy
             </Link>
             <Link to="/cookie-preferences" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
