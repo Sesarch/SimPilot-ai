@@ -7,6 +7,7 @@ import { useChatSession } from "@/hooks/useChatSession";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
+import ExamPassCelebration from "@/components/ExamPassCelebration";
 
 interface TrainingChatProps {
   mode: ChatMode;
@@ -36,6 +37,7 @@ export const TrainingChat = ({
     onAfterSend: () => recordUsage(),
   });
   const [started, setStarted] = useState(false);
+  const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
@@ -69,6 +71,10 @@ export const TrainingChat = ({
 
       scoresSavedRef.current = true;
       const result = resultMatch ? resultMatch[1].toUpperCase() : (score / total >= 0.7 ? "PASS" : "FAIL");
+
+      if (result === "PASS") {
+        setCelebration({ score, total });
+      }
 
       const { error } = await supabase.from("exam_scores").insert({
         user_id: user.id,
@@ -152,7 +158,13 @@ export const TrainingChat = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      <ExamPassCelebration
+        show={!!celebration}
+        score={celebration?.score ?? 0}
+        total={celebration?.total ?? 0}
+        onDismiss={() => setCelebration(null)}
+      />
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {!started && welcomeMessage && (
