@@ -37,6 +37,7 @@ export const TrainingChat = ({
     onAfterSend: () => recordUsage(),
   });
   const [started, setStarted] = useState(false);
+  const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
