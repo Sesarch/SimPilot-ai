@@ -206,6 +206,7 @@ const AuthPage = () => {
             <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-primary hover:underline font-medium"
+              onClick={() => { setAgreedToTerms(false); }}
             >
               {isLogin ? "Sign up" : "Sign in"}
             </button>
