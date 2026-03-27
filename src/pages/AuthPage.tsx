@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Mail, Lock, Plane, User, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import SEOHead from "@/components/SEOHead";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
