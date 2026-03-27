@@ -158,7 +158,13 @@ export const TrainingChat = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      <ExamPassCelebration
+        show={!!celebration}
+        score={celebration?.score ?? 0}
+        total={celebration?.total ?? 0}
+        onDismiss={() => setCelebration(null)}
+      />
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {!started && welcomeMessage && (
