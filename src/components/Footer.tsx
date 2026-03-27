@@ -8,8 +8,8 @@ const Footer = () => {
           <span className="font-display text-lg font-bold text-primary text-glow-cyan tracking-wider">
             SIM<span className="text-accent">PILOT</span>.AI
           </span>
-          <div className="flex gap-8">
-            {["Services", "Features", "Contact"].map((item) => (
+          <div className="flex flex-wrap gap-x-8 gap-y-2">
+            {["Services", "Features"].map((item) => (
               <a
                 key={item}
                 href={`#${item.toLowerCase()}`}
@@ -18,6 +18,9 @@ const Footer = () => {
                 {item}
               </a>
             ))}
+            <Link to="/contact" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
+              Contact
+            </Link>
             <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
               Terms
             </Link>
