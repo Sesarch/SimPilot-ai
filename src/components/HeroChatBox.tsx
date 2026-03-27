@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Send, Bot, User, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "@/hooks/useChat";
+import { useMessageLimit } from "@/hooks/useMessageLimit";
+import ChatGateModal from "@/components/ChatGateModal";
 
 const SUGGESTIONS = [
   "How do I prepare for my PPL checkride?",
@@ -11,7 +13,12 @@ const SUGGESTIONS = [
 ];
 
 const HeroChatBox = () => {
-  const { messages, isLoading, error, send, scrollRef } = useChat();
+  const limit = useMessageLimit();
+  const chatOptions = useMemo(() => ({
+    onBeforeSend: () => limit.checkLimit(),
+    onAfterSend: () => { limit.recordUsage(); },
+  }), [limit]);
+  const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
 
   const handleSend = (text: string) => {
@@ -24,8 +31,15 @@ const HeroChatBox = () => {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.6 }}
-      className="w-full max-w-2xl mx-auto rounded-xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-[0_0_60px_hsl(var(--cyan-glow)/0.08)] overflow-hidden"
+      className="relative w-full max-w-2xl mx-auto rounded-xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-[0_0_60px_hsl(var(--cyan-glow)/0.08)] overflow-hidden"
     >
+      {/* Gate overlay */}
+      <AnimatePresence>
+        {limit.showGate && (
+          <ChatGateModal type={limit.gateStatus as "signup_required" | "paywall"} onDismiss={limit.dismissGate} />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/40 bg-secondary/30">
         <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
@@ -34,7 +48,12 @@ const HeroChatBox = () => {
         <p className="font-display text-[11px] font-semibold tracking-widest uppercase text-primary">
           SimPilot AI — Try it now
         </p>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-2">
+          {limit.remaining <= 3 && limit.remaining > 0 && (
+            <span className="text-[10px] text-accent font-medium">
+              {limit.remaining} msg{limit.remaining !== 1 ? "s" : ""} left
+            </span>
+          )}
           <span className="w-1.5 h-1.5 rounded-full bg-hud-green animate-pulse" />
           <span className="text-[10px] text-muted-foreground">Online</span>
         </div>

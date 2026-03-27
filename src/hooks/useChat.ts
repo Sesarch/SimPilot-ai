@@ -89,7 +89,7 @@ async function streamChat({
   onDone();
 }
 
-export function useChat() {
+export function useChat(options?: { onBeforeSend?: () => boolean; onAfterSend?: () => void }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,6 +103,10 @@ export function useChat() {
 
   const send = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return;
+
+    // Gate check before sending
+    if (options?.onBeforeSend && !options.onBeforeSend()) return;
+
     const userMsg: Msg = { role: "user", content: text.trim() };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -126,7 +130,10 @@ export function useChat() {
       await streamChat({
         messages: [...messages, userMsg],
         onDelta: (chunk) => upsertAssistant(chunk),
-        onDone: () => setIsLoading(false),
+        onDone: () => {
+          setIsLoading(false);
+          options?.onAfterSend?.();
+        },
         onError: (msg) => {
           setError(msg);
           setIsLoading(false);
@@ -136,7 +143,7 @@ export function useChat() {
       setError("Connection failed. Please try again.");
       setIsLoading(false);
     }
-  }, [isLoading, messages]);
+  }, [isLoading, messages, options]);
 
   return { messages, isLoading, error, send, scrollRef };
 }

@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Send, Bot, User, Plane, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "@/hooks/useChat";
+import { useMessageLimit } from "@/hooks/useMessageLimit";
+import ChatGateModal from "@/components/ChatGateModal";
 
 const SUGGESTIONS = [
   "How do I prepare for my PPL checkride?",
@@ -13,7 +15,12 @@ const SUGGESTIONS = [
 
 const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, isLoading, error, send, scrollRef } = useChat();
+  const limit = useMessageLimit();
+  const chatOptions = useMemo(() => ({
+    onBeforeSend: () => limit.checkLimit(),
+    onAfterSend: () => { limit.recordUsage(); },
+  }), [limit]);
+  const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
 
   const handleSend = (text: string) => {
@@ -47,6 +54,13 @@ const AIChatWidget = () => {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] h-[520px] max-h-[calc(100vh-3rem)] flex flex-col rounded-xl border border-border bg-card shadow-2xl overflow-hidden"
           >
+            {/* Gate overlay */}
+            <AnimatePresence>
+              {limit.showGate && (
+                <ChatGateModal type={limit.gateStatus as "signup_required" | "paywall"} onDismiss={limit.dismissGate} />
+              )}
+            </AnimatePresence>
+
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/50">
               <div className="flex items-center gap-2">
@@ -60,12 +74,19 @@ const AIChatWidget = () => {
                   <p className="text-[10px] text-muted-foreground">Flight Training Assistant</p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-3">
+                {limit.remaining <= 5 && limit.remaining > 0 && (
+                  <span className="text-[10px] text-accent font-medium">
+                    {limit.remaining} left
+                  </span>
+                )}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
