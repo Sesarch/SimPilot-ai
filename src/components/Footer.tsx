@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const Footer = () => {
   return (
     <footer className="py-12 border-t border-border">
@@ -16,6 +18,12 @@ const Footer = () => {
                 {item}
               </a>
             ))}
+            <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
+              Terms
+            </Link>
+            <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
+              Privacy
+            </Link>
           </div>
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
