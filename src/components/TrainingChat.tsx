@@ -3,7 +3,7 @@ import { Send, RotateCcw, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useChat, ChatMode, Msg } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
-import { ChatGateModal } from "@/components/ChatGateModal";
+import ChatGateModal from "@/components/ChatGateModal";
 
 interface TrainingChatProps {
   mode: ChatMode;
