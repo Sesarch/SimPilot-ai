@@ -13,6 +13,7 @@ const Footer = () => {
               <a
                 key={item}
                 href={`#${item.toLowerCase()}`}
+                title={`View SimPilot.AI ${item} — AI aviation training`}
                 className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider"
               >
                 {item}
