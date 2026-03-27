@@ -114,6 +114,7 @@ export const TrainingChat = ({
     reset();
     resetSession();
     firstUserMsgRef.current = "";
+    topicMarkedRef.current = false;
     prevLenRef.current = 0;
     setStarted(false);
   };
