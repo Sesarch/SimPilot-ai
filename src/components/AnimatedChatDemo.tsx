@@ -1,6 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, User, Sparkles } from "lucide-react";
+import { Bot, User, Sparkles, Volume2, VolumeX } from "lucide-react";
+
+const useMessageSound = () => {
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const getCtx = useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+    }
+    return audioCtxRef.current;
+  }, []);
+
+  const playPop = useCallback((isAssistant: boolean) => {
+    try {
+      const ctx = getCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(isAssistant ? 880 : 660, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(isAssistant ? 1200 : 440, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+    } catch {}
+  }, [getCtx]);
+
+  return playPop;
+};
 
 const demoConversation = [
   { role: "user", text: "What are the four forces of flight?" },
@@ -23,6 +53,8 @@ const demoConversation = [
 const AnimatedChatDemo = () => {
   const [visibleCount, setVisibleCount] = useState(0);
   const [typing, setTyping] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const playPop = useMessageSound();
 
   useEffect(() => {
     if (visibleCount >= demoConversation.length) {
@@ -39,6 +71,7 @@ const AnimatedChatDemo = () => {
     setTyping(true);
     const typingTimer = setTimeout(() => {
       setTyping(false);
+      if (soundEnabled) playPop(nextMsg.role === "assistant");
       setVisibleCount((c) => c + 1);
     }, delay);
 
@@ -91,9 +124,23 @@ const AnimatedChatDemo = () => {
                 <p className="text-sm font-semibold text-foreground">SimPilot.AI CFI</p>
                 <p className="text-[10px] text-muted-foreground">Ground School — Aerodynamics</p>
               </div>
-              <div className="ml-auto flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] text-muted-foreground">Online</span>
+              <div className="ml-auto flex items-center gap-3">
+                <button
+                  onClick={() => setSoundEnabled((s) => !s)}
+                  className="p-1 rounded hover:bg-secondary/60 transition-colors"
+                  aria-label={soundEnabled ? "Mute sound effects" : "Enable sound effects"}
+                  title={soundEnabled ? "Mute sound effects" : "Enable sound effects"}
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="w-3.5 h-3.5 text-primary" />
+                  ) : (
+                    <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] text-muted-foreground">Online</span>
+                </div>
               </div>
             </div>
 
