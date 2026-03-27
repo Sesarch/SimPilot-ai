@@ -20,6 +20,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.tsx";
 import CookiePreferencesPage from "./pages/CookiePreferencesPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
+import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 
 const queryClient = new QueryClient();
 
