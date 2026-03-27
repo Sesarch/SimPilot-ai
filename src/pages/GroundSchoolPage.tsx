@@ -145,6 +145,7 @@ const GroundSchoolPage = () => {
               placeholder="Type your answer or ask a question..."
               welcomeMessage={`Ready to study ${selectedLesson.title}? Your CFI-AI instructor will guide you through this ACS knowledge area using the Socratic method.`}
               initialPrompt={selectedLesson.prompt}
+              topicId={selectedLesson.id}
             />
           </div>
         </div>

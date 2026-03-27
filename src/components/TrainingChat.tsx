@@ -4,6 +4,8 @@ import ReactMarkdown from "react-markdown";
 import { useChat, ChatMode, Msg } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { useChatSession } from "@/hooks/useChatSession";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
 
 interface TrainingChatProps {
@@ -11,6 +13,7 @@ interface TrainingChatProps {
   placeholder?: string;
   welcomeMessage?: string;
   initialPrompt?: string;
+  topicId?: string;
 }
 
 export const TrainingChat = ({
@@ -18,11 +21,14 @@ export const TrainingChat = ({
   placeholder = "Type your answer or question...",
   welcomeMessage,
   initialPrompt,
+  topicId,
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const firstUserMsgRef = useRef<string>("");
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
+  const { user } = useAuth();
+  const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
     mode,
@@ -59,6 +65,30 @@ export const TrainingChat = ({
     prevLoadingRef.current = isLoading;
   }, [isLoading, messages, saveMessage]);
 
+  // Auto-mark ground school topic as completed after meaningful engagement (6+ messages)
+  useEffect(() => {
+    if (!topicId || !user || topicMarkedRef.current) return;
+    const userMsgCount = messages.filter(m => m.role === "user").length;
+    if (userMsgCount >= 3) {
+      topicMarkedRef.current = true;
+      supabase
+        .from("topic_progress")
+        .upsert(
+          {
+            user_id: user.id,
+            topic_id: topicId,
+            completed: true,
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,topic_id" }
+        )
+        .then(({ error }) => {
+          if (error) console.error("Failed to mark topic complete:", error);
+        });
+    }
+  }, [messages, topicId, user]);
+
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
     if (!started) setStarted(true);
@@ -84,6 +114,7 @@ export const TrainingChat = ({
     reset();
     resetSession();
     firstUserMsgRef.current = "";
+    topicMarkedRef.current = false;
     prevLenRef.current = 0;
     setStarted(false);
   };
