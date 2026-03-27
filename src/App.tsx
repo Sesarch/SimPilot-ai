@@ -14,6 +14,7 @@ import OralExamPage from "./pages/OralExamPage.tsx";
 import SessionHistoryPage from "./pages/SessionHistoryPage.tsx";
 import ProgressPage from "./pages/ProgressPage.tsx";
 import TermsPage from "./pages/TermsPage.tsx";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
