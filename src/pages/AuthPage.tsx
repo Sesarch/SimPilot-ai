@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { Mail, Lock, Plane, User, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Plane, User, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 const AuthPage = () => {
@@ -11,6 +11,7 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
