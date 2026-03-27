@@ -124,9 +124,23 @@ const AnimatedChatDemo = () => {
                 <p className="text-sm font-semibold text-foreground">SimPilot.AI CFI</p>
                 <p className="text-[10px] text-muted-foreground">Ground School — Aerodynamics</p>
               </div>
-              <div className="ml-auto flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] text-muted-foreground">Online</span>
+              <div className="ml-auto flex items-center gap-3">
+                <button
+                  onClick={() => setSoundEnabled((s) => !s)}
+                  className="p-1 rounded hover:bg-secondary/60 transition-colors"
+                  aria-label={soundEnabled ? "Mute sound effects" : "Enable sound effects"}
+                  title={soundEnabled ? "Mute sound effects" : "Enable sound effects"}
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="w-3.5 h-3.5 text-primary" />
+                  ) : (
+                    <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] text-muted-foreground">Online</span>
+                </div>
               </div>
             </div>
 
