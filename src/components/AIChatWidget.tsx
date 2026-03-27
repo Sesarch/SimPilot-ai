@@ -1,97 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Send, Bot, User, Plane, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
-
-type Msg = { role: "user" | "assistant"; content: string };
-
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pilot-chat`;
-
-async function streamChat({
-  messages,
-  onDelta,
-  onDone,
-  onError,
-}: {
-  messages: Msg[];
-  onDelta: (text: string) => void;
-  onDone: () => void;
-  onError: (msg: string) => void;
-}) {
-  const resp = await fetch(CHAT_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    body: JSON.stringify({ messages }),
-  });
-
-  if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    onError(data.error || `Error ${resp.status}`);
-    return;
-  }
-
-  if (!resp.body) {
-    onError("No response body");
-    return;
-  }
-
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let textBuffer = "";
-  let streamDone = false;
-
-  while (!streamDone) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    textBuffer += decoder.decode(value, { stream: true });
-
-    let newlineIndex: number;
-    while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-      let line = textBuffer.slice(0, newlineIndex);
-      textBuffer = textBuffer.slice(newlineIndex + 1);
-      if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (line.startsWith(":") || line.trim() === "") continue;
-      if (!line.startsWith("data: ")) continue;
-      const jsonStr = line.slice(6).trim();
-      if (jsonStr === "[DONE]") {
-        streamDone = true;
-        break;
-      }
-      try {
-        const parsed = JSON.parse(jsonStr);
-        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-        if (content) onDelta(content);
-      } catch {
-        textBuffer = line + "\n" + textBuffer;
-        break;
-      }
-    }
-  }
-
-  // Final flush
-  if (textBuffer.trim()) {
-    for (let raw of textBuffer.split("\n")) {
-      if (!raw) continue;
-      if (raw.endsWith("\r")) raw = raw.slice(0, -1);
-      if (raw.startsWith(":") || raw.trim() === "") continue;
-      if (!raw.startsWith("data: ")) continue;
-      const jsonStr = raw.slice(6).trim();
-      if (jsonStr === "[DONE]") continue;
-      try {
-        const parsed = JSON.parse(jsonStr);
-        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-        if (content) onDelta(content);
-      } catch {
-        /* ignore */
-      }
-    }
-  }
-
-  onDone();
-}
+import { useChat } from "@/hooks/useChat";
 
 const SUGGESTIONS = [
   "How do I prepare for my PPL checkride?",
@@ -102,54 +13,12 @@ const SUGGESTIONS = [
 
 const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const { messages, isLoading, error, send, scrollRef } = useChat();
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const send = async (text: string) => {
-    if (!text.trim() || isLoading) return;
-    const userMsg: Msg = { role: "user", content: text.trim() };
-    setMessages((prev) => [...prev, userMsg]);
+  const handleSend = (text: string) => {
+    send(text);
     setInput("");
-    setIsLoading(true);
-    setError(null);
-
-    let assistantSoFar = "";
-    const upsertAssistant = (chunk: string) => {
-      assistantSoFar += chunk;
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant") {
-          return prev.map((m, i) =>
-            i === prev.length - 1 ? { ...m, content: assistantSoFar } : m
-          );
-        }
-        return [...prev, { role: "assistant", content: assistantSoFar }];
-      });
-    };
-
-    try {
-      await streamChat({
-        messages: [...messages, userMsg],
-        onDelta: (chunk) => upsertAssistant(chunk),
-        onDone: () => setIsLoading(false),
-        onError: (msg) => {
-          setError(msg);
-          setIsLoading(false);
-        },
-      });
-    } catch {
-      setError("Connection failed. Please try again.");
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -210,7 +79,7 @@ const AIChatWidget = () => {
                     {SUGGESTIONS.map((s) => (
                       <button
                         key={s}
-                        onClick={() => send(s)}
+                        onClick={() => handleSend(s)}
                         className="text-left text-xs p-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all"
                       >
                         {s}
@@ -278,7 +147,7 @@ const AIChatWidget = () => {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  send(input);
+                  handleSend(input);
                 }}
                 className="flex gap-2"
               >

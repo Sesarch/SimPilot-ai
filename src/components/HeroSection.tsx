@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import heroCockpit from "@/assets/hero-cockpit.jpg";
+import HeroChatBox from "@/components/HeroChatBox";
 
 const HeroSection = () => {
   return (
@@ -22,7 +23,7 @@ const HeroSection = () => {
       <div className="absolute top-3/4 left-0 right-0 hud-line opacity-20" />
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 text-center pt-20">
+      <div className="relative z-10 container mx-auto px-6 text-center pt-20 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -37,7 +38,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
+          className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-4"
         >
           <span className="text-foreground">Your AI </span>
           <span className="text-primary text-glow-cyan">Co-Pilot</span>
@@ -50,39 +51,21 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
+          className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed"
         >
-          SimPilot.ai brings cutting-edge artificial intelligence to pilot training.
-          Whether you're a flight school, professional pilot, or sim enthusiast — we
-          accelerate your journey to the skies.
+          Ask our AI flight instructor anything — ground school, checkride prep,
+          ATC phraseology. Try it right now, no signup needed.
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          <a
-            href="#contact"
-            className="px-8 py-3 bg-primary text-primary-foreground font-display text-sm font-semibold tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_30px_hsl(var(--cyan-glow)/0.4)] transition-all duration-300"
-          >
-            Start Training
-          </a>
-          <a
-            href="#services"
-            className="px-8 py-3 border border-muted-foreground/30 text-foreground font-display text-sm font-semibold tracking-widest uppercase rounded hover:border-primary/50 hover:text-primary transition-all duration-300"
-          >
-            Explore Services
-          </a>
-        </motion.div>
+        {/* Embedded AI Chat */}
+        <HeroChatBox />
 
         {/* HUD-style stats */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1 }}
-          className="mt-20 grid grid-cols-3 max-w-lg mx-auto gap-6"
+          className="mt-12 grid grid-cols-3 max-w-lg mx-auto gap-6"
         >
           {[
             { value: "500+", label: "Pilots Trained" },
