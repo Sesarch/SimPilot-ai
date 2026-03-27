@@ -119,10 +119,13 @@ const PricingSection = () => {
                 </h3>
               </div>
 
-              <div className="mb-4">
+              <div className="mb-1">
                 <span className="font-display text-4xl font-bold text-foreground">{plan.price}</span>
                 <span className="text-muted-foreground text-sm">{plan.period}</span>
               </div>
+              <span className="inline-block text-[10px] font-display font-semibold tracking-widest uppercase px-3 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/25 mb-4">
+                7-Day Free Trial
+              </span>
 
               <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
 
