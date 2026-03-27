@@ -7,6 +7,7 @@ import CTASection from "@/components/CTASection";
 import PricingSection from "@/components/PricingSection";
 import Footer from "@/components/Footer";
 import AIChatWidget from "@/components/AIChatWidget";
+import CookieConsent from "@/components/CookieConsent";
 
 const Index = () => {
   return (
@@ -20,6 +21,7 @@ const Index = () => {
       <CTASection />
       <Footer />
       <AIChatWidget />
+      <CookieConsent />
     </div>
   );
 };
