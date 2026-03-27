@@ -11,6 +11,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import GroundSchoolPage from "./pages/GroundSchoolPage.tsx";
 import OralExamPage from "./pages/OralExamPage.tsx";
+import SessionHistoryPage from "./pages/SessionHistoryPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
