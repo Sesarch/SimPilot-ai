@@ -73,6 +73,47 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_scores: {
+        Row: {
+          created_at: string
+          exam_type: string
+          id: string
+          result: string
+          score: number
+          session_id: string | null
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exam_type: string
+          id?: string
+          result?: string
+          score: number
+          session_id?: string | null
+          total_questions: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exam_type?: string
+          id?: string
+          result?: string
+          score?: number
+          session_id?: string | null
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_scores_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_usage: {
         Row: {
           created_at: string
@@ -131,6 +172,36 @@ export type Database = {
           display_name?: string | null
           flight_hours?: number | null
           id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      topic_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          topic_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          topic_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          topic_id?: string
           updated_at?: string
           user_id?: string
         }
