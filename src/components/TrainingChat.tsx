@@ -7,6 +7,7 @@ import { useChatSession } from "@/hooks/useChatSession";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
+import ExamPassCelebration from "@/components/ExamPassCelebration";
 
 interface TrainingChatProps {
   mode: ChatMode;
