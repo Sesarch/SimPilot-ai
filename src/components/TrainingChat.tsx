@@ -82,6 +82,9 @@ export const TrainingChat = ({
 
   const handleReset = () => {
     reset();
+    resetSession();
+    firstUserMsgRef.current = "";
+    prevLenRef.current = 0;
     setStarted(false);
   };
 
