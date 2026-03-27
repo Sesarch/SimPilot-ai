@@ -25,6 +25,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <HelmetProvider>
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
