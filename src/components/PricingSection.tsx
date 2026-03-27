@@ -77,6 +77,9 @@ const PricingSection = () => {
           <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
             Transparent pricing for every level of aviator. Start free, upgrade when you're ready.
           </p>
+          <p className="mt-3 font-display text-sm font-bold tracking-wide text-primary">
+            ✦ No Credit Card Required
+          </p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
