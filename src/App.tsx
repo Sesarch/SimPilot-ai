@@ -39,6 +39,7 @@ const App = () => (
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/cookie-preferences" element={<CookiePreferencesPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

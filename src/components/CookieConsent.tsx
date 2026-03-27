@@ -46,7 +46,11 @@ const CookieConsent = () => {
                 <Link to="/privacy" className="text-primary hover:underline">
                   Privacy Policy
                 </Link>{" "}
-                for more details.
+                for more details. You can also manage your{" "}
+                <Link to="/cookie-preferences" className="text-primary hover:underline">
+                  cookie preferences
+                </Link>
+                .
               </p>
               <div className="flex gap-2">
                 <Button size="sm" onClick={accept} className="text-xs">
