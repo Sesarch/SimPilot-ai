@@ -5,6 +5,7 @@ import FeaturesSection from "@/components/FeaturesSection";
 import AudiencesSection from "@/components/AudiencesSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
+import AIChatWidget from "@/components/AIChatWidget";
 
 const Index = () => {
   return (
