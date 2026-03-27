@@ -20,7 +20,7 @@ export const TrainingChat = ({
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const { gateStatus, showGate, setShowGate, checkLimit, recordUsage } = useMessageLimit();
+  const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
     mode,
     onBeforeSend: () => checkLimit(),
