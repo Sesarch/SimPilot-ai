@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plane, LogOut, User, Save } from "lucide-react";
+import { Plane, LogOut, User, Save, BookOpen, Mic } from "lucide-react";
 import { toast } from "sonner";
 
 type Profile = {
