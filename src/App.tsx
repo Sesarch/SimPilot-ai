@@ -11,6 +11,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import GroundSchoolPage from "./pages/GroundSchoolPage.tsx";
 import OralExamPage from "./pages/OralExamPage.tsx";
+import SessionHistoryPage from "./pages/SessionHistoryPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/ground-school" element={<GroundSchoolPage />} />
             <Route path="/oral-exam" element={<OralExamPage />} />
+            <Route path="/session-history" element={<SessionHistoryPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

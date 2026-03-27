@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plane, LogOut, User, Save, BookOpen, Mic } from "lucide-react";
+import { Plane, LogOut, User, Save, BookOpen, Mic, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 type Profile = {
@@ -125,6 +125,18 @@ const DashboardPage = () => {
             <div>
               <h3 className="font-display text-sm font-semibold text-foreground">Oral Exam Prep</h3>
               <p className="text-xs text-muted-foreground">Checkride simulation</p>
+            </div>
+          </Link>
+          <Link
+            to="/session-history"
+            className="flex items-center gap-3 p-4 bg-gradient-card rounded-xl border border-border hover:border-primary/40 transition-all group sm:col-span-2"
+          >
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center group-hover:bg-muted/80 transition-colors">
+              <Clock className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="font-display text-sm font-semibold text-foreground">Session History</h3>
+              <p className="text-xs text-muted-foreground">Review past training conversations</p>
             </div>
           </Link>
         </div>

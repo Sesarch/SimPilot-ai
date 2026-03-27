@@ -1,8 +1,9 @@
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { Send, RotateCcw, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useChat, ChatMode, Msg } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
+import { useChatSession } from "@/hooks/useChatSession";
 import ChatGateModal from "@/components/ChatGateModal";
 
 interface TrainingChatProps {
@@ -20,13 +21,43 @@ export const TrainingChat = ({
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const firstUserMsgRef = useRef<string>("");
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
+  const { saveMessage, resetSession } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
     mode,
     onBeforeSend: () => checkLimit(),
     onAfterSend: () => recordUsage(),
   });
   const [started, setStarted] = useState(false);
+
+  // Save messages to DB as they complete
+  const prevLenRef = useRef(0);
+  useEffect(() => {
+    if (messages.length > prevLenRef.current) {
+      const newMsgs = messages.slice(prevLenRef.current);
+      for (const msg of newMsgs) {
+        // Only save complete messages (not streaming assistant)
+        if (msg.role === "user") {
+          if (!firstUserMsgRef.current) firstUserMsgRef.current = msg.content;
+          saveMessage(msg, firstUserMsgRef.current);
+        }
+      }
+    }
+    prevLenRef.current = messages.length;
+  }, [messages.length, saveMessage]);
+
+  // Save assistant message when streaming completes
+  const prevLoadingRef = useRef(false);
+  useEffect(() => {
+    if (prevLoadingRef.current && !isLoading && messages.length > 0) {
+      const last = messages[messages.length - 1];
+      if (last.role === "assistant") {
+        saveMessage(last, firstUserMsgRef.current);
+      }
+    }
+    prevLoadingRef.current = isLoading;
+  }, [isLoading, messages, saveMessage]);
 
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
@@ -51,6 +82,9 @@ export const TrainingChat = ({
 
   const handleReset = () => {
     reset();
+    resetSession();
+    firstUserMsgRef.current = "";
+    prevLenRef.current = 0;
     setStarted(false);
   };
 
