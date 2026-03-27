@@ -17,6 +17,7 @@ const Index = () => {
       <FeaturesSection />
       <CTASection />
       <Footer />
+      <AIChatWidget />
     </div>
   );
 };
