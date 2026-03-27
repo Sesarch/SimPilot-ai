@@ -4,6 +4,7 @@ import ServicesSection from "@/components/ServicesSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import AudiencesSection from "@/components/AudiencesSection";
 import CTASection from "@/components/CTASection";
+import PricingSection from "@/components/PricingSection";
 import Footer from "@/components/Footer";
 import AIChatWidget from "@/components/AIChatWidget";
 
@@ -15,6 +16,7 @@ const Index = () => {
       <ServicesSection />
       <AudiencesSection />
       <FeaturesSection />
+      <PricingSection />
       <CTASection />
       <Footer />
       <AIChatWidget />
