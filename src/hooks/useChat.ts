@@ -1,16 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 export type Msg = { role: "user" | "assistant"; content: string };
+export type ChatMode = "general" | "ground_school" | "oral_exam";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pilot-chat`;
 
 async function streamChat({
   messages,
+  mode,
   onDelta,
   onDone,
   onError,
 }: {
   messages: Msg[];
+  mode: ChatMode;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
@@ -21,7 +24,7 @@ async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, mode }),
   });
 
   if (!resp.ok) {
@@ -89,11 +92,20 @@ async function streamChat({
   onDone();
 }
 
-export function useChat(options?: { onBeforeSend?: () => boolean; onAfterSend?: () => void }) {
+export function useChat(options?: {
+  onBeforeSend?: () => boolean;
+  onAfterSend?: () => void;
+  mode?: ChatMode;
+}) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const modeRef = useRef<ChatMode>(options?.mode || "general");
+
+  useEffect(() => {
+    modeRef.current = options?.mode || "general";
+  }, [options?.mode]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -104,7 +116,6 @@ export function useChat(options?: { onBeforeSend?: () => boolean; onAfterSend?: 
   const send = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return;
 
-    // Gate check before sending
     if (options?.onBeforeSend && !options.onBeforeSend()) return;
 
     const userMsg: Msg = { role: "user", content: text.trim() };
@@ -129,6 +140,7 @@ export function useChat(options?: { onBeforeSend?: () => boolean; onAfterSend?: 
     try {
       await streamChat({
         messages: [...messages, userMsg],
+        mode: modeRef.current,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
           setIsLoading(false);
@@ -145,5 +157,10 @@ export function useChat(options?: { onBeforeSend?: () => boolean; onAfterSend?: 
     }
   }, [isLoading, messages, options]);
 
-  return { messages, isLoading, error, send, scrollRef };
+  const reset = useCallback(() => {
+    setMessages([]);
+    setError(null);
+  }, []);
+
+  return { messages, isLoading, error, send, scrollRef, reset };
 }
