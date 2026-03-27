@@ -5,10 +5,10 @@ import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
-  { label: "Services", href: "#services" },
+  { label: "Ground School", href: "/ground-school", isRoute: true },
+  { label: "Oral Exam", href: "/oral-exam", isRoute: true },
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Contact", href: "#contact" },
 ];
 
 const Navbar = () => {
@@ -26,15 +26,25 @@ const Navbar = () => {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
-            >
-              {item.label}
-            </a>
-          ))}
+          {navItems.map((item) =>
+            item.isRoute ? (
+              <Link
+                key={item.label}
+                to={item.href}
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
+              >
+                {item.label}
+              </a>
+            )
+          )}
           {user ? (
             <Link
               to="/dashboard"
@@ -71,16 +81,27 @@ const Navbar = () => {
             className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border"
           >
             <div className="container mx-auto px-6 py-4 flex flex-col gap-4">
-              {navItems.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
-                >
-                  {item.label}
-                </a>
-              ))}
+              {navItems.map((item) =>
+                item.isRoute ? (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                  >
+                    {item.label}
+                  </a>
+                )
+              )}
               <Link
                 to={user ? "/dashboard" : "/auth"}
                 onClick={() => setIsOpen(false)}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plane, LogOut, User, Save } from "lucide-react";
+import { Plane, LogOut, User, Save, BookOpen, Mic } from "lucide-react";
 import { toast } from "sonner";
 
 type Profile = {
@@ -99,6 +99,34 @@ const DashboardPage = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Manage your training profile</p>
           </div>
+        </div>
+
+        {/* Training Modules */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <Link
+            to="/ground-school"
+            className="flex items-center gap-3 p-4 bg-gradient-card rounded-xl border border-border hover:border-primary/40 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+              <BookOpen className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-display text-sm font-semibold text-foreground">Ground School</h3>
+              <p className="text-xs text-muted-foreground">Interactive FAA lessons</p>
+            </div>
+          </Link>
+          <Link
+            to="/oral-exam"
+            className="flex items-center gap-3 p-4 bg-gradient-card rounded-xl border border-border hover:border-primary/40 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
+              <Mic className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <h3 className="font-display text-sm font-semibold text-foreground">Oral Exam Prep</h3>
+              <p className="text-xs text-muted-foreground">Checkride simulation</p>
+            </div>
+          </Link>
         </div>
 
         {profile && (
