@@ -1,6 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, User, Sparkles } from "lucide-react";
+import { Bot, User, Sparkles, Volume2, VolumeX } from "lucide-react";
+
+const useMessageSound = () => {
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const getCtx = useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+    }
+    return audioCtxRef.current;
+  }, []);
+
+  const playPop = useCallback((isAssistant: boolean) => {
+    try {
+      const ctx = getCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(isAssistant ? 880 : 660, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(isAssistant ? 1200 : 440, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+    } catch {}
+  }, [getCtx]);
+
+  return playPop;
+};
 
 const demoConversation = [
   { role: "user", text: "What are the four forces of flight?" },
