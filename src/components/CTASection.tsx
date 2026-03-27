@@ -25,6 +25,8 @@ const CTASection = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="mailto:contact@simpilot.ai"
+              title="Book a demo of SimPilot.AI — AI-powered pilot training platform"
+              aria-label="Book a demo session for SimPilot.AI"
               className="px-8 py-3 bg-primary text-primary-foreground font-display text-sm font-semibold tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_30px_hsl(var(--cyan-glow)/0.4)] transition-all duration-300"
             >
               Book a Demo
