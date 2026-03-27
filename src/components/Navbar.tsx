@@ -48,6 +48,7 @@ const Navbar = () => {
               </a>
             )
           )}
+          <ThemeToggle />
           {user ? (
             <Link
               to="/dashboard"
