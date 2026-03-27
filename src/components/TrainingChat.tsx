@@ -146,6 +146,7 @@ export const TrainingChat = ({
     resetSession();
     firstUserMsgRef.current = "";
     topicMarkedRef.current = false;
+    scoresSavedRef.current = false;
     prevLenRef.current = 0;
     setStarted(false);
   };
