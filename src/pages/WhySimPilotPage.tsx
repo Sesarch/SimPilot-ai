@@ -159,6 +159,9 @@ const WhySimPilotPage = () => {
         </div>
       </section>
 
+      {/* ── Animated Demo ── */}
+      <AnimatedChatDemo />
+
       {/* ── Detailed Comparison ── */}
       <section id="comparison-detail" className="py-20 bg-secondary/20" aria-labelledby="comparison-detail-heading">
         <div className="container mx-auto px-4">

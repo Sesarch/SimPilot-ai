@@ -92,7 +92,7 @@ const AnimatedChatDemo = () => {
                 <p className="text-[10px] text-muted-foreground">Ground School — Aerodynamics</p>
               </div>
               <div className="ml-auto flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <span className="text-[10px] text-muted-foreground">Online</span>
               </div>
             </div>
