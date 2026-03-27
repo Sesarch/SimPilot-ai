@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import AnimatedChatDemo from "@/components/AnimatedChatDemo";
 
 /* ── Comparison data ── */
 const comparisonFeatures = [
