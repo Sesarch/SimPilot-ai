@@ -1,3 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /session-history
+Disallow: /progress
+
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +19,4 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+Sitemap: https://simpilot.ai/sitemap.xml
