@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+import SEOHead from "@/components/SEOHead";
 
 type Profile = {
   display_name: string | null;
