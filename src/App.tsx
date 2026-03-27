@@ -28,6 +28,8 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/ground-school" element={<GroundSchoolPage />} />
+            <Route path="/oral-exam" element={<OralExamPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
