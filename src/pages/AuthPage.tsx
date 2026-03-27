@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { Mail, Lock, Plane, User, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Plane, User, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 const AuthPage = () => {
@@ -11,11 +11,16 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLogin && !agreedToTerms) {
+      toast.error("You must agree to the Terms & Conditions before signing up.");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -161,9 +166,35 @@ const AuthPage = () => {
               </Link>
             )}
 
+            {!isLogin && (
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
+                <div className="flex items-start gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-xs text-foreground font-medium">
+                    SimPilot.AI is <strong className="text-destructive">NOT FAA-approved</strong> and is for unofficial, supplemental study only. You must receive training from certificated instructors and approved flight schools.
+                  </p>
+                </div>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="mt-0.5 accent-primary"
+                  />
+                  <span className="text-xs text-secondary-foreground">
+                    I have read and agree to the{" "}
+                    <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">
+                      Terms & Conditions
+                    </Link>
+                    , including the disclaimer that this is not official flight training.
+                  </span>
+                </label>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!isLogin && !agreedToTerms)}
               className="w-full py-2.5 bg-primary text-primary-foreground font-display text-sm font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-50"
             >
               {loading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
@@ -173,7 +204,7 @@ const AuthPage = () => {
           <p className="text-sm text-muted-foreground text-center mt-6">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => { setIsLogin(!isLogin); setAgreedToTerms(false); }}
               className="text-primary hover:underline font-medium"
             >
               {isLogin ? "Sign up" : "Sign in"}
