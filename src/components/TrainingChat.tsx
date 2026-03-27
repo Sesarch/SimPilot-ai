@@ -27,6 +27,8 @@ export const TrainingChat = ({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const firstUserMsgRef = useRef<string>("");
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
+  const { user } = useAuth();
+  const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
     mode,
