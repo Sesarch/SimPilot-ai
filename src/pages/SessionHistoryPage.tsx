@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plane, ArrowLeft, BookOpen, Mic, MessageSquare, Trash2, Clock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import SEOHead from "@/components/SEOHead";
 
 type Session = {
   id: string;
