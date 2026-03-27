@@ -31,6 +31,7 @@ const Navbar = () => {
               <Link
                 key={item.label}
                 to={item.href}
+                title={`SimPilot.AI ${item.label} — AI pilot training module`}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
               >
                 {item.label}
