@@ -72,6 +72,10 @@ export const TrainingChat = ({
       scoresSavedRef.current = true;
       const result = resultMatch ? resultMatch[1].toUpperCase() : (score / total >= 0.7 ? "PASS" : "FAIL");
 
+      if (result === "PASS") {
+        setCelebration({ score, total });
+      }
+
       const { error } = await supabase.from("exam_scores").insert({
         user_id: user.id,
         exam_type: "oral_exam",
