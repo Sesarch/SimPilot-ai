@@ -4,6 +4,7 @@ import ServicesSection from "@/components/ServicesSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import ComparisonSection from "@/components/ComparisonSection";
 import TrustBadges from "@/components/TrustBadges";
+import AnimatedChatDemo from "@/components/AnimatedChatDemo";
 import AudiencesSection from "@/components/AudiencesSection";
 import CTASection from "@/components/CTASection";
 import TestimonialsSection from "@/components/TestimonialsSection";
