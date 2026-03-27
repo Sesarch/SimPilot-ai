@@ -92,6 +92,7 @@ const Index = () => {
       <AudiencesSection />
       <FeaturesSection />
       <ComparisonSection />
+      <TrustBadges />
       <TestimonialsSection />
       <PricingSection />
       <CTASection />
