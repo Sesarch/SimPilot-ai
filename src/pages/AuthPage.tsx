@@ -186,6 +186,10 @@ const AuthPage = () => {
                     <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">
                       Terms & Conditions
                     </Link>
+                    {" "}and{" "}
+                    <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">
+                      Privacy Policy
+                    </Link>
                     , including the disclaimer that this is not official flight training.
                   </span>
                 </label>
