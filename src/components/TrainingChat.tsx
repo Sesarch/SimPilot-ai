@@ -65,7 +65,31 @@ export const TrainingChat = ({
     prevLoadingRef.current = isLoading;
   }, [isLoading, messages, saveMessage]);
 
-  const handleSend = () => {
+  // Auto-mark ground school topic as completed after meaningful engagement (6+ messages)
+  useEffect(() => {
+    if (!topicId || !user || topicMarkedRef.current) return;
+    const userMsgCount = messages.filter(m => m.role === "user").length;
+    if (userMsgCount >= 3) {
+      topicMarkedRef.current = true;
+      supabase
+        .from("topic_progress")
+        .upsert(
+          {
+            user_id: user.id,
+            topic_id: topicId,
+            completed: true,
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,topic_id" }
+        )
+        .then(({ error }) => {
+          if (error) console.error("Failed to mark topic complete:", error);
+        });
+    }
+  }, [messages, topicId, user]);
+
+
     if (!input.trim() || isLoading) return;
     if (!started) setStarted(true);
     send(input.trim());
