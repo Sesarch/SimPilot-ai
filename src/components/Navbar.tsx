@@ -50,6 +50,7 @@ const Navbar = () => {
           {user ? (
             <Link
               to="/dashboard"
+              title="Access your SimPilot.AI pilot training dashboard"
               className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300"
             >
               Dashboard
