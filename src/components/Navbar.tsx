@@ -40,6 +40,7 @@ const Navbar = () => {
               <a
                 key={item.label}
                 href={item.href}
+                title={`View ${item.label} — SimPilot.AI aviation training`}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
               >
                 {item.label}
