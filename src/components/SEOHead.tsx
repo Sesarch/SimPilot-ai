@@ -7,7 +7,7 @@ interface SEOHeadProps {
   canonical?: string;
   ogType?: string;
   noIndex?: boolean;
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const SITE_NAME = "SimPilot.AI";
