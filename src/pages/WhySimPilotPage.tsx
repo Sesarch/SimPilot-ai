@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import AnimatedChatDemo from "@/components/AnimatedChatDemo";
 
 /* ── Comparison data ── */
 const comparisonFeatures = [
@@ -158,6 +159,9 @@ const WhySimPilotPage = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* ── Animated Demo ── */}
+      <AnimatedChatDemo />
 
       {/* ── Detailed Comparison ── */}
       <section id="comparison-detail" className="py-20 bg-secondary/20" aria-labelledby="comparison-detail-heading">
