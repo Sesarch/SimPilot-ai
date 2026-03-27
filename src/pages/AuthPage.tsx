@@ -194,7 +194,7 @@ const AuthPage = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!isLogin && !agreedToTerms)}
               className="w-full py-2.5 bg-primary text-primary-foreground font-display text-sm font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-50"
             >
               {loading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
