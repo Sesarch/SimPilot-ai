@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, Send, Mail, User, MessageSquare, FileText, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
