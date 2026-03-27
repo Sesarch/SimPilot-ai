@@ -22,7 +22,7 @@ const Footer = () => {
             <Link to="/contact" title="Contact SimPilot.AI support team" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
               Contact
             </Link>
-            <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
+            <Link to="/terms" title="SimPilot.AI Terms & Conditions — not FAA-approved, supplemental training only" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
               Terms
             </Link>
             <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
