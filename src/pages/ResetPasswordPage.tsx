@@ -40,6 +40,13 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <SEOHead
+        title="Reset Password — SimPilot.AI"
+        description="Create a new password for your SimPilot.AI pilot training account."
+        keywords="reset password, new password, SimPilot.AI account, pilot training password"
+        canonical="/reset-password"
+        noIndex
+      />
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <Plane className="w-8 h-8 text-primary" />

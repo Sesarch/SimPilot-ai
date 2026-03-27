@@ -123,6 +123,13 @@ const ProgressPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Training Progress — SimPilot.AI"
+        description="Track your pilot training progress with SimPilot.AI. View ground school completion, oral exam scores, and readiness metrics for your FAA checkride."
+        keywords="pilot training progress, ground school tracker, exam score history, checkride readiness, aviation training analytics"
+        canonical="/progress"
+        noIndex
+      />
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
           <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground transition-colors">

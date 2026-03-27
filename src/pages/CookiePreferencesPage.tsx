@@ -85,6 +85,12 @@ const CookiePreferencesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Cookie Preferences — SimPilot.AI"
+        description="Manage your cookie preferences on SimPilot.AI. Control analytics, marketing, and personalization cookies for your pilot training experience."
+        keywords="cookie preferences, SimPilot.AI cookies, privacy settings, cookie management, analytics cookies"
+        canonical="/cookie-preferences"
+      />
       <div className="container mx-auto px-6 py-12 max-w-2xl">
         <Link
           to="/"

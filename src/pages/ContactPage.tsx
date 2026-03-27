@@ -54,6 +54,12 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Contact Us — SimPilot.AI Support & Inquiries"
+        description="Get in touch with SimPilot.AI for questions about AI pilot training, ground school, oral exam prep, pricing, or technical support. We're here to help student pilots succeed."
+        keywords="contact SimPilot.AI, pilot training support, aviation training help, flight school inquiry, ground school questions, oral exam prep support"
+        canonical="/contact"
+      />
       <div className="container mx-auto px-6 py-12 max-w-2xl">
         <Link
           to="/"

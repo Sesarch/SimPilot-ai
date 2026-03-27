@@ -1,9 +1,16 @@
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
 
 const PrivacyPolicyPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Privacy Policy — SimPilot.AI"
+        description="Learn how SimPilot.AI collects, uses, and protects your personal data. Our privacy policy covers data handling for AI pilot training sessions, chat history, and account information."
+        keywords="SimPilot.AI privacy policy, pilot training data privacy, aviation training data protection, AI chat privacy, personal data policy"
+        canonical="/privacy"
+      />
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
           <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">

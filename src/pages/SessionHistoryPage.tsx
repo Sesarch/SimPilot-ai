@@ -85,6 +85,13 @@ const SessionHistoryPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Session History — SimPilot.AI"
+        description="Review your past AI training sessions on SimPilot.AI. Access ground school and oral exam chat transcripts to revisit key concepts."
+        keywords="training session history, pilot chat logs, ground school review, oral exam transcripts, AI training records"
+        canonical="/session-history"
+        noIndex
+      />
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
