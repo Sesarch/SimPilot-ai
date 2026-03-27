@@ -7,7 +7,7 @@ interface SEOHeadProps {
   canonical?: string;
   ogType?: string;
   noIndex?: boolean;
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const SITE_NAME = "SimPilot.AI";
@@ -43,8 +43,11 @@ const SEOHead = ({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
 
-      {jsonLd && (
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      {jsonLd && (Array.isArray(jsonLd)
+        ? jsonLd.map((ld, i) => (
+            <script key={i} type="application/ld+json">{JSON.stringify(ld)}</script>
+          ))
+        : <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       )}
     </Helmet>
   );
