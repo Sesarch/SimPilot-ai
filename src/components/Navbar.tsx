@@ -81,16 +81,27 @@ const Navbar = () => {
             className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border"
           >
             <div className="container mx-auto px-6 py-4 flex flex-col gap-4">
-              {navItems.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
-                >
-                  {item.label}
-                </a>
-              ))}
+              {navItems.map((item) =>
+                item.isRoute ? (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                  >
+                    {item.label}
+                  </a>
+                )
+              )}
               <Link
                 to={user ? "/dashboard" : "/auth"}
                 onClick={() => setIsOpen(false)}
