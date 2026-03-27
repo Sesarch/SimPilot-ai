@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+import SEOHead from "@/components/SEOHead";
 
 type Profile = {
   display_name: string | null;
@@ -66,6 +67,13 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Pilot Dashboard — SimPilot.AI Training Hub"
+        description="Your SimPilot.AI pilot training dashboard. Access ground school, oral exam prep, session history, and track your progress toward checkride readiness."
+        keywords="pilot training dashboard, ground school progress, oral exam tracker, flight training hub, checkride readiness, aviation student portal"
+        canonical="/dashboard"
+        noIndex
+      />
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">

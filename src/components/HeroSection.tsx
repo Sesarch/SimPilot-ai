@@ -9,7 +9,8 @@ const HeroSection = () => {
       <div className="absolute inset-0">
         <img
           src={heroCockpit}
-          alt="Aircraft cockpit view at sunset"
+          alt="Aircraft cockpit view at sunset during flight — SimPilot.AI AI-powered pilot training platform hero image"
+          title="Experience AI-powered pilot training with SimPilot.AI"
           width={1920}
           height={1080}
           className="w-full h-full object-cover"

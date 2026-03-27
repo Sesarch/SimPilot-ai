@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, Plane } from "lucide-react";
 import { toast } from "sonner";
+import SEOHead from "@/components/SEOHead";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -28,6 +29,13 @@ const ForgotPasswordPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <SEOHead
+        title="Forgot Password — SimPilot.AI"
+        description="Reset your SimPilot.AI password. Enter your email address to receive a password reset link for your pilot training account."
+        keywords="forgot password, reset password, SimPilot.AI account recovery, pilot training login help"
+        canonical="/forgot-password"
+        noIndex
+      />
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <Plane className="w-8 h-8 text-primary" />

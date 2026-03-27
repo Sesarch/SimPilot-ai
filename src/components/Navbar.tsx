@@ -18,7 +18,7 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2">
+        <a href="#" className="flex items-center gap-2" title="SimPilot.AI — AI-Powered Pilot Training Home" aria-label="Go to SimPilot.AI homepage">
           <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
             SIM<span className="text-accent">PILOT</span>.AI
           </span>
@@ -31,6 +31,7 @@ const Navbar = () => {
               <Link
                 key={item.label}
                 to={item.href}
+                title={`SimPilot.AI ${item.label} — AI pilot training module`}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
               >
                 {item.label}
@@ -39,6 +40,7 @@ const Navbar = () => {
               <a
                 key={item.label}
                 href={item.href}
+                title={`View ${item.label} — SimPilot.AI aviation training`}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
               >
                 {item.label}
@@ -48,6 +50,7 @@ const Navbar = () => {
           {user ? (
             <Link
               to="/dashboard"
+              title="Access your SimPilot.AI pilot training dashboard"
               className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300"
             >
               Dashboard
@@ -55,6 +58,7 @@ const Navbar = () => {
           ) : (
             <Link
               to="/auth"
+              title="Sign in to SimPilot.AI — start your AI pilot training"
               className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300"
             >
               Sign In
@@ -66,6 +70,7 @@ const Navbar = () => {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="md:hidden text-foreground"
+          aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>

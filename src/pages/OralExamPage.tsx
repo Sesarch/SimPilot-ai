@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Shield, ArrowLeft, ChevronRight } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
+import SEOHead from "@/components/SEOHead";
 
 const EXAM_TYPES = [
   {
@@ -64,6 +65,12 @@ const OralExamPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEOHead
+        title="AI Oral Exam Simulator — SimPilot.AI Checkride Prep"
+        description="Practice your FAA checkride oral exam with SimPilot.AI's realistic AI examiner. Covers PPL, instrument, commercial, and CFI oral exams. Build confidence before your DPE appointment."
+        keywords="oral exam simulator, checkride prep, DPE oral exam practice, private pilot oral, instrument rating oral, commercial pilot checkride, CFI oral exam, FAA practical test"
+        canonical="/oral-exam"
+      />
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">

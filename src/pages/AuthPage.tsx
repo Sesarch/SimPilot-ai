@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Mail, Lock, Plane, User, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import SEOHead from "@/components/SEOHead";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -59,6 +60,13 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <SEOHead
+        title="Sign In / Sign Up — SimPilot.AI Pilot Training"
+        description="Sign in or create your SimPilot.AI account to access AI-powered ground school, oral exam simulators, and personalized pilot training. Start your 7-day free trial today."
+        keywords="SimPilot.AI login, pilot training sign up, aviation training account, ground school access, oral exam prep login, student pilot registration"
+        canonical="/auth"
+        noIndex
+      />
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
