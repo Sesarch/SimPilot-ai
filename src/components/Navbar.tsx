@@ -109,13 +109,16 @@ const Navbar = () => {
                   </a>
                 )
               )}
-              <Link
-                to={user ? "/dashboard" : "/auth"}
-                onClick={() => setIsOpen(false)}
-                className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded text-center"
-              >
-                {user ? "Dashboard" : "Sign In"}
-              </Link>
+              <div className="flex items-center justify-between">
+                <ThemeToggle />
+                <Link
+                  to={user ? "/dashboard" : "/auth"}
+                  onClick={() => setIsOpen(false)}
+                  className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded text-center"
+                >
+                  {user ? "Dashboard" : "Sign In"}
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}
