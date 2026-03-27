@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   { label: "Ground School", href: "/ground-school", isRoute: true },
@@ -47,6 +48,7 @@ const Navbar = () => {
               </a>
             )
           )}
+          <ThemeToggle />
           {user ? (
             <Link
               to="/dashboard"
@@ -107,13 +109,16 @@ const Navbar = () => {
                   </a>
                 )
               )}
-              <Link
-                to={user ? "/dashboard" : "/auth"}
-                onClick={() => setIsOpen(false)}
-                className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded text-center"
-              >
-                {user ? "Dashboard" : "Sign In"}
-              </Link>
+              <div className="flex items-center justify-between">
+                <ThemeToggle />
+                <Link
+                  to={user ? "/dashboard" : "/auth"}
+                  onClick={() => setIsOpen(false)}
+                  className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded text-center"
+                >
+                  {user ? "Dashboard" : "Sign In"}
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}
