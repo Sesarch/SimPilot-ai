@@ -9,6 +9,8 @@ import AuthPage from "./pages/AuthPage.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
+import GroundSchoolPage from "./pages/GroundSchoolPage.tsx";
+import OralExamPage from "./pages/OralExamPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/ground-school" element={<GroundSchoolPage />} />
+            <Route path="/oral-exam" element={<OralExamPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
