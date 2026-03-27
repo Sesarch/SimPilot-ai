@@ -4,6 +4,8 @@ import ReactMarkdown from "react-markdown";
 import { useChat, ChatMode, Msg } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { useChatSession } from "@/hooks/useChatSession";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
 
 interface TrainingChatProps {
@@ -11,6 +13,7 @@ interface TrainingChatProps {
   placeholder?: string;
   welcomeMessage?: string;
   initialPrompt?: string;
+  topicId?: string;
 }
 
 export const TrainingChat = ({
