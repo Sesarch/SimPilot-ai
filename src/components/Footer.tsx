@@ -24,6 +24,9 @@ const Footer = () => {
             <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
               Privacy
             </Link>
+            <Link to="/cookie-preferences" className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider">
+              Cookies
+            </Link>
           </div>
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
