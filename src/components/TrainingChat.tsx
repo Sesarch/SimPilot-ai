@@ -137,11 +137,12 @@ export const TrainingChat = ({
         </div>
       </div>
 
-      <ChatGateModal
-        open={showGate}
-        onClose={() => setShowGate(false)}
-        type={gateStatus}
-      />
+      {showGate && gateStatus !== "allowed" && (
+        <ChatGateModal
+          onDismiss={dismissGate}
+          type={gateStatus as "signup_required" | "paywall"}
+        />
+      )}
     </div>
   );
 };
