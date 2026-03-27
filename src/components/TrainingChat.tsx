@@ -89,7 +89,7 @@ export const TrainingChat = ({
     }
   }, [messages, topicId, user]);
 
-
+  const handleSend = () => {
     if (!input.trim() || isLoading) return;
     if (!started) setStarted(true);
     send(input.trim());
