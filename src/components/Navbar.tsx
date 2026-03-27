@@ -5,10 +5,10 @@ import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
-  { label: "Services", href: "#services" },
+  { label: "Ground School", href: "/ground-school", isRoute: true },
+  { label: "Oral Exam", href: "/oral-exam", isRoute: true },
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Contact", href: "#contact" },
 ];
 
 const Navbar = () => {
