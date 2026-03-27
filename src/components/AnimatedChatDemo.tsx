@@ -71,6 +71,7 @@ const AnimatedChatDemo = () => {
     setTyping(true);
     const typingTimer = setTimeout(() => {
       setTyping(false);
+      if (soundEnabled) playPop(nextMsg.role === "assistant");
       setVisibleCount((c) => c + 1);
     }, delay);
 
