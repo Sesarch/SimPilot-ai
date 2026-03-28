@@ -3,9 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
+const LOCAL_KEY = "simpilot_poh_path";
+
 export function usePOHUpload() {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
+  const [pohFilePath, setPohFilePath] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(LOCAL_KEY);
+    } catch {
+      return null;
+    }
+  });
 
   const upload = useCallback(async (file: File) => {
     const folder = user?.id ?? "anonymous";
@@ -20,6 +29,9 @@ export function usePOHUpload() {
 
       if (error) throw error;
 
+      setPohFilePath(path);
+      try { localStorage.setItem(LOCAL_KEY, path); } catch {}
+
       toast.success("POH uploaded successfully! It will be used to personalise your answers.");
     } catch (err: any) {
       console.error("POH upload failed:", err);
@@ -29,5 +41,5 @@ export function usePOHUpload() {
     }
   }, [user]);
 
-  return { upload, uploading };
+  return { upload, uploading, pohFilePath };
 }

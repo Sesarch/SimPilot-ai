@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -331,7 +332,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode = "general", pilotContext } = await req.json();
+    const { messages, mode = "general", pilotContext, pohFilePath } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -340,6 +341,52 @@ serve(async (req) => {
     // Inject pilot context into the system prompt for more targeted responses
     if (pilotContext && typeof pilotContext === "string" && pilotContext.trim()) {
       systemPrompt += `\n\nSTUDENT PROFILE:\n${pilotContext}\nAdapt your language, examples, and references to match this student's certificate level, aircraft type, rating focus, and region. Use region-specific regulations (e.g., FAA for US, Transport Canada for Canada, EASA for Europe).`;
+    }
+
+    // Fetch POH file content from storage if a path was provided
+    if (pohFilePath && typeof pohFilePath === "string" && pohFilePath.trim()) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const sb = createClient(supabaseUrl, serviceRoleKey);
+
+        const { data: fileData, error: fileError } = await sb.storage
+          .from("poh-files")
+          .download(pohFilePath);
+
+        if (!fileError && fileData) {
+          // Extract text content — works for text-based files directly
+          let pohText = "";
+          const fileName = pohFilePath.split("/").pop() || "";
+          const ext = fileName.split(".").pop()?.toLowerCase() || "";
+
+          if (["txt", "md", "text"].includes(ext)) {
+            pohText = await fileData.text();
+          } else {
+            // For PDF and other binary formats, attempt text extraction
+            pohText = await fileData.text();
+          }
+
+          // Truncate to ~8000 chars to avoid blowing up the context window
+          const MAX_POH_CHARS = 8000;
+          if (pohText.length > MAX_POH_CHARS) {
+            pohText = pohText.slice(0, MAX_POH_CHARS) + "\n\n[... POH content truncated for brevity ...]";
+          }
+
+          if (pohText.trim()) {
+            systemPrompt += `\n\n═══ STUDENT'S AIRCRAFT POH (Pilot's Operating Handbook) ═══
+The student has uploaded their aircraft's POH. Use this information to give aircraft-specific answers about performance data, V-speeds, limitations, procedures, checklists, and systems.
+When referencing POH data, explicitly note "Per your aircraft's POH..." so the student knows the answer is tailored to their specific aircraft.
+
+POH Content:
+${pohText}`;
+          }
+        } else {
+          console.warn("Could not download POH file:", fileError?.message);
+        }
+      } catch (pohErr) {
+        console.warn("POH fetch error:", pohErr);
+      }
     }
 
     // Check if any message contains images — use vision-capable model

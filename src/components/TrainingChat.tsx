@@ -35,7 +35,7 @@ export const TrainingChat = ({
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
   const { user } = useAuth();
   const pilotCtx = usePilotContext();
-  const { upload: uploadPOH } = usePOHUpload();
+  const { upload: uploadPOH, pohFilePath } = usePOHUpload();
   const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession, sessionId } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
@@ -43,6 +43,7 @@ export const TrainingChat = ({
     onBeforeSend: () => checkLimit(),
     onAfterSend: () => recordUsage(),
     pilotContext: pilotCtx.toPromptString(),
+    pohFilePath: pohFilePath ?? undefined,
   });
   const [started, setStarted] = useState(false);
   const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
