@@ -30,7 +30,7 @@ const FIELDS: {
     key: "region",
     label: "Region",
     icon: "🌍",
-    options: ["United States", "Canada", "Europe (EASA)", "Other"],
+    options: ["United States", "Canada", "Europe (EASA)", "Other", "General"],
   },
 ];
 
