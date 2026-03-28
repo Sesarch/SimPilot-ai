@@ -228,26 +228,26 @@ const PricingSection = () => {
             {/* CFI Cost */}
             <div className="text-center p-6 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
-                1 Hour with a CFI
+                100 Hours/Month with a CFI
               </p>
-              <p className="font-display text-5xl font-bold text-destructive">$75–$150</p>
+              <p className="font-display text-4xl md:text-5xl font-bold text-destructive">$7,500–$15,000</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Single session · Limited availability · No 24/7 access
+                Scheduling headaches · Limited availability · No 24/7 access
               </p>
             </div>
             {/* SimPilot Cost */}
             <div className="text-center p-6 rounded-lg bg-primary/10 border border-primary/30">
               <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
-                1 Month of SimPilot.AI
+                100 Hours/Month of SimPilot.AI
               </p>
-              <p className="font-display text-5xl font-bold text-primary text-glow-cyan">$79</p>
+              <p className="font-display text-4xl md:text-5xl font-bold text-primary text-glow-cyan">$79</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Unlimited AI coaching · 24/7 availability · Checkride prep included
               </p>
             </div>
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6">
-            <span className="text-accent font-semibold">That's the cost of a single CFI session</span> for an entire month of unlimited, on-demand flight training support.
+            <span className="text-accent font-semibold">100 hours of CFI time could cost up to $15,000</span> — SimPilot.AI gives you unlimited training for just $79/month.
           </p>
         </motion.div>
 
