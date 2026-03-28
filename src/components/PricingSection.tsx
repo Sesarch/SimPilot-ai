@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, GraduationCap, User, Gamepad2 } from "lucide-react";
 import PlanComparisonTable from "./PlanComparisonTable";
+import PricingFAQ from "./PricingFAQ";
 
 const plans = [
   {
