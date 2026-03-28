@@ -214,6 +214,43 @@ const PricingSection = () => {
           })}
         </div>
 
+        {/* Value Comparison Callout */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto mt-16 mb-12 rounded-xl border border-primary/30 border-glow-cyan bg-gradient-card p-8"
+        >
+          <h3 className="font-display text-lg md:text-xl font-bold text-foreground text-center mb-6">
+            How SimPilot.AI Compares to Traditional Training
+          </h3>
+          <div className="grid md:grid-cols-2 gap-6 items-center">
+            {/* CFI Cost */}
+            <div className="text-center p-6 rounded-lg bg-destructive/10 border border-destructive/20">
+              <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
+                1 Hour with a CFI
+              </p>
+              <p className="font-display text-5xl font-bold text-destructive">$75–$150</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Single session · Limited availability · No 24/7 access
+              </p>
+            </div>
+            {/* SimPilot Cost */}
+            <div className="text-center p-6 rounded-lg bg-primary/10 border border-primary/30">
+              <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
+                1 Month of SimPilot.AI
+              </p>
+              <p className="font-display text-5xl font-bold text-primary text-glow-cyan">$79</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Unlimited AI coaching · 24/7 availability · Checkride prep included
+              </p>
+            </div>
+          </div>
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            <span className="text-accent font-semibold">That's the cost of a single CFI session</span> for an entire month of unlimited, on-demand flight training support.
+          </p>
+        </motion.div>
+
         <PlanComparisonTable />
       </div>
     </section>
