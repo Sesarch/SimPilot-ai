@@ -35,6 +35,7 @@ export const TrainingChat = ({
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
   const { user } = useAuth();
   const pilotCtx = usePilotContext();
+  const { upload: uploadPOH } = usePOHUpload();
   const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession, sessionId } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
