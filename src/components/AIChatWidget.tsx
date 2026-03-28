@@ -121,23 +121,34 @@ const AIChatWidget = () => {
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length === 0 && (
                 <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground text-center">
-                    Ask me anything about flight training!
-                  </p>
-                  <p className="text-xs text-muted-foreground/70 text-center">
-                    📷 Upload VFR/IFR charts for analysis
-                  </p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {SUGGESTIONS.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => handleSend(s)}
-                        className="text-left text-xs p-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
+                  {!pilotCtx.isComplete ? (
+                    <PilotContextChips
+                      context={pilotCtx.context}
+                      onSelect={pilotCtx.updateField}
+                      compact
+                    />
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Ask me anything about flight training!
+                      </p>
+                      <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} />
+                      <p className="text-xs text-muted-foreground/70 text-center">
+                        📷 Upload VFR/IFR charts for analysis
+                      </p>
+                      <div className="grid grid-cols-1 gap-2">
+                        {SUGGESTIONS.map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => handleSend(s)}
+                            className="text-left text-xs p-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
