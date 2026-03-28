@@ -22,8 +22,8 @@ const plans = [
   {
     icon: User,
     name: "Individual Pilot",
-    monthly: 49,
-    annual: 39,
+    monthly: 79,
+    annual: 63,
     description: "For student and certified pilots sharpening their edge",
     features: [
       "Everything in Sim Enthusiast",
