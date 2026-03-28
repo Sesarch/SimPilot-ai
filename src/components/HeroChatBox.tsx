@@ -137,7 +137,7 @@ const HeroChatBox = () => {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-3 border-t border-border/40 bg-secondary/20 dark:bg-[hsl(220,15%,21%)]">
+      <div className="px-4 py-3 border-t border-border/40 bg-secondary/20 dark:bg-[hsl(220,15%,25%)]">
         <form
           onSubmit={(e) => {
             e.preventDefault();
