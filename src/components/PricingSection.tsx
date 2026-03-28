@@ -6,8 +6,8 @@ const plans = [
   {
     icon: Gamepad2,
     name: "Sim Enthusiast",
-    monthly: 19,
-    annual: 15,
+    monthly: 29,
+    annual: 23,
     description: "Perfect for home sim pilots who want real-world skills",
     features: [
       "AI flight coaching sessions",
