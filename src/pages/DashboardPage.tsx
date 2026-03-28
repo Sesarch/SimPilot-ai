@@ -72,7 +72,18 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Theme-aware background */}
+      <div className="fixed inset-0 z-0">
+        <img
+          src={heroImage}
+          alt=""
+          width={1920}
+          height={1080}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/80 to-background/90" />
+      </div>
       <SEOHead
         title="Pilot Dashboard — SimPilot.AI Training Hub"
         description="Your SimPilot.AI pilot training dashboard. Access ground school, oral exam prep, session history, and track your progress toward checkride readiness."
