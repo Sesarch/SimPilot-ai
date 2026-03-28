@@ -4,7 +4,9 @@ import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
+import { usePilotContext } from "@/hooks/usePilotContext";
 import ChatGateModal from "@/components/ChatGateModal";
+import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 
 const SUGGESTIONS = [
   "How do I prepare for my PPL checkride?",
