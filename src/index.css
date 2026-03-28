@@ -6,51 +6,51 @@
 
 @layer base {
   :root {
-    --background: 214 32% 91%;
-    --foreground: 220 30% 10%;
+    --background: 216 28% 14%;
+    --foreground: 210 20% 93%;
 
-    --card: 210 25% 95%;
-    --card-foreground: 220 30% 10%;
+    --card: 218 24% 18%;
+    --card-foreground: 210 20% 93%;
 
-    --popover: 210 25% 95%;
-    --popover-foreground: 220 30% 10%;
+    --popover: 218 24% 18%;
+    --popover-foreground: 210 20% 93%;
 
-    --primary: 192 100% 32%;
+    --primary: 192 100% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 25% 82%;
-    --secondary-foreground: 220 20% 20%;
+    --secondary: 216 20% 24%;
+    --secondary-foreground: 210 15% 88%;
 
-    --muted: 214 20% 86%;
-    --muted-foreground: 215 18% 40%;
+    --muted: 216 18% 20%;
+    --muted-foreground: 215 15% 60%;
 
-    --accent: 32 95% 48%;
-    --accent-foreground: 220 30% 8%;
+    --accent: 35 100% 52%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 78%;
-    --input: 214 20% 78%;
-    --ring: 192 100% 32%;
+    --border: 216 18% 24%;
+    --input: 216 18% 24%;
+    --ring: 192 100% 42%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 214 28% 88%;
-    --sidebar-foreground: 220 30% 10%;
-    --sidebar-primary: 192 100% 32%;
+    --sidebar-background: 216 24% 16%;
+    --sidebar-foreground: 210 20% 93%;
+    --sidebar-primary: 192 100% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 25% 82%;
-    --sidebar-accent-foreground: 220 30% 10%;
-    --sidebar-border: 214 20% 78%;
-    --sidebar-ring: 192 100% 32%;
+    --sidebar-accent: 216 20% 22%;
+    --sidebar-accent-foreground: 210 20% 93%;
+    --sidebar-border: 216 18% 24%;
+    --sidebar-ring: 192 100% 42%;
 
     /* Custom tokens */
-    --cyan-glow: 192 100% 32%;
-    --amber-instrument: 32 95% 48%;
-    --navy-deep: 214 30% 88%;
-    --navy-mid: 214 25% 82%;
-    --hud-green: 150 80% 30%;
+    --cyan-glow: 192 100% 42%;
+    --amber-instrument: 35 100% 52%;
+    --navy-deep: 216 28% 12%;
+    --navy-mid: 216 24% 18%;
+    --hud-green: 150 80% 38%;
   }
 
   .dark {
