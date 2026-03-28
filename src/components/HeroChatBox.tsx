@@ -34,11 +34,24 @@ const HeroChatBox = () => {
     e.target.value = "";
   };
 
-  const handleSend = (text: string) => {
-    if (!text.trim() && !pendingImage) return;
-    send(text, pendingImage || undefined);
+  const handleSend = (text: string, image?: string) => {
+    if (!text.trim() && !pendingImage && !image) return;
+    send(text, image || pendingImage || undefined);
     setInput("");
     setPendingImage(null);
+  };
+
+  const handleSampleChart = async () => {
+    // Convert the bundled image to base64 for the vision API
+    const res = await fetch(sampleChart);
+    const blob = await res.blob();
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setPendingImage(base64);
+      setInput("What type of airspace is KMYF and what are the requirements to enter it?");
+    };
+    reader.readAsDataURL(blob);
   };
 
   return (
