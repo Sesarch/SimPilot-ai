@@ -112,6 +112,9 @@ const faqJsonLd = {
 };
 
 const WhySimPilotPage = () => {
+  const { resolvedTheme } = useTheme();
+  const heroImage = resolvedTheme === "dark" ? whySimPilotDark : whySimPilotLight;
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
