@@ -146,6 +146,19 @@ const HeroChatBox = () => {
 
       {/* Input */}
       <div className="px-4 py-3 border-t border-border/40 bg-secondary/20 dark:bg-[hsl(220,15%,28%)]">
+        {/* Image preview */}
+        {pendingImage && (
+          <div className="mb-2 relative inline-block">
+            <img src={pendingImage} alt="Upload preview" className="h-16 rounded-lg border border-border/60 object-cover" />
+            <button
+              onClick={() => setPendingImage(null)}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+              aria-label="Remove image"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -154,15 +167,31 @@ const HeroChatBox = () => {
           className="flex gap-2"
         >
           <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-9 h-9 rounded-lg bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors shrink-0"
+            aria-label="Upload chart or image"
+            title="Upload VFR/IFR chart"
+          >
+            <ImagePlus className="w-4 h-4 text-muted-foreground" />
+          </button>
+          <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about flight training..."
+            placeholder={pendingImage ? "Describe what to analyze…" : "Ask about flight training..."}
             className="flex-1 bg-secondary/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50 backdrop-blur-sm"
             disabled={isLoading}
           />
           <button
             type="submit"
-            disabled={!input.trim() || isLoading}
+            disabled={(!input.trim() && !pendingImage) || isLoading}
             className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 hover:shadow-[0_0_15px_hsl(var(--cyan-glow)/0.3)] transition-all"
           >
             <Send className="w-4 h-4" />
