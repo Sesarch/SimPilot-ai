@@ -6,51 +6,51 @@
 
 @layer base {
   :root {
-    --background: 210 20% 96%;
-    --foreground: 220 25% 12%;
+    --background: 214 32% 91%;
+    --foreground: 220 30% 10%;
 
-    --card: 210 15% 97%;
-    --card-foreground: 220 25% 12%;
+    --card: 210 25% 95%;
+    --card-foreground: 220 30% 10%;
 
-    --popover: 210 15% 97%;
-    --popover-foreground: 220 25% 12%;
+    --popover: 210 25% 95%;
+    --popover-foreground: 220 30% 10%;
 
-    --primary: 190 100% 38%;
+    --primary: 192 100% 32%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 15% 90%;
-    --secondary-foreground: 220 15% 30%;
+    --secondary: 214 25% 82%;
+    --secondary-foreground: 220 20% 20%;
 
-    --muted: 210 15% 92%;
-    --muted-foreground: 215 15% 45%;
+    --muted: 214 20% 86%;
+    --muted-foreground: 215 18% 40%;
 
-    --accent: 35 100% 50%;
-    --accent-foreground: 220 25% 10%;
+    --accent: 32 95% 48%;
+    --accent-foreground: 220 30% 8%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 210 15% 85%;
-    --input: 210 15% 85%;
-    --ring: 190 100% 38%;
+    --border: 214 20% 78%;
+    --input: 214 20% 78%;
+    --ring: 192 100% 32%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 210 15% 94%;
-    --sidebar-foreground: 220 25% 12%;
-    --sidebar-primary: 190 100% 38%;
+    --sidebar-background: 214 28% 88%;
+    --sidebar-foreground: 220 30% 10%;
+    --sidebar-primary: 192 100% 32%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 15% 90%;
-    --sidebar-accent-foreground: 220 25% 12%;
-    --sidebar-border: 210 15% 85%;
-    --sidebar-ring: 190 100% 38%;
+    --sidebar-accent: 214 25% 82%;
+    --sidebar-accent-foreground: 220 30% 10%;
+    --sidebar-border: 214 20% 78%;
+    --sidebar-ring: 192 100% 32%;
 
     /* Custom tokens */
-    --cyan-glow: 190 100% 38%;
-    --amber-instrument: 35 100% 50%;
-    --navy-deep: 210 20% 94%;
-    --navy-mid: 210 15% 90%;
-    --hud-green: 150 80% 35%;
+    --cyan-glow: 192 100% 32%;
+    --amber-instrument: 32 95% 48%;
+    --navy-deep: 214 30% 88%;
+    --navy-mid: 214 25% 82%;
+    --hud-green: 150 80% 30%;
   }
 
   .dark {
