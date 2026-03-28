@@ -1,10 +1,11 @@
 import { useState, useMemo, useRef } from "react";
-import { Send, Bot, User, Sparkles, ImagePlus, X } from "lucide-react";
+import { Send, Bot, User, Sparkles, ImagePlus, X, Map } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import ChatGateModal from "@/components/ChatGateModal";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
+import sampleChart from "@/assets/sample-vfr-sectional-kmyf.jpg";
 
 const SUGGESTIONS = [
   "How do I prepare for my PPL checkride?",
@@ -33,11 +34,24 @@ const HeroChatBox = () => {
     e.target.value = "";
   };
 
-  const handleSend = (text: string) => {
-    if (!text.trim() && !pendingImage) return;
-    send(text, pendingImage || undefined);
+  const handleSend = (text: string, image?: string) => {
+    if (!text.trim() && !pendingImage && !image) return;
+    send(text, image || pendingImage || undefined);
     setInput("");
     setPendingImage(null);
+  };
+
+  const handleSampleChart = async () => {
+    // Convert the bundled image to base64 for the vision API
+    const res = await fetch(sampleChart);
+    const blob = await res.blob();
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setPendingImage(base64);
+      setInput("What type of airspace is KMYF and what are the requirements to enter it?");
+    };
+    reader.readAsDataURL(blob);
   };
 
   return (
@@ -91,6 +105,13 @@ const HeroChatBox = () => {
                   {s}
                 </button>
               ))}
+              <button
+                onClick={handleSampleChart}
+                className="text-[11px] px-3 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all flex items-center gap-1.5"
+              >
+                <Map className="w-3 h-3" />
+                Try: Analyze KMYF sectional chart
+              </button>
             </div>
           </div>
         ) : (
