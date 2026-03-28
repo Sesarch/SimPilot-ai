@@ -1,6 +1,7 @@
 import { Check, X, Zap, Brain, Target, Shield, BookOpen, Award, GraduationCap, Clock, Users, Plane, MessageSquare, TrendingUp, HeadphonesIcon, DollarSign, HelpCircle, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Star, Quote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -8,6 +9,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import AnimatedChatDemo from "@/components/AnimatedChatDemo";
+import whySimPilotLight from "@/assets/why-simpilot-light.jpg";
+import whySimPilotDark from "@/assets/why-simpilot-dark.jpg";
 
 /* ── Comparison data ── */
 const comparisonFeatures = [
