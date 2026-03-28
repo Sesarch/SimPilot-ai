@@ -113,6 +113,7 @@ export function useChat(options?: {
   onAfterSend?: () => void;
   mode?: ChatMode;
   pilotContext?: string;
+  pohFilePath?: string;
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
