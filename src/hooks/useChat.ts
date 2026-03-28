@@ -171,6 +171,7 @@ export function useChat(options?: {
         messages: [...messages, userMsg],
         mode: modeRef.current,
         pilotContext: options?.pilotContext,
+        pohFilePath: options?.pohFilePath,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
           setIsLoading(false);
