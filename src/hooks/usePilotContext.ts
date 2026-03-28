@@ -38,16 +38,17 @@ export function usePilotContext() {
 
     supabase
       .from("profiles")
-      .select("certificate_type, aircraft_type, rating_focus, region")
+      .select("*")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
+          const d = data as any;
           const profileCtx: PilotContext = {
-            certificate_type: data.certificate_type ?? null,
-            aircraft_type: (data as any).aircraft_type ?? null,
-            rating_focus: (data as any).rating_focus ?? null,
-            region: (data as any).region ?? null,
+            certificate_type: d.certificate_type ?? null,
+            aircraft_type: d.aircraft_type ?? null,
+            rating_focus: d.rating_focus ?? null,
+            region: d.region ?? null,
           };
           // Only update if profile has data
           if (Object.values(profileCtx).some(v => v)) {
