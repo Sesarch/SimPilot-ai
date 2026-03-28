@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
 import { Send, RotateCcw, Loader2, ClipboardCheck } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import ChatMessageContent from "@/components/ChatMessageContent";
 import { useChat, ChatMode, Msg } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { useChatSession } from "@/hooks/useChatSession";
