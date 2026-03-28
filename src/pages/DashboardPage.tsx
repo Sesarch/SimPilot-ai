@@ -91,7 +91,7 @@ const DashboardPage = () => {
         noIndex
       />
       {/* Nav */}
-      <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
+      <nav className="relative z-10 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
