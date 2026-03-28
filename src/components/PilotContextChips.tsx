@@ -32,6 +32,12 @@ const FIELDS: {
     icon: "🌍",
     options: ["United States", "Canada", "Europe (EASA)", "Other", "General"],
   },
+  {
+    key: "flight_hours",
+    label: "Flight Hours",
+    icon: "⏱️",
+    options: ["0–50", "50–150", "150–500", "500+", "General"],
+  },
 ];
 
 interface PilotContextChipsProps {
