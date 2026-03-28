@@ -162,8 +162,19 @@ const GroundSchoolPage = () => {
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-6 py-8 max-w-3xl">
+        <div className="flex-1 overflow-y-auto relative">
+          <div className="absolute inset-0">
+            <img
+              src={heroImage}
+              alt="Aviation study materials — Ground School background"
+              width={1920}
+              height={1080}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/75 to-background" />
+          </div>
+          <div className="container mx-auto px-6 py-8 max-w-3xl relative z-10">
             <div className="mb-8">
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">
                 Ground School Lessons
