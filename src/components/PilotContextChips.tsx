@@ -12,7 +12,7 @@ const FIELDS: {
     key: "certificate_type",
     label: "Certificate",
     icon: "🎓",
-    options: ["Student", "Sport", "Private (PPL)", "Commercial (CPL)", "CFI / CFII", "ATP"],
+    options: ["Student", "Sport", "Private (PPL)", "Commercial (CPL)", "CFI / CFII", "ATP", "General"],
   },
   {
     key: "aircraft_type",
