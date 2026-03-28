@@ -40,12 +40,12 @@ const plans = [
   {
     icon: GraduationCap,
     name: "Flight School",
-    monthly: 199,
-    annual: 159,
+    monthly: 299,
+    annual: 239,
     description: "Enterprise solution for flight training organizations",
     features: [
       "Everything in Individual Pilot",
-      "Up to 50 student accounts",
+      "Up to 20 student accounts",
       "Instructor admin dashboard",
       "Batch student analytics",
       "Curriculum integration API",
