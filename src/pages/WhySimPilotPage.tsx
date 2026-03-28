@@ -268,6 +268,95 @@ const WhySimPilotPage = () => {
         </div>
       </section>
 
+      {/* ── Pricing Comparison: SimPilot vs CFI ── */}
+      <section className="py-20 bg-secondary/20" aria-labelledby="cost-comparison-heading">
+        <div className="container mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-accent/10 text-accent border border-accent/20 mb-4">
+              <DollarSign className="w-3.5 h-3.5" /> Cost Comparison
+            </div>
+            <h2 id="cost-comparison-heading" className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              SimPilot.AI vs Hiring a CFI
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Quality flight training doesn't have to break the bank. See how SimPilot.AI compares to traditional CFI ground instruction costs.
+            </p>
+          </motion.div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+              {/* Table header */}
+              <div className="grid grid-cols-3 bg-secondary/40 border-b border-border">
+                <div className="p-4 md:p-5 font-display text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                  Factor
+                </div>
+                <div className="p-4 md:p-5 text-center border-x border-border bg-primary/5">
+                  <span className="font-display text-xs md:text-sm font-bold text-primary tracking-wide">SimPilot.AI</span>
+                </div>
+                <div className="p-4 md:p-5 text-center">
+                  <span className="font-display text-xs md:text-sm font-medium text-muted-foreground tracking-wide">Traditional CFI</span>
+                </div>
+              </div>
+
+              {/* Rows */}
+              {[
+                { factor: "Hourly Ground Cost", simpilot: "From $0.63/hr", cfi: "$50–$80/hr", simpilotHighlight: true },
+                { factor: "Availability", simpilot: "24/7, instant", cfi: "By appointment only", simpilotHighlight: true },
+                { factor: "Oral Exam Practice", simpilot: "Unlimited mock exams", cfi: "~$50–$80 per session", simpilotHighlight: true },
+                { factor: "Monthly Cost (est.)", simpilot: "Starting at $19/mo", cfi: "$400–$1,200+/mo", simpilotHighlight: true },
+                { factor: "Annual Cost (est.)", simpilot: "Starting at $180/yr", cfi: "$5,000–$15,000+/yr", simpilotHighlight: true },
+                { factor: "Consistency", simpilot: "Same quality every session", cfi: "Varies by instructor", simpilotHighlight: true },
+                { factor: "Progress Tracking", simpilot: "Automated & detailed", cfi: "Manual, if at all", simpilotHighlight: true },
+                { factor: "Session Review", simpilot: "Full history saved", cfi: "Rely on your own notes", simpilotHighlight: true },
+                { factor: "In-Aircraft Training", simpilot: "No (ground/knowledge only)", cfi: "Yes", simpilotHighlight: false },
+                { factor: "Sign-Off Authority", simpilot: "No (supplemental tool)", cfi: "Yes (FAA authorized)", simpilotHighlight: false },
+              ].map((row, i) => (
+                <motion.div
+                  key={row.factor}
+                  initial={{ opacity: 0, x: -15 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: 0.04 * i }}
+                  className={`grid grid-cols-3 ${i % 2 === 0 ? "bg-card" : "bg-secondary/10"} ${i < 9 ? "border-b border-border/40" : ""}`}
+                >
+                  <div className="p-3 md:p-4 flex items-center">
+                    <span className="text-xs md:text-sm font-medium text-foreground">{row.factor}</span>
+                  </div>
+                  <div className="p-3 md:p-4 text-center border-x border-border/30 bg-primary/[0.02] flex items-center justify-center">
+                    <span className={`text-xs md:text-sm font-semibold ${row.simpilotHighlight ? "text-primary" : "text-muted-foreground"}`}>
+                      {row.simpilot}
+                    </span>
+                  </div>
+                  <div className="p-3 md:p-4 text-center flex items-center justify-center">
+                    <span className={`text-xs md:text-sm ${!row.simpilotHighlight ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+                      {row.cfi}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Disclaimer + CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-6 text-center"
+            >
+              <p className="text-[11px] text-muted-foreground mb-5">
+                * SimPilot.AI is a supplemental ground training tool. It does not replace in-aircraft instruction or CFI sign-off authority. CFI rates based on U.S. national averages.
+              </p>
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
+              >
+                <Zap className="w-4 h-4" /> Start Your 7-Day Free Trial
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Testimonials ── */}
       <section className="py-20 bg-secondary/30" aria-labelledby="testimonials-heading">
         <div className="container mx-auto px-4">
