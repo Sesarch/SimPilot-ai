@@ -50,6 +50,7 @@ export function usePilotContext() {
             aircraft_type: d.aircraft_type ?? null,
             rating_focus: d.rating_focus ?? null,
             region: d.region ?? null,
+            flight_hours: d.flight_hours != null ? String(d.flight_hours) : null,
           };
           // Only update if profile has data
           if (Object.values(profileCtx).some(v => v)) {
