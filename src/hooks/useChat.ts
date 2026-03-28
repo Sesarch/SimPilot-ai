@@ -21,6 +21,7 @@ async function streamChat({
   messages,
   mode,
   pilotContext,
+  pohFilePath,
   onDelta,
   onDone,
   onError,
@@ -28,6 +29,7 @@ async function streamChat({
   messages: Msg[];
   mode: ChatMode;
   pilotContext?: string;
+  pohFilePath?: string;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
@@ -38,7 +40,7 @@ async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, mode, pilotContext }),
+    body: JSON.stringify({ messages, mode, pilotContext, pohFilePath }),
   });
 
   if (!resp.ok) {
