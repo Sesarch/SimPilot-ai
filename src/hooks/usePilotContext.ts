@@ -15,7 +15,7 @@ const LOCAL_KEY = "simpilot_pilot_context";
 function loadLocal(): PilotContext {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
-    return raw ? JSON.parse(raw) : { certificate_type: null, aircraft_type: null, rating_focus: null, region: null };
+    return raw ? JSON.parse(raw) : { certificate_type: null, aircraft_type: null, rating_focus: null, region: null, flight_hours: null };
   } catch {
     return { certificate_type: null, aircraft_type: null, rating_focus: null, region: null };
   }
