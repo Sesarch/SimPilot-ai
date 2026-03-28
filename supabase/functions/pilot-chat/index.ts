@@ -313,7 +313,16 @@ DEBRIEF PROTOCOL — When the student says "debrief", "end exam", "how did I do"
 ### 💡 Examiner Notes
 - [Overall impressions, test-taking tips, common traps to avoid]
 
-Always end the debrief by asking if they'd like to drill into any weak areas.`,
+Always end the debrief by asking if they'd like to drill into any weak areas.
+
+ALWAYS end your response with a "📚 Sources" section listing every FAA reference you cited. Format:
+
+---
+📚 **Sources**
+- PHAK Ch 5 — Aerodynamics of Flight
+- 14 CFR 61.57 — Recent Experience
+
+Only list sources you actually referenced.`,
 };
 
 serve(async (req) => {
