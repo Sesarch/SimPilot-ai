@@ -19,7 +19,10 @@ type Profile = {
 const DashboardPage = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [saving, setSaving] = useState(false);
+  const heroImage = resolvedTheme === "dark" ? dashboardDark : dashboardLight;
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
