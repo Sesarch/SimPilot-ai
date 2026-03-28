@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Upload } from "lucide-react";
 import { PilotContext } from "@/hooks/usePilotContext";
 
 interface FieldDef {
