@@ -3,7 +3,9 @@ import { Send, Bot, User, Sparkles, ImagePlus, X, Map } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
+import { usePilotContext } from "@/hooks/usePilotContext";
 import ChatGateModal from "@/components/ChatGateModal";
+import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import sampleChart from "@/assets/sample-vfr-sectional-kmyf.jpg";
 
