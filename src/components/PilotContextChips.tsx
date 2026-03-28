@@ -154,13 +154,34 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, compact = false }: 
 
       {/* POH upload note for aircraft step */}
       {currentField.note && (
-        <motion.p
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className={`text-center text-muted-foreground/60 italic ${compact ? "text-[10px] px-3" : "text-[11px] px-4"}`}
         >
-          {currentField.note}
-        </motion.p>
+          <p>
+            Uploading POH is not required. However, if you would like to receive more accurate answers based on your actual training aircraft, please{" "}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-0.5 text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors not-italic font-medium"
+            >
+              <Upload className={`${compact ? "w-2.5 h-2.5" : "w-3 h-3"}`} />
+              upload your aircraft's POH
+            </button>.
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.txt"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file && onPOHUpload) onPOHUpload(file);
+              e.target.value = "";
+            }}
+          />
+        </motion.div>
       )}
     </motion.div>
   );
