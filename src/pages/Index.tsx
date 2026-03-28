@@ -98,8 +98,9 @@ const Index = () => {
       <TrustBadges />
       <TestimonialsSection />
       <PricingSection />
-      <CTASection />
-      <Footer />
+       <CTASection />
+       <NewsletterSection />
+       <Footer />
       <AIChatWidget />
       <CookieConsent />
     </div>
