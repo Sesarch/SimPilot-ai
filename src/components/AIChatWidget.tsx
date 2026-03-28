@@ -20,6 +20,7 @@ const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const limit = useMessageLimit();
   const pilotCtx = usePilotContext();
+  const { upload: uploadPOH } = usePOHUpload();
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
