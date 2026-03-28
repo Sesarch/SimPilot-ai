@@ -20,12 +20,13 @@ const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const limit = useMessageLimit();
   const pilotCtx = usePilotContext();
-  const { upload: uploadPOH } = usePOHUpload();
+  const { upload: uploadPOH, pohFilePath } = usePOHUpload();
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
     pilotContext: pilotCtx.toPromptString(),
-  }), [limit, pilotCtx]);
+    pohFilePath: pohFilePath ?? undefined,
+  }), [limit, pilotCtx, pohFilePath]);
   const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
