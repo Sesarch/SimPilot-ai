@@ -129,6 +129,7 @@ const AIChatWidget = () => {
                       context={pilotCtx.context}
                       onSelect={pilotCtx.updateField}
                       onPOHUpload={uploadPOH}
+                      pohUploaded={!!pohFilePath}
                       compact
                     />
                   ) : (
@@ -136,7 +137,7 @@ const AIChatWidget = () => {
                       <p className="text-sm text-muted-foreground text-center">
                         Ask me anything about flight training!
                       </p>
-                      <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} />
+                      <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} />
                       <p className="text-xs text-muted-foreground/70 text-center">
                         📷 Upload VFR/IFR charts for analysis
                       </p>

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload } from "lucide-react";
+import { Upload, CheckCircle2 } from "lucide-react";
 import { PilotContext } from "@/hooks/usePilotContext";
 
 interface FieldDef {
@@ -85,10 +85,11 @@ interface PilotContextChipsProps {
   context: PilotContext;
   onSelect: (field: keyof PilotContext, value: string) => void;
   onPOHUpload?: (file: File) => void;
+  pohUploaded?: boolean;
   compact?: boolean;
 }
 
-const PilotContextChips = ({ context, onSelect, onPOHUpload, compact = false }: PilotContextChipsProps) => {
+const PilotContextChips = ({ context, onSelect, onPOHUpload, pohUploaded = false, compact = false }: PilotContextChipsProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fields = getFields(context);
   const unsetFields = fields.filter((f) => !context[f.key]);
@@ -159,17 +160,32 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, compact = false }: 
           animate={{ opacity: 1 }}
           className={`text-center text-muted-foreground/60 italic ${compact ? "text-[10px] px-3" : "text-[11px] px-4"}`}
         >
-          <p>
-            Uploading POH is not required. However, if you would like to receive more accurate answers based on your actual training aircraft, please{" "}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-0.5 text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors not-italic font-medium"
-            >
-              <Upload className={`${compact ? "w-2.5 h-2.5" : "w-3 h-3"}`} />
-              upload your aircraft's POH
-            </button>.
-          </p>
+          {pohUploaded ? (
+            <p className="flex items-center justify-center gap-1.5 not-italic">
+              <CheckCircle2 className={`text-hud-green ${compact ? "w-3 h-3" : "w-3.5 h-3.5"}`} />
+              <span className="text-hud-green font-medium">POH uploaded</span>
+              <span className="text-muted-foreground/50">— AI responses will reference your aircraft manual.</span>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-primary/70 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors font-medium ml-1"
+              >
+                Replace
+              </button>
+            </p>
+          ) : (
+            <p>
+              Uploading POH is not required. However, if you would like to receive more accurate answers based on your actual training aircraft, please{" "}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-0.5 text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors not-italic font-medium"
+              >
+                <Upload className={`${compact ? "w-2.5 h-2.5" : "w-3 h-3"}`} />
+                upload your aircraft's POH
+              </button>.
+            </p>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -191,9 +207,11 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, compact = false }: 
 export const PilotContextBadge = ({
   context,
   onClear,
+  pohUploaded = false,
 }: {
   context: PilotContext;
   onClear: (field: keyof PilotContext) => void;
+  pohUploaded?: boolean;
 }) => {
   const fields = getFields(context);
   const set = fields.filter((f) => context[f.key]);
@@ -211,6 +229,12 @@ export const PilotContextBadge = ({
           {f.icon} {context[f.key]}
         </button>
       ))}
+      {pohUploaded && (
+        <span className="text-[9px] px-2 py-0.5 rounded-full bg-hud-green/10 text-hud-green border border-hud-green/20 flex items-center gap-1">
+          <CheckCircle2 className="w-2.5 h-2.5" />
+          POH
+        </span>
+      )}
     </div>
   );
 };
