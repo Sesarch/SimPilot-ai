@@ -53,7 +53,7 @@ const demoConversation = [
 const AnimatedChatDemo = () => {
   const [visibleCount, setVisibleCount] = useState(0);
   const [typing, setTyping] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const playPop = useMessageSound();
 
   useEffect(() => {
