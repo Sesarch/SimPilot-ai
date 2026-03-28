@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
+import groundSchoolLight from "@/assets/ground-school-light.jpg";
+import groundSchoolDark from "@/assets/ground-school-dark.jpg";
 
 const LESSON_AREAS = [
   {
