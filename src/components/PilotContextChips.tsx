@@ -12,25 +12,25 @@ const FIELDS: {
     key: "certificate_type",
     label: "Certificate",
     icon: "🎓",
-    options: ["Student", "Sport", "Private (PPL)", "Commercial (CPL)", "CFI / CFII", "ATP"],
+    options: ["Student", "Sport", "Private (PPL)", "Commercial (CPL)", "CFI / CFII", "ATP", "General"],
   },
   {
     key: "aircraft_type",
     label: "Aircraft",
     icon: "✈️",
-    options: ["Single-Engine", "Multi-Engine", "Helicopter", "Glider"],
+    options: ["Single-Engine", "Multi-Engine", "Helicopter", "Glider", "General"],
   },
   {
     key: "rating_focus",
     label: "Rating",
     icon: "📋",
-    options: ["VFR", "IFR / Instrument", "Multi-Engine", "Sim Enthusiast"],
+    options: ["VFR", "IFR / Instrument", "Multi-Engine", "Sim Enthusiast", "General"],
   },
   {
     key: "region",
     label: "Region",
     icon: "🌍",
-    options: ["United States", "Canada", "Europe (EASA)", "Other"],
+    options: ["United States", "Canada", "Europe (EASA)", "Other", "General"],
   },
 ];
 
