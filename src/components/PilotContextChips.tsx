@@ -18,7 +18,7 @@ const FIELDS: {
     key: "aircraft_type",
     label: "Aircraft",
     icon: "✈️",
-    options: ["Single-Engine", "Multi-Engine", "Helicopter", "Glider"],
+    options: ["Single-Engine", "Multi-Engine", "Helicopter", "Glider", "General"],
   },
   {
     key: "rating_focus",
