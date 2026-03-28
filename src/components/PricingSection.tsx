@@ -247,7 +247,7 @@ const PricingSection = () => {
             </div>
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6">
-            <span className="text-accent font-semibold">That's the cost of a single CFI session</span> for an entire month of unlimited, on-demand flight training support.
+            <span className="text-accent font-semibold">100 hours of CFI time could cost up to $15,000</span> — SimPilot.AI gives you unlimited training for just $79/month.
           </p>
         </motion.div>
 
