@@ -207,9 +207,11 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, pohUploaded = false
 export const PilotContextBadge = ({
   context,
   onClear,
+  pohUploaded = false,
 }: {
   context: PilotContext;
   onClear: (field: keyof PilotContext) => void;
+  pohUploaded?: boolean;
 }) => {
   const fields = getFields(context);
   const set = fields.filter((f) => context[f.key]);
@@ -227,6 +229,12 @@ export const PilotContextBadge = ({
           {f.icon} {context[f.key]}
         </button>
       ))}
+      {pohUploaded && (
+        <span className="text-[9px] px-2 py-0.5 rounded-full bg-hud-green/10 text-hud-green border border-hud-green/20 flex items-center gap-1">
+          <CheckCircle2 className="w-2.5 h-2.5" />
+          POH
+        </span>
+      )}
     </div>
   );
 };
