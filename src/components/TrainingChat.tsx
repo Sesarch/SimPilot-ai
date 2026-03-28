@@ -33,12 +33,14 @@ export const TrainingChat = ({
   const firstUserMsgRef = useRef<string>("");
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
   const { user } = useAuth();
+  const pilotCtx = usePilotContext();
   const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession, sessionId } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
     mode,
     onBeforeSend: () => checkLimit(),
     onAfterSend: () => recordUsage(),
+    pilotContext: pilotCtx.toPromptString(),
   });
   const [started, setStarted] = useState(false);
   const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
