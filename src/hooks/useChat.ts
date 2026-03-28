@@ -110,6 +110,7 @@ export function useChat(options?: {
   onBeforeSend?: () => boolean;
   onAfterSend?: () => void;
   mode?: ChatMode;
+  pilotContext?: string;
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
