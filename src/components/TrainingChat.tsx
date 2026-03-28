@@ -5,8 +5,10 @@ import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { useChatSession } from "@/hooks/useChatSession";
 import { useAuth } from "@/hooks/useAuth";
+import { usePilotContext } from "@/hooks/usePilotContext";
 import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
+import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 import ExamPassCelebration from "@/components/ExamPassCelebration";
 
 interface TrainingChatProps {
