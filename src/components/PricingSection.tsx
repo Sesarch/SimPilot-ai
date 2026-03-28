@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, GraduationCap, User, Gamepad2 } from "lucide-react";
+import { Check, GraduationCap, User, Gamepad2, ShieldCheck, RefreshCcw, CreditCard } from "lucide-react";
 import PlanComparisonTable from "./PlanComparisonTable";
 import PricingFAQ from "./PricingFAQ";
 
@@ -210,6 +210,22 @@ const PricingSection = () => {
                 >
                   {plan.cta}
                 </a>
+
+                {/* Trust badges */}
+                <div className="mt-4 flex flex-col items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <ShieldCheck className="w-3.5 h-3.5 text-accent" />
+                    <span>14-Day Money-Back Guarantee</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <CreditCard className="w-3.5 h-3.5 text-accent" />
+                    <span>No Credit Card for Trial</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <RefreshCcw className="w-3.5 h-3.5 text-accent" />
+                    <span>Cancel Anytime</span>
+                  </div>
+                </div>
               </motion.div>
             );
           })}
