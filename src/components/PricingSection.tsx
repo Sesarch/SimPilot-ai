@@ -6,8 +6,8 @@ const plans = [
   {
     icon: Gamepad2,
     name: "Sim Enthusiast",
-    monthly: 19,
-    annual: 15,
+    monthly: 29,
+    annual: 23,
     description: "Perfect for home sim pilots who want real-world skills",
     features: [
       "AI flight coaching sessions",
@@ -22,8 +22,8 @@ const plans = [
   {
     icon: User,
     name: "Individual Pilot",
-    monthly: 49,
-    annual: 39,
+    monthly: 79,
+    annual: 63,
     description: "For student and certified pilots sharpening their edge",
     features: [
       "Everything in Sim Enthusiast",
@@ -40,12 +40,12 @@ const plans = [
   {
     icon: GraduationCap,
     name: "Flight School",
-    monthly: 199,
-    annual: 159,
+    monthly: 299,
+    annual: 239,
     description: "Enterprise solution for flight training organizations",
     features: [
       "Everything in Individual Pilot",
-      "Up to 50 student accounts",
+      "Up to 20 student accounts",
       "Instructor admin dashboard",
       "Batch student analytics",
       "Curriculum integration API",

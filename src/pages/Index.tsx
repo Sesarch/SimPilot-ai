@@ -25,8 +25,8 @@ const homeJsonLd = {
   operatingSystem: "Web",
   offers: {
     "@type": "AggregateOffer",
-    lowPrice: "15",
-    highPrice: "199",
+    lowPrice: "23",
+    highPrice: "299",
     priceCurrency: "USD",
   },
 };
