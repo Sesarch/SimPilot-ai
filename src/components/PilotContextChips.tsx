@@ -24,7 +24,7 @@ const FIELDS: {
     key: "rating_focus",
     label: "Rating",
     icon: "📋",
-    options: ["VFR", "IFR / Instrument", "Multi-Engine", "Sim Enthusiast"],
+    options: ["VFR", "IFR / Instrument", "Multi-Engine", "Sim Enthusiast", "General"],
   },
   {
     key: "region",
