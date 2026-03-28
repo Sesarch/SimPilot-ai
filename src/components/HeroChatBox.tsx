@@ -16,11 +16,13 @@ const SUGGESTIONS = [
 ];
 
 const HeroChatBox = () => {
+  const pilotCtx = usePilotContext();
   const limit = useMessageLimit();
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
-  }), [limit]);
+    pilotContext: pilotCtx.toPromptString(),
+  }), [limit, pilotCtx]);
   const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
