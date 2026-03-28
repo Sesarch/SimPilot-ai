@@ -95,28 +95,39 @@ const HeroChatBox = () => {
       <div ref={scrollRef} className="h-[200px] overflow-y-auto p-4 space-y-3 dark:bg-[hsl(220,15%,27%)]">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center gap-3">
-            <Sparkles className="w-5 h-5 text-primary/40" />
-            <p className="text-sm text-muted-foreground text-center">
-              Ask me anything about flight training — for free!
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => handleSend(s)}
-                  className="text-[11px] px-3 py-1.5 rounded-full border border-border/60 hover:border-primary/40 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all"
-                >
-                  {s}
-                </button>
-              ))}
-              <button
-                onClick={handleSampleChart}
-                className="text-[11px] px-3 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all flex items-center gap-1.5"
-              >
-                <Map className="w-3 h-3" />
-                Try: Analyze KMYF sectional chart
-              </button>
-            </div>
+            {!pilotCtx.isComplete ? (
+              <PilotContextChips
+                context={pilotCtx.context}
+                onSelect={pilotCtx.updateField}
+                compact
+              />
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 text-primary/40" />
+                <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} />
+                <p className="text-sm text-muted-foreground text-center">
+                  Ask me anything about flight training — for free!
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {SUGGESTIONS.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleSend(s)}
+                      className="text-[11px] px-3 py-1.5 rounded-full border border-border/60 hover:border-primary/40 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                  <button
+                    onClick={handleSampleChart}
+                    className="text-[11px] px-3 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all flex items-center gap-1.5"
+                  >
+                    <Map className="w-3 h-3" />
+                    Try: Analyze KMYF sectional chart
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <>
