@@ -110,7 +110,7 @@ const HeroChatBox = () => {
             ) : (
               <>
                 <Sparkles className="w-5 h-5 text-primary/40" />
-                <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} />
+                <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} onPOHClear={clearPOH} />
                 <p className="text-sm text-muted-foreground text-center">
                   Ask me anything about flight training — for free!
                 </p>

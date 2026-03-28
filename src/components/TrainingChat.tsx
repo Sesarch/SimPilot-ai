@@ -210,7 +210,7 @@ export const TrainingChat = ({
                 />
               </div>
             ) : (
-              <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} />
+              <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} onPOHClear={clearPOH} />
             )}
             <p className="text-muted-foreground text-sm max-w-md mb-6 mt-2">{welcomeMessage}</p>
             {initialPrompt && (
