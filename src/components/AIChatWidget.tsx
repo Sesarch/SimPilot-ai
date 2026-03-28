@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Send, Bot, User, Plane, X } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import ChatMessageContent from "@/components/ChatMessageContent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
