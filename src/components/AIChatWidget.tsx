@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Send, Bot, User, Plane, X } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import ChatMessageContent from "@/components/ChatMessageContent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -128,9 +128,7 @@ const AIChatWidget = () => {
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_ul]:mt-1 [&_ol]:mt-1 [&_hr]:my-2 [&_hr]:border-primary/20 [&_hr+p>strong]:text-primary [&_hr+p]:text-xs [&_hr~ul]:text-xs [&_hr~ul]:text-muted-foreground [&_hr~ul]:mt-0.5">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </div>
+                      <ChatMessageContent content={msg.content} />
                     ) : (
                       msg.content
                     )}
