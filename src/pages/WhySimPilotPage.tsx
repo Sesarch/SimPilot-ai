@@ -82,6 +82,17 @@ const pageJsonLd = {
   description: "Discover why SimPilot.AI is different from general AI chatbots. Purpose-built for pilot training with FAA references, oral exam simulation, and Socratic teaching.",
 };
 
+const pricingFaqs = [
+  { q: "How much does SimPilot.AI cost?", a: "SimPilot.AI starts at just $19/month for sim enthusiasts, $49/month for individual pilots, and $199/month for flight schools. Annual billing saves you 20%. Every plan includes a 7-day free trial — no credit card required." },
+  { q: "Is SimPilot.AI cheaper than hiring a CFI for ground training?", a: "Significantly. A traditional CFI charges $50–$80/hour for ground instruction. With SimPilot.AI's Individual Pilot plan at $49/month, you get unlimited AI coaching sessions — equivalent to paying less than $1/hour for ground training available 24/7." },
+  { q: "Can SimPilot.AI replace my flight instructor?", a: "No, and it's not designed to. SimPilot.AI is a supplemental ground training and knowledge tool. You still need a certified flight instructor for in-aircraft training, endorsements, and sign-offs. Think of it as your always-available study partner between lessons." },
+  { q: "What's included in the free trial?", a: "The 7-day free trial gives you full access to all features in your chosen plan — AI coaching, oral exam simulations, ground school lessons, progress tracking, and session history. No credit card required to start." },
+  { q: "Do I need to pay for both SimPilot.AI and a CFI?", a: "Most student pilots already pay for CFI instruction. SimPilot.AI helps you arrive at each lesson better prepared, which can actually reduce the total hours (and cost) you need with your CFI. Many students report saving hundreds to thousands of dollars in reduced dual instruction time." },
+  { q: "Is there a student or military discount?", a: "We offer special pricing for active-duty military, veterans, and student organizations. Contact us for details on group and institutional pricing." },
+  { q: "Can I cancel anytime?", a: "Yes. There are no long-term contracts. You can cancel your subscription at any time, and you'll retain access until the end of your current billing period." },
+  { q: "What if the AI gives me wrong information?", a: "SimPilot.AI is built with aviation-specific guardrails and cites FAR/AIM references for regulatory answers. However, it's a training tool — always verify critical information with your CFI and official FAA publications before your checkride." },
+];
+
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -89,6 +100,11 @@ const faqJsonLd = {
     { "@type": "Question", name: "How is SimPilot.AI different from ChatGPT for pilot training?", acceptedAnswer: { "@type": "Answer", text: "SimPilot.AI is purpose-built for aviation training with a dedicated CFI persona, Socratic teaching method, FAR/AIM references, and structured oral exam simulations — features that general AI chatbots don't offer." } },
     { "@type": "Question", name: "Can I use SimPilot.AI for checkride preparation?", acceptedAnswer: { "@type": "Answer", text: "Yes. SimPilot.AI simulates realistic DPE-style oral exams with scoring, pass/fail determinations, and detailed debriefs to help you prepare for your checkride." } },
     { "@type": "Question", name: "Is SimPilot.AI a replacement for a real flight instructor?", acceptedAnswer: { "@type": "Answer", text: "No. SimPilot.AI is a supplemental training tool designed to complement instruction from certified flight instructors. It is not FAA-approved." } },
+    ...pricingFaqs.map(f => ({
+      "@type": "Question" as const,
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer" as const, text: f.a },
+    })),
   ],
 };
 
