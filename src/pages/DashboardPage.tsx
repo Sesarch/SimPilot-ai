@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
+import dashboardLight from "@/assets/dashboard-light.jpg";
+import dashboardDark from "@/assets/dashboard-dark.jpg";
 
 type Profile = {
   display_name: string | null;
@@ -16,8 +19,10 @@ type Profile = {
 const DashboardPage = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
+  const heroImage = resolvedTheme === "dark" ? dashboardDark : dashboardLight;
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -66,7 +71,18 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Theme-aware background */}
+      <div className="fixed inset-0 z-0">
+        <img
+          src={heroImage}
+          alt=""
+          width={1920}
+          height={1080}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/80 to-background/90" />
+      </div>
       <SEOHead
         title="Pilot Dashboard — SimPilot.AI Training Hub"
         description="Your SimPilot.AI pilot training dashboard. Access ground school, oral exam prep, session history, and track your progress toward checkride readiness."
@@ -75,7 +91,7 @@ const DashboardPage = () => {
         noIndex
       />
       {/* Nav */}
-      <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
+      <nav className="relative z-10 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
@@ -96,7 +112,7 @@ const DashboardPage = () => {
       </nav>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-12 max-w-2xl">
+      <div className="relative z-10 container mx-auto px-6 py-12 max-w-2xl">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
             <User className="w-6 h-6 text-primary" />
