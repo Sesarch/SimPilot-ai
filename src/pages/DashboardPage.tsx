@@ -23,7 +23,6 @@ const DashboardPage = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
   const heroImage = resolvedTheme === "dark" ? dashboardDark : dashboardLight;
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
