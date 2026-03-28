@@ -18,7 +18,7 @@ const SUGGESTIONS = [
 
 const HeroChatBox = () => {
   const pilotCtx = usePilotContext();
-  const { upload: uploadPOH, pohFilePath } = usePOHUpload();
+  const { upload: uploadPOH, pohFilePath, clearPOH } = usePOHUpload();
   const limit = useMessageLimit();
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
@@ -103,13 +103,14 @@ const HeroChatBox = () => {
                 context={pilotCtx.context}
                 onSelect={pilotCtx.updateField}
                 onPOHUpload={uploadPOH}
+                onPOHClear={clearPOH}
                 pohUploaded={!!pohFilePath}
                 compact
               />
             ) : (
               <>
                 <Sparkles className="w-5 h-5 text-primary/40" />
-                <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} />
+                <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} onPOHClear={clearPOH} />
                 <p className="text-sm text-muted-foreground text-center">
                   Ask me anything about flight training — for free!
                 </p>

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, CheckCircle2 } from "lucide-react";
+import { Upload, CheckCircle2, X } from "lucide-react";
 import { PilotContext } from "@/hooks/usePilotContext";
 
 interface FieldDef {
@@ -85,11 +85,12 @@ interface PilotContextChipsProps {
   context: PilotContext;
   onSelect: (field: keyof PilotContext, value: string) => void;
   onPOHUpload?: (file: File) => void;
+  onPOHClear?: () => void;
   pohUploaded?: boolean;
   compact?: boolean;
 }
 
-const PilotContextChips = ({ context, onSelect, onPOHUpload, pohUploaded = false, compact = false }: PilotContextChipsProps) => {
+const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUploaded = false, compact = false }: PilotContextChipsProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fields = getFields(context);
   const unsetFields = fields.filter((f) => !context[f.key]);
@@ -172,6 +173,15 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, pohUploaded = false
               >
                 Replace
               </button>
+              {onPOHClear && (
+                <button
+                  type="button"
+                  onClick={onPOHClear}
+                  className="text-destructive/60 hover:text-destructive underline underline-offset-2 decoration-destructive/30 hover:decoration-destructive/60 transition-colors font-medium ml-1"
+                >
+                  Remove
+                </button>
+              )}
             </p>
           ) : (
             <p>
@@ -208,10 +218,12 @@ export const PilotContextBadge = ({
   context,
   onClear,
   pohUploaded = false,
+  onPOHClear,
 }: {
   context: PilotContext;
   onClear: (field: keyof PilotContext) => void;
   pohUploaded?: boolean;
+  onPOHClear?: () => void;
 }) => {
   const fields = getFields(context);
   const set = fields.filter((f) => context[f.key]);
@@ -230,10 +242,15 @@ export const PilotContextBadge = ({
         </button>
       ))}
       {pohUploaded && (
-        <span className="text-[9px] px-2 py-0.5 rounded-full bg-hud-green/10 text-hud-green border border-hud-green/20 flex items-center gap-1">
+        <button
+          onClick={onPOHClear}
+          title="Click to remove POH"
+          className="text-[9px] px-2 py-0.5 rounded-full bg-hud-green/10 text-hud-green border border-hud-green/20 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-colors flex items-center gap-1"
+        >
           <CheckCircle2 className="w-2.5 h-2.5" />
           POH
-        </span>
+          <X className="w-2.5 h-2.5" />
+        </button>
       )}
     </div>
   );

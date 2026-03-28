@@ -41,5 +41,18 @@ export function usePOHUpload() {
     }
   }, [user]);
 
-  return { upload, uploading, pohFilePath };
+  const clearPOH = useCallback(async () => {
+    if (pohFilePath) {
+      try {
+        await supabase.storage.from("poh-files").remove([pohFilePath]);
+      } catch (err) {
+        console.warn("Could not delete POH file from storage:", err);
+      }
+    }
+    setPohFilePath(null);
+    try { localStorage.removeItem(LOCAL_KEY); } catch {}
+    toast.success("POH removed.");
+  }, [pohFilePath]);
+
+  return { upload, uploading, pohFilePath, clearPOH };
 }

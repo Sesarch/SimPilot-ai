@@ -20,7 +20,7 @@ const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const limit = useMessageLimit();
   const pilotCtx = usePilotContext();
-  const { upload: uploadPOH, pohFilePath } = usePOHUpload();
+  const { upload: uploadPOH, pohFilePath, clearPOH } = usePOHUpload();
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
@@ -129,6 +129,7 @@ const AIChatWidget = () => {
                       context={pilotCtx.context}
                       onSelect={pilotCtx.updateField}
                       onPOHUpload={uploadPOH}
+                      onPOHClear={clearPOH}
                       pohUploaded={!!pohFilePath}
                       compact
                     />
@@ -137,7 +138,7 @@ const AIChatWidget = () => {
                       <p className="text-sm text-muted-foreground text-center">
                         Ask me anything about flight training!
                       </p>
-                      <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} />
+                      <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} onPOHClear={clearPOH} />
                       <p className="text-xs text-muted-foreground/70 text-center">
                         📷 Upload VFR/IFR charts for analysis
                       </p>

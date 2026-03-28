@@ -35,7 +35,7 @@ export const TrainingChat = ({
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
   const { user } = useAuth();
   const pilotCtx = usePilotContext();
-  const { upload: uploadPOH, pohFilePath } = usePOHUpload();
+  const { upload: uploadPOH, pohFilePath, clearPOH } = usePOHUpload();
   const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession, sessionId } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
@@ -205,11 +205,12 @@ export const TrainingChat = ({
                   context={pilotCtx.context}
                   onSelect={pilotCtx.updateField}
                   onPOHUpload={uploadPOH}
+                  onPOHClear={clearPOH}
                   pohUploaded={!!pohFilePath}
                 />
               </div>
             ) : (
-              <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} />
+              <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} pohUploaded={!!pohFilePath} onPOHClear={clearPOH} />
             )}
             <p className="text-muted-foreground text-sm max-w-md mb-6 mt-2">{welcomeMessage}</p>
             {initialPrompt && (
