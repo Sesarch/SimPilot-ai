@@ -97,6 +97,7 @@ export function usePilotContext() {
     if (context.aircraft_type) parts.push(`Aircraft: ${context.aircraft_type}`);
     if (context.rating_focus) parts.push(`Rating/Focus: ${context.rating_focus}`);
     if (context.region) parts.push(`Region: ${context.region}`);
+    if (context.flight_hours) parts.push(`Flight Hours: ${context.flight_hours}`);
     return parts.length ? parts.join(" | ") : "";
   }, [context]);
 
