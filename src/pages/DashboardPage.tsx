@@ -112,7 +112,7 @@ const DashboardPage = () => {
       </nav>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-12 max-w-2xl">
+      <div className="relative z-10 container mx-auto px-6 py-12 max-w-2xl">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
             <User className="w-6 h-6 text-primary" />
