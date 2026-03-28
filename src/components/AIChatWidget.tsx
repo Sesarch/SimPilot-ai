@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { usePilotContext } from "@/hooks/usePilotContext";
+import { usePOHUpload } from "@/hooks/usePOHUpload";
 import ChatGateModal from "@/components/ChatGateModal";
 import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 
@@ -19,6 +20,7 @@ const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const limit = useMessageLimit();
   const pilotCtx = usePilotContext();
+  const { upload: uploadPOH } = usePOHUpload();
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
@@ -125,6 +127,7 @@ const AIChatWidget = () => {
                     <PilotContextChips
                       context={pilotCtx.context}
                       onSelect={pilotCtx.updateField}
+                      onPOHUpload={uploadPOH}
                       compact
                     />
                   ) : (

@@ -6,6 +6,7 @@ import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { useChatSession } from "@/hooks/useChatSession";
 import { useAuth } from "@/hooks/useAuth";
 import { usePilotContext } from "@/hooks/usePilotContext";
+import { usePOHUpload } from "@/hooks/usePOHUpload";
 import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
 import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
@@ -34,6 +35,7 @@ export const TrainingChat = ({
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
   const { user } = useAuth();
   const pilotCtx = usePilotContext();
+  const { upload: uploadPOH } = usePOHUpload();
   const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession, sessionId } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
@@ -201,6 +203,7 @@ export const TrainingChat = ({
                 <PilotContextChips
                   context={pilotCtx.context}
                   onSelect={pilotCtx.updateField}
+                  onPOHUpload={uploadPOH}
                 />
               </div>
             ) : (
