@@ -5,13 +5,19 @@ import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
 import HeroChatBox from "@/components/HeroChatBox";
 
 const HeroSection = () => {
+  const { resolvedTheme } = useTheme();
+  const heroImage = resolvedTheme === "dark" ? heroCockpit : heroCockpitMorning;
+  const heroAlt = resolvedTheme === "dark"
+    ? "Aircraft cockpit view at sunset during flight — SimPilot.AI AI-powered pilot training platform hero image"
+    : "Aircraft cockpit view on a bright morning flight — SimPilot.AI AI-powered pilot training platform hero image";
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background image */}
       <div className="absolute inset-0">
         <img
-          src={heroCockpit}
-          alt="Aircraft cockpit view at sunset during flight — SimPilot.AI AI-powered pilot training platform hero image"
+          src={heroImage}
+          alt={heroAlt}
           title="Experience AI-powered pilot training with SimPilot.AI"
           width={1920}
           height={1080}
