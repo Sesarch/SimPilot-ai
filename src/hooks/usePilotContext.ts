@@ -7,6 +7,7 @@ export interface PilotContext {
   aircraft_type: string | null;
   rating_focus: string | null;
   region: string | null;
+  flight_hours: string | null;
 }
 
 const LOCAL_KEY = "simpilot_pilot_context";
@@ -14,9 +15,9 @@ const LOCAL_KEY = "simpilot_pilot_context";
 function loadLocal(): PilotContext {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
-    return raw ? JSON.parse(raw) : { certificate_type: null, aircraft_type: null, rating_focus: null, region: null };
+    return raw ? JSON.parse(raw) : { certificate_type: null, aircraft_type: null, rating_focus: null, region: null, flight_hours: null };
   } catch {
-    return { certificate_type: null, aircraft_type: null, rating_focus: null, region: null };
+    return { certificate_type: null, aircraft_type: null, rating_focus: null, region: null, flight_hours: null };
   }
 }
 
@@ -49,6 +50,7 @@ export function usePilotContext() {
             aircraft_type: d.aircraft_type ?? null,
             rating_focus: d.rating_focus ?? null,
             region: d.region ?? null,
+            flight_hours: d.flight_hours != null ? String(d.flight_hours) : null,
           };
           // Only update if profile has data
           if (Object.values(profileCtx).some(v => v)) {
@@ -68,9 +70,12 @@ export function usePilotContext() {
 
         // Save to profile if logged in
         if (user) {
+          const updateVal = field === "flight_hours"
+            ? { flight_hours: value ? parseInt(value) || 0 : null, updated_at: new Date().toISOString() }
+            : { [field]: value, updated_at: new Date().toISOString() };
           supabase
             .from("profiles")
-            .update({ [field]: value, updated_at: new Date().toISOString() })
+            .update(updateVal)
             .eq("user_id", user.id)
             .then(({ error }) => {
               if (error) console.error("Failed to save pilot context:", error);
@@ -92,6 +97,7 @@ export function usePilotContext() {
     if (context.aircraft_type) parts.push(`Aircraft: ${context.aircraft_type}`);
     if (context.rating_focus) parts.push(`Rating/Focus: ${context.rating_focus}`);
     if (context.region) parts.push(`Region: ${context.region}`);
+    if (context.flight_hours) parts.push(`Flight Hours: ${context.flight_hours}`);
     return parts.length ? parts.join(" | ") : "";
   }, [context]);
 
