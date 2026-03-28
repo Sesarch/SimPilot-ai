@@ -167,6 +167,7 @@ export function useChat(options?: {
       await streamChat({
         messages: [...messages, userMsg],
         mode: modeRef.current,
+        pilotContext: options?.pilotContext,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
           setIsLoading(false);
