@@ -7,6 +7,7 @@ export interface PilotContext {
   aircraft_type: string | null;
   rating_focus: string | null;
   region: string | null;
+  flight_hours: string | null;
 }
 
 const LOCAL_KEY = "simpilot_pilot_context";
