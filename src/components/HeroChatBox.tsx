@@ -103,6 +103,7 @@ const HeroChatBox = () => {
                 context={pilotCtx.context}
                 onSelect={pilotCtx.updateField}
                 onPOHUpload={uploadPOH}
+                onPOHClear={clearPOH}
                 pohUploaded={!!pohFilePath}
                 compact
               />
