@@ -1,10 +1,11 @@
 import { useState, useMemo, useRef } from "react";
-import { Send, Bot, User, Sparkles, ImagePlus, X } from "lucide-react";
+import { Send, Bot, User, Sparkles, ImagePlus, X, Map } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import ChatGateModal from "@/components/ChatGateModal";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
+import sampleChart from "@/assets/sample-vfr-sectional-kmyf.jpg";
 
 const SUGGESTIONS = [
   "How do I prepare for my PPL checkride?",
