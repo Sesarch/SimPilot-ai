@@ -337,6 +337,28 @@ serve(async (req) => {
 
     const systemPrompt = MODE_PROMPTS[mode] || MODE_PROMPTS.general;
 
+    // Check if any message contains images — use vision-capable model
+    const hasImages = messages.some((m: any) => Array.isArray(m.content) && m.content.some((c: any) => c.type === "image_url"));
+    const model = hasImages ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
+
+    // Build system prompt with image analysis instructions when images are present
+    let finalSystemPrompt = systemPrompt;
+    if (hasImages) {
+      finalSystemPrompt += `\n\nIMAGE ANALYSIS CAPABILITY:
+You can analyze aviation charts, sectional charts, VFR/IFR charts, approach plates, airport diagrams, cockpit instruments, and any aviation-related images.
+
+When analyzing a chart or sectional image:
+1. Identify the type of chart (VFR Sectional, TAC, IFR Low/High Enroute, Approach Plate, Airport Diagram)
+2. Identify airports, airspace boundaries, navaids, frequencies, and other features visible
+3. Reference the specific airspace class, dimensions, and requirements per 14 CFR Part 71 and AIM Ch 3
+4. Point out any special use airspace, TFRs, or restricted areas visible
+5. Note relevant frequencies (CTAF, Tower, Approach, ATIS, etc.)
+6. Identify terrain features, obstructions, and MEF (Maximum Elevation Figure)
+7. Always cite the relevant FAA sources for any rules or procedures you reference
+
+Be specific and thorough — treat the image as if a student pilot brought a chart to a ground school lesson.`;
+    }
+
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -346,9 +368,9 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model,
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: finalSystemPrompt },
             ...messages,
           ],
           stream: true,

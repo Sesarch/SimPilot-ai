@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
-export type Msg = { role: "user" | "assistant"; content: string };
+export type ImageContent = { type: "image_url"; image_url: { url: string } };
+export type TextContent = { type: "text"; text: string };
+export type MessageContent = string | (TextContent | ImageContent)[];
+export type Msg = { role: "user" | "assistant"; content: MessageContent };
 export type ChatMode = "general" | "ground_school" | "oral_exam";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pilot-chat`;
