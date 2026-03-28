@@ -6,6 +6,7 @@ import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { useChatSession } from "@/hooks/useChatSession";
 import { useAuth } from "@/hooks/useAuth";
 import { usePilotContext } from "@/hooks/usePilotContext";
+import { usePOHUpload } from "@/hooks/usePOHUpload";
 import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
 import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
