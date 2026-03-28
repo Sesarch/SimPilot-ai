@@ -420,6 +420,44 @@ const WhySimPilotPage = () => {
         </div>
       </section>
 
+      {/* ── Pricing & Value FAQ ── */}
+      <section className="py-20" aria-labelledby="pricing-faq-heading">
+        <div className="container mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-4">
+              <HelpCircle className="w-3.5 h-3.5" /> FAQ
+            </div>
+            <h2 id="pricing-faq-heading" className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Pricing & Value Questions
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Everything you need to know about cost, value, and how SimPilot.AI fits into your training budget.
+            </p>
+          </motion.div>
+
+          <div className="max-w-3xl mx-auto space-y-3">
+            {pricingFaqs.map((faq, i) => (
+              <motion.details
+                key={i}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 0.04 * i }}
+                className="group rounded-xl border border-border bg-card hover:border-primary/20 transition-colors"
+              >
+                <summary className="flex items-center justify-between gap-3 p-4 md:p-5 cursor-pointer list-none select-none">
+                  <span className="text-sm md:text-base font-semibold text-foreground">{faq.q}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="px-4 pb-4 md:px-5 md:pb-5 pt-0">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                </div>
+              </motion.details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Bottom CTA ── */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
