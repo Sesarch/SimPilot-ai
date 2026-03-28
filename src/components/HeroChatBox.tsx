@@ -60,7 +60,7 @@ const HeroChatBox = () => {
       </div>
 
       {/* Messages area */}
-      <div ref={scrollRef} className="h-[200px] overflow-y-auto p-4 space-y-3 dark:bg-[hsl(220,15%,24%)]">
+      <div ref={scrollRef} className="h-[200px] overflow-y-auto p-4 space-y-3 dark:bg-[hsl(220,15%,27%)]">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center gap-3">
             <Sparkles className="w-5 h-5 text-primary/40" />
