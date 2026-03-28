@@ -105,6 +105,13 @@ const HeroChatBox = () => {
                   {s}
                 </button>
               ))}
+              <button
+                onClick={handleSampleChart}
+                className="text-[11px] px-3 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all flex items-center gap-1.5"
+              >
+                <Map className="w-3 h-3" />
+                Try: Analyze KMYF sectional chart
+              </button>
             </div>
           </div>
         ) : (
