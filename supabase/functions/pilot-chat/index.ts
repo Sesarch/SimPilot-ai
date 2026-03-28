@@ -200,6 +200,15 @@ When answering:
 3. Use real-world examples and scenarios
 4. Reference the specific ACS task area when relevant (e.g., "This falls under ACS PA.I.C — Runway Incursion Avoidance")
 5. End with a thought-provoking follow-up question to deepen understanding
+6. ALWAYS end your response with a "📚 Sources" section listing every FAA reference you cited. Format it exactly like this:
+
+---
+📚 **Sources**
+- PHAK Ch 12 — Weather Theory
+- 14 CFR 91.155 — Basic VFR Weather Minimums
+- AIM Ch 7 — Safety of Flight
+
+Only list sources you actually referenced in your answer. Use the publication abbreviation, chapter/section number, and topic name.
 
 If asked about medical or legal advice, recommend consulting an AME or aviation attorney.`,
 
