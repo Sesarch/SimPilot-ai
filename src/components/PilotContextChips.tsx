@@ -153,7 +153,7 @@ const PilotContextChips = ({ context, onSelect, compact = false }: PilotContextC
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className={`text-center text-muted-foreground/60 italic ${compact ? "text-[9px] px-4" : "text-[10px] px-6"}`}
+          className={`text-center text-muted-foreground/60 italic ${compact ? "text-[10px] px-3" : "text-[11px] px-4"}`}
         >
           {currentField.note}
         </motion.p>
