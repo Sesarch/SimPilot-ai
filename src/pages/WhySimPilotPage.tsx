@@ -1,4 +1,4 @@
-import { Check, X, Zap, Brain, Target, Shield, BookOpen, Award, GraduationCap, Clock, Users, Plane, MessageSquare, TrendingUp, HeadphonesIcon } from "lucide-react";
+import { Check, X, Zap, Brain, Target, Shield, BookOpen, Award, GraduationCap, Clock, Users, Plane, MessageSquare, TrendingUp, HeadphonesIcon, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Star, Quote } from "lucide-react";
