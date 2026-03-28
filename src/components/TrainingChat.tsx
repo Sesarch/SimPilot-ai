@@ -205,6 +205,7 @@ export const TrainingChat = ({
                   context={pilotCtx.context}
                   onSelect={pilotCtx.updateField}
                   onPOHUpload={uploadPOH}
+                  pohUploaded={!!pohFilePath}
                 />
               </div>
             ) : (
