@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
+import dashboardLight from "@/assets/dashboard-light.jpg";
+import dashboardDark from "@/assets/dashboard-dark.jpg";
 
 type Profile = {
   display_name: string | null;
