@@ -2,6 +2,7 @@ import { useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Msg, ChatMode } from "@/hooks/useChat";
+import { getTextContent } from "@/hooks/useChat";
 
 export function useChatSession(mode: ChatMode) {
   const { user } = useAuth();
@@ -37,13 +38,14 @@ export function useChatSession(mode: ChatMode) {
   const saveMessage = useCallback(
     async (msg: Msg, firstUserMessage?: string) => {
       if (!user) return;
-      const sid = await ensureSession(firstUserMessage || msg.content);
+      const textContent = getTextContent(msg.content);
+      const sid = await ensureSession(firstUserMessage || textContent);
       if (!sid) return;
 
       await supabase.from("chat_messages").insert({
         session_id: sid,
         role: msg.role,
-        content: msg.content,
+        content: textContent,
       });
     },
     [user, ensureSession]

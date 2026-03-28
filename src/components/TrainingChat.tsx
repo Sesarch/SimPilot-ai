@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
-import { Send, RotateCcw, Loader2, ClipboardCheck } from "lucide-react";
-import ChatMessageContent from "@/components/ChatMessageContent";
-import { useChat, ChatMode, Msg } from "@/hooks/useChat";
+import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus } from "lucide-react";
+import { ChatBubbleContent } from "@/components/ChatBubbleContent";
+import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { useChatSession } from "@/hooks/useChatSession";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,7 +25,9 @@ export const TrainingChat = ({
   topicId,
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const firstUserMsgRef = useRef<string>("");
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
   const { user } = useAuth();
@@ -45,9 +47,9 @@ export const TrainingChat = ({
     if (messages.length > prevLenRef.current) {
       const newMsgs = messages.slice(prevLenRef.current);
       for (const msg of newMsgs) {
-        // Only save complete messages (not streaming assistant)
         if (msg.role === "user") {
-          if (!firstUserMsgRef.current) firstUserMsgRef.current = msg.content;
+          const text = getTextContent(msg.content);
+          if (!firstUserMsgRef.current) firstUserMsgRef.current = text;
           saveMessage(msg, firstUserMsgRef.current);
         }
       }
@@ -60,7 +62,6 @@ export const TrainingChat = ({
   const parseAndSaveScore = useCallback(
     async (content: string) => {
       if (mode !== "oral_exam" || !user || scoresSavedRef.current) return;
-      // Match patterns like "Score: 7/10", "8 / 10", "Score: 8 out of 10"
       const scoreMatch = content.match(/(\d+)\s*(?:\/|out of)\s*(\d+)/i);
       const resultMatch = content.match(/\b(PASS|FAIL|INCOMPLETE)\b/i);
       if (!scoreMatch) return;
@@ -96,13 +97,13 @@ export const TrainingChat = ({
       const last = messages[messages.length - 1];
       if (last.role === "assistant") {
         saveMessage(last, firstUserMsgRef.current);
-        parseAndSaveScore(last.content);
+        parseAndSaveScore(getTextContent(last.content));
       }
     }
     prevLoadingRef.current = isLoading;
   }, [isLoading, messages, saveMessage, parseAndSaveScore]);
 
-  // Auto-mark ground school topic as completed after meaningful engagement (6+ messages)
+  // Auto-mark ground school topic as completed
   useEffect(() => {
     if (!topicId || !user || topicMarkedRef.current) return;
     const userMsgCount = messages.filter(m => m.role === "user").length;
@@ -127,10 +128,11 @@ export const TrainingChat = ({
   }, [messages, topicId, user]);
 
   const handleSend = () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !pendingImage) || isLoading) return;
     if (!started) setStarted(true);
-    send(input.trim());
+    send(input.trim() || "Analyze this chart", pendingImage || undefined);
     setInput("");
+    setPendingImage(null);
   };
 
   const handleStart = () => {
@@ -155,10 +157,31 @@ export const TrainingChat = ({
     scoresSavedRef.current = false;
     prevLenRef.current = 0;
     setStarted(false);
+    setPendingImage(null);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Image must be under 10MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPendingImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   return (
     <div className="flex flex-col h-full relative">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageSelect}
+      />
       <ExamPassCelebration
         show={!!celebration}
         score={celebration?.score ?? 0}
@@ -190,11 +213,7 @@ export const TrainingChat = ({
                   : "bg-secondary text-foreground border border-border"
               }`}
             >
-              {msg.role === "assistant" ? (
-                <ChatMessageContent content={msg.content} />
-              ) : (
-                msg.content
-              )}
+              <ChatBubbleContent content={msg.content} role={msg.role} />
             </div>
           </div>
         ))}
@@ -211,6 +230,21 @@ export const TrainingChat = ({
           <div className="text-center text-destructive text-xs py-2">{error}</div>
         )}
       </div>
+
+      {/* Pending image preview */}
+      {pendingImage && (
+        <div className="px-4 py-2 border-t border-border bg-secondary/30">
+          <div className="relative inline-block">
+            <img src={pendingImage} alt="Upload preview" className="max-h-24 rounded-md" />
+            <button
+              onClick={() => setPendingImage(null)}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Input area */}
       <div className="border-t border-border p-4">
@@ -233,19 +267,27 @@ export const TrainingChat = ({
               <RotateCcw className="w-4 h-4" />
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2.5 text-muted-foreground hover:text-foreground transition-colors"
+            title="Upload chart or image"
+          >
+            <ImagePlus className="w-4 h-4" />
+          </button>
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder}
+            placeholder={pendingImage ? "Ask about this chart..." : placeholder}
             rows={1}
             className="flex-1 bg-secondary rounded-lg px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50 resize-none max-h-32"
             style={{ minHeight: "42px" }}
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim() || isLoading}
+            disabled={(!input.trim() && !pendingImage) || isLoading}
             className="p-2.5 bg-primary text-primary-foreground rounded-lg hover:shadow-[0_0_15px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-40"
           >
             <Send className="w-4 h-4" />

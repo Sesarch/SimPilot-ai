@@ -1,7 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
-export type Msg = { role: "user" | "assistant"; content: string };
+export type ImageContent = { type: "image_url"; image_url: { url: string } };
+export type TextContent = { type: "text"; text: string };
+export type MessageContent = string | (TextContent | ImageContent)[];
+export type Msg = { role: "user" | "assistant"; content: MessageContent };
 export type ChatMode = "general" | "ground_school" | "oral_exam";
+
+/** Extract plain text from a message's content */
+export function getTextContent(content: MessageContent): string {
+  if (typeof content === "string") return content;
+  return content
+    .filter((c): c is TextContent => c.type === "text")
+    .map((c) => c.text)
+    .join("");
+}
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pilot-chat`;
 
@@ -113,12 +125,23 @@ export function useChat(options?: {
     }
   }, [messages]);
 
-  const send = useCallback(async (text: string) => {
+  const send = useCallback(async (text: string, imageDataUrl?: string) => {
     if (!text.trim() || isLoading) return;
 
     if (options?.onBeforeSend && !options.onBeforeSend()) return;
 
-    const userMsg: Msg = { role: "user", content: text.trim() };
+    // Build user message content — multimodal if image is attached
+    let userContent: MessageContent;
+    if (imageDataUrl) {
+      userContent = [
+        { type: "text", text: text.trim() },
+        { type: "image_url", image_url: { url: imageDataUrl } },
+      ];
+    } else {
+      userContent = text.trim();
+    }
+
+    const userMsg: Msg = { role: "user", content: userContent };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
     setError(null);
