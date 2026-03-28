@@ -191,9 +191,7 @@ export const TrainingChat = ({
               }`}
             >
               {msg.role === "assistant" ? (
-                <div className="prose prose-sm prose-invert max-w-none [&_strong]:text-primary [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_li]:text-foreground [&_p]:text-foreground [&_hr]:my-2 [&_hr]:border-primary/20 [&_hr+p>strong]:text-primary [&_hr+p]:text-xs [&_hr~ul]:text-xs [&_hr~ul]:text-muted-foreground [&_hr~ul]:mt-0.5">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
+                <ChatMessageContent content={msg.content} />
               ) : (
                 msg.content
               )}
