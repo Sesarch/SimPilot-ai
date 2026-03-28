@@ -98,13 +98,7 @@ const HeroChatBox = () => {
                       : "bg-secondary/80 text-secondary-foreground"
                   }`}
                 >
-                  {msg.role === "assistant" ? (
-                    <div className="prose prose-sm prose-invert max-w-none [&_p]:m-0 [&_ul]:mt-1 [&_ol]:mt-1">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
-                  ) : (
-                    msg.content
-                  )}
+                  <ChatBubbleContent content={msg.content} role={msg.role} />
                 </div>
                 {msg.role === "user" && (
                   <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">

@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
-import { Send, Bot, User, Plane, X } from "lucide-react";
-import ChatMessageContent from "@/components/ChatMessageContent";
+import { useState, useRef, useMemo } from "react";
+import { Send, Bot, User, Plane, X, ImagePlus } from "lucide-react";
+import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { motion, AnimatePresence } from "framer-motion";
-import { useChat } from "@/hooks/useChat";
+import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import ChatGateModal from "@/components/ChatGateModal";
 
@@ -22,14 +22,38 @@ const AIChatWidget = () => {
   }), [limit]);
   const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = (text: string) => {
-    send(text);
+    send(text, pendingImage || undefined);
     setInput("");
+    setPendingImage(null);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Image must be under 10MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPendingImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   return (
     <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageSelect}
+      />
+
       {/* Floating button */}
       <AnimatePresence>
         {!isOpen && (
@@ -96,6 +120,9 @@ const AIChatWidget = () => {
                   <p className="text-sm text-muted-foreground text-center">
                     Ask me anything about flight training!
                   </p>
+                  <p className="text-xs text-muted-foreground/70 text-center">
+                    📷 Upload VFR/IFR charts for analysis
+                  </p>
                   <div className="grid grid-cols-1 gap-2">
                     {SUGGESTIONS.map((s) => (
                       <button
@@ -127,11 +154,7 @@ const AIChatWidget = () => {
                         : "bg-secondary text-secondary-foreground"
                     }`}
                   >
-                    {msg.role === "assistant" ? (
-                      <ChatMessageContent content={msg.content} />
-                    ) : (
-                      msg.content
-                    )}
+                    <ChatBubbleContent content={msg.content} role={msg.role} />
                   </div>
                   {msg.role === "user" && (
                     <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-1">
@@ -161,6 +184,21 @@ const AIChatWidget = () => {
               )}
             </div>
 
+            {/* Pending image preview */}
+            {pendingImage && (
+              <div className="px-3 py-2 border-t border-border bg-secondary/30">
+                <div className="relative inline-block">
+                  <img src={pendingImage} alt="Upload preview" className="max-h-20 rounded-md" />
+                  <button
+                    onClick={() => setPendingImage(null)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Input */}
             <div className="p-3 border-t border-border">
               <form
@@ -170,16 +208,24 @@ const AIChatWidget = () => {
                 }}
                 className="flex gap-2"
               >
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-9 h-9 rounded-lg bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
+                  title="Upload chart or image"
+                >
+                  <ImagePlus className="w-4 h-4" />
+                </button>
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about flight training..."
+                  placeholder={pendingImage ? "Ask about this chart..." : "Ask about flight training..."}
                   className="flex-1 bg-secondary rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50"
                   disabled={isLoading}
                 />
                 <button
                   type="submit"
-                  disabled={!input.trim() || isLoading}
+                  disabled={(!input.trim() && !pendingImage) || isLoading}
                   className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 hover:shadow-[0_0_15px_hsl(var(--cyan-glow)/0.3)] transition-all"
                 >
                   <Send className="w-4 h-4" />
