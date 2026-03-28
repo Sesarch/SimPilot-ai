@@ -173,6 +173,15 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
               >
                 Replace
               </button>
+              {onPOHClear && (
+                <button
+                  type="button"
+                  onClick={onPOHClear}
+                  className="text-destructive/60 hover:text-destructive underline underline-offset-2 decoration-destructive/30 hover:decoration-destructive/60 transition-colors font-medium ml-1"
+                >
+                  Remove
+                </button>
+              )}
             </p>
           ) : (
             <p>
