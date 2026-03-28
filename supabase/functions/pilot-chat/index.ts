@@ -331,11 +331,16 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode = "general" } = await req.json();
+    const { messages, mode = "general", pilotContext } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = MODE_PROMPTS[mode] || MODE_PROMPTS.general;
+    let systemPrompt = MODE_PROMPTS[mode] || MODE_PROMPTS.general;
+
+    // Inject pilot context into the system prompt for more targeted responses
+    if (pilotContext && typeof pilotContext === "string" && pilotContext.trim()) {
+      systemPrompt += `\n\nSTUDENT PROFILE:\n${pilotContext}\nAdapt your language, examples, and references to match this student's certificate level, aircraft type, rating focus, and region. Use region-specific regulations (e.g., FAA for US, Transport Canada for Canada, EASA for Europe).`;
+    }
 
     // Check if any message contains images — use vision-capable model
     const hasImages = messages.some((m: any) => Array.isArray(m.content) && m.content.some((c: any) => c.type === "image_url"));

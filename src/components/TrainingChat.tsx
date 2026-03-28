@@ -5,8 +5,10 @@ import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { useChatSession } from "@/hooks/useChatSession";
 import { useAuth } from "@/hooks/useAuth";
+import { usePilotContext } from "@/hooks/usePilotContext";
 import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
+import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 import ExamPassCelebration from "@/components/ExamPassCelebration";
 
 interface TrainingChatProps {
@@ -31,12 +33,14 @@ export const TrainingChat = ({
   const firstUserMsgRef = useRef<string>("");
   const { gateStatus, showGate, dismissGate, checkLimit, recordUsage } = useMessageLimit();
   const { user } = useAuth();
+  const pilotCtx = usePilotContext();
   const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession, sessionId } = useChatSession(mode);
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
     mode,
     onBeforeSend: () => checkLimit(),
     onAfterSend: () => recordUsage(),
+    pilotContext: pilotCtx.toPromptString(),
   });
   const [started, setStarted] = useState(false);
   const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
@@ -192,11 +196,22 @@ export const TrainingChat = ({
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {!started && welcomeMessage && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <p className="text-muted-foreground text-sm max-w-md mb-6">{welcomeMessage}</p>
+            {!pilotCtx.isComplete ? (
+              <div className="mb-4">
+                <PilotContextChips
+                  context={pilotCtx.context}
+                  onSelect={pilotCtx.updateField}
+                />
+              </div>
+            ) : (
+              <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} />
+            )}
+            <p className="text-muted-foreground text-sm max-w-md mb-6 mt-2">{welcomeMessage}</p>
             {initialPrompt && (
               <button
                 onClick={handleStart}
-                className="px-6 py-3 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all"
+                disabled={!pilotCtx.isComplete}
+                className="px-6 py-3 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-40"
               >
                 Begin Session
               </button>

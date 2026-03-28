@@ -20,12 +20,14 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pilot-chat`;
 async function streamChat({
   messages,
   mode,
+  pilotContext,
   onDelta,
   onDone,
   onError,
 }: {
   messages: Msg[];
   mode: ChatMode;
+  pilotContext?: string;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
@@ -36,7 +38,7 @@ async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, mode }),
+    body: JSON.stringify({ messages, mode, pilotContext }),
   });
 
   if (!resp.ok) {
@@ -108,6 +110,7 @@ export function useChat(options?: {
   onBeforeSend?: () => boolean;
   onAfterSend?: () => void;
   mode?: ChatMode;
+  pilotContext?: string;
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -164,6 +167,7 @@ export function useChat(options?: {
       await streamChat({
         messages: [...messages, userMsg],
         mode: modeRef.current,
+        pilotContext: options?.pilotContext,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
           setIsLoading(false);

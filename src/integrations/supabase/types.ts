@@ -188,6 +188,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          aircraft_type: string | null
           avatar_url: string | null
           bio: string | null
           certificate_type: string | null
@@ -195,10 +196,13 @@ export type Database = {
           display_name: string | null
           flight_hours: number | null
           id: string
+          rating_focus: string | null
+          region: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          aircraft_type?: string | null
           avatar_url?: string | null
           bio?: string | null
           certificate_type?: string | null
@@ -206,10 +210,13 @@ export type Database = {
           display_name?: string | null
           flight_hours?: number | null
           id?: string
+          rating_focus?: string | null
+          region?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          aircraft_type?: string | null
           avatar_url?: string | null
           bio?: string | null
           certificate_type?: string | null
@@ -217,6 +224,8 @@ export type Database = {
           display_name?: string | null
           flight_hours?: number | null
           id?: string
+          rating_focus?: string | null
+          region?: string | null
           updated_at?: string
           user_id?: string
         }

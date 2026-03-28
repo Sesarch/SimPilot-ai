@@ -4,7 +4,9 @@ import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
+import { usePilotContext } from "@/hooks/usePilotContext";
 import ChatGateModal from "@/components/ChatGateModal";
+import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 
 const SUGGESTIONS = [
   "How do I prepare for my PPL checkride?",
@@ -16,10 +18,12 @@ const SUGGESTIONS = [
 const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const limit = useMessageLimit();
+  const pilotCtx = usePilotContext();
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
-  }), [limit]);
+    pilotContext: pilotCtx.toPromptString(),
+  }), [limit, pilotCtx]);
   const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -117,23 +121,34 @@ const AIChatWidget = () => {
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length === 0 && (
                 <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground text-center">
-                    Ask me anything about flight training!
-                  </p>
-                  <p className="text-xs text-muted-foreground/70 text-center">
-                    📷 Upload VFR/IFR charts for analysis
-                  </p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {SUGGESTIONS.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => handleSend(s)}
-                        className="text-left text-xs p-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
+                  {!pilotCtx.isComplete ? (
+                    <PilotContextChips
+                      context={pilotCtx.context}
+                      onSelect={pilotCtx.updateField}
+                      compact
+                    />
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Ask me anything about flight training!
+                      </p>
+                      <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} />
+                      <p className="text-xs text-muted-foreground/70 text-center">
+                        📷 Upload VFR/IFR charts for analysis
+                      </p>
+                      <div className="grid grid-cols-1 gap-2">
+                        {SUGGESTIONS.map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => handleSend(s)}
+                            className="text-left text-xs p-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
