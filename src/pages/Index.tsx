@@ -9,6 +9,7 @@ import AudiencesSection from "@/components/AudiencesSection";
 import CTASection from "@/components/CTASection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import PricingSection from "@/components/PricingSection";
+import NewsletterSection from "@/components/NewsletterSection";
 import Footer from "@/components/Footer";
 import AIChatWidget from "@/components/AIChatWidget";
 import CookieConsent from "@/components/CookieConsent";
