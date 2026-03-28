@@ -253,6 +253,7 @@ const PricingSection = () => {
         </motion.div>
 
         <PlanComparisonTable />
+        <PricingFAQ />
       </div>
     </section>
   );
