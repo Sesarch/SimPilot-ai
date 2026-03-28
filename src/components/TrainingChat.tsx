@@ -196,11 +196,22 @@ export const TrainingChat = ({
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {!started && welcomeMessage && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <p className="text-muted-foreground text-sm max-w-md mb-6">{welcomeMessage}</p>
+            {!pilotCtx.isComplete ? (
+              <div className="mb-4">
+                <PilotContextChips
+                  context={pilotCtx.context}
+                  onSelect={pilotCtx.updateField}
+                />
+              </div>
+            ) : (
+              <PilotContextBadge context={pilotCtx.context} onClear={(f) => pilotCtx.updateField(f, null)} />
+            )}
+            <p className="text-muted-foreground text-sm max-w-md mb-6 mt-2">{welcomeMessage}</p>
             {initialPrompt && (
               <button
                 onClick={handleStart}
-                className="px-6 py-3 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all"
+                disabled={!pilotCtx.isComplete}
+                className="px-6 py-3 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-40"
               >
                 Begin Session
               </button>
