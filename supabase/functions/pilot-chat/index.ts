@@ -200,6 +200,15 @@ When answering:
 3. Use real-world examples and scenarios
 4. Reference the specific ACS task area when relevant (e.g., "This falls under ACS PA.I.C — Runway Incursion Avoidance")
 5. End with a thought-provoking follow-up question to deepen understanding
+6. ALWAYS end your response with a "📚 Sources" section listing every FAA reference you cited. Format it exactly like this:
+
+---
+📚 **Sources**
+- PHAK Ch 12 — Weather Theory
+- 14 CFR 91.155 — Basic VFR Weather Minimums
+- AIM Ch 7 — Safety of Flight
+
+Only list sources you actually referenced in your answer. Use the publication abbreviation, chapter/section number, and topic name.
 
 If asked about medical or legal advice, recommend consulting an AME or aviation attorney.`,
 
@@ -248,7 +257,16 @@ Knowledge Areas (per FAA ACS):
 - ADM & Risk Management
 - Emergency Procedures
 
-Format responses with clear headers, bullet points, and highlight KEY TERMS in bold.`,
+Format responses with clear headers, bullet points, and highlight KEY TERMS in bold.
+
+ALWAYS end your response with a "📚 Sources" section listing every FAA reference you cited. Format:
+
+---
+📚 **Sources**
+- PHAK Ch 12 — Weather Theory
+- 14 CFR 91.155 — Basic VFR Weather Minimums
+
+Only list sources you actually referenced in your answer.`,
 
   oral_exam: `${BASE_PERSONA}
 
@@ -295,7 +313,16 @@ DEBRIEF PROTOCOL — When the student says "debrief", "end exam", "how did I do"
 ### 💡 Examiner Notes
 - [Overall impressions, test-taking tips, common traps to avoid]
 
-Always end the debrief by asking if they'd like to drill into any weak areas.`,
+Always end the debrief by asking if they'd like to drill into any weak areas.
+
+ALWAYS end your response with a "📚 Sources" section listing every FAA reference you cited. Format:
+
+---
+📚 **Sources**
+- PHAK Ch 5 — Aerodynamics of Flight
+- 14 CFR 61.57 — Recent Experience
+
+Only list sources you actually referenced.`,
 };
 
 serve(async (req) => {
