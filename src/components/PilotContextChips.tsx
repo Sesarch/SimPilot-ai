@@ -1,44 +1,83 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronDown } from "lucide-react";
 import { PilotContext } from "@/hooks/usePilotContext";
 
-const FIELDS: {
+interface FieldDef {
   key: keyof PilotContext;
   label: string;
   icon: string;
   options: string[];
-}[] = [
-  {
-    key: "certificate_type",
-    label: "Certificate",
-    icon: "🎓",
-    options: ["Student", "Sport", "Private (PPL)", "Commercial (CPL)", "CFI / CFII", "ATP", "General"],
-  },
-  {
-    key: "aircraft_type",
-    label: "Aircraft",
-    icon: "✈️",
-    options: ["Single-Engine", "Multi-Engine", "Helicopter", "Glider", "General"],
-  },
-  {
-    key: "rating_focus",
-    label: "Rating",
-    icon: "📋",
-    options: ["VFR", "IFR / Instrument", "Multi-Engine", "Sim Enthusiast", "General"],
-  },
-  {
-    key: "region",
-    label: "Region",
-    icon: "🌍",
-    options: ["United States", "Canada", "Europe (EASA)", "Other", "General"],
-  },
-  {
-    key: "flight_hours",
-    label: "Flight Hours",
-    icon: "⏱️",
-    options: ["0–50", "50–150", "150–500", "500+", "General"],
-  },
+  note?: string;
+}
+
+const REGION_FIELD: FieldDef = {
+  key: "region",
+  label: "Region",
+  icon: "🌍",
+  options: ["United States (FAA)", "Europe (EASA)", "Canada (TC)", "ICAO / Other"],
+};
+
+const CERTIFICATE_BY_REGION: Record<string, string[]> = {
+  "United States (FAA)": ["Sport Pilot", "Private Pilot (PPL)", "Commercial (CPL)", "CFI / CFII", "ATP"],
+  "Europe (EASA)": ["LAPL", "PPL", "CPL", "IR", "ATPL"],
+  "Canada (TC)": ["Recreational", "Private (PPL)", "Commercial (CPL)", "Instructor", "ATPL"],
+  "ICAO / Other": ["Private (PPL)", "Commercial (CPL)", "Instrument Rating", "ATPL"],
+};
+
+const RATING_BY_REGION: Record<string, string[]> = {
+  "United States (FAA)": ["VFR", "IFR / Instrument", "Multi-Engine", "Sim Enthusiast"],
+  "Europe (EASA)": ["VFR", "IFR", "Multi-Engine (MEP)", "Night Rating"],
+  "Canada (TC)": ["VFR", "IFR", "Multi-Engine", "Night Rating"],
+  "ICAO / Other": ["VFR", "IFR", "Multi-Engine", "General"],
+};
+
+const AIRCRAFT_OPTIONS = [
+  "Cessna 152",
+  "Cessna 172",
+  "Piper Archer II",
+  "Piper Archer III",
+  "Diamond DA20",
+  "Diamond DA40",
+  "Cirrus SR20",
+  "Cirrus SR22",
+  "Other",
 ];
+
+const FLIGHT_HOURS_OPTIONS = ["0–50", "50–150", "150–500", "500+", "General"];
+
+function getFields(context: PilotContext): FieldDef[] {
+  const region = context.region || "";
+  const certs = CERTIFICATE_BY_REGION[region] || CERTIFICATE_BY_REGION["United States (FAA)"];
+  const ratings = RATING_BY_REGION[region] || RATING_BY_REGION["United States (FAA)"];
+
+  return [
+    REGION_FIELD,
+    {
+      key: "certificate_type",
+      label: "Certificate",
+      icon: "🎓",
+      options: [...certs, "General"],
+    },
+    {
+      key: "rating_focus",
+      label: "Rating",
+      icon: "📋",
+      options: [...ratings, "General"],
+    },
+    {
+      key: "aircraft_type",
+      label: "Aircraft",
+      icon: "✈️",
+      options: [...AIRCRAFT_OPTIONS, "General"],
+      note: "Uploading POH is not required. However, if you would like to receive more accurate answers based on your actual training aircraft, please upload your aircraft's POH.",
+    },
+    {
+      key: "flight_hours",
+      label: "Flight Hours",
+      icon: "⏱️",
+      options: FLIGHT_HOURS_OPTIONS,
+    },
+  ];
+}
 
 interface PilotContextChipsProps {
   context: PilotContext;
@@ -47,13 +86,13 @@ interface PilotContextChipsProps {
 }
 
 const PilotContextChips = ({ context, onSelect, compact = false }: PilotContextChipsProps) => {
-  const unsetFields = FIELDS.filter((f) => !context[f.key]);
+  const fields = getFields(context);
+  const unsetFields = fields.filter((f) => !context[f.key]);
 
   if (unsetFields.length === 0) return null;
 
-  // Show one field at a time for a step-by-step feel
   const currentField = unsetFields[0];
-  const completedCount = FIELDS.length - unsetFields.length;
+  const completedCount = fields.length - unsetFields.length;
 
   return (
     <motion.div
@@ -64,7 +103,7 @@ const PilotContextChips = ({ context, onSelect, compact = false }: PilotContextC
     >
       {/* Progress dots */}
       <div className="flex items-center justify-center gap-1.5 mb-1">
-        {FIELDS.map((f, i) => (
+        {fields.map((f, i) => (
           <div
             key={f.key}
             className={`w-1.5 h-1.5 rounded-full transition-colors ${
@@ -81,7 +120,7 @@ const PilotContextChips = ({ context, onSelect, compact = false }: PilotContextC
       <p className={`text-center text-muted-foreground ${compact ? "text-[10px]" : "text-xs"}`}>
         {currentField.icon} Select your <span className="text-foreground font-medium">{currentField.label}</span>
         {completedCount > 0 && (
-          <span className="text-muted-foreground/60"> ({completedCount}/{FIELDS.length})</span>
+          <span className="text-muted-foreground/60"> ({completedCount}/{fields.length})</span>
         )}
       </p>
 
@@ -108,6 +147,17 @@ const PilotContextChips = ({ context, onSelect, compact = false }: PilotContextC
           ))}
         </AnimatePresence>
       </div>
+
+      {/* POH upload note for aircraft step */}
+      {currentField.note && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className={`text-center text-muted-foreground/60 italic ${compact ? "text-[9px] px-4" : "text-[10px] px-6"}`}
+        >
+          {currentField.note}
+        </motion.p>
+      )}
     </motion.div>
   );
 };
@@ -120,7 +170,8 @@ export const PilotContextBadge = ({
   context: PilotContext;
   onClear: (field: keyof PilotContext) => void;
 }) => {
-  const set = FIELDS.filter((f) => context[f.key]);
+  const fields = getFields(context);
+  const set = fields.filter((f) => context[f.key]);
   if (set.length === 0) return null;
 
   return (
