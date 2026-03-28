@@ -20,10 +20,24 @@ const HeroChatBox = () => {
   }), [limit]);
   const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => setPendingImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
 
   const handleSend = (text: string) => {
-    send(text);
+    if (!text.trim() && !pendingImage) return;
+    send(text, pendingImage || undefined);
     setInput("");
+    setPendingImage(null);
   };
 
   return (
