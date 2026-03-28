@@ -127,6 +127,7 @@ const AIChatWidget = () => {
                     <PilotContextChips
                       context={pilotCtx.context}
                       onSelect={pilotCtx.updateField}
+                      onPOHUpload={uploadPOH}
                       compact
                     />
                   ) : (

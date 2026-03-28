@@ -203,6 +203,7 @@ export const TrainingChat = ({
                 <PilotContextChips
                   context={pilotCtx.context}
                   onSelect={pilotCtx.updateField}
+                  onPOHUpload={uploadPOH}
                 />
               </div>
             ) : (
