@@ -18,7 +18,7 @@ const SUGGESTIONS = [
 
 const HeroChatBox = () => {
   const pilotCtx = usePilotContext();
-  const { upload: uploadPOH, pohFilePath } = usePOHUpload();
+  const { upload: uploadPOH, pohFilePath, clearPOH } = usePOHUpload();
   const limit = useMessageLimit();
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
