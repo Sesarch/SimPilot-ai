@@ -91,9 +91,13 @@ const PilotContextChips = ({ context, onSelect, compact = false }: PilotContextC
               onClick={() => onSelect(currentField.key, option)}
               className={`${
                 compact ? "text-[10px] px-2.5 py-1" : "text-xs px-3 py-1.5"
-              } rounded-full border border-border/60 hover:border-primary/50 hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-all`}
+              } rounded-full transition-all ${
+                option === "General"
+                  ? "border border-dashed border-muted-foreground/30 text-muted-foreground/60 hover:border-muted-foreground/50 hover:text-muted-foreground italic"
+                  : "border border-border/60 hover:border-primary/50 hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+              }`}
             >
-              {option}
+              {option === "General" ? "Skip · General" : option}
             </motion.button>
           ))}
         </AnimatePresence>
