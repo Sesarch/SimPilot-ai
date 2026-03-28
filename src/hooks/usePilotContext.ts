@@ -70,9 +70,12 @@ export function usePilotContext() {
 
         // Save to profile if logged in
         if (user) {
+          const updateVal = field === "flight_hours"
+            ? { flight_hours: value ? parseInt(value) || 0 : null, updated_at: new Date().toISOString() }
+            : { [field]: value, updated_at: new Date().toISOString() };
           supabase
             .from("profiles")
-            .update({ [field]: value, updated_at: new Date().toISOString() })
+            .update(updateVal)
             .eq("user_id", user.id)
             .then(({ error }) => {
               if (error) console.error("Failed to save pilot context:", error);
