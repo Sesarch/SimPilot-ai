@@ -213,6 +213,8 @@ const PricingSection = () => {
             );
           })}
         </div>
+
+        <PlanComparisonTable />
       </div>
     </section>
   );
