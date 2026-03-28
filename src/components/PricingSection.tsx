@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, GraduationCap, User, Gamepad2 } from "lucide-react";
+import PlanComparisonTable from "./PlanComparisonTable";
 
 const plans = [
   {
@@ -212,6 +213,8 @@ const PricingSection = () => {
             );
           })}
         </div>
+
+        <PlanComparisonTable />
       </div>
     </section>
   );
