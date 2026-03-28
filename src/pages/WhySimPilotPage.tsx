@@ -1,6 +1,7 @@
 import { Check, X, Zap, Brain, Target, Shield, BookOpen, Award, GraduationCap, Clock, Users, Plane, MessageSquare, TrendingUp, HeadphonesIcon, DollarSign, HelpCircle, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Star, Quote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -8,6 +9,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import AnimatedChatDemo from "@/components/AnimatedChatDemo";
+import whySimPilotLight from "@/assets/why-simpilot-light.jpg";
+import whySimPilotDark from "@/assets/why-simpilot-dark.jpg";
 
 /* ── Comparison data ── */
 const comparisonFeatures = [
@@ -109,6 +112,9 @@ const faqJsonLd = {
 };
 
 const WhySimPilotPage = () => {
+  const { resolvedTheme } = useTheme();
+  const heroImage = resolvedTheme === "dark" ? whySimPilotDark : whySimPilotLight;
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
@@ -122,8 +128,15 @@ const WhySimPilotPage = () => {
 
       {/* ── Hero ── */}
       <section className="pt-28 pb-16 md:pt-36 md:pb-24 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-primary/5 blur-[140px]" />
+        <div className="absolute inset-0">
+          <img
+            src={heroImage}
+            alt="Aviation scene — SimPilot.AI Why SimPilot page hero"
+            width={1920}
+            height={1080}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
         </div>
         <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
           <motion.span

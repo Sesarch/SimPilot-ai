@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
+import groundSchoolLight from "@/assets/ground-school-light.jpg";
+import groundSchoolDark from "@/assets/ground-school-dark.jpg";
 
 const LESSON_AREAS = [
   {
@@ -91,7 +94,9 @@ const LESSON_AREAS = [
 const GroundSchoolPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [selectedLesson, setSelectedLesson] = useState<typeof LESSON_AREAS[0] | null>(null);
+  const heroImage = resolvedTheme === "dark" ? groundSchoolDark : groundSchoolLight;
 
   if (loading) {
     return (
@@ -157,8 +162,19 @@ const GroundSchoolPage = () => {
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-6 py-8 max-w-3xl">
+        <div className="flex-1 overflow-y-auto relative">
+          <div className="absolute inset-0">
+            <img
+              src={heroImage}
+              alt="Aviation study materials — Ground School background"
+              width={1920}
+              height={1080}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/75 to-background" />
+          </div>
+          <div className="container mx-auto px-6 py-8 max-w-3xl relative z-10">
             <div className="mb-8">
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">
                 Ground School Lessons
