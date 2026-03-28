@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { Send, Bot, User, Sparkles } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
-import { useChat } from "@/hooks/useChat";
+import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import ChatGateModal from "@/components/ChatGateModal";
+import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 
 const SUGGESTIONS = [
   "How do I prepare for my PPL checkride?",
