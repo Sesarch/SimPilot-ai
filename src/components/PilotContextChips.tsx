@@ -85,10 +85,11 @@ interface PilotContextChipsProps {
   context: PilotContext;
   onSelect: (field: keyof PilotContext, value: string) => void;
   onPOHUpload?: (file: File) => void;
+  pohUploaded?: boolean;
   compact?: boolean;
 }
 
-const PilotContextChips = ({ context, onSelect, onPOHUpload, compact = false }: PilotContextChipsProps) => {
+const PilotContextChips = ({ context, onSelect, onPOHUpload, pohUploaded = false, compact = false }: PilotContextChipsProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fields = getFields(context);
   const unsetFields = fields.filter((f) => !context[f.key]);
