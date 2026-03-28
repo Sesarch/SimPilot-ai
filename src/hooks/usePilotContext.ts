@@ -17,7 +17,7 @@ function loadLocal(): PilotContext {
     const raw = localStorage.getItem(LOCAL_KEY);
     return raw ? JSON.parse(raw) : { certificate_type: null, aircraft_type: null, rating_focus: null, region: null, flight_hours: null };
   } catch {
-    return { certificate_type: null, aircraft_type: null, rating_focus: null, region: null };
+    return { certificate_type: null, aircraft_type: null, rating_focus: null, region: null, flight_hours: null };
   }
 }
 
