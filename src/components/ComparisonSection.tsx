@@ -1,4 +1,4 @@
-import { Check, X, Zap, Brain, Target, Shield, BookOpen, Award } from "lucide-react";
+import { Check, X, Zap, Brain, Target, Shield, BookOpen, Award, BarChart3, Clock, Headphones, Plane, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 
 const features = [
@@ -43,6 +43,34 @@ const features = [
     simpilot: true,
     general: false,
     icon: Shield,
+  },
+  {
+    label: "POH-Aware Responses",
+    description: "Upload your aircraft's POH and get answers specific to your plane",
+    simpilot: true,
+    general: false,
+    icon: Plane,
+  },
+  {
+    label: "Progress & Score Tracking",
+    description: "Track exam scores, topic mastery, and study streaks over time",
+    simpilot: true,
+    general: false,
+    icon: BarChart3,
+  },
+  {
+    label: "24/7 Availability",
+    description: "Practice anytime — no scheduling, no cancellations, no waiting",
+    simpilot: true,
+    general: true,
+    icon: Clock,
+  },
+  {
+    label: "Context-Aware Sessions",
+    description: "Tailors every answer to your certificate, rating, region & aircraft",
+    simpilot: true,
+    general: false,
+    icon: MessageSquare,
   },
 ];
 
