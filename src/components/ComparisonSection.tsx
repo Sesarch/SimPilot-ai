@@ -59,18 +59,25 @@ const features = [
     icon: BarChart3,
   },
   {
-    label: "24/7 Availability",
-    description: "Practice anytime — no scheduling, no cancellations, no waiting",
-    simpilot: true,
-    general: true,
-    icon: Clock,
-  },
-  {
     label: "Context-Aware Sessions",
     description: "Tailors every answer to your certificate, rating, region & aircraft",
     simpilot: true,
     general: false,
     icon: MessageSquare,
+  },
+  {
+    label: "Checkride Readiness Assessment",
+    description: "Tells you when you're ready for the real exam based on performance trends",
+    simpilot: true,
+    general: false,
+    icon: Clock,
+  },
+  {
+    label: "Voice & Tone of a Real CFI",
+    description: "Responds like a patient flight instructor — not a generic chatbot",
+    simpilot: true,
+    general: false,
+    icon: Headphones,
   },
 ];
 
