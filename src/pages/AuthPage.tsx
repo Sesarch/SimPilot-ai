@@ -32,7 +32,7 @@ const AuthPage = () => {
         toast.success("Welcome back, pilot!");
         navigate("/dashboard");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -41,6 +41,15 @@ const AuthPage = () => {
           },
         });
         if (error) throw error;
+
+        // Record terms agreement timestamp for legal compliance
+        if (data.user) {
+          await supabase
+            .from("profiles")
+            .update({ terms_agreed_at: new Date().toISOString() })
+            .eq("user_id", data.user.id);
+        }
+
         toast.success("Account created! Check your email to verify.");
       }
     } catch (err: any) {
