@@ -220,6 +220,25 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
           />
         </motion.div>
       )}
+      <AlertDialog open={showRemoveConfirm} onOpenChange={setShowRemoveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove POH?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete your uploaded Pilot's Operating Handbook. AI responses will no longer reference your aircraft manual.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { onPOHClear?.(); setShowRemoveConfirm(false); }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove POH
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };
