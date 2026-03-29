@@ -102,6 +102,7 @@ interface PilotContextChipsProps {
 
 const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUploaded = false, compact = false }: PilotContextChipsProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const fields = getFields(context);
   const unsetFields = fields.filter((f) => !context[f.key]);
 
