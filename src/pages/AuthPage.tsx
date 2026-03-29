@@ -176,33 +176,10 @@ const AuthPage = () => {
             )}
 
             {!isLogin && (
-              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
-                <div className="flex items-start gap-2 mb-2">
-                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-xs text-foreground font-medium">
-                    SimPilot.AI is <strong className="text-destructive">NOT FAA-approved</strong> and is for unofficial, supplemental study only. You must receive training from certificated instructors and approved flight schools.
-                  </p>
-                </div>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-0.5 accent-primary"
-                  />
-                  <span className="text-xs text-secondary-foreground">
-                    I have read and agree to the{" "}
-                    <Link to="/terms" target="_blank" className="text-primary hover:underline font-medium">
-                      Terms & Conditions
-                    </Link>
-                    {" "}and{" "}
-                    <Link to="/privacy" target="_blank" className="text-primary hover:underline font-medium">
-                      Privacy Policy
-                    </Link>
-                    , including the disclaimer that this is not official flight training.
-                  </span>
-                </label>
-              </div>
+              <TermsAgreement
+                agreed={agreedToTerms}
+                onAgreeChange={setAgreedToTerms}
+              />
             )}
 
             <button
