@@ -255,34 +255,56 @@ export const PilotContextBadge = ({
   pohUploaded?: boolean;
   onPOHClear?: () => void;
 }) => {
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const fields = getFields(context);
   const set = fields.filter((f) => context[f.key]);
   if (set.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-1 justify-center">
-      {set.map((f) => (
-        <button
-          key={f.key}
-          onClick={() => onClear(f.key)}
-          title={`Click to change ${f.label}`}
-          className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-colors"
-        >
-          {f.icon} {context[f.key]}
-        </button>
-      ))}
-      {pohUploaded && (
-        <button
-          onClick={onPOHClear}
-          title="Click to remove POH"
-          className="text-[9px] px-2 py-0.5 rounded-full bg-hud-green/10 text-hud-green border border-hud-green/20 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-colors flex items-center gap-1"
-        >
-          <CheckCircle2 className="w-2.5 h-2.5" />
-          POH
-          <X className="w-2.5 h-2.5" />
-        </button>
-      )}
-    </div>
+    <>
+      <div className="flex flex-wrap items-center gap-1 justify-center">
+        {set.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => onClear(f.key)}
+            title={`Click to change ${f.label}`}
+            className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-colors"
+          >
+            {f.icon} {context[f.key]}
+          </button>
+        ))}
+        {pohUploaded && (
+          <button
+            onClick={() => setShowRemoveConfirm(true)}
+            title="Click to remove POH"
+            className="text-[9px] px-2 py-0.5 rounded-full bg-hud-green/10 text-hud-green border border-hud-green/20 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-colors flex items-center gap-1"
+          >
+            <CheckCircle2 className="w-2.5 h-2.5" />
+            POH
+            <X className="w-2.5 h-2.5" />
+          </button>
+        )}
+      </div>
+      <AlertDialog open={showRemoveConfirm} onOpenChange={setShowRemoveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove POH?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete your uploaded Pilot's Operating Handbook. AI responses will no longer reference your aircraft manual.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { onPOHClear?.(); setShowRemoveConfirm(false); }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove POH
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
