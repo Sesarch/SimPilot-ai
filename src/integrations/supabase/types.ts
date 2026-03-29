@@ -198,6 +198,7 @@ export type Database = {
           id: string
           rating_focus: string | null
           region: string | null
+          terms_agreed_at: string | null
           updated_at: string
           user_id: string
         }
@@ -212,6 +213,7 @@ export type Database = {
           id?: string
           rating_focus?: string | null
           region?: string | null
+          terms_agreed_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -226,6 +228,7 @@ export type Database = {
           id?: string
           rating_focus?: string | null
           region?: string | null
+          terms_agreed_at?: string | null
           updated_at?: string
           user_id?: string
         }

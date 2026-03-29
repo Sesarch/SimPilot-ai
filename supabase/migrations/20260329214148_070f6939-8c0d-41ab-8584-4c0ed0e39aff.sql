@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN terms_agreed_at timestamp with time zone DEFAULT NULL;
