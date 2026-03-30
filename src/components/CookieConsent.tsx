@@ -4,26 +4,40 @@ import { Cookie } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
+const CONSENT_EXPIRY_DAYS = 180; // 6 months – GDPR standard
+
+const isConsentValid = (): boolean => {
+  try {
+    const raw = localStorage.getItem("cookie-consent-timestamp");
+    if (!raw) return false;
+    const timestamp = Number(raw);
+    if (isNaN(timestamp)) return false;
+    const daysSince = (Date.now() - timestamp) / (1000 * 60 * 60 * 24);
+    return daysSince < CONSENT_EXPIRY_DAYS;
+  } catch {
+    return false;
+  }
+};
+
 const CookieConsent = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const consent = localStorage.getItem("cookie-consent");
-    if (!consent) {
+    if (!consent || !isConsentValid()) {
       const timer = setTimeout(() => setVisible(true), 1500);
       return () => clearTimeout(timer);
     }
   }, []);
 
-  const accept = () => {
-    localStorage.setItem("cookie-consent", "accepted");
+  const saveConsent = (value: string) => {
+    localStorage.setItem("cookie-consent", value);
+    localStorage.setItem("cookie-consent-timestamp", String(Date.now()));
     setVisible(false);
   };
 
-  const decline = () => {
-    localStorage.setItem("cookie-consent", "declined");
-    setVisible(false);
-  };
+  const accept = () => saveConsent("accepted");
+  const decline = () => saveConsent("declined");
 
   return (
     <AnimatePresence>
