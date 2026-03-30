@@ -227,9 +227,9 @@ const HeroChatBox = () => {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={pendingImage ? "Describe what to analyze…" : "Ask about flight training..."}
-            className="flex-1 bg-secondary/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50 backdrop-blur-sm"
-            disabled={isLoading}
+            placeholder={!pilotCtx.isComplete ? "Complete your pilot profile above to start chatting…" : pendingImage ? "Describe what to analyze…" : "Ask about flight training..."}
+            className="flex-1 bg-secondary/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading || !pilotCtx.isComplete}
           />
           <button
             type="submit"
