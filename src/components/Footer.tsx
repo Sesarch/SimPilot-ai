@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <footer className="py-16 border-t border-border bg-background">
-      <div className="mx-auto" style={{ paddingLeft: "15%", paddingRight: "15%" }}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
+      <div className="mx-auto px-6 md:px-0" style={{ maxWidth: "70%" }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start text-center md:text-left">
           {/* Brand */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 items-center md:items-start">
             <span
               className="font-display text-lg font-bold text-primary text-glow-cyan tracking-wider"
               title="SimPilot.AI — AI-Powered Pilot Training Platform"
@@ -20,7 +20,7 @@ const Footer = () => {
           </div>
 
           {/* Links */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 items-center md:items-start">
             <h4 className="font-display text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-1">
               Quick Links
             </h4>
@@ -40,7 +40,7 @@ const Footer = () => {
           </div>
 
           {/* Legal */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 items-center md:items-start">
             <h4 className="font-display text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-1">
               Legal
             </h4>
@@ -57,7 +57,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-12 pt-6 border-t border-border/50 flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
           </p>
