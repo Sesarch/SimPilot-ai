@@ -70,7 +70,7 @@ const NewsletterSection = () => {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 h-11 rounded border border-border bg-background/80 px-4 text-sm font-medium text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="flex-1 h-11 rounded border border-primary/40 bg-background/80 px-4 text-sm font-medium text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
               <button
                 type="submit"
