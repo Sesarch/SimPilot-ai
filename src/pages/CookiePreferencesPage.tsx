@@ -139,13 +139,33 @@ const CookiePreferencesPage = () => {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 mb-8">
           <Button onClick={save}>Save Preferences</Button>
           <Button variant="outline" onClick={acceptAll}>
             Accept All
           </Button>
           <Button variant="outline" onClick={declineAll}>
             Decline Optional
+          </Button>
+        </div>
+
+        <div className="border-t border-border pt-6">
+          <p className="text-xs text-muted-foreground mb-3">
+            Want to start fresh? Reset all cookie preferences and the consent banner will appear again on your next visit.
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => {
+              localStorage.removeItem("cookie-consent");
+              localStorage.removeItem("cookie-consent-timestamp");
+              localStorage.removeItem("cookie-preferences");
+              setPrefs({ ...defaultPrefs, analytics: true, marketing: true, personalization: true });
+              toast.success("Cookie preferences reset — the banner will reappear on your next visit");
+            }}
+          >
+            Reset Cookie Preferences
           </Button>
         </div>
       </div>
