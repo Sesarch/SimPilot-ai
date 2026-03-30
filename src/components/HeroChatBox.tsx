@@ -218,9 +218,10 @@ const HeroChatBox = () => {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-9 h-9 rounded-lg bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors shrink-0"
+            className="w-9 h-9 rounded-lg bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Upload chart or image"
             title="Upload VFR/IFR chart"
+            disabled={!pilotCtx.isComplete}
           >
             <ImagePlus className="w-4 h-4 text-muted-foreground" />
           </button>
