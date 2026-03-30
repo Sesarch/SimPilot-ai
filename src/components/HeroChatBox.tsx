@@ -218,22 +218,23 @@ const HeroChatBox = () => {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-9 h-9 rounded-lg bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors shrink-0"
+            className="w-9 h-9 rounded-lg bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Upload chart or image"
             title="Upload VFR/IFR chart"
+            disabled={!pilotCtx.isComplete}
           >
             <ImagePlus className="w-4 h-4 text-muted-foreground" />
           </button>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={pendingImage ? "Describe what to analyze…" : "Ask about flight training..."}
-            className="flex-1 bg-secondary/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50 backdrop-blur-sm"
-            disabled={isLoading}
+            placeholder={!pilotCtx.isComplete ? "Complete your pilot profile above to start chatting…" : pendingImage ? "Describe what to analyze…" : "Ask about flight training..."}
+            className="flex-1 bg-secondary/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading || !pilotCtx.isComplete}
           />
           <button
             type="submit"
-            disabled={(!input.trim() && !pendingImage) || isLoading}
+            disabled={(!input.trim() && !pendingImage) || isLoading || !pilotCtx.isComplete}
             className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 hover:shadow-[0_0_15px_hsl(var(--cyan-glow)/0.3)] transition-all"
           >
             <Send className="w-4 h-4" />
