@@ -172,7 +172,7 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Admin Dashboard — SimPilot.AI" description="Admin user management" noIndex />
+      <SEOHead title="Admin Dashboard — SimPilot.AI" description="Admin user management" keywords="admin, user management" noIndex />
 
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
