@@ -65,6 +65,7 @@ const CookiePreferencesPage = () => {
   const save = () => {
     localStorage.setItem("cookie-preferences", JSON.stringify(prefs));
     localStorage.setItem("cookie-consent", "custom");
+    localStorage.setItem("cookie-consent-timestamp", String(Date.now()));
     toast.success("Cookie preferences saved");
   };
 
@@ -73,6 +74,7 @@ const CookiePreferencesPage = () => {
     setPrefs(all);
     localStorage.setItem("cookie-preferences", JSON.stringify(all));
     localStorage.setItem("cookie-consent", "accepted");
+    localStorage.setItem("cookie-consent-timestamp", String(Date.now()));
     toast.success("All cookies accepted");
   };
 
@@ -80,6 +82,7 @@ const CookiePreferencesPage = () => {
     setPrefs(defaultPrefs);
     localStorage.setItem("cookie-preferences", JSON.stringify(defaultPrefs));
     localStorage.setItem("cookie-consent", "declined");
+    localStorage.setItem("cookie-consent-timestamp", String(Date.now()));
     toast.success("Optional cookies declined");
   };
 
