@@ -234,7 +234,7 @@ const HeroChatBox = () => {
           />
           <button
             type="submit"
-            disabled={(!input.trim() && !pendingImage) || isLoading}
+            disabled={(!input.trim() && !pendingImage) || isLoading || !pilotCtx.isComplete}
             className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 hover:shadow-[0_0_15px_hsl(var(--cyan-glow)/0.3)] transition-all"
           >
             <Send className="w-4 h-4" />
