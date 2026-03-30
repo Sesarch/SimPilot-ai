@@ -49,6 +49,7 @@ const App = () => (
             <Route path="/cookie-preferences" element={<CookiePreferencesPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/why-simpilot" element={<WhySimPilotPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
