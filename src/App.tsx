@@ -55,6 +55,8 @@ const App = () => (
             <Route path="/unsubscribe" element={<UnsubscribePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <SupportChatWidget />
+          </Routes>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
