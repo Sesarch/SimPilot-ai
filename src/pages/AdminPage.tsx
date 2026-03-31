@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import AdminEmailDashboard from "@/components/AdminEmailDashboard";
+import AdminSupportChats from "@/components/AdminSupportChats";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -506,6 +507,9 @@ const AdminPage = () => {
 
         {/* Email Dashboard */}
         <AdminEmailDashboard />
+
+        {/* Support Chats */}
+        <AdminSupportChats />
 
       {/* Confirmation Dialog */}
       <AlertDialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>

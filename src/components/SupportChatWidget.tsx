@@ -4,6 +4,7 @@ import { MessageCircle, X, Send, Bot, User, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -25,6 +26,7 @@ const SupportChatWidget = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [escalated, setEscalated] = useState(false);
+  const [chatId, setChatId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -99,39 +101,67 @@ const SupportChatWidget = () => {
       }
 
       // Check for escalation marker
-      if (assistantSoFar.includes("[ESCALATE]")) {
+      const hasEscalation = assistantSoFar.includes("[ESCALATE]");
+      if (hasEscalation) {
         setEscalated(true);
-        // Clean the marker from the displayed message
         const cleaned = assistantSoFar.replace(/\[ESCALATE\]/g, "").trim();
+        assistantSoFar = cleaned;
         setMessages(prev =>
           prev.map((m, i) => i === prev.length - 1 && m.role === "assistant" ? { ...m, content: cleaned } : m)
         );
+      }
+
+      // Save assistant message to DB
+      if (chatId && assistantSoFar) {
+        await supabase.from("support_chat_messages" as any).insert({
+          chat_id: chatId, role: "assistant", content: assistantSoFar,
+        } as any);
+        if (hasEscalation) {
+          await supabase.from("support_chats" as any).update({ escalated: true } as any).eq("id", chatId);
+        }
       }
     } catch (e: any) {
       setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I'm having trouble connecting. Please try again or email us at support@simpilot.ai." }]);
     }
 
     setIsLoading(false);
-  }, []);
+  }, [chatId]);
 
-  const handleSend = (text: string) => {
+  const handleSend = async (text: string) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Msg = { role: "user", content: text.trim() };
     const updated = [...messages, userMsg];
     setMessages(updated);
     setInput("");
     setEscalated(false);
+    // Save user message to DB
+    if (chatId) {
+      await supabase.from("support_chat_messages" as any).insert({
+        chat_id: chatId, role: "user", content: text.trim(),
+      } as any);
+    }
     streamChat(updated);
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return;
+    // Create support chat session in DB
+    const { data } = await supabase
+      .from("support_chats" as any)
+      .insert({ email: email.trim() } as any)
+      .select("id")
+      .single();
+    if (data) setChatId((data as any).id);
     setEmailCaptured(true);
-    setMessages([{
-      role: "assistant",
-      content: `Hi there! 👋 I'm SimPilot's support assistant. How can I help you today?`,
-    }]);
+    const greeting = "Hi there! 👋 I'm SimPilot's support assistant. How can I help you today?";
+    setMessages([{ role: "assistant", content: greeting }]);
+    // Save greeting
+    if (data) {
+      await supabase.from("support_chat_messages" as any).insert({
+        chat_id: (data as any).id, role: "assistant", content: greeting,
+      } as any);
+    }
   };
 
   // Hide on homepage where the flight training chat widget already exists
