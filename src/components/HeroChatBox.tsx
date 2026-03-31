@@ -114,6 +114,11 @@ const HeroChatBox = () => {
                 pohUploaded={!!pohFilePath}
                 compact
               />
+            ) : !chatUnlocked ? (
+              <EmailGate
+                pilotContext={pilotCtx.context}
+                onComplete={() => setEmailCollected(true)}
+              />
             ) : (
               <>
                 <Sparkles className="w-5 h-5 text-primary/40" />
