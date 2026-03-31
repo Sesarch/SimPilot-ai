@@ -51,6 +51,7 @@ const App = () => (
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/why-simpilot" element={<WhySimPilotPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/unsubscribe" element={<UnsubscribePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
