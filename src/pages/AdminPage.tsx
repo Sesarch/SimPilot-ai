@@ -51,6 +51,8 @@ const AdminPage = () => {
     email: string;
     role?: string;
   } | null>(null);
+  const [leads, setLeads] = useState<LeadEmail[]>([]);
+  const [leadsFetching, setLeadsFetching] = useState(false);
 
   // Check admin role
   useEffect(() => {
