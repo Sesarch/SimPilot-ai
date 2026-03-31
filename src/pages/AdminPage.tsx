@@ -423,6 +423,64 @@ const AdminPage = () => {
             </table>
           </div>
         </div>
+
+        {/* Lead Emails Section */}
+        <div className="mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" /> Collected Lead Emails
+              <Badge variant="secondary" className="ml-2 text-xs">{leads.length}</Badge>
+            </h2>
+            <Button variant="outline" size="sm" onClick={fetchLeads} disabled={leadsFetching}>
+              <RefreshCw className={`w-4 h-4 ${leadsFetching ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
+          <div className="bg-gradient-card rounded-xl border border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Email</th>
+                    <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Date</th>
+                    <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Pilot Context</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leads.map((lead) => (
+                    <tr key={lead.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
+                      <td className="p-3 font-medium text-foreground">{lead.email}</td>
+                      <td className="p-3 text-xs text-muted-foreground">
+                        {new Date(lead.created_at).toLocaleString()}
+                      </td>
+                      <td className="p-3">
+                        {lead.pilot_context ? (
+                          <div className="flex flex-wrap gap-1">
+                            {Object.entries(lead.pilot_context)
+                              .filter(([, v]) => v)
+                              .map(([k, v]) => (
+                                <Badge key={k} variant="secondary" className="text-[10px]">
+                                  {k.replace(/_/g, " ")}: {v}
+                                </Badge>
+                              ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {leads.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="p-8 text-center text-muted-foreground">
+                        {leadsFetching ? "Loading leads..." : "No lead emails collected yet"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Confirmation Dialog */}
