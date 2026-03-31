@@ -33,6 +33,9 @@ const HeroChatBox = () => {
   const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
+  
+  // Chat is unlocked if user is logged in OR has provided their email
+  const chatUnlocked = !!user || emailCollected;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
