@@ -122,9 +122,33 @@ const AdminEmailDashboard = () => {
         <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
           <Mail className="w-5 h-5 text-primary" /> Email Dashboard
         </h2>
-        <Button variant="outline" size="sm" onClick={fetchEmails} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => {
+            if (!emails.length) return;
+            const headers = ["Template","Recipient","Status","Time","Error"];
+            const rows = emails.map(e => [
+              e.template_name,
+              e.recipient_email,
+              e.status === "dlq" ? "failed" : e.status,
+              new Date(e.created_at).toISOString(),
+              e.error_message || "",
+            ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
+            const csv = [headers.join(","), ...rows].join("\n");
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `email-logs-${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast.success("CSV downloaded");
+          }}>
+            <Download className="w-4 h-4" /> CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchEmails} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
