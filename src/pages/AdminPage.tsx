@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
-  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail,
+  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
