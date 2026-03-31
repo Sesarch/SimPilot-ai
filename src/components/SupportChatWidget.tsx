@@ -126,14 +126,25 @@ const SupportChatWidget = () => {
     streamChat(updated);
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return;
+    // Create support chat session in DB
+    const { data } = await supabase
+      .from("support_chats" as any)
+      .insert({ email: email.trim() } as any)
+      .select("id")
+      .single();
+    if (data) setChatId((data as any).id);
     setEmailCaptured(true);
-    setMessages([{
-      role: "assistant",
-      content: `Hi there! 👋 I'm SimPilot's support assistant. How can I help you today?`,
-    }]);
+    const greeting = "Hi there! 👋 I'm SimPilot's support assistant. How can I help you today?";
+    setMessages([{ role: "assistant", content: greeting }]);
+    // Save greeting
+    if (data) {
+      await supabase.from("support_chat_messages" as any).insert({
+        chat_id: (data as any).id, role: "assistant", content: greeting,
+      } as any);
+    }
   };
 
   // Hide on homepage where the flight training chat widget already exists
