@@ -104,9 +104,27 @@ const AdminPage = () => {
     setFetching(false);
   }, []);
 
+  const fetchLeads = useCallback(async () => {
+    setLeadsFetching(true);
+    try {
+      const { data, error } = await supabase
+        .from("lead_emails" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setLeads((data as any) || []);
+    } catch (err: any) {
+      toast.error("Failed to load leads: " + err.message);
+    }
+    setLeadsFetching(false);
+  }, []);
+
   useEffect(() => {
-    if (isAdmin) fetchUsers();
-  }, [isAdmin, fetchUsers]);
+    if (isAdmin) {
+      fetchUsers();
+      fetchLeads();
+    }
+  }, [isAdmin, fetchUsers, fetchLeads]);
 
   const callAdmin = async (action: string, body: Record<string, any>) => {
     const res = await fetch(
