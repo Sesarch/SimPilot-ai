@@ -23,6 +23,7 @@ import ContactPage from "./pages/ContactPage.tsx";
 import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
 import UnsubscribePage from "./pages/UnsubscribePage.tsx";
+import SupportChatWidget from "./components/SupportChatWidget.tsx";
 
 const queryClient = new QueryClient();
 
