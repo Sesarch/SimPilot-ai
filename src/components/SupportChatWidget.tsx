@@ -101,20 +101,31 @@ const SupportChatWidget = () => {
       }
 
       // Check for escalation marker
-      if (assistantSoFar.includes("[ESCALATE]")) {
+      const hasEscalation = assistantSoFar.includes("[ESCALATE]");
+      if (hasEscalation) {
         setEscalated(true);
-        // Clean the marker from the displayed message
         const cleaned = assistantSoFar.replace(/\[ESCALATE\]/g, "").trim();
+        assistantSoFar = cleaned;
         setMessages(prev =>
           prev.map((m, i) => i === prev.length - 1 && m.role === "assistant" ? { ...m, content: cleaned } : m)
         );
+      }
+
+      // Save assistant message to DB
+      if (chatId && assistantSoFar) {
+        await supabase.from("support_chat_messages" as any).insert({
+          chat_id: chatId, role: "assistant", content: assistantSoFar,
+        } as any);
+        if (hasEscalation) {
+          await supabase.from("support_chats" as any).update({ escalated: true } as any).eq("id", chatId);
+        }
       }
     } catch (e: any) {
       setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I'm having trouble connecting. Please try again or email us at support@simpilot.ai." }]);
     }
 
     setIsLoading(false);
-  }, []);
+  }, [chatId]);
 
   const handleSend = async (text: string) => {
     if (!text.trim() || isLoading) return;
