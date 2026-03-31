@@ -57,7 +57,7 @@ const AdminPage = () => {
   // Check admin role
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth");
+      navigate("/auth", { state: { redirectTo: "/admin" } });
       return;
     }
     if (!user) return;
