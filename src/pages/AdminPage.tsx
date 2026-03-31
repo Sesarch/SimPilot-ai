@@ -508,6 +508,9 @@ const AdminPage = () => {
         {/* Email Dashboard */}
         <AdminEmailDashboard />
 
+        {/* Support Chats */}
+        <AdminSupportChats />
+
       {/* Confirmation Dialog */}
       <AlertDialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>
         <AlertDialogContent>
