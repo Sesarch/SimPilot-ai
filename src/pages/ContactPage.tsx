@@ -74,7 +74,9 @@ const ContactPage = () => {
 
     setLoading(true);
     try {
+      const id = crypto.randomUUID();
       const { error } = await supabase.from("contact_submissions").insert({
+        id,
         name: form.name.trim(),
         email: form.email.trim(),
         subject: form.subject.trim(),
@@ -82,6 +84,16 @@ const ContactPage = () => {
       });
 
       if (error) throw error;
+
+      // Send confirmation email
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "contact-confirmation",
+          recipientEmail: form.email.trim(),
+          idempotencyKey: `contact-confirm-${id}`,
+          templateData: { name: form.name.trim() },
+        },
+      });
 
       toast.success("Message sent! We'll get back to you soon.");
       setForm({ name: "", email: "", subject: "", message: "" });
