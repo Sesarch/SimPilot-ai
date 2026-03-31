@@ -26,6 +26,7 @@ const SupportChatWidget = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [escalated, setEscalated] = useState(false);
+  const [chatId, setChatId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
