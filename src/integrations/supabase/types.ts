@@ -141,6 +141,27 @@ export type Database = {
           },
         ]
       }
+      lead_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          pilot_context: Json | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          pilot_context?: Json | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          pilot_context?: Json | null
+        }
+        Relationships: []
+      }
       message_usage: {
         Row: {
           created_at: string

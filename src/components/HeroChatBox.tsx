@@ -5,7 +5,9 @@ import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
 import { usePilotContext } from "@/hooks/usePilotContext";
 import { usePOHUpload } from "@/hooks/usePOHUpload";
+import { useAuth } from "@/hooks/useAuth";
 import ChatGateModal from "@/components/ChatGateModal";
+import EmailGate, { hasLeadEmail } from "@/components/EmailGate";
 import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import sampleChart from "@/assets/sample-vfr-sectional-kmyf.jpg";
@@ -17,9 +19,11 @@ const SUGGESTIONS = [
 ];
 
 const HeroChatBox = () => {
+  const { user } = useAuth();
   const pilotCtx = usePilotContext();
   const { upload: uploadPOH, pohFilePath, clearPOH } = usePOHUpload();
   const limit = useMessageLimit();
+  const [emailCollected, setEmailCollected] = useState(() => hasLeadEmail());
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
@@ -29,6 +33,9 @@ const HeroChatBox = () => {
   const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
+  
+  // Chat is unlocked if user is logged in OR has provided their email
+  const chatUnlocked = !!user || emailCollected;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +113,11 @@ const HeroChatBox = () => {
                 onPOHClear={clearPOH}
                 pohUploaded={!!pohFilePath}
                 compact
+              />
+            ) : !chatUnlocked ? (
+              <EmailGate
+                pilotContext={pilotCtx.context}
+                onComplete={() => setEmailCollected(true)}
               />
             ) : (
               <>
@@ -221,20 +233,20 @@ const HeroChatBox = () => {
             className="w-9 h-9 rounded-lg bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Upload chart or image"
             title="Upload VFR/IFR chart"
-            disabled={!pilotCtx.isComplete}
+            disabled={!chatUnlocked}
           >
             <ImagePlus className="w-4 h-4 text-muted-foreground" />
           </button>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={!pilotCtx.isComplete ? "Complete your pilot profile above to start chatting…" : pendingImage ? "Describe what to analyze…" : "Ask about flight training..."}
+            placeholder={!chatUnlocked ? "Complete your profile & enter email to chat…" : pendingImage ? "Describe what to analyze…" : "Ask about flight training..."}
             className="flex-1 bg-secondary/60 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/50 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading || !pilotCtx.isComplete}
+            disabled={isLoading || !chatUnlocked}
           />
           <button
             type="submit"
-            disabled={(!input.trim() && !pendingImage) || isLoading || !pilotCtx.isComplete}
+            disabled={(!input.trim() && !pendingImage) || isLoading || !chatUnlocked}
             className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 hover:shadow-[0_0_15px_hsl(var(--cyan-glow)/0.3)] transition-all"
           >
             <Send className="w-4 h-4" />
