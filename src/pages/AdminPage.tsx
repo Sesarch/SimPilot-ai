@@ -431,9 +431,29 @@ const AdminPage = () => {
               <Mail className="w-5 h-5 text-primary" /> Collected Lead Emails
               <Badge variant="secondary" className="ml-2 text-xs">{leads.length}</Badge>
             </h2>
-            <Button variant="outline" size="sm" onClick={fetchLeads} disabled={leadsFetching}>
-              <RefreshCw className={`w-4 h-4 ${leadsFetching ? "animate-spin" : ""}`} />
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => {
+                if (!leads.length) return;
+                const headers = ["Email", "Date", "Pilot Context"];
+                const rows = leads.map(l => [
+                  l.email,
+                  new Date(l.created_at).toLocaleDateString(),
+                  l.pilot_context ? Object.entries(l.pilot_context).filter(([,v]) => v).map(([k,v]) => `${k}: ${v}`).join("; ") : "",
+                ]);
+                const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "lead_emails.csv"; a.click();
+                URL.revokeObjectURL(url);
+                toast.success("CSV exported");
+              }} disabled={!leads.length}>
+                <Download className="w-4 h-4" /> Export CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={fetchLeads} disabled={leadsFetching}>
+                <RefreshCw className={`w-4 h-4 ${leadsFetching ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
           </div>
           <div className="bg-gradient-card rounded-xl border border-border overflow-hidden">
             <div className="overflow-x-auto">
