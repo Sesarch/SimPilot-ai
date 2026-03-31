@@ -32,8 +32,6 @@ const SupportChatWidget = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isLoading]);
-  // Hide on homepage where the flight training chat widget already exists
-  if (location.pathname === "/") return null;
 
   const streamChat = useCallback(async (allMessages: Msg[]) => {
     setIsLoading(true);
