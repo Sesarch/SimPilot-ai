@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
 import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
+import UnsubscribePage from "./pages/UnsubscribePage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/why-simpilot" element={<WhySimPilotPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/unsubscribe" element={<UnsubscribePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
