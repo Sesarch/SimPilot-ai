@@ -19,9 +19,11 @@ const SUGGESTIONS = [
 ];
 
 const HeroChatBox = () => {
+  const { user } = useAuth();
   const pilotCtx = usePilotContext();
   const { upload: uploadPOH, pohFilePath, clearPOH } = usePOHUpload();
   const limit = useMessageLimit();
+  const [emailCollected, setEmailCollected] = useState(() => hasLeadEmail());
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
