@@ -17,6 +17,7 @@ const QUICK_QUESTIONS = [
 ];
 
 const SupportChatWidget = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [emailCaptured, setEmailCaptured] = useState(false);
