@@ -116,13 +116,19 @@ const SupportChatWidget = () => {
     setIsLoading(false);
   }, []);
 
-  const handleSend = (text: string) => {
+  const handleSend = async (text: string) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Msg = { role: "user", content: text.trim() };
     const updated = [...messages, userMsg];
     setMessages(updated);
     setInput("");
     setEscalated(false);
+    // Save user message to DB
+    if (chatId) {
+      await supabase.from("support_chat_messages" as any).insert({
+        chat_id: chatId, role: "user", content: text.trim(),
+      } as any);
+    }
     streamChat(updated);
   };
 
