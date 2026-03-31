@@ -502,7 +502,10 @@ const AdminPage = () => {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+
+        {/* Email Dashboard */}
+        <AdminEmailDashboard />
 
       {/* Confirmation Dialog */}
       <AlertDialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>
