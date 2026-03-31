@@ -29,6 +29,13 @@ type AdminUser = {
   terms_agreed_at: string | null;
 };
 
+type LeadEmail = {
+  id: string;
+  email: string;
+  created_at: string;
+  pilot_context: Record<string, string | null> | null;
+};
+
 const AdminPage = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
