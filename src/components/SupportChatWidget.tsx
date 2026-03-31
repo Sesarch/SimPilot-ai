@@ -134,6 +134,9 @@ const SupportChatWidget = () => {
     }]);
   };
 
+  // Hide on homepage where the flight training chat widget already exists
+  if (location.pathname === "/") return null;
+
   return (
     <>
       {/* Floating button */}
