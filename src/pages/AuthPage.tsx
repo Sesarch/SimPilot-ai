@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Mail, Lock, Plane, User, Eye, EyeOff } from "lucide-react";
@@ -16,6 +16,16 @@ const AuthPage = () => {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = useMemo(() => {
+    const stateRedirect = location.state && typeof location.state === "object" && "redirectTo" in location.state
+      ? location.state.redirectTo
+      : null;
+
+    return typeof stateRedirect === "string" && stateRedirect.startsWith("/")
+      ? stateRedirect
+      : "/dashboard";
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +40,7 @@ const AuthPage = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back, pilot!");
-        navigate("/dashboard");
+        navigate(redirectTo, { replace: true });
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
