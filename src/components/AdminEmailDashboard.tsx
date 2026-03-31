@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Mail, RefreshCw, Send, AlertTriangle, Clock, Filter, XCircle,
+  Mail, RefreshCw, Send, AlertTriangle, Clock, Filter, XCircle, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
