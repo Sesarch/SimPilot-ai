@@ -69,7 +69,7 @@ const AIChatWidget = () => {
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] hover:shadow-[0_0_35px_hsl(var(--cyan-glow)/0.6)] transition-shadow"
+            className="fixed bottom-6 right-24 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] hover:shadow-[0_0_35px_hsl(var(--cyan-glow)/0.6)] transition-shadow"
           >
             <Plane className="w-6 h-6" />
           </motion.button>
