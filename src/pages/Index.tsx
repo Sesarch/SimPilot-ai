@@ -101,7 +101,7 @@ const Index = () => {
        <CTASection />
        <NewsletterSection />
        <Footer />
-      <AIChatWidget />
+      
       <CookieConsent />
     </div>
   );
