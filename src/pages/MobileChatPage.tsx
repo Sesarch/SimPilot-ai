@@ -76,6 +76,7 @@ const MobileChatPage = () => {
       <SEOHead
         title="SimPilot.AI — AI Aviation Chat"
         description="Your AI aviation copilot. Chat about flying, study for exams, and prepare for your checkride."
+        keywords="aviation chat, pilot training AI, checkride prep"
         canonical="/chat"
         noIndex
       />
