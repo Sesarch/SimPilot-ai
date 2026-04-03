@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -16,6 +16,26 @@ const navItems = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
+    if (standalone) { setIsInstalled(true); return; }
+    const handler = (e: Event) => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+    } else {
+      window.open(window.location.origin, "_blank");
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -48,6 +68,16 @@ const Navbar = () => {
                 {item.label}
               </a>
             )
+          )}
+          {!isInstalled && (
+            <button
+              onClick={handleInstall}
+              title="Install SimPilot.AI app"
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
+            >
+              <Download size={14} />
+              Install App
+            </button>
           )}
           <ThemeToggle />
           {user ? (
@@ -109,6 +139,15 @@ const Navbar = () => {
                     {item.label}
                   </a>
                 )
+              )}
+              {!isInstalled && (
+                <button
+                  onClick={() => { handleInstall(); setIsOpen(false); }}
+                  className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                >
+                  <Download size={14} />
+                  Install App
+                </button>
               )}
               <div className="flex items-center justify-between">
                 <ThemeToggle />
