@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, BookOpen, Mic, BarChart3, Clock, User, LogOut,
-  Settings, Home, Shield
+  MessageSquare, Home, Shield
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { TrainingChat } from "@/components/TrainingChat";
