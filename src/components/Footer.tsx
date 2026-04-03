@@ -61,17 +61,7 @@ const Footer = () => {
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
-            {!isInstalled && (
-              <button
-                onClick={handleInstall}
-                title="Install SimPilot.AI app"
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider"
-              >
-                <Download size={14} />
-                Install App
-              </button>
-            )}
+           <div className="flex items-center gap-4">
             <p className="text-[10px] text-muted-foreground/60 tracking-wide">
               Built for pilots, powered by AI
             </p>
