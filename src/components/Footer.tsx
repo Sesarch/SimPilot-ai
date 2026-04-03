@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { Download } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Footer = () => {
   return (
