@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "next-themes";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -23,10 +23,16 @@ import ContactPage from "./pages/ContactPage.tsx";
 import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
 import UnsubscribePage from "./pages/UnsubscribePage.tsx";
+import MobileChatPage from "./pages/MobileChatPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 
 const queryClient = new QueryClient();
+
+/** Detect if running as installed PWA (standalone) */
+const isStandalone =
+  window.matchMedia("(display-mode: standalone)").matches ||
+  (navigator as any).standalone === true;
 
 const App = () => (
   <HelmetProvider>
@@ -38,7 +44,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Index />} />
+            {/* When installed as app, "/" goes straight to chat */}
+            <Route path="/" element={isStandalone ? <Navigate to="/chat" replace /> : <Index />} />
+            <Route path="/chat" element={<MobileChatPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
