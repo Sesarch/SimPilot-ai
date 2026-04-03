@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, BookOpen, Mic, BarChart3, Clock, User, LogOut,
-  Settings, Home, Shield
+  MessageSquare, Home, Shield
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { TrainingChat } from "@/components/TrainingChat";
@@ -241,6 +241,41 @@ const MobileChatPage = () => {
           initialPrompt={activeTab.prompt}
         />
       </div>
+
+      {/* Bottom tab navigation */}
+      <nav className="shrink-0 border-t border-border bg-background/95 backdrop-blur-xl flex items-stretch z-40">
+        {CHAT_TABS.map((tab) => {
+          const isActive = activeTab.id === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => switchTab(tab)}
+              className={`relative flex-1 flex flex-col items-center gap-0.5 py-2 transition-colors ${
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span className={isActive ? "text-primary" : ""}>{tab.icon}</span>
+              <span className="text-[10px] font-display font-semibold tracking-wider uppercase">
+                {tab.id === "general" ? "Chat" : tab.id === "ground_school" ? "School" : "Exam"}
+              </span>
+              {isActive && (
+                <span className="absolute bottom-0 w-8 h-0.5 bg-primary rounded-t-full" />
+              )}
+            </button>
+          );
+        })}
+        <Link
+          to="/dashboard"
+          className="flex-1 flex flex-col items-center gap-0.5 py-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <User className="w-4 h-4" />
+          <span className="text-[10px] font-display font-semibold tracking-wider uppercase">
+            Profile
+          </span>
+        </Link>
+      </nav>
     </div>
   );
 };
