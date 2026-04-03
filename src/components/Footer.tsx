@@ -22,10 +22,14 @@ const Footer = () => {
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+    } else {
+      // Fallback: navigate to the site in a new tab so the browser can offer install
+      window.open(window.location.origin, "_blank");
+    }
   };
 
   return (
