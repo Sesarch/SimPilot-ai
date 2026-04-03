@@ -69,6 +69,16 @@ const Navbar = () => {
               </a>
             )
           )}
+          {!isInstalled && (
+            <button
+              onClick={handleInstall}
+              title="Install SimPilot.AI app"
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
+            >
+              <Download size={14} />
+              Install App
+            </button>
+          )}
           <ThemeToggle />
           {user ? (
             <Link
