@@ -1,6 +1,33 @@
 import { Link } from "react-router-dom";
+import { Download } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Footer = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
+    if (standalone) {
+      setIsInstalled(true);
+      return;
+    }
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+  };
+
   return (
     <footer className="py-16 border-t border-border bg-background">
       <div className="mx-auto px-6 md:px-0" style={{ maxWidth: "70%" }}>
@@ -61,9 +88,21 @@ const Footer = () => {
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
           </p>
-          <p className="text-[10px] text-muted-foreground/60 tracking-wide">
-            Built for pilots, powered by AI
-          </p>
+          <div className="flex items-center gap-4">
+            {!isInstalled && (
+              <button
+                onClick={handleInstall}
+                title="Install SimPilot.AI app"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider"
+              >
+                <Download size={14} />
+                Install App
+              </button>
+            )}
+            <p className="text-[10px] text-muted-foreground/60 tracking-wide">
+              Built for pilots, powered by AI
+            </p>
+          </div>
         </div>
       </div>
     </footer>
