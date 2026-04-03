@@ -1,37 +1,6 @@
 import { Link } from "react-router-dom";
-import { Download } from "lucide-react";
-import { useEffect, useState } from "react";
 
 const Footer = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
-    if (standalone) {
-      setIsInstalled(true);
-      return;
-    }
-
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
-
-  const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      setDeferredPrompt(null);
-    } else {
-      // Fallback: navigate to the site in a new tab so the browser can offer install
-      window.open(window.location.origin, "_blank");
-    }
-  };
-
   return (
     <footer className="py-16 border-t border-border bg-background">
       <div className="mx-auto px-6 md:px-0" style={{ maxWidth: "70%" }}>

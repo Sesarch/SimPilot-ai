@@ -140,6 +140,15 @@ const Navbar = () => {
                   </a>
                 )
               )}
+              {!isInstalled && (
+                <button
+                  onClick={() => { handleInstall(); setIsOpen(false); }}
+                  className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                >
+                  <Download size={14} />
+                  Install App
+                </button>
+              )}
               <div className="flex items-center justify-between">
                 <ThemeToggle />
                 <Link
