@@ -24,6 +24,7 @@ import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
 import UnsubscribePage from "./pages/UnsubscribePage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
+import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <SupportChatWidget />
+          <PWAInstallBanner />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
