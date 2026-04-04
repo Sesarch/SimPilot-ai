@@ -41,10 +41,14 @@ const SEOHead = ({
       <meta property="og:type" content={ogType} />
       {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
       <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:image" content={ogImageUrl} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={ogImageUrl} />
 
       {jsonLd && (Array.isArray(jsonLd)
         ? jsonLd.map((ld, i) => (
