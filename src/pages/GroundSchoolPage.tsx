@@ -105,6 +105,14 @@ const LESSON_AREAS = [
     icon: "🌙",
     prompt: "Teach me about night flight operations for my Private Pilot training. Cover night vision physiology (rods vs cones, dark adaptation, blind spot), airport lighting (runway, taxiway, beacon, VASI/PAPI at night), aircraft lighting requirements (position lights, anti-collision, landing lights), night flight illusions (black hole approach, autokinesis, false horizons), night preflight and cockpit preparation, and night emergency procedures. Use Socratic questioning and real scenarios. Reference ACS area PA.X.",
   },
+  {
+    id: "human-factors",
+    title: "Human Factors & Aeromedical",
+    acs: "PA.I.D",
+    description: "Hypoxia, hyperventilation, spatial disorientation, vision limitations, carbon monoxide poisoning, stress, fatigue, and IMSAFE checklist.",
+    icon: "🫁",
+    prompt: "Teach me about human factors and aeromedical topics for my Private Pilot training. Cover types of hypoxia (hypoxic, hypemic, stagnant, histotoxic), hyperventilation, spatial disorientation (the leans, Coriolis illusion, graveyard spiral), vision limitations (empty-field myopia, night vision physiology), carbon monoxide poisoning, middle ear and sinus issues with altitude, the effects of alcohol and drugs on flying (8 hour / 0.04% BAC rule), stress and fatigue management, and the IMSAFE checklist. Use Socratic questioning with real-world scenarios. Reference ACS area PA.I.D.",
+  },
 ];
 
 const GroundSchoolPage = () => {
