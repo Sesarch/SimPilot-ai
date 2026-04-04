@@ -11,6 +11,17 @@ const PrivacyPolicyPage = () => {
         keywords="SimPilot.AI privacy policy, pilot training data privacy, aviation training data protection, AI chat privacy, personal data policy"
         canonical="/privacy"
         ogImage="/og-privacy.jpg"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Privacy Policy — SimPilot.AI",
+          "description": "Learn how SimPilot.AI collects, uses, and protects your personal data.",
+          "url": "https://simpilot.ai/privacy",
+          "inLanguage": "en-US",
+          "isPartOf": { "@type": "WebSite", "name": "SimPilot.AI", "url": "https://simpilot.ai" },
+          "about": { "@type": "Thing", "name": "Privacy Policy" },
+          "publisher": { "@type": "Organization", "name": "SimPilot.AI", "url": "https://simpilot.ai" }
+        }}
       />
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
