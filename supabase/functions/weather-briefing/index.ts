@@ -1,4 +1,4 @@
-import { corsHeaders } from "https://cdn.jsdelivr.net/gh/supabase/supabase-js@2/src/lib/fetch/index.ts";
+
 
 const AWC_BASE = "https://aviationweather.gov/api/data";
 
