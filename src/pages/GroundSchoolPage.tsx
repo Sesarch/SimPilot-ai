@@ -105,7 +105,6 @@ const LESSON_AREAS = [
     icon: "🌙",
     prompt: "Teach me about night flight operations for my Private Pilot training. Cover night vision physiology (rods vs cones, dark adaptation, blind spot), airport lighting (runway, taxiway, beacon, VASI/PAPI at night), aircraft lighting requirements (position lights, anti-collision, landing lights), night flight illusions (black hole approach, autokinesis, false horizons), night preflight and cockpit preparation, and night emergency procedures. Use Socratic questioning and real scenarios. Reference ACS area PA.X.",
   },
-  },
   {
     id: "human-factors",
     title: "Human Factors & Aeromedical",
