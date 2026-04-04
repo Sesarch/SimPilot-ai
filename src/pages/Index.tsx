@@ -31,6 +31,29 @@ const homeJsonLd = {
   },
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "SimPilot.AI",
+  url: "https://simpilot.ai",
+  logo: "https://simpilot.ai/simpilot-logo.png",
+  description: "AI-powered pilot training platform for ground school study, oral exam simulation, and flight knowledge.",
+  sameAs: [],
+};
+
+const webSiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "SimPilot.AI",
+  url: "https://simpilot.ai",
+  description: "Train smarter with SimPilot.AI — the AI co-pilot for ground school study, oral exam simulation, and flight knowledge.",
+  publisher: {
+    "@type": "Organization",
+    name: "SimPilot.AI",
+    url: "https://simpilot.ai",
+  },
+};
+
 const homeFaqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
