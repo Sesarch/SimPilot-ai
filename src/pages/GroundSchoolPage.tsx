@@ -89,6 +89,14 @@ const LESSON_AREAS = [
     icon: "📻",
     prompt: "I want to practice ATC communications and radio phraseology. Teach me the phonetic alphabet, proper call-up procedures, how to communicate at towered and non-towered airports, flight following requests, and ATIS interpretation. Give me practice scripts and scenarios.",
   },
+  {
+    id: "xc-planning",
+    title: "Cross-Country Flight Planning",
+    acs: "PA.VI",
+    description: "Complete XC planning process — route selection, checkpoints, fuel calculations, weight & balance, NOTAMs, weather briefs, and nav log preparation.",
+    icon: "🗺️",
+    prompt: "Teach me the complete cross-country flight planning process for my Private Pilot training. Cover route selection using sectional charts, choosing checkpoints, calculating magnetic headings and ground speed, fuel planning (including reserves), weight and balance, obtaining a weather briefing (1800wxbrief), checking NOTAMs, filing a VFR flight plan, and filling out a navigation log. Walk me through a realistic scenario step by step and quiz me using Socratic questioning. Reference ACS area PA.VI.",
+  },
 ];
 
 const GroundSchoolPage = () => {
