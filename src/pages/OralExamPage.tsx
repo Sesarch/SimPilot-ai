@@ -65,11 +65,12 @@ const OralExamPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <SEOHead
+       <SEOHead
         title="AI Oral Exam Simulator — SimPilot.AI Checkride Prep"
         description="Practice your FAA checkride oral exam with SimPilot.AI's realistic AI examiner. Covers PPL, instrument, commercial, and CFI oral exams. Build confidence before your DPE appointment."
         keywords="oral exam simulator, checkride prep, DPE oral exam practice, private pilot oral, instrument rating oral, commercial pilot checkride, CFI oral exam, FAA practical test"
         canonical="/oral-exam"
+        ogImage="/og-oral-exam.jpg"
       />
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
