@@ -85,6 +85,7 @@ const AuthPage = () => {
         description="Sign in or create your SimPilot.AI account to access AI-powered ground school, oral exam simulators, and personalized pilot training. Start your 7-day free trial today."
         keywords="SimPilot.AI login, pilot training sign up, aviation training account, ground school access, oral exam prep login, student pilot registration"
         canonical="/auth"
+        ogImage="/og-auth.jpg"
         noIndex
       />
       <div className="w-full max-w-md">

@@ -10,6 +10,7 @@ const TermsPage = () => {
         description="Read SimPilot.AI's Terms & Conditions. Important: SimPilot.AI is NOT FAA-approved and is for unofficial, supplemental pilot training purposes only. Official flight training must be obtained from certified schools."
         keywords="SimPilot.AI terms and conditions, pilot training disclaimer, not FAA approved, unofficial training, aviation training terms, flight school disclaimer"
         canonical="/terms"
+        ogImage="/og-terms.jpg"
       />
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
