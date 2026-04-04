@@ -7,10 +7,21 @@ const TermsPage = () => {
     <div className="min-h-screen bg-background">
       <SEOHead
         title="Terms & Conditions — SimPilot.AI"
-        description="Read SimPilot.AI's Terms & Conditions. Important: SimPilot.AI is NOT FAA-approved and is for unofficial, supplemental pilot training purposes only. Official flight training must be obtained from certified schools."
+        description="Read SimPilot.AI's Terms & Conditions. Important: SimPilot.AI is NOT FAA-approved and is for unofficial, supplemental pilot training purposes only."
         keywords="SimPilot.AI terms and conditions, pilot training disclaimer, not FAA approved, unofficial training, aviation training terms, flight school disclaimer"
         canonical="/terms"
         ogImage="/og-terms.jpg"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Terms & Conditions — SimPilot.AI",
+          "description": "Terms and conditions for using SimPilot.AI's AI-powered pilot training platform.",
+          "url": "https://simpilot.ai/terms",
+          "inLanguage": "en-US",
+          "isPartOf": { "@type": "WebSite", "name": "SimPilot.AI", "url": "https://simpilot.ai" },
+          "about": { "@type": "Thing", "name": "Terms and Conditions" },
+          "publisher": { "@type": "Organization", "name": "SimPilot.AI", "url": "https://simpilot.ai" }
+        }}
       />
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
