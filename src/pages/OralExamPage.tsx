@@ -71,6 +71,19 @@ const OralExamPage = () => {
         keywords="oral exam simulator, checkride prep, DPE oral exam practice, private pilot oral, instrument rating oral, commercial pilot checkride, CFI oral exam, FAA practical test"
         canonical="/oral-exam"
         ogImage="/og-oral-exam.jpg"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Course",
+          "name": "AI Oral Exam Simulator — SimPilot.AI",
+          "description": "Practice FAA checkride oral exams with a realistic AI DPE examiner covering PPL, IR, CPL, and CFI certificates.",
+          "url": "https://simpilot.ai/oral-exam",
+          "provider": { "@type": "Organization", "name": "SimPilot.AI", "url": "https://simpilot.ai" },
+          "educationalLevel": "Intermediate to Advanced",
+          "about": [
+            { "@type": "Thing", "name": "FAA Checkride Oral Exam" },
+            { "@type": "Thing", "name": "DPE Oral Examination" }
+          ]
+        }}
       />
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl shrink-0">

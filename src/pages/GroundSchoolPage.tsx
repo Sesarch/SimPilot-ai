@@ -114,6 +114,19 @@ const GroundSchoolPage = () => {
         keywords="AI ground school, FAA knowledge test prep, pilot ground school online, aerodynamics study, aviation weather training, ACS study guide, private pilot ground school"
         canonical="/ground-school"
         ogImage="/og-ground-school.jpg"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Course",
+          "name": "AI Ground School — SimPilot.AI",
+          "description": "AI-powered ground school covering all FAA ACS knowledge areas for the Private Pilot certificate.",
+          "url": "https://simpilot.ai/ground-school",
+          "provider": { "@type": "Organization", "name": "SimPilot.AI", "url": "https://simpilot.ai" },
+          "educationalLevel": "Beginner to Intermediate",
+          "about": [
+            { "@type": "Thing", "name": "FAA Knowledge Test" },
+            { "@type": "Thing", "name": "Private Pilot Ground School" }
+          ]
+        }}
       />
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
