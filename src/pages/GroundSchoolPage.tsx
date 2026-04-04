@@ -121,6 +121,14 @@ const LESSON_AREAS = [
     icon: "⚙️",
     prompt: "Teach me about aircraft systems and equipment for my Private Pilot training. Cover the electrical system (alternator, battery, bus bar, circuit breakers), vacuum system (attitude indicator, heading indicator), pitot-static system (airspeed indicator, altimeter, VSI — including errors and blockages), fuel system (gravity-fed vs pump-fed, fuel types, contamination, sumping), hydraulic system, landing gear, flight control surfaces and trim, and engine instruments. For each system, explain how it works and what happens when it fails. Use Socratic questioning and real scenarios. Reference ACS area PA.I.G.",
   },
+  {
+    id: "instruments",
+    title: "Instruments & Flight Deck",
+    acs: "PA.I.G",
+    description: "Gyroscopic instruments, pitot-static instruments, magnetic compass errors (ANDS/UNOS), glass cockpit basics, and instrument cross-check techniques.",
+    icon: "🧭",
+    prompt: "Teach me about flight instruments and the flight deck for my Private Pilot training. Cover pitot-static instruments (airspeed indicator — V-speeds and color arcs, altimeter — types of altitude and setting errors, VSI), gyroscopic instruments (attitude indicator, heading indicator, turn coordinator — precession, rigidity in space, gimbal lock), the magnetic compass (variation, deviation, dip errors — ANDS/UNOS, acceleration errors — ANDS), glass cockpit basics (PFD, MFD, AHRS, ADC), and instrument scanning techniques. Explain what drives each instrument and how to identify failures. Use Socratic questioning with real scenarios. Reference ACS area PA.I.G.",
+  },
 ];
 
 const GroundSchoolPage = () => {
