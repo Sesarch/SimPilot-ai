@@ -109,7 +109,7 @@ const Index = () => {
         description="Train smarter with SimPilot.AI — the AI co-pilot for ground school study, oral exam simulation, and flight knowledge. 24/7 AI flight instructor. Not FAA-approved; supplemental training only."
         keywords="AI pilot training, ground school study, oral exam prep, flight simulator training, checkride preparation, private pilot, instrument rating, commercial pilot, aviation training, AI flight instructor, pilot knowledge test, FAA written exam prep"
         canonical="/"
-        jsonLd={[homeJsonLd, homeFaqJsonLd]}
+        jsonLd={[homeJsonLd, organizationJsonLd, webSiteJsonLd, homeFaqJsonLd]}
       />
       <Navbar />
       <HeroSection />
