@@ -10,6 +10,7 @@ const PrivacyPolicyPage = () => {
         description="Learn how SimPilot.AI collects, uses, and protects your personal data. Our privacy policy covers data handling for AI pilot training sessions, chat history, and account information."
         keywords="SimPilot.AI privacy policy, pilot training data privacy, aviation training data protection, AI chat privacy, personal data policy"
         canonical="/privacy"
+        ogImage="/og-privacy.jpg"
       />
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
