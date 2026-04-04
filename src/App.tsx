@@ -54,6 +54,7 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/ground-school" element={<GroundSchoolPage />} />
             <Route path="/oral-exam" element={<OralExamPage />} />
+            <Route path="/weather-briefing" element={<WeatherBriefingPage />} />
             <Route path="/session-history" element={<SessionHistoryPage />} />
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/terms" element={<TermsPage />} />
