@@ -90,6 +90,7 @@ const SessionHistoryPage = () => {
         description="Review your past AI training sessions on SimPilot.AI. Access ground school and oral exam chat transcripts to revisit key concepts."
         keywords="training session history, pilot chat logs, ground school review, oral exam transcripts, AI training records"
         canonical="/session-history"
+        ogImage="/og-session-history.jpg"
         noIndex
       />
       {/* Nav */}
