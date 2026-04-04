@@ -113,6 +113,14 @@ const LESSON_AREAS = [
     icon: "🫁",
     prompt: "Teach me about human factors and aeromedical topics for my Private Pilot training. Cover types of hypoxia (hypoxic, hypemic, stagnant, histotoxic), hyperventilation, spatial disorientation (the leans, Coriolis illusion, graveyard spiral), vision limitations (empty-field myopia, night vision physiology), carbon monoxide poisoning, middle ear and sinus issues with altitude, the effects of alcohol and drugs on flying (8 hour / 0.04% BAC rule), stress and fatigue management, and the IMSAFE checklist. Use Socratic questioning with real-world scenarios. Reference ACS area PA.I.D.",
   },
+  {
+    id: "systems",
+    title: "Aircraft Systems & Equipment",
+    acs: "PA.I.G",
+    description: "Electrical, vacuum, pitot-static, fuel, hydraulic, landing gear, and flight control systems — how they work and what happens when they fail.",
+    icon: "⚙️",
+    prompt: "Teach me about aircraft systems and equipment for my Private Pilot training. Cover the electrical system (alternator, battery, bus bar, circuit breakers), vacuum system (attitude indicator, heading indicator), pitot-static system (airspeed indicator, altimeter, VSI — including errors and blockages), fuel system (gravity-fed vs pump-fed, fuel types, contamination, sumping), hydraulic system, landing gear, flight control surfaces and trim, and engine instruments. For each system, explain how it works and what happens when it fails. Use Socratic questioning and real scenarios. Reference ACS area PA.I.G.",
+  },
 ];
 
 const GroundSchoolPage = () => {
