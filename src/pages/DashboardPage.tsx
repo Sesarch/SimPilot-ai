@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3 } from "lucide-react";
+import { Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3, Cloud } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import dashboardLight from "@/assets/dashboard-light.jpg";
