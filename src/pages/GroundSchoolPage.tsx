@@ -97,6 +97,14 @@ const LESSON_AREAS = [
     icon: "🗺️",
     prompt: "Teach me the complete cross-country flight planning process for my Private Pilot training. Cover route selection using sectional charts, choosing checkpoints, calculating magnetic headings and ground speed, fuel planning (including reserves), weight and balance, obtaining a weather briefing (1800wxbrief), checking NOTAMs, filing a VFR flight plan, and filling out a navigation log. Walk me through a realistic scenario step by step and quiz me using Socratic questioning. Reference ACS area PA.VI.",
   },
+  {
+    id: "night-ops",
+    title: "Night Operations",
+    acs: "PA.X",
+    description: "Night vision physiology, airport and aircraft lighting systems, night flight procedures, illusions, and safety considerations.",
+    icon: "🌙",
+    prompt: "Teach me about night flight operations for my Private Pilot training. Cover night vision physiology (rods vs cones, dark adaptation, blind spot), airport lighting (runway, taxiway, beacon, VASI/PAPI at night), aircraft lighting requirements (position lights, anti-collision, landing lights), night flight illusions (black hole approach, autokinesis, false horizons), night preflight and cockpit preparation, and night emergency procedures. Use Socratic questioning and real scenarios. Reference ACS area PA.X.",
+  },
 ];
 
 const GroundSchoolPage = () => {
