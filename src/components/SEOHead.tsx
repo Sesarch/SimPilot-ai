@@ -20,11 +20,13 @@ const SEOHead = ({
   keywords,
   canonical,
   ogType = "website",
+  ogImage,
   noIndex = false,
   jsonLd,
 }: SEOHeadProps) => {
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
   const canonicalUrl = canonical ? `${BASE_URL}${canonical}` : undefined;
+  const ogImageUrl = ogImage ? `${BASE_URL}${ogImage}` : `${BASE_URL}/og-image.jpg`;
 
   return (
     <Helmet>
