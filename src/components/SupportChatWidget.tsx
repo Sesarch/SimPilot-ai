@@ -168,18 +168,20 @@ const SupportChatWidget = () => {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Side tab button */}
       <AnimatePresence>
         {!isOpen && (
           <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+            className="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex items-center gap-1.5 bg-primary text-primary-foreground px-2 py-3 rounded-l-lg shadow-lg hover:shadow-xl transition-shadow writing-mode-vertical"
+            style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
             aria-label="Open support chat"
           >
-            <MessageCircle className="w-6 h-6" />
+            <MessageCircle className="w-4 h-4 rotate-90" />
+            <span className="text-xs font-display font-semibold tracking-widest uppercase">Support</span>
           </motion.button>
         )}
       </AnimatePresence>
