@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3 } from "lucide-react";
+import { Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3, Cloud } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import dashboardLight from "@/assets/dashboard-light.jpg";
@@ -150,6 +150,18 @@ const DashboardPage = () => {
             <div>
               <h3 className="font-display text-sm font-semibold text-foreground">Oral Exam Prep</h3>
               <p className="text-xs text-muted-foreground">Checkride simulation</p>
+            </div>
+          </Link>
+          <Link
+            to="/weather-briefing"
+            className="flex items-center gap-3 p-4 bg-gradient-card rounded-xl border border-border hover:border-primary/40 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
+              <Cloud className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <h3 className="font-display text-sm font-semibold text-foreground">Weather Briefing</h3>
+              <p className="text-xs text-muted-foreground">Live METAR/TAF & AI analysis</p>
             </div>
           </Link>
           <Link
