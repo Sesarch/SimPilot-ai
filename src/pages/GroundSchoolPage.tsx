@@ -13,7 +13,7 @@ const GroundSchoolPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
-  const [selectedLesson, setSelectedLesson] = useState<typeof LESSON_AREAS[0] | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
   const heroImage = resolvedTheme === "dark" ? groundSchoolDark : groundSchoolLight;
 
   if (loading) {
