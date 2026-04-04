@@ -128,6 +128,7 @@ const ProgressPage = () => {
         description="Track your pilot training progress with SimPilot.AI. View ground school completion, oral exam scores, and readiness metrics for your FAA checkride."
         keywords="pilot training progress, ground school tracker, exam score history, checkride readiness, aviation training analytics"
         canonical="/progress"
+        ogImage="/og-progress.jpg"
         noIndex
       />
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">

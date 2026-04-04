@@ -122,6 +122,7 @@ const WhySimPilotPage = () => {
         description="See why SimPilot.AI beats general AI chatbots for pilot training. Dedicated CFI persona, Socratic teaching, FAR/AIM references, oral exam simulation, and more."
         keywords="SimPilot.AI vs ChatGPT, AI pilot training comparison, why SimPilot.AI, aviation AI, pilot training tool, checkride prep AI"
         canonical="/why-simpilot"
+        ogImage="/og-why-simpilot.jpg"
         jsonLd={[pageJsonLd, faqJsonLd]}
       />
       <Navbar />

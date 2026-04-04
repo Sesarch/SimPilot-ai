@@ -88,6 +88,7 @@ const DashboardPage = () => {
         description="Your SimPilot.AI pilot training dashboard. Access ground school, oral exam prep, session history, and track your progress toward checkride readiness."
         keywords="pilot training dashboard, ground school progress, oral exam tracker, flight training hub, checkride readiness, aviation student portal"
         canonical="/dashboard"
+        ogImage="/og-dashboard.jpg"
         noIndex
       />
       {/* Nav */}
