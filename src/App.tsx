@@ -24,6 +24,7 @@ import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
 import UnsubscribePage from "./pages/UnsubscribePage.tsx";
 import MobileChatPage from "./pages/MobileChatPage.tsx";
+import WeatherBriefingPage from "./pages/WeatherBriefingPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 
