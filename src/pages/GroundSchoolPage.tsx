@@ -113,6 +113,7 @@ const GroundSchoolPage = () => {
         description="Study for your FAA knowledge test with SimPilot.AI's AI-powered ground school. Covers aerodynamics, regulations, weather, navigation, and all ACS areas. Not FAA-approved — supplemental training only."
         keywords="AI ground school, FAA knowledge test prep, pilot ground school online, aerodynamics study, aviation weather training, ACS study guide, private pilot ground school"
         canonical="/ground-school"
+        ogImage="/og-ground-school.jpg"
       />
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl shrink-0">

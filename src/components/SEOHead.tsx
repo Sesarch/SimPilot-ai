@@ -6,6 +6,7 @@ interface SEOHeadProps {
   keywords: string;
   canonical?: string;
   ogType?: string;
+  ogImage?: string;
   noIndex?: boolean;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
@@ -19,11 +20,13 @@ const SEOHead = ({
   keywords,
   canonical,
   ogType = "website",
+  ogImage,
   noIndex = false,
   jsonLd,
 }: SEOHeadProps) => {
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
   const canonicalUrl = canonical ? `${BASE_URL}${canonical}` : undefined;
+  const ogImageUrl = ogImage ? `${BASE_URL}${ogImage}` : `${BASE_URL}/og-image.jpg`;
 
   return (
     <Helmet>
@@ -38,10 +41,14 @@ const SEOHead = ({
       <meta property="og:type" content={ogType} />
       {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
       <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:image" content={ogImageUrl} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={ogImageUrl} />
 
       {jsonLd && (Array.isArray(jsonLd)
         ? jsonLd.map((ld, i) => (
