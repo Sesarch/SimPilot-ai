@@ -62,6 +62,7 @@ const ChatGateModal = ({ type, onDismiss }: Props) => {
             <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
               You've used all <span className="text-primary font-semibold">20 free messages</span> for today.
               Upgrade to unlock <span className="text-accent font-semibold">unlimited access</span>, ground school lessons, oral exam prep, and more.
+              Start with a <span className="text-accent font-semibold">7-day free trial</span> — no credit card required.
             </p>
             <a
               href="#pricing"
