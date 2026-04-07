@@ -36,6 +36,7 @@ const ChatGateModal = ({ type, onDismiss }: Props) => {
             <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
               Create a free account to keep chatting with your AI flight instructor.
               Get <span className="text-primary font-semibold">20 messages per day</span> — completely free.
+              Plus, enjoy a <span className="text-accent font-semibold">7-day free trial</span> of our premium plans — no credit card required.
             </p>
             <button
               onClick={() => navigate("/auth")}
