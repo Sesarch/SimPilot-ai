@@ -7,7 +7,6 @@ import { usePilotContext } from "@/hooks/usePilotContext";
 import { usePOHUpload } from "@/hooks/usePOHUpload";
 import { useAuth } from "@/hooks/useAuth";
 import ChatGateModal from "@/components/ChatGateModal";
-import EmailGate, { hasLeadEmail } from "@/components/EmailGate";
 import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import sampleChart from "@/assets/sample-vfr-sectional-kmyf.jpg";
@@ -23,7 +22,6 @@ const HeroChatBox = () => {
   const pilotCtx = usePilotContext();
   const { upload: uploadPOH, pohFilePath, clearPOH } = usePOHUpload();
   const limit = useMessageLimit();
-  const [emailCollected, setEmailCollected] = useState(() => hasLeadEmail());
   const chatOptions = useMemo(() => ({
     onBeforeSend: () => limit.checkLimit(),
     onAfterSend: () => { limit.recordUsage(); },
@@ -34,8 +32,7 @@ const HeroChatBox = () => {
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   
-  // Chat is unlocked if user is logged in OR has provided their email
-  const chatUnlocked = !!user || emailCollected;
+  const chatUnlocked = pilotCtx.isComplete;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,11 +110,6 @@ const HeroChatBox = () => {
                 onPOHClear={clearPOH}
                 pohUploaded={!!pohFilePath}
                 compact
-              />
-            ) : !chatUnlocked ? (
-              <EmailGate
-                pilotContext={pilotCtx.context}
-                onComplete={() => setEmailCollected(true)}
               />
             ) : (
               <>
