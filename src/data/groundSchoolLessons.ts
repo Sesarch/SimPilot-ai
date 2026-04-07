@@ -119,6 +119,38 @@ export const LESSON_AREAS = [
     icon: "🧭",
     prompt: "Teach me about flight instruments and the flight deck for my Private Pilot training. Cover pitot-static instruments (airspeed indicator — V-speeds and color arcs, altimeter — types of altitude and setting errors, VSI), gyroscopic instruments (attitude indicator, heading indicator, turn coordinator — precession, rigidity in space, gimbal lock), the magnetic compass (variation, deviation, dip errors — ANDS/UNOS, acceleration errors — ANDS), glass cockpit basics (PFD, MFD, AHRS, ADC), and instrument scanning techniques. Explain what drives each instrument and how to identify failures. Use Socratic questioning with real scenarios. Reference ACS area PA.I.G.",
   },
+  {
+    id: "flight-maneuvers",
+    title: "Flight Maneuvers",
+    acs: "PA.IV / PA.V",
+    description: "Slow flight, power-off and power-on stalls, steep turns, ground reference maneuvers, and go-arounds.",
+    icon: "🛩️",
+    prompt: "Teach me about flight maneuvers for my Private Pilot training. Cover slow flight (purpose, configuration, procedure, common errors), power-off stalls (approach-to-landing), power-on stalls (departure), steep turns (45° bank, altitude ±100 ft, rollout on heading), ground reference maneuvers (turns around a point, rectangular course, S-turns — wind correction), and go-arounds (procedure and decision making). For each maneuver, explain the ACS standards, entry procedure, common errors, and recovery. Use Socratic questioning with real scenarios. Reference ACS areas PA.IV and PA.V.",
+  },
+  {
+    id: "radio-navigation",
+    title: "Radio Navigation (VOR/ADF)",
+    acs: "PA.I.F",
+    description: "VOR tracking and intercepting, ADF/NDB usage, DME, and basic instrument approach concepts.",
+    icon: "📡",
+    prompt: "Teach me about radio navigation for my Private Pilot training. Cover VOR principles (how it works, radials, TO/FROM, CDI, OBS), intercepting and tracking VOR radials, identifying stations, ADF and NDB basics (relative bearing, magnetic bearing formula MB = MH + RB), DME (slant range, groundspeed), and how these navaids are depicted on charts. Also introduce basic instrument approach concepts. Use Socratic questioning — quiz me on determining position using two VORs, and present navigation scenarios. Reference ACS area PA.I.F.",
+  },
+  {
+    id: "weight-balance-advanced",
+    title: "Weight & Balance Deep Dive",
+    acs: "PA.I.E",
+    description: "Advanced W&B scenarios, CG envelope limits, loading problems, weight shift formula, and fuel burn effects.",
+    icon: "⚖️",
+    prompt: "Teach me advanced weight and balance for my Private Pilot training. Cover basic W&B concepts review, then go deeper into: the weight shift formula (weight moved × arm change = total weight × CG change), solving for added/removed weight, fuel burn effects on CG, multi-leg flight W&B planning, CG envelope interpretation, and what happens when CG is forward vs aft of limits. Give me realistic calculation problems to solve and use Socratic questioning throughout. Reference ACS area PA.I.E.",
+  },
+  {
+    id: "airspace-tfrs",
+    title: "Airspace & TFRs",
+    acs: "PA.I.I",
+    description: "Detailed airspace classes A–G, special use airspace, TFRs, VFR cloud clearances, and speed restrictions.",
+    icon: "🗼",
+    prompt: "Teach me the National Airspace System in detail for my Private Pilot training. Cover each airspace class (A through G) with dimensions, entry requirements, equipment, and VFR weather minimums. Use the 3-152 / 1-SCT memory aid. Then cover special use airspace (prohibited, restricted, warning, MOA, alert, CFA), TFRs (types, how to check, consequences of violation), VFR corridors and transition routes, and speed restrictions (250 below 10,000, 200 in Class C/D). Quiz me on scenarios like 'Can you fly VFR here?' with specific conditions. Use Socratic questioning. Reference ACS area PA.I.I.",
+  },
 ] as const;
 
 export type LessonArea = typeof LESSON_AREAS[number];
