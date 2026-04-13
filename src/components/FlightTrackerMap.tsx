@@ -107,6 +107,7 @@ const FlightTrackerMap = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "airborne" | "ground">("all");
 
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
+  const { categories: weatherCategories } = useAirportWeatherBatch();
 
   const { aircraft, loading, error, lastUpdated, refresh } = useFlightTracker(bounds);
 
@@ -483,7 +484,7 @@ const FlightTrackerMap = () => {
             <Marker
               key={ap.icao}
               position={[ap.lat, ap.lng]}
-              icon={createAirportIcon()}
+              icon={createAirportIcon(weatherCategories[ap.icao] ?? undefined)}
               eventHandlers={{ click: () => handleSelectAirport(ap) }}
             >
               <Popup>
