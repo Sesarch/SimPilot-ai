@@ -9,7 +9,7 @@ const navItems = [
   { label: "Why SimPilot.AI", href: "/why-simpilot", isRoute: true },
   { label: "Ground School", href: "/ground-school", isRoute: true },
   { label: "Oral Exam", href: "/oral-exam", isRoute: true },
-  { label: "Live Tools", href: "/live-tools", isRoute: true },
+  { label: "Live Tools", href: "/live-tools", isRoute: true, live: true },
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#pricing" },
 ];
@@ -55,8 +55,14 @@ const Navbar = () => {
                 key={item.label}
                 to={item.href}
                 title={`SimPilot.AI ${item.label} — AI pilot training module`}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
+                className="relative flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
               >
+                {item.live && (
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                )}
                 {item.label}
               </Link>
             ) : (
@@ -126,8 +132,14 @@ const Navbar = () => {
                     key={item.label}
                     to={item.href}
                     onClick={() => setIsOpen(false)}
-                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                    className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
                   >
+                    {item.live && (
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                      </span>
+                    )}
                     {item.label}
                   </Link>
                 ) : (
