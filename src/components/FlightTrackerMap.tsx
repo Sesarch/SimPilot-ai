@@ -338,6 +338,78 @@ const FlightTrackerMap = () => {
             </div>
           </div>
 
+          {/* Weather / METAR */}
+          <div className="px-4 py-2">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Current Weather (METAR)</div>
+            {weatherLoading ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                <Loader2 className="h-3 w-3 animate-spin" /> Fetching METAR...
+              </div>
+            ) : weatherError ? (
+              <div className="text-xs text-muted-foreground py-1">{weatherError}</div>
+            ) : metar ? (
+              <div className="space-y-2">
+                {/* Flight Category Badge */}
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                    metar.flightCategory === "VFR" ? "bg-green-500/15 text-green-500" :
+                    metar.flightCategory === "MVFR" ? "bg-blue-500/15 text-blue-500" :
+                    metar.flightCategory === "IFR" ? "bg-red-500/15 text-red-500" :
+                    "bg-pink-500/15 text-pink-500"
+                  }`}>
+                    {metar.flightCategory}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">Flight Category</span>
+                </div>
+
+                {/* Weather grid */}
+                <div className="grid grid-cols-2 gap-1.5">
+                  {metar.wind && (
+                    <div className="bg-muted/50 rounded p-1.5">
+                      <div className="text-[9px] text-muted-foreground">WIND</div>
+                      <div className="text-xs font-medium text-foreground">{metar.wind}</div>
+                    </div>
+                  )}
+                  {metar.visibility && (
+                    <div className="bg-muted/50 rounded p-1.5">
+                      <div className="text-[9px] text-muted-foreground">VIS</div>
+                      <div className="text-xs font-medium text-foreground">{metar.visibility}</div>
+                    </div>
+                  )}
+                  {metar.ceiling && (
+                    <div className="bg-muted/50 rounded p-1.5">
+                      <div className="text-[9px] text-muted-foreground">CEILING</div>
+                      <div className="text-xs font-medium text-foreground">{metar.ceiling}</div>
+                    </div>
+                  )}
+                  {metar.temperature && (
+                    <div className="bg-muted/50 rounded p-1.5">
+                      <div className="text-[9px] text-muted-foreground">TEMP</div>
+                      <div className="text-xs font-medium text-foreground">{metar.temperature}</div>
+                    </div>
+                  )}
+                  {metar.dewpoint && (
+                    <div className="bg-muted/50 rounded p-1.5">
+                      <div className="text-[9px] text-muted-foreground">DEW PT</div>
+                      <div className="text-xs font-medium text-foreground">{metar.dewpoint}</div>
+                    </div>
+                  )}
+                  {metar.altimeter && (
+                    <div className="bg-muted/50 rounded p-1.5">
+                      <div className="text-[9px] text-muted-foreground">ALTIMETER</div>
+                      <div className="text-xs font-medium text-foreground">{metar.altimeter}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Raw METAR */}
+                <div className="bg-muted/30 rounded p-2 font-mono text-[10px] text-muted-foreground break-all leading-relaxed">
+                  {metar.raw}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
           {/* Runways */}
           <div className="px-4 py-2 flex-1 overflow-y-auto">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Runways</div>
