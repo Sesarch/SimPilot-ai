@@ -25,6 +25,7 @@ import AdminPage from "./pages/AdminPage.tsx";
 import UnsubscribePage from "./pages/UnsubscribePage.tsx";
 import MobileChatPage from "./pages/MobileChatPage.tsx";
 import WeatherBriefingPage from "./pages/WeatherBriefingPage.tsx";
+import LiveToolsPage from "./pages/LiveToolsPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/ground-school" element={<GroundSchoolPage />} />
             <Route path="/oral-exam" element={<OralExamPage />} />
             <Route path="/weather-briefing" element={<WeatherBriefingPage />} />
+            <Route path="/live-tools" element={<LiveToolsPage />} />
             <Route path="/session-history" element={<SessionHistoryPage />} />
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/terms" element={<TermsPage />} />
