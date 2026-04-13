@@ -9,7 +9,7 @@ const navItems = [
   { label: "Why SimPilot.AI", href: "/why-simpilot", isRoute: true },
   { label: "Ground School", href: "/ground-school", isRoute: true },
   { label: "Oral Exam", href: "/oral-exam", isRoute: true },
-  { label: "Live Tools", href: "/live-tools", isRoute: true, live: true },
+  { label: "Live Sky", href: "/live-tools", isRoute: true, live: true },
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#pricing" },
 ];
