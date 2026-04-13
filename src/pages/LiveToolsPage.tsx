@@ -46,6 +46,10 @@ const LiveToolsPage = () => {
                       : "bg-muted text-muted-foreground hover:text-foreground"
                   }`}
                 >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${activeTab === tab.id ? "bg-green-300" : "bg-green-500"}`} />
+                  </span>
                   <tab.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
                   <span className="sm:hidden">{tab.id === "tracker" ? "Tracker" : "ATC"}</span>
