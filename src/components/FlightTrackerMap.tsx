@@ -95,6 +95,8 @@ const FlightTrackerMap = () => {
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
+  const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
+
   const { aircraft, loading, error, lastUpdated, refresh } = useFlightTracker(bounds);
 
   // Update selected aircraft data and track history
