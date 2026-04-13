@@ -94,6 +94,7 @@ const FlightTrackerMap = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "airborne" | "ground">("all");
 
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
 
@@ -139,14 +140,20 @@ const FlightTrackerMap = () => {
     [positionHistory]
   );
 
-  const markers = useMemo(() => aircraft.map((ac) => (
+  const filteredAircraft = useMemo(() => {
+    if (statusFilter === "airborne") return aircraft.filter(ac => !ac.onGround);
+    if (statusFilter === "ground") return aircraft.filter(ac => ac.onGround);
+    return aircraft;
+  }, [aircraft, statusFilter]);
+
+  const markers = useMemo(() => filteredAircraft.map((ac) => (
     <Marker
       key={ac.icao24}
       position={[ac.latitude, ac.longitude]}
       icon={createAircraftIcon(ac.heading, ac.onGround, ac.icao24 === selectedIcaoRef.current)}
       eventHandlers={{ click: () => handleSelect(ac) }}
     />
-  )), [aircraft, handleSelect]);
+  )), [filteredAircraft, handleSelect]);
 
   const altFt = selectedAircraft ? Math.round(selectedAircraft.altitude * 3.281) : 0;
   const spdKts = selectedAircraft ? Math.round(selectedAircraft.velocity * 1.944) : 0;
@@ -273,9 +280,25 @@ const FlightTrackerMap = () => {
             <span className="font-medium">Airports</span>
             {showAirports ? <ToggleRight className="h-3.5 w-3.5 text-primary" /> : <ToggleLeft className="h-3.5 w-3.5 text-muted-foreground" />}
           </button>
+          {/* Status filter */}
+          <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg flex items-center text-xs overflow-hidden">
+            {(["all", "airborne", "ground"] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setStatusFilter(f)}
+                className={`px-2.5 py-1.5 capitalize transition-colors ${
+                  statusFilter === f
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {f === "all" ? "All" : f === "airborne" ? "✈ Air" : "⬇ Gnd"}
+              </button>
+            ))}
+          </div>
           <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs">
             <Plane className="h-3 w-3 text-primary" />
-            <span className="font-medium">{aircraft.length} aircraft</span>
+            <span className="font-medium">{filteredAircraft.length}{statusFilter !== "all" ? `/${aircraft.length}` : ""} aircraft</span>
             {loading && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
           </div>
           <Button size="sm" variant="outline" onClick={refresh} className="h-7 bg-background/90 backdrop-blur-sm">
