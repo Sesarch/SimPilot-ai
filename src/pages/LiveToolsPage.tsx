@@ -22,39 +22,40 @@ const LiveToolsPage = () => {
       </Helmet>
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4 sm:px-6">
+        <main className="pt-20 sm:pt-24 pb-8 sm:pb-16">
+          <div className="container mx-auto px-3 sm:px-6">
             {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
+            <div className="text-center mb-4 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground mb-1 sm:mb-2">
                 Live Aviation <span className="text-primary">Tools</span>
               </h1>
-              <p className="text-muted-foreground max-w-xl mx-auto text-sm">
+              <p className="text-muted-foreground max-w-xl mx-auto text-xs sm:text-sm">
                 Real-time flight tracking powered by OpenSky Network and AI-powered ATC communication training.
               </p>
             </div>
 
             {/* Tabs */}
-            <div className="flex justify-center gap-2 mb-6">
+            <div className="flex justify-center gap-2 mb-4 sm:mb-6">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                     activeTab === tab.id
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <tab.icon className="h-4 w-4" />
-                  {tab.label}
+                  <tab.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.id === "tracker" ? "Tracker" : "ATC"}</span>
                 </button>
               ))}
             </div>
 
             {/* Content */}
             {activeTab === "tracker" ? (
-              <div className="h-[600px] md:h-[700px]">
+              <div className="h-[calc(100vh-200px)] sm:h-[600px] md:h-[700px]">
                 <FlightTrackerMap />
               </div>
             ) : (
