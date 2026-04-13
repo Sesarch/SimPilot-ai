@@ -24,6 +24,8 @@ const CookieConsent = () => {
 
   useEffect(() => {
     const consent = localStorage.getItem("cookie-consent");
+    const dismissed = sessionStorage.getItem("cookie-consent-dismissed");
+    if (dismissed === "true") return; // already dismissed this session
     if (!consent || !isConsentValid()) {
       const timer = setTimeout(() => setVisible(true), 1500);
       return () => clearTimeout(timer);
@@ -33,6 +35,7 @@ const CookieConsent = () => {
   const saveConsent = (value: string) => {
     localStorage.setItem("cookie-consent", value);
     localStorage.setItem("cookie-consent-timestamp", String(Date.now()));
+    sessionStorage.setItem("cookie-consent-dismissed", "true");
     setVisible(false);
   };
 
