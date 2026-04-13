@@ -17,7 +17,7 @@ const LiveToolsPage = () => {
   return (
     <>
       <Helmet>
-        <title>Live Flight Tracker & ATC Trainer | SimPilot.AI</title>
+        <title>Live Sky — Flight Tracker & ATC Trainer | SimPilot.AI</title>
         <meta name="description" content="Track real-time flights on an interactive map and practice ATC radio communications with AI-powered training." />
       </Helmet>
       <div className="min-h-screen bg-background">
@@ -27,7 +27,7 @@ const LiveToolsPage = () => {
             {/* Header */}
             <div className="text-center mb-4 sm:mb-8">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground mb-1 sm:mb-2">
-                Live Aviation <span className="text-primary">Tools</span>
+                Live <span className="text-primary">Sky</span>
               </h1>
               <p className="text-muted-foreground max-w-xl mx-auto text-xs sm:text-sm">
                 Real-time flight tracking powered by OpenSky Network and AI-powered ATC communication training.
