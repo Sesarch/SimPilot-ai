@@ -89,6 +89,10 @@ const FlightTrackerMap = () => {
   const [showAirports, setShowAirports] = useState(true);
   const [positionHistory, setPositionHistory] = useState<PositionRecord[]>([]);
   const selectedIcaoRef = useRef<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const { aircraft, loading, error, lastUpdated, refresh } = useFlightTracker(bounds);
 
