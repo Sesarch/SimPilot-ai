@@ -7,6 +7,7 @@ import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
 import { useAirportWeather } from "@/hooks/useAirportWeather";
+import { useAirportWeatherBatch, FlightCategory } from "@/hooks/useAirportWeatherBatch";
 
 const createAircraftIcon = (heading: number, onGround: boolean, selected: boolean) => {
   const color = selected ? "#f59e0b" : onGround ? "#6b7280" : "#06b6d4";
@@ -70,16 +71,25 @@ const DetailRow = ({ icon: Icon, label, value, className }: { icon: any; label: 
   </div>
 );
 
-const createAirportIcon = () => {
+const weatherColors: Record<string, string> = {
+  VFR: "#22c55e",
+  MVFR: "#3b82f6",
+  IFR: "#ef4444",
+  LIFR: "#ec4899",
+};
+
+const createAirportIcon = (category?: FlightCategory) => {
+  const color = (category && weatherColors[category]) || "#a78bfa";
+  const glow = category ? `filter: drop-shadow(0 0 4px ${color});` : "";
   return L.divIcon({
     className: "airport-marker",
-    html: `<div style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    html: `<div style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; ${glow}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2v20M2 12h20M6 6l12 12M18 6L6 18"/>
       </svg>
     </div>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
   });
 };
 
@@ -97,6 +107,7 @@ const FlightTrackerMap = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "airborne" | "ground">("all");
 
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
+  const { categories: weatherCategories } = useAirportWeatherBatch();
 
   const { aircraft, loading, error, lastUpdated, refresh } = useFlightTracker(bounds);
 
@@ -316,7 +327,27 @@ const FlightTrackerMap = () => {
           <div className="absolute bottom-3 right-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground">
             Updated: {lastUpdated.toLocaleTimeString()}
           </div>
-      )}
+        )}
+
+        {/* Weather Legend */}
+        {showAirports && (
+          <div className="absolute bottom-3 left-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
+            <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Airport Weather</div>
+            <div className="flex items-center gap-3">
+              {[
+                { cat: "VFR", color: "#22c55e" },
+                { cat: "MVFR", color: "#3b82f6" },
+                { cat: "IFR", color: "#ef4444" },
+                { cat: "LIFR", color: "#ec4899" },
+              ].map(({ cat, color }) => (
+                <div key={cat} className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                  <span className="text-[10px] text-muted-foreground">{cat}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* Airport Sidebar Panel */}
       {selectedAirport && (
@@ -473,7 +504,7 @@ const FlightTrackerMap = () => {
             <Marker
               key={ap.icao}
               position={[ap.lat, ap.lng]}
-              icon={createAirportIcon()}
+              icon={createAirportIcon(weatherCategories[ap.icao] ?? undefined)}
               eventHandlers={{ click: () => handleSelectAirport(ap) }}
             >
               <Popup>
