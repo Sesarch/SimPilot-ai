@@ -12,7 +12,7 @@ const PWAInstallBanner = () => {
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Don't show in iframes (Lovable preview)
+    // Don't show in iframes (preview)
     try {
       if (window.self !== window.top) return;
     } catch {
