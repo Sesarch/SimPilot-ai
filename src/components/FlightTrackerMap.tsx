@@ -71,16 +71,25 @@ const DetailRow = ({ icon: Icon, label, value, className }: { icon: any; label: 
   </div>
 );
 
-const createAirportIcon = () => {
+const weatherColors: Record<string, string> = {
+  VFR: "#22c55e",
+  MVFR: "#3b82f6",
+  IFR: "#ef4444",
+  LIFR: "#ec4899",
+};
+
+const createAirportIcon = (category?: FlightCategory) => {
+  const color = (category && weatherColors[category]) || "#a78bfa";
+  const glow = category ? `filter: drop-shadow(0 0 4px ${color});` : "";
   return L.divIcon({
     className: "airport-marker",
-    html: `<div style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    html: `<div style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; ${glow}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2v20M2 12h20M6 6l12 12M18 6L6 18"/>
       </svg>
     </div>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
   });
 };
 
