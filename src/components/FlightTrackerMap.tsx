@@ -108,8 +108,7 @@ const FlightTrackerMap = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "airborne" | "ground">("all");
   const [altRange, setAltRange] = useState<[number, number]>([0, 60000]);
-  const [showFilters, setShowFilters] = useState(false);
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const isMobile = useIsMobile();
 
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
