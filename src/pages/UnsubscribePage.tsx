@@ -69,7 +69,7 @@ const UnsubscribePage = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
-      <SEOHead title="Unsubscribe — SimPilot.AI" description="Manage your email preferences" keywords="unsubscribe, email preferences" />
+      <SEOHead title="Unsubscribe — SimPilot.AI" description="Manage your email preferences" keywords="unsubscribe, email preferences" noIndex />
       <div className="max-w-md w-full text-center space-y-6">
         {status === "loading" && (
           <>
