@@ -32,7 +32,7 @@ const LiveToolsPage = () => {
             "@type": "WebApplication",
             "name": "Live Sky — SimPilot.AI",
             "description": "Real-time flight tracking on an interactive map and AI-powered ATC radio communication training.",
-            "url": "https://soar-ai-guide.lovable.app/live-tools",
+            "url": "https://simpilot.ai/live-tools",
             "applicationCategory": "UtilitiesApplication",
             "operatingSystem": "Web",
             "offers": {
@@ -50,7 +50,7 @@ const LiveToolsPage = () => {
             "isPartOf": {
               "@type": "WebSite",
               "name": "SimPilot.AI",
-              "url": "https://soar-ai-guide.lovable.app"
+              "url": "https://simpilot.ai"
             }
           })}
         </script>
