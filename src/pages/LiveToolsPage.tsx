@@ -18,7 +18,7 @@ const LiveToolsPage = () => {
     <>
       <Helmet>
         <title>Live Sky — Flight Tracker & ATC Trainer | SimPilot.AI</title>
-        <meta name="description" content="Track real-time flights on an interactive map and practice ATC radio communications with AI-powered training." />
+        <meta name="description" content="Live Sky — real-time flight tracking on an interactive map and AI-powered ATC radio communication training." />
       </Helmet>
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -30,7 +30,7 @@ const LiveToolsPage = () => {
                 Live <span className="text-primary">Sky</span>
               </h1>
               <p className="text-muted-foreground max-w-xl mx-auto text-xs sm:text-sm">
-                Real-time flight tracking powered by OpenSky Network and AI-powered ATC communication training.
+                Watch the skies in real time — track flights worldwide and sharpen your ATC radio skills with AI.
               </p>
             </div>
 
