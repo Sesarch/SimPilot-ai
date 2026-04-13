@@ -327,7 +327,27 @@ const FlightTrackerMap = () => {
           <div className="absolute bottom-3 right-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground">
             Updated: {lastUpdated.toLocaleTimeString()}
           </div>
-      )}
+        )}
+
+        {/* Weather Legend */}
+        {showAirports && (
+          <div className="absolute bottom-3 left-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
+            <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Airport Weather</div>
+            <div className="flex items-center gap-3">
+              {[
+                { cat: "VFR", color: "#22c55e" },
+                { cat: "MVFR", color: "#3b82f6" },
+                { cat: "IFR", color: "#ef4444" },
+                { cat: "LIFR", color: "#ec4899" },
+              ].map(({ cat, color }) => (
+                <div key={cat} className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                  <span className="text-[10px] text-muted-foreground">{cat}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* Airport Sidebar Panel */}
       {selectedAirport && (
