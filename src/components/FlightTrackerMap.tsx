@@ -180,6 +180,19 @@ const FlightTrackerMap = () => {
           />
           <BoundsTracker onBoundsChange={setBounds} />
           {markers}
+          {showAirports && majorAirports.map(ap => (
+            <Marker
+              key={ap.icao}
+              position={[ap.lat, ap.lng]}
+              icon={createAirportIcon()}
+              eventHandlers={{ click: () => handleSelectAirport(ap) }}
+            >
+              <Popup>
+                <div className="text-sm font-bold">{ap.icao} / {ap.iata}</div>
+                <div className="text-xs">{ap.name}</div>
+              </Popup>
+            </Marker>
+          ))}
           {trailPositions.length > 1 && (
             <Polyline positions={trailPositions} pathOptions={{ color: "#f59e0b", weight: 2, opacity: 0.7, dashArray: "6 4" }} />
           )}
