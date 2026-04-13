@@ -25,6 +25,34 @@ const LiveToolsPage = () => {
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content="/og-live-sky.jpg" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "Live Sky — SimPilot.AI",
+            "description": "Real-time flight tracking on an interactive map and AI-powered ATC radio communication training.",
+            "url": "https://soar-ai-guide.lovable.app/live-tools",
+            "applicationCategory": "UtilitiesApplication",
+            "operatingSystem": "Web",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "Real-time global flight tracking",
+              "Interactive map with aircraft positions",
+              "Live METAR weather at major airports",
+              "AI-powered ATC communication trainer",
+              "Altitude and callsign filtering"
+            ],
+            "isPartOf": {
+              "@type": "WebSite",
+              "name": "SimPilot.AI",
+              "url": "https://soar-ai-guide.lovable.app"
+            }
+          })}
+        </script>
       </Helmet>
       <div className="min-h-screen bg-background">
         <Navbar />
