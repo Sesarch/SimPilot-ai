@@ -94,6 +94,7 @@ const FlightTrackerMap = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "airborne" | "ground">("all");
 
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
 
