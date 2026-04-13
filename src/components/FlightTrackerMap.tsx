@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, Polyline, Popup, CircleMarker } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMapEvents, Polyline, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useFlightTracker, Aircraft } from "@/hooks/useFlightTracker";
-import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight } from "lucide-react";
+import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
 
