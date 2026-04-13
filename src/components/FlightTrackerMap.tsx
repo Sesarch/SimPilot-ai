@@ -142,6 +142,15 @@ const FlightTrackerMap = () => {
       {/* Map */}
       <div className="flex-1 relative">
         <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
+          <button
+            onClick={() => setShowAirports(v => !v)}
+            className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs hover:border-primary/50 transition-colors"
+            title="Toggle airport markers"
+          >
+            <MapPin className="h-3 w-3 text-purple-400" />
+            <span className="font-medium">Airports</span>
+            {showAirports ? <ToggleRight className="h-3.5 w-3.5 text-primary" /> : <ToggleLeft className="h-3.5 w-3.5 text-muted-foreground" />}
+          </button>
           <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs">
             <Plane className="h-3 w-3 text-primary" />
             <span className="font-medium">{aircraft.length} aircraft</span>
