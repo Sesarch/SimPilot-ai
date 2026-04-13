@@ -37,6 +37,14 @@ const BoundsTracker = ({ onBoundsChange }: { onBoundsChange: (b: any) => void })
   return null;
 };
 
+const FlyToLocation = ({ lat, lng, zoom }: { lat: number; lng: number; zoom: number }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo([lat, lng], zoom, { duration: 1.2 });
+  }, [lat, lng, zoom, map]);
+  return null;
+};
+
 // Track position history for selected aircraft
 interface PositionRecord {
   lat: number;
