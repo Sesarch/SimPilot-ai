@@ -400,7 +400,7 @@ const FlightTrackerMap = () => {
 
       {/* Airport Sidebar Panel */}
       {selectedAirport && (
-        <div className="w-[320px] bg-background border-l border-border flex flex-col overflow-hidden shrink-0">
+        <div className="absolute md:relative bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto w-full md:w-[320px] max-h-[50vh] md:max-h-none bg-background border-t md:border-t-0 md:border-l border-border flex flex-col overflow-hidden shrink-0 z-[1001] md:z-auto rounded-t-xl md:rounded-none">
           {/* Header */}
           <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
             <div>
@@ -570,7 +570,7 @@ const FlightTrackerMap = () => {
 
       {/* Sidebar Panel */}
       {selectedAircraft && (
-        <div className="w-[320px] bg-background border-l border-border flex flex-col overflow-hidden shrink-0">
+        <div className="absolute md:relative bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto w-full md:w-[320px] max-h-[50vh] md:max-h-none bg-background border-t md:border-t-0 md:border-l border-border flex flex-col overflow-hidden shrink-0 z-[1001] md:z-auto rounded-t-xl md:rounded-none">
           {/* Header */}
           <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
             <div>
