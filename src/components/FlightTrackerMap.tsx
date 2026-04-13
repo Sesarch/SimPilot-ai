@@ -61,9 +61,24 @@ const DetailRow = ({ icon: Icon, label, value, className }: { icon: any; label: 
   </div>
 );
 
+const createAirportIcon = () => {
+  return L.divIcon({
+    className: "airport-marker",
+    html: `<div style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v20M2 12h20M6 6l12 12M18 6L6 18"/>
+      </svg>
+    </div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  });
+};
+
 const FlightTrackerMap = () => {
   const [bounds, setBounds] = useState({ north: 50, south: 25, east: -65, west: -125 });
   const [selectedAircraft, setSelectedAircraft] = useState<Aircraft | null>(null);
+  const [selectedAirport, setSelectedAirport] = useState<MajorAirport | null>(null);
+  const [showAirports, setShowAirports] = useState(true);
   const [positionHistory, setPositionHistory] = useState<PositionRecord[]>([]);
   const selectedIcaoRef = useRef<string | null>(null);
 
