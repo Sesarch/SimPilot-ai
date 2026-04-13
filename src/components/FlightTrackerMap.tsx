@@ -7,6 +7,7 @@ import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
 import { useAirportWeather } from "@/hooks/useAirportWeather";
+import { useAirportWeatherBatch, FlightCategory } from "@/hooks/useAirportWeatherBatch";
 
 const createAircraftIcon = (heading: number, onGround: boolean, selected: boolean) => {
   const color = selected ? "#f59e0b" : onGround ? "#6b7280" : "#06b6d4";
