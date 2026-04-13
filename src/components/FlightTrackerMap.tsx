@@ -291,36 +291,54 @@ const FlightTrackerMap = () => {
             </div>
           )}
         </div>
-        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
-          <button
-            onClick={() => setShowAirports(v => !v)}
-            className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs hover:border-primary/50 transition-colors"
-            title="Toggle airport markers"
-          >
-            <MapPin className="h-3 w-3 text-purple-400" />
-            <span className="font-medium">Airports</span>
-            {showAirports ? <ToggleRight className="h-3.5 w-3.5 text-primary" /> : <ToggleLeft className="h-3.5 w-3.5 text-muted-foreground" />}
-          </button>
-          {/* Status filter */}
-          <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg flex items-center text-xs overflow-hidden">
-            {(["all", "airborne", "ground"] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setStatusFilter(f)}
-                className={`px-2.5 py-1.5 capitalize transition-colors ${
-                  statusFilter === f
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {f === "all" ? "All" : f === "airborne" ? "✈ Air" : "⬇ Gnd"}
-              </button>
-            ))}
+        {/* Toolbar */}
+        <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-1.5">
+          {/* Top row: always visible compact controls */}
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            <button
+              onClick={() => setShowAirports(v => !v)}
+              className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-2 sm:px-3 py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs hover:border-primary/50 transition-colors"
+              title="Toggle airport markers"
+            >
+              <MapPin className="h-3 w-3 text-purple-400" />
+              <span className="font-medium hidden sm:inline">Airports</span>
+              {showAirports ? <ToggleRight className="h-3.5 w-3.5 text-primary" /> : <ToggleLeft className="h-3.5 w-3.5 text-muted-foreground" />}
+            </button>
+            <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg flex items-center text-xs overflow-hidden">
+              {(["all", "airborne", "ground"] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setStatusFilter(f)}
+                  className={`px-2 sm:px-2.5 py-1.5 capitalize transition-colors ${
+                    statusFilter === f
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {f === "all" ? "All" : f === "airborne" ? "✈ Air" : "⬇ Gnd"}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowFilters(v => !v)}
+              className={`md:hidden bg-background/90 backdrop-blur-sm border border-border rounded-lg px-2 py-1.5 text-xs transition-colors ${showFilters ? "border-primary/50 text-primary" : "text-muted-foreground"}`}
+              title="More filters"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+            </button>
+            <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-2 sm:px-3 py-1.5 flex items-center gap-1.5 text-xs">
+              <Plane className="h-3 w-3 text-primary" />
+              <span className="font-medium">{filteredAircraft.length}{(statusFilter !== "all" || altRange[0] > 0 || altRange[1] < 60000) ? `/${aircraft.length}` : ""}</span>
+              {loading && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
+            </div>
+            <Button size="sm" variant="outline" onClick={refresh} className="h-7 bg-background/90 backdrop-blur-sm">
+              <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+            </Button>
           </div>
-          {/* Altitude range filter */}
-          <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs">
+          {/* Altitude filter - always visible on desktop, toggled on mobile */}
+          <div className={`${showFilters ? "flex" : "hidden"} md:flex bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 items-center gap-2 text-xs`}>
             <Mountain className="h-3 w-3 text-muted-foreground shrink-0" />
-            <div className="flex flex-col gap-1 min-w-[140px]">
+            <div className="flex flex-col gap-1 min-w-[120px] sm:min-w-[140px]">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-muted-foreground">ALT</span>
                 <span className="text-[10px] font-medium text-foreground">
@@ -329,47 +347,23 @@ const FlightTrackerMap = () => {
               </div>
               <div className="flex items-center gap-1">
                 <input
-                  type="range"
-                  min={0}
-                  max={60000}
-                  step={1000}
-                  value={altRange[0]}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setAltRange(prev => [Math.min(v, prev[1] - 1000), prev[1]]);
-                  }}
+                  type="range" min={0} max={60000} step={1000} value={altRange[0]}
+                  onChange={(e) => { const v = Number(e.target.value); setAltRange(prev => [Math.min(v, prev[1] - 1000), prev[1]]); }}
                   className="w-full h-1 accent-primary cursor-pointer"
-                  title={`Min altitude: ${altRange[0]} ft`}
                 />
                 <input
-                  type="range"
-                  min={0}
-                  max={60000}
-                  step={1000}
-                  value={altRange[1]}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setAltRange(prev => [prev[0], Math.max(v, prev[0] + 1000)]);
-                  }}
+                  type="range" min={0} max={60000} step={1000} value={altRange[1]}
+                  onChange={(e) => { const v = Number(e.target.value); setAltRange(prev => [prev[0], Math.max(v, prev[0] + 1000)]); }}
                   className="w-full h-1 accent-primary cursor-pointer"
-                  title={`Max altitude: ${altRange[1]} ft`}
                 />
               </div>
             </div>
             {(altRange[0] > 0 || altRange[1] < 60000) && (
-              <button onClick={() => setAltRange([0, 60000])} className="text-muted-foreground hover:text-foreground" title="Reset altitude filter">
+              <button onClick={() => setAltRange([0, 60000])} className="text-muted-foreground hover:text-foreground">
                 <X className="h-3 w-3" />
               </button>
             )}
           </div>
-          <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs">
-            <Plane className="h-3 w-3 text-primary" />
-            <span className="font-medium">{filteredAircraft.length}{(statusFilter !== "all" || altRange[0] > 0 || altRange[1] < 60000) ? `/${aircraft.length}` : ""} aircraft</span>
-            {loading && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
-          </div>
-          <Button size="sm" variant="outline" onClick={refresh} className="h-7 bg-background/90 backdrop-blur-sm">
-            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
-          </Button>
         </div>
 
         {error && (
