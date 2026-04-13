@@ -19,6 +19,12 @@ const LiveToolsPage = () => {
       <Helmet>
         <title>Live Sky — Flight Tracker & ATC Trainer | SimPilot.AI</title>
         <meta name="description" content="Live Sky — real-time flight tracking on an interactive map and AI-powered ATC radio communication training." />
+        <meta property="og:title" content="Live Sky — Flight Tracker & ATC Trainer | SimPilot.AI" />
+        <meta property="og:description" content="Watch the skies in real time — track flights worldwide and sharpen your ATC radio skills with AI." />
+        <meta property="og:image" content="/og-live-sky.jpg" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="/og-live-sky.jpg" />
       </Helmet>
       <div className="min-h-screen bg-background">
         <Navbar />
