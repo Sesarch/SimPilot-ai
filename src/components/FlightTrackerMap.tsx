@@ -171,8 +171,79 @@ const FlightTrackerMap = () => {
           <div className="absolute bottom-3 right-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground">
             Updated: {lastUpdated.toLocaleTimeString()}
           </div>
-        )}
+      )}
 
+      {/* Airport Sidebar Panel */}
+      {selectedAirport && (
+        <div className="w-[320px] bg-background border-l border-border flex flex-col overflow-hidden shrink-0">
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
+            <div>
+              <div className="font-bold text-lg text-foreground leading-tight">
+                {selectedAirport.icao} / {selectedAirport.iata}
+              </div>
+              <div className="text-xs text-muted-foreground">{selectedAirport.name}</div>
+            </div>
+            <Button size="icon" variant="ghost" onClick={handleClose} className="h-7 w-7">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="px-4 grid grid-cols-3 gap-2 py-3">
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <div className="text-[10px] text-muted-foreground mb-0.5">ELEV</div>
+              <div className="text-sm font-bold text-foreground">{selectedAirport.elevation.toLocaleString()}</div>
+              <div className="text-[10px] text-muted-foreground">ft</div>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <div className="text-[10px] text-muted-foreground mb-0.5">RWY</div>
+              <div className="text-sm font-bold text-foreground">{selectedAirport.runways.length}</div>
+              <div className="text-[10px] text-muted-foreground">runways</div>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <div className="text-[10px] text-muted-foreground mb-0.5">TWR</div>
+              <div className="text-sm font-bold text-foreground">{selectedAirport.tower}</div>
+              <div className="text-[10px] text-muted-foreground">MHz</div>
+            </div>
+          </div>
+
+          {/* Position */}
+          <div className="px-4 py-2">
+            <div className="bg-muted/50 rounded-lg p-2 font-mono text-xs text-foreground space-y-0.5">
+              <div>LAT: {selectedAirport.lat.toFixed(4)}°</div>
+              <div>LON: {selectedAirport.lng.toFixed(4)}°</div>
+            </div>
+          </div>
+
+          {/* Runways */}
+          <div className="px-4 py-2 flex-1 overflow-y-auto">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Runways</div>
+            <div className="space-y-2">
+              {selectedAirport.runways.map(rwy => (
+                <div key={rwy.id} className="bg-muted/30 border border-border/50 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-sm text-foreground font-mono">{rwy.id}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">{rwy.surface}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <span>{rwy.length.toLocaleString()} ft</span>
+                    <span className="text-border">•</span>
+                    <span>{Math.round(rwy.length * 0.3048).toLocaleString()} m</span>
+                  </div>
+                  {/* Visual runway bar */}
+                  <div className="mt-1.5 h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary/60"
+                      style={{ width: `${Math.min((rwy.length / 16000) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
         <MapContainer center={[39, -98]} zoom={5} style={{ width: "100%", height: "100%" }} zoomControl={true}>
           <TileLayer
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
