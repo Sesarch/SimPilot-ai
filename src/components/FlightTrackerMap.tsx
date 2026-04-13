@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, Polyline, Popup, CircleMarker } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMapEvents, Polyline, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useFlightTracker, Aircraft } from "@/hooks/useFlightTracker";
-import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight } from "lucide-react";
+import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
 
@@ -34,6 +34,14 @@ const BoundsTracker = ({ onBoundsChange }: { onBoundsChange: (b: any) => void })
       });
     },
   });
+  return null;
+};
+
+const FlyToLocation = ({ lat, lng, zoom }: { lat: number; lng: number; zoom: number }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo([lat, lng], zoom, { duration: 1.2 });
+  }, [lat, lng, zoom, map]);
   return null;
 };
 
@@ -81,6 +89,10 @@ const FlightTrackerMap = () => {
   const [showAirports, setShowAirports] = useState(true);
   const [positionHistory, setPositionHistory] = useState<PositionRecord[]>([]);
   const selectedIcaoRef = useRef<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const { aircraft, loading, error, lastUpdated, refresh } = useFlightTracker(bounds);
 
@@ -137,10 +149,117 @@ const FlightTrackerMap = () => {
   const spdKts = selectedAircraft ? Math.round(selectedAircraft.velocity * 1.944) : 0;
   const vsFpm = selectedAircraft ? Math.round(selectedAircraft.verticalRate * 196.85) : 0;
 
+  // Search results
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) return { aircraft: [], airports: [] };
+    const q = searchQuery.toLowerCase();
+    const matchedAircraft = aircraft.filter(ac =>
+      ac.callsign.toLowerCase().includes(q) ||
+      ac.icao24.toLowerCase().includes(q) ||
+      ac.originCountry.toLowerCase().includes(q)
+    ).slice(0, 5);
+    const matchedAirports = majorAirports.filter(ap =>
+      ap.icao.toLowerCase().includes(q) ||
+      ap.iata.toLowerCase().includes(q) ||
+      ap.name.toLowerCase().includes(q)
+    ).slice(0, 5);
+    return { aircraft: matchedAircraft, airports: matchedAirports };
+  }, [searchQuery, aircraft]);
+
+  const handleSearchSelectAircraft = useCallback((ac: Aircraft) => {
+    handleSelect(ac);
+    setFlyTo({ lat: ac.latitude, lng: ac.longitude, zoom: 9 });
+    setSearchQuery("");
+    setSearchFocused(false);
+  }, [handleSelect]);
+
+  const handleSearchSelectAirport = useCallback((ap: MajorAirport) => {
+    handleSelectAirport(ap);
+    setFlyTo({ lat: ap.lat, lng: ap.lng, zoom: 12 });
+    setSearchQuery("");
+    setSearchFocused(false);
+  }, [handleSelectAirport]);
+
+  // Close search dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const showDropdown = searchFocused && searchQuery.length >= 2 && (searchResults.aircraft.length > 0 || searchResults.airports.length > 0);
+
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden border border-border flex">
       {/* Map */}
       <div className="flex-1 relative">
+        {/* Search Bar */}
+        <div ref={searchRef} className="absolute top-3 left-3 z-[1000] w-[280px]">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              placeholder="Search callsign, ICAO, airport..."
+              className="w-full bg-background/90 backdrop-blur-sm border border-border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+            />
+            {searchQuery && (
+              <button onClick={() => { setSearchQuery(""); setSearchFocused(false); }} className="absolute right-2 top-1/2 -translate-y-1/2">
+                <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+              </button>
+            )}
+          </div>
+          {showDropdown && (
+            <div className="mt-1 bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden max-h-[300px] overflow-y-auto">
+              {searchResults.aircraft.length > 0 && (
+                <div>
+                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/30">
+                    <Plane className="h-3 w-3 inline mr-1" />Aircraft
+                  </div>
+                  {searchResults.aircraft.map(ac => (
+                    <button
+                      key={ac.icao24}
+                      onClick={() => handleSearchSelectAircraft(ac)}
+                      className="w-full px-3 py-2 text-left hover:bg-muted/50 flex items-center justify-between transition-colors"
+                    >
+                      <div>
+                        <div className="text-xs font-medium text-foreground">{ac.callsign || ac.icao24.toUpperCase()}</div>
+                        <div className="text-[10px] text-muted-foreground">{ac.originCountry} • {Math.round(ac.altitude * 3.281).toLocaleString()} ft</div>
+                      </div>
+                      <span className="text-[10px] font-mono text-muted-foreground">{ac.icao24.toUpperCase()}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {searchResults.airports.length > 0 && (
+                <div>
+                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/30">
+                    <MapPin className="h-3 w-3 inline mr-1" />Airports
+                  </div>
+                  {searchResults.airports.map(ap => (
+                    <button
+                      key={ap.icao}
+                      onClick={() => handleSearchSelectAirport(ap)}
+                      className="w-full px-3 py-2 text-left hover:bg-muted/50 flex items-center justify-between transition-colors"
+                    >
+                      <div>
+                        <div className="text-xs font-medium text-foreground">{ap.icao} / {ap.iata}</div>
+                        <div className="text-[10px] text-muted-foreground">{ap.name}</div>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground">{ap.runways.length} rwy</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
           <button
             onClick={() => setShowAirports(v => !v)}
@@ -250,6 +369,7 @@ const FlightTrackerMap = () => {
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
           <BoundsTracker onBoundsChange={setBounds} />
+          {flyTo && <FlyToLocation lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
           {markers}
           {showAirports && majorAirports.map(ap => (
             <Marker
