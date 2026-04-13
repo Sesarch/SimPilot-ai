@@ -101,12 +101,21 @@ const FlightTrackerMap = () => {
   const handleSelect = useCallback((ac: Aircraft) => {
     selectedIcaoRef.current = ac.icao24;
     setSelectedAircraft(ac);
+    setSelectedAirport(null);
     setPositionHistory([{ lat: ac.latitude, lng: ac.longitude, alt: ac.altitude, time: new Date() }]);
+  }, []);
+
+  const handleSelectAirport = useCallback((ap: MajorAirport) => {
+    setSelectedAirport(ap);
+    setSelectedAircraft(null);
+    selectedIcaoRef.current = null;
+    setPositionHistory([]);
   }, []);
 
   const handleClose = useCallback(() => {
     selectedIcaoRef.current = null;
     setSelectedAircraft(null);
+    setSelectedAirport(null);
     setPositionHistory([]);
   }, []);
 
