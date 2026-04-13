@@ -140,14 +140,20 @@ const FlightTrackerMap = () => {
     [positionHistory]
   );
 
-  const markers = useMemo(() => aircraft.map((ac) => (
+  const filteredAircraft = useMemo(() => {
+    if (statusFilter === "airborne") return aircraft.filter(ac => !ac.onGround);
+    if (statusFilter === "ground") return aircraft.filter(ac => ac.onGround);
+    return aircraft;
+  }, [aircraft, statusFilter]);
+
+  const markers = useMemo(() => filteredAircraft.map((ac) => (
     <Marker
       key={ac.icao24}
       position={[ac.latitude, ac.longitude]}
       icon={createAircraftIcon(ac.heading, ac.onGround, ac.icao24 === selectedIcaoRef.current)}
       eventHandlers={{ click: () => handleSelect(ac) }}
     />
-  )), [aircraft, handleSelect]);
+  )), [filteredAircraft, handleSelect]);
 
   const altFt = selectedAircraft ? Math.round(selectedAircraft.altitude * 3.281) : 0;
   const spdKts = selectedAircraft ? Math.round(selectedAircraft.velocity * 1.944) : 0;
