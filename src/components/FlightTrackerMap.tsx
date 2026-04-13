@@ -153,10 +153,17 @@ const FlightTrackerMap = () => {
   );
 
   const filteredAircraft = useMemo(() => {
-    if (statusFilter === "airborne") return aircraft.filter(ac => !ac.onGround);
-    if (statusFilter === "ground") return aircraft.filter(ac => ac.onGround);
-    return aircraft;
-  }, [aircraft, statusFilter]);
+    let list = aircraft;
+    if (statusFilter === "airborne") list = list.filter(ac => !ac.onGround);
+    else if (statusFilter === "ground") list = list.filter(ac => ac.onGround);
+    if (altRange[0] > 0 || altRange[1] < 60000) {
+      list = list.filter(ac => {
+        const altFeet = ac.altitude * 3.281;
+        return altFeet >= altRange[0] && altFeet <= altRange[1];
+      });
+    }
+    return list;
+  }, [aircraft, statusFilter, altRange]);
 
   const markers = useMemo(() => filteredAircraft.map((ac) => (
     <Marker
