@@ -315,9 +315,54 @@ const FlightTrackerMap = () => {
               </button>
             ))}
           </div>
+          {/* Altitude range filter */}
+          <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs">
+            <Mountain className="h-3 w-3 text-muted-foreground shrink-0" />
+            <div className="flex flex-col gap-1 min-w-[140px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground">ALT</span>
+                <span className="text-[10px] font-medium text-foreground">
+                  {altRange[0] === 0 && altRange[1] === 60000 ? "All" : `${(altRange[0] / 1000).toFixed(0)}k–${(altRange[1] / 1000).toFixed(0)}k ft`}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <input
+                  type="range"
+                  min={0}
+                  max={60000}
+                  step={1000}
+                  value={altRange[0]}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setAltRange(prev => [Math.min(v, prev[1] - 1000), prev[1]]);
+                  }}
+                  className="w-full h-1 accent-primary cursor-pointer"
+                  title={`Min altitude: ${altRange[0]} ft`}
+                />
+                <input
+                  type="range"
+                  min={0}
+                  max={60000}
+                  step={1000}
+                  value={altRange[1]}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setAltRange(prev => [prev[0], Math.max(v, prev[0] + 1000)]);
+                  }}
+                  className="w-full h-1 accent-primary cursor-pointer"
+                  title={`Max altitude: ${altRange[1]} ft`}
+                />
+              </div>
+            </div>
+            {(altRange[0] > 0 || altRange[1] < 60000) && (
+              <button onClick={() => setAltRange([0, 60000])} className="text-muted-foreground hover:text-foreground" title="Reset altitude filter">
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
           <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 flex items-center gap-2 text-xs">
             <Plane className="h-3 w-3 text-primary" />
-            <span className="font-medium">{filteredAircraft.length}{statusFilter !== "all" ? `/${aircraft.length}` : ""} aircraft</span>
+            <span className="font-medium">{filteredAircraft.length}{(statusFilter !== "all" || altRange[0] > 0 || altRange[1] < 60000) ? `/${aircraft.length}` : ""} aircraft</span>
             {loading && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
           </div>
           <Button size="sm" variant="outline" onClick={refresh} className="h-7 bg-background/90 backdrop-blur-sm">
