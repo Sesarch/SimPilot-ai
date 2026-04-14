@@ -6,10 +6,24 @@ import { Link } from "react-router-dom";
 
 const CONSENT_EXPIRY_DAYS = 180; // 6 months – GDPR standard
 
-const isConsentValid = (): boolean => {
+const getCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+const setCookie = (name: string, value: string, days: number) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+};
+
+const hasValidConsent = (): boolean => {
+  // Primary: check browser cookie (survives localStorage clears)
+  if (getCookie("cookie-consent")) return true;
+  // Fallback: check localStorage with timestamp
   try {
+    const consent = localStorage.getItem("cookie-consent");
     const raw = localStorage.getItem("cookie-consent-timestamp");
-    if (!raw) return false;
+    if (!consent || !raw) return false;
     const timestamp = Number(raw);
     if (isNaN(timestamp)) return false;
     const daysSince = (Date.now() - timestamp) / (1000 * 60 * 60 * 24);
@@ -23,19 +37,17 @@ const CookieConsent = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem("cookie-consent");
-    const dismissed = sessionStorage.getItem("cookie-consent-dismissed");
-    if (dismissed === "true") return; // already dismissed this session
-    if (!consent || !isConsentValid()) {
-      const timer = setTimeout(() => setVisible(true), 1500);
-      return () => clearTimeout(timer);
-    }
+    if (hasValidConsent()) return;
+    const timer = setTimeout(() => setVisible(true), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   const saveConsent = (value: string) => {
+    // Set browser cookie as primary (survives localStorage clears)
+    setCookie("cookie-consent", value, CONSENT_EXPIRY_DAYS);
+    // Also set localStorage as fallback
     localStorage.setItem("cookie-consent", value);
     localStorage.setItem("cookie-consent-timestamp", String(Date.now()));
-    sessionStorage.setItem("cookie-consent-dismissed", "true");
     setVisible(false);
   };
 
