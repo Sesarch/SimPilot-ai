@@ -21,6 +21,7 @@ import CookiePreferencesPage from "./pages/CookiePreferencesPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
 import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
+import CompetitorsPage from "./pages/CompetitorsPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
 import UnsubscribePage from "./pages/UnsubscribePage.tsx";
 import MobileChatPage from "./pages/MobileChatPage.tsx";
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/cookie-preferences" element={<CookiePreferencesPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/why-simpilot" element={<WhySimPilotPage />} />
+            <Route path="/competitors" element={<CompetitorsPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/unsubscribe" element={<UnsubscribePage />} />
             <Route path="*" element={<NotFound />} />
