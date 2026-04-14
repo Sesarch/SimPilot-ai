@@ -161,6 +161,7 @@ const CookiePreferencesPage = () => {
               localStorage.removeItem("cookie-consent");
               localStorage.removeItem("cookie-consent-timestamp");
               localStorage.removeItem("cookie-preferences");
+              document.cookie = "cookie-consent=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax";
               setPrefs({ ...defaultPrefs, analytics: true, marketing: true, personalization: true });
               toast.success("Cookie preferences reset — the banner will reappear on your next visit");
             }}
