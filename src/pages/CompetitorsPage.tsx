@@ -129,9 +129,9 @@ const CompetitorsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="SimPilot.AI vs Competitors — AI Pilot Training Comparison"
-        description="Compare SimPilot.AI against AI CFI, TakeFlight, SayIntentions, Sporty's AI & Navi AI. The most complete AI-powered pilot training platform for GA pilots."
-        keywords="SimPilot.AI competitors, AI pilot training comparison, AI CFI vs SimPilot, flight training AI tools, best AI for pilot training"
+        title="SimPilot.AI vs Sporty's, King Schools & More — AI Pilot Training Comparison"
+        description="Compare SimPilot.AI against Sporty's, King Schools, AI CFI, TakeFlight, SayIntentions & Navi AI. The most complete AI-powered pilot training platform for GA pilots."
+        keywords="SimPilot.AI competitors, AI pilot training comparison, SimPilot vs Sportys, SimPilot vs King Schools, AI CFI vs SimPilot, flight training AI tools, best AI for pilot training"
         canonical="/competitors"
         jsonLd={[pageJsonLd]}
       />
