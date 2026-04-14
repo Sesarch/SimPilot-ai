@@ -1,4 +1,4 @@
-import { Check, X, Minus, Zap, Shield, Brain, BookOpen, Target, Award, Clock, TrendingUp, Mic, Cloud, Plane, GraduationCap, Users, Gamepad2, ChevronDown } from "lucide-react";
+import { Check, X, Minus, Zap, Shield, Brain, BookOpen, Target, Award, Clock, TrendingUp, Mic, Cloud, Plane, GraduationCap, Users, Gamepad2, ChevronDown, Video } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState } from "react";
@@ -9,10 +9,11 @@ import SEOHead from "@/components/SEOHead";
 /* ── Competitor data ── */
 const competitors = [
   { name: "SimPilot.AI", tag: "All-in-One AI Platform", highlight: true },
+  { name: "Sporty's", tag: "Video Course + AI" },
+  { name: "King Schools", tag: "Video Course" },
   { name: "AI CFI", tag: "Mobile App" },
   { name: "TakeFlight", tag: "Sim Plugin" },
   { name: "SayIntentions", tag: "ATC Sim" },
-  { name: "Sporty's AI", tag: "Course Add-on" },
   { name: "Navi AI", tag: "Airline Focus" },
 ];
 
@@ -22,22 +23,26 @@ interface FeatureRow {
   label: string;
   desc: string;
   icon: React.ElementType;
-  values: FeatureVal[];
+  values: FeatureVal[]; // order matches competitors array
 }
 
+//                                                   SimPilot  Sporty's  King   AI CFI  TakeFlight  SayInt  Navi
 const features: FeatureRow[] = [
-  { label: "AI CFI Persona (Socratic Teaching)", desc: "Dedicated instructor persona that teaches — not just answers", icon: Brain, values: [true, "partial", false, false, false, false] },
-  { label: "DPE Oral Exam Simulation", desc: "Structured checkride sim with scoring, debrief & pass/fail", icon: Target, values: [true, "partial", false, false, false, false] },
-  { label: "Ground School Lessons", desc: "Progressive structured lessons with progress tracking", icon: BookOpen, values: [true, false, false, false, true, false] },
-  { label: "FAR/AIM & ACS References", desc: "Cites specific regulations and ACS task codes in every answer", icon: Shield, values: [true, "partial", false, false, "partial", false] },
-  { label: "ATC Communication Training", desc: "Practice real radio phraseology and procedures", icon: Mic, values: [true, true, false, true, false, false] },
-  { label: "Real-Time Weather Briefing", desc: "Live METAR/TAF integration with AI analysis", icon: Cloud, values: [true, false, false, false, false, false] },
-  { label: "Flight Tracker (Live Sky)", desc: "Live flight tracking with real-world data", icon: Plane, values: [true, false, false, false, false, false] },
-  { label: "Progress & Score Tracking", desc: "Track readiness across topics and mock exams over time", icon: TrendingUp, values: [true, false, false, false, "partial", false] },
-  { label: "Session History & Review", desc: "Revisit past conversations and study sessions", icon: Clock, values: [true, false, false, false, false, false] },
-  { label: "POH / Aircraft-Specific Grounding", desc: "Upload your POH for aircraft-specific answers", icon: Award, values: [true, false, false, false, false, false] },
-  { label: "Web-Based (No Install Required)", desc: "Works on any device with a browser — plus PWA support", icon: Zap, values: [true, false, false, false, true, true] },
-  { label: "GA / Student Pilot Focus", desc: "Built specifically for general aviation training", icon: GraduationCap, values: [true, true, true, "partial", true, false] },
+  { label: "AI CFI Persona (Socratic Teaching)", desc: "Dedicated instructor persona that teaches — not just answers", icon: Brain, values: [true, "partial", false, "partial", false, false, false] },
+  { label: "DPE Oral Exam Simulation", desc: "Structured checkride sim with scoring, debrief & pass/fail", icon: Target, values: [true, "partial", "partial", "partial", false, false, false] },
+  { label: "HD Video Ground School", desc: "Professional video lessons with instructor-led content", icon: Video, values: [false, true, true, false, false, false, false] },
+  { label: "Ground School Lessons (Text/AI)", desc: "Progressive structured lessons with AI-powered teaching", icon: BookOpen, values: [true, "partial", false, false, false, false, false] },
+  { label: "FAR/AIM & ACS References", desc: "Cites specific regulations and ACS task codes in every answer", icon: Shield, values: [true, "partial", "partial", "partial", false, false, false] },
+  { label: "FAA Written Test Prep", desc: "Practice questions and test prep for FAA knowledge exams", icon: GraduationCap, values: [true, true, true, true, false, false, false] },
+  { label: "ATC Communication Training", desc: "Practice real radio phraseology and procedures", icon: Mic, values: [true, false, false, true, false, true, false] },
+  { label: "Real-Time Weather Briefing", desc: "Live METAR/TAF integration with AI analysis", icon: Cloud, values: [true, false, false, false, false, false, false] },
+  { label: "Flight Tracker (Live Sky)", desc: "Live flight tracking with real-world data", icon: Plane, values: [true, false, false, false, false, false, false] },
+  { label: "Progress & Score Tracking", desc: "Track readiness across topics and mock exams over time", icon: TrendingUp, values: [true, true, "partial", false, false, false, false] },
+  { label: "Session History & Review", desc: "Revisit past conversations and study sessions", icon: Clock, values: [true, false, false, false, false, false, false] },
+  { label: "POH / Aircraft-Specific Grounding", desc: "Upload your POH for aircraft-specific answers", icon: Award, values: [true, false, false, false, false, false, false] },
+  { label: "AI-Adaptive Learning", desc: "AI adjusts to your knowledge gaps — not static content", icon: Brain, values: [true, "partial", false, "partial", false, false, false] },
+  { label: "Web-Based (No Install Required)", desc: "Works on any device with a browser — plus PWA support", icon: Zap, values: [true, true, true, false, false, false, true] },
+  { label: "GA / Student Pilot Focus", desc: "Built specifically for general aviation training", icon: GraduationCap, values: [true, true, true, true, true, "partial", false] },
 ];
 
 const CellIcon = ({ value }: { value: FeatureVal }) => {
@@ -90,22 +95,22 @@ const audiences = [
     icon: GraduationCap,
     title: "Student Pilots",
     problem: "Need affordable, always-available ground training",
-    solution: "SimPilot.AI provides 24/7 CFI-quality coaching at a fraction of the cost of extra dual instruction",
-    competitors: "AI CFI covers basics but lacks depth; Sporty's is course-locked; others don't target students",
+    solution: "SimPilot.AI provides 24/7 CFI-quality AI coaching at a fraction of the cost of extra dual instruction",
+    competitors: "Sporty's & King Schools offer great video courses but no interactive AI coaching. AI CFI covers basics but lacks depth and structured exams",
   },
   {
     icon: Users,
     title: "Flight Schools",
     problem: "Students arrive unprepared to ground lessons",
     solution: "Assign SimPilot.AI as supplemental prep — students come ready, CFIs teach more efficiently",
-    competitors: "No competitor offers institutional features or curriculum integration for GA schools",
+    competitors: "Sporty's is course-locked with no institutional tools. King Schools is pure video. Neither offers adaptive AI for individual student gaps",
   },
   {
     icon: Gamepad2,
     title: "Sim Enthusiasts",
     problem: "Want realistic procedures without the price tag of real training",
     solution: "Turn your home sim into a learning tool with real procedures, ATC practice, and achievement tracking",
-    competitors: "SayIntentions does ATC only; TakeFlight does maneuvers only; neither teaches ground knowledge",
+    competitors: "SayIntentions does ATC only; TakeFlight does maneuvers only; Sporty's & King require buying full courses just for ground knowledge",
   },
 ];
 
@@ -115,7 +120,7 @@ const pageJsonLd = {
   "@type": "WebPage",
   name: "SimPilot.AI vs Competitors — AI Pilot Training Comparison",
   url: "https://simpilot.ai/competitors",
-  description: "Compare SimPilot.AI against AI CFI, TakeFlight, SayIntentions, Sporty's AI, and Navi AI. See why SimPilot.AI is the most complete AI pilot training platform.",
+  description: "Compare SimPilot.AI against Sporty's, King Schools, AI CFI, TakeFlight, SayIntentions & Navi AI. See why SimPilot.AI is the most complete AI pilot training platform.",
 };
 
 const CompetitorsPage = () => {
@@ -124,9 +129,9 @@ const CompetitorsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="SimPilot.AI vs Competitors — AI Pilot Training Comparison"
-        description="Compare SimPilot.AI against AI CFI, TakeFlight, SayIntentions, Sporty's AI & Navi AI. The most complete AI-powered pilot training platform for GA pilots."
-        keywords="SimPilot.AI competitors, AI pilot training comparison, AI CFI vs SimPilot, flight training AI tools, best AI for pilot training"
+        title="SimPilot.AI vs Sporty's, King Schools & More — AI Pilot Training Comparison"
+        description="Compare SimPilot.AI against Sporty's, King Schools, AI CFI, TakeFlight, SayIntentions & Navi AI. The most complete AI-powered pilot training platform for GA pilots."
+        keywords="SimPilot.AI competitors, AI pilot training comparison, SimPilot vs Sportys, SimPilot vs King Schools, AI CFI vs SimPilot, flight training AI tools, best AI for pilot training"
         canonical="/competitors"
         jsonLd={[pageJsonLd]}
       />
