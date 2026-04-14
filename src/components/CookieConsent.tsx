@@ -37,19 +37,17 @@ const CookieConsent = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem("cookie-consent");
-    const dismissed = sessionStorage.getItem("cookie-consent-dismissed");
-    if (dismissed === "true") return; // already dismissed this session
-    if (!consent || !isConsentValid()) {
-      const timer = setTimeout(() => setVisible(true), 1500);
-      return () => clearTimeout(timer);
-    }
+    if (hasValidConsent()) return;
+    const timer = setTimeout(() => setVisible(true), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   const saveConsent = (value: string) => {
+    // Set browser cookie as primary (survives localStorage clears)
+    setCookie("cookie-consent", value, CONSENT_EXPIRY_DAYS);
+    // Also set localStorage as fallback
     localStorage.setItem("cookie-consent", value);
     localStorage.setItem("cookie-consent-timestamp", String(Date.now()));
-    sessionStorage.setItem("cookie-consent-dismissed", "true");
     setVisible(false);
   };
 
