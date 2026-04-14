@@ -95,22 +95,22 @@ const audiences = [
     icon: GraduationCap,
     title: "Student Pilots",
     problem: "Need affordable, always-available ground training",
-    solution: "SimPilot.AI provides 24/7 CFI-quality coaching at a fraction of the cost of extra dual instruction",
-    competitors: "AI CFI covers basics but lacks depth; Sporty's is course-locked; others don't target students",
+    solution: "SimPilot.AI provides 24/7 CFI-quality AI coaching at a fraction of the cost of extra dual instruction",
+    competitors: "Sporty's & King Schools offer great video courses but no interactive AI coaching. AI CFI covers basics but lacks depth and structured exams",
   },
   {
     icon: Users,
     title: "Flight Schools",
     problem: "Students arrive unprepared to ground lessons",
     solution: "Assign SimPilot.AI as supplemental prep — students come ready, CFIs teach more efficiently",
-    competitors: "No competitor offers institutional features or curriculum integration for GA schools",
+    competitors: "Sporty's is course-locked with no institutional tools. King Schools is pure video. Neither offers adaptive AI for individual student gaps",
   },
   {
     icon: Gamepad2,
     title: "Sim Enthusiasts",
     problem: "Want realistic procedures without the price tag of real training",
     solution: "Turn your home sim into a learning tool with real procedures, ATC practice, and achievement tracking",
-    competitors: "SayIntentions does ATC only; TakeFlight does maneuvers only; neither teaches ground knowledge",
+    competitors: "SayIntentions does ATC only; TakeFlight does maneuvers only; Sporty's & King require buying full courses just for ground knowledge",
   },
 ];
 
