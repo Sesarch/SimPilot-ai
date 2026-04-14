@@ -120,7 +120,7 @@ const pageJsonLd = {
   "@type": "WebPage",
   name: "SimPilot.AI vs Competitors — AI Pilot Training Comparison",
   url: "https://simpilot.ai/competitors",
-  description: "Compare SimPilot.AI against AI CFI, TakeFlight, SayIntentions, Sporty's AI, and Navi AI. See why SimPilot.AI is the most complete AI pilot training platform.",
+  description: "Compare SimPilot.AI against Sporty's, King Schools, AI CFI, TakeFlight, SayIntentions & Navi AI. See why SimPilot.AI is the most complete AI pilot training platform.",
 };
 
 const CompetitorsPage = () => {
