@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Aircraft {
   icao24: string;
@@ -13,8 +14,6 @@ export interface Aircraft {
   onGround: boolean;
   squawk: string | null;
 }
-
-const OPENSKY_API = "https://opensky-network.org/api/states/all";
 
 export const useFlightTracker = (bounds?: { north: number; south: number; east: number; west: number }) => {
   const [aircraft, setAircraft] = useState<Aircraft[]>([]);
