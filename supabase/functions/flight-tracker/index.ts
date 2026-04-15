@@ -9,6 +9,10 @@ const OPENSKY_API = "https://opensky-network.org/api/states/all";
 const ADSBEX_RAPID_API = "https://adsbexchange-com1.p.rapidapi.com/v2/lat/";
 const ADSB_LOL_API = "https://api.adsb.lol/v2/lat/";
 
+function getErrorMessage(err: unknown) {
+  return err instanceof Error ? err.message : String(err);
+}
+
 // Realistic mock flight data
 function generateMockStates(): any[][] {
   const now = Math.floor(Date.now() / 1000);
@@ -77,7 +81,7 @@ async function tryOpenSky(params: URLSearchParams): Promise<Response | null> {
     return null;
   } catch (err) {
     clearTimeout(timeoutId);
-    console.log(`OpenSky fetch failed: ${err.message}`);
+    console.log(`OpenSky fetch failed: ${getErrorMessage(err)}`);
     return null;
   }
 }
@@ -139,7 +143,7 @@ async function tryADSBExchange(lamin: string, lamax: string, lomin: string, loma
     return { time: now, states, _source: "live" };
   } catch (err) {
     clearTimeout(timeoutId);
-    console.log(`ADS-B Exchange fetch failed: ${err.message}`);
+    console.log(`ADS-B Exchange fetch failed: ${getErrorMessage(err)}`);
     return null;
   }
 }
@@ -240,7 +244,7 @@ async function tryAdsbLol(lamin: string, lamax: string, lomin: string, lomax: st
     };
   } catch (err) {
     clearTimeout(timeoutId);
-    console.log(`adsb.lol fetch failed: ${err.message}`);
+    console.log(`adsb.lol fetch failed: ${getErrorMessage(err)}`);
     return null;
   }
 }
@@ -304,7 +308,7 @@ serve(async (req) => {
     });
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: getErrorMessage(err) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
