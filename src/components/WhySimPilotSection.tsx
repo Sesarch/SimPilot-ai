@@ -7,7 +7,7 @@ const pillars = [
     icon: Layers,
     title: "All-in-One Platform",
     desc: "Ground school, oral exam prep, ATC training, weather briefings, flight tracking — competitors make you pay for each separately.",
-    competitors: "AI CFI + SayIntentions + Sporty's + ForeFlight = 4 apps. SimPilot.AI = 1.",
+    competitors: "AI CFI + Sporty's + ForeFlight = 3 apps. SimPilot.AI = 1.",
   },
   {
     icon: Brain,
