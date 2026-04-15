@@ -33,7 +33,7 @@ const features: FeatureRow[] = [
   { label: "Ground School Lessons (Text/AI)", desc: "Progressive structured lessons with AI-powered teaching", icon: BookOpen, values: [true, "partial", false, false, false, false] },
   { label: "FAR/AIM & ACS References", desc: "Cites specific regulations and ACS task codes in every answer", icon: Shield, values: [true, true, "partial", "partial", false, false] },
   { label: "FAA Written Test Prep", desc: "Practice questions and test prep for FAA knowledge exams", icon: GraduationCap, values: [true, true, true, true, false, false] },
-  { label: "ATC Communication Training", desc: "Practice real radio phraseology and procedures", icon: Mic, values: [true, false, false, true, false, false] },
+  { label: "ATC Communication Training", desc: "Practice real radio phraseology and procedures", icon: Mic, values: [true, "partial", false, true, false, false] },
   { label: "Real-Time Weather Briefing", desc: "Live METAR/TAF integration with AI analysis", icon: Cloud, values: [true, false, false, false, false, false] },
   { label: "Flight Tracker (Live Sky)", desc: "Live flight tracking with real-world data", icon: Plane, values: [true, false, false, false, false, false] },
   { label: "Progress & Score Tracking", desc: "Track readiness across topics and mock exams over time", icon: TrendingUp, values: [true, true, "partial", false, false, false] },
