@@ -51,10 +51,14 @@ const GroundSchoolPage = () => {
       <Navbar />
 
       {/* Content */}
-      <div className="pt-20">
+      <div className="pt-20 flex-1 flex flex-col">
+      {selectedLesson ? (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="border-b border-border bg-secondary/30 px-6 py-3 shrink-0">
             <div className="container mx-auto flex items-center gap-3">
+              <button onClick={() => setSelectedLesson(null)} className="text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
               <span className="text-2xl">{selectedLesson.icon}</span>
               <div>
                 <h2 className="font-display text-sm font-bold text-foreground">{selectedLesson.title}</h2>
@@ -126,7 +130,8 @@ const GroundSchoolPage = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+      <Footer />
   );
 };
 
