@@ -54,18 +54,25 @@ async function tryOpenSky(params: URLSearchParams): Promise<Response | null> {
   const apiUrl = `${OPENSKY_API}${params.toString() ? `?${params}` : ""}`;
   const headers: Record<string, string> = {};
 
-  if (username && password) {
+  const hasAuth = !!(username && password);
+  console.log(`OpenSky request: auth=${hasAuth}, url=${apiUrl}`);
+
+  if (hasAuth) {
     headers["Authorization"] = `Basic ${btoa(`${username}:${password}`)}`;
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
 
   try {
     const res = await fetch(apiUrl, { headers, signal: controller.signal });
     clearTimeout(timeoutId);
-    if (res.ok) return res;
-    console.log(`OpenSky returned ${res.status}`);
+    if (res.ok) {
+      console.log(`OpenSky success: status=${res.status}`);
+      return res;
+    }
+    const body = await res.text().catch(() => "");
+    console.log(`OpenSky returned ${res.status}: ${body.slice(0, 200)}`);
     return null;
   } catch (err) {
     clearTimeout(timeoutId);
