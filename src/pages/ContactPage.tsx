@@ -241,6 +241,7 @@ const ContactPage = () => {
           </p>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
