@@ -8,8 +8,8 @@ const plans = [
   {
     icon: Plane,
     name: "Student",
-    monthly: 19,
-    annual: 15,
+    monthly: 29,
+    annual: 23,
     description: "Everything you need to pass your checkride",
     priceSuffix: "/mo",
     features: [
@@ -27,8 +27,8 @@ const plans = [
   {
     icon: User,
     name: "Pro Pilot",
-    monthly: 39,
-    annual: 29,
+    monthly: 59,
+    annual: 47,
     description: "Advanced tools for serious pilots and CFIs",
     priceSuffix: "/mo",
     features: [
@@ -47,8 +47,8 @@ const plans = [
   {
     icon: GraduationCap,
     name: "Flight School",
-    monthly: 29,
-    annual: 23,
+    monthly: 39,
+    annual: 31,
     description: "Train your entire program under one roof",
     priceSuffix: "/seat/mo",
     features: [
@@ -261,14 +261,14 @@ const PricingSection = () => {
               <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
                 SimPilot.AI Pro Pilot Plan
               </p>
-              <p className="font-display text-4xl md:text-5xl font-bold text-primary text-glow-cyan">$39/mo</p>
+              <p className="font-display text-4xl md:text-5xl font-bold text-primary text-glow-cyan">$59/mo</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Unlimited AI coaching · Oral Exam prep · Chart analysis · 24/7
               </p>
             </div>
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6">
-            <span className="text-accent font-semibold">Traditional ground school alone costs $300–$600</span> — SimPilot.AI adds unlimited AI tutoring, exam prep, and sim debriefs for just $39/month.
+            <span className="text-accent font-semibold">Traditional ground school alone costs $300–$600</span> — SimPilot.AI adds unlimited AI tutoring, exam prep, and sim debriefs for just $59/month.
           </p>
         </motion.div>
 
