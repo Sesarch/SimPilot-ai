@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { ArrowLeft, Send, Mail, User, MessageSquare, FileText, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,6 +108,7 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <SEOHead
         title="Contact Us — SimPilot.AI Support & Inquiries"
         description="Get in touch with SimPilot.AI for questions about AI pilot training, ground school, oral exam prep, pricing, or technical support. We're here to help student pilots succeed."
@@ -114,7 +117,7 @@ const ContactPage = () => {
         ogImage="/og-contact.jpg"
         jsonLd={faqJsonLd}
       />
-      <div className="container mx-auto px-6 py-12 max-w-2xl">
+      <div className="container mx-auto px-6 py-12 pt-24 max-w-2xl">
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
@@ -238,6 +241,7 @@ const ContactPage = () => {
           </p>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

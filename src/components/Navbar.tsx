@@ -6,12 +6,12 @@ import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
-  { label: "Why SimPilot.AI", href: "/why-simpilot", isRoute: true },
-  { label: "Ground School", href: "/ground-school", isRoute: true },
-  { label: "Oral Exam", href: "/oral-exam", isRoute: true },
-  { label: "Live Sky", href: "/live-tools", isRoute: true, live: true },
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Why SimPilot.AI", href: "/why-simpilot" },
+  { label: "Ground School", href: "/ground-school" },
+  { label: "Oral Exam", href: "/oral-exam" },
+  { label: "Live Sky", href: "/live-tools", live: true },
+  { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "/#pricing" },
 ];
 
 const Navbar = () => {
@@ -41,16 +41,15 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2" title="SimPilot.AI — AI-Powered Pilot Training Home" aria-label="Go to SimPilot.AI homepage">
+        <Link to="/" className="flex items-center gap-2" title="SimPilot.AI — AI-Powered Pilot Training Home" aria-label="Go to SimPilot.AI homepage">
           <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
             SIM<span className="text-accent">PILOT</span>.AI
           </span>
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
-          {navItems.map((item) =>
-            item.isRoute ? (
+          {navItems.map((item) => (
               <Link
                 key={item.label}
                 to={item.href}
@@ -66,17 +65,7 @@ const Navbar = () => {
                 )}
                 {item.label}
               </Link>
-            ) : (
-              <a
-                key={item.label}
-                href={item.href}
-                title={`View ${item.label} — SimPilot.AI aviation training`}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
-              >
-                {item.label}
-              </a>
-            )
-          )}
+          ))}
           {!isInstalled && (
             <button
               onClick={handleInstall}
@@ -127,8 +116,7 @@ const Navbar = () => {
             className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border"
           >
             <div className="container mx-auto px-6 py-4 flex flex-col gap-4">
-              {navItems.map((item) =>
-                item.isRoute ? (
+              {navItems.map((item) => (
                   <Link
                     key={item.label}
                     to={item.href}
@@ -144,17 +132,7 @@ const Navbar = () => {
                     )}
                     {item.label}
                   </Link>
-                ) : (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
-                  >
-                    {item.label}
-                  </a>
-                )
-              )}
+              ))}
               {!isInstalled && (
                 <button
                   onClick={() => { handleInstall(); setIsOpen(false); }}
