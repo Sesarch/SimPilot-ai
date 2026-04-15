@@ -1,4 +1,22 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+
+const FooterLink = ({ to, title, children }: { to: string; title: string; children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (pathname === to) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <Link to={to} title={title} onClick={handleClick} className="text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider">
+      {children}
+    </Link>
+  );
+};
 
 const Footer = () => {
   return (
@@ -7,12 +25,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start text-center md:text-left">
           {/* Brand */}
           <div className="flex flex-col gap-3 items-center md:items-start">
-            <span
-              className="font-display text-lg font-bold text-primary text-glow-cyan tracking-wider"
-              title="SimPilot.AI — AI-Powered Pilot Training Platform"
-            >
+            <Link to="/" className="font-display text-lg font-bold text-primary text-glow-cyan tracking-wider" title="SimPilot.AI — AI-Powered Pilot Training Platform">
               SIM<span className="text-accent">PILOT</span>.AI
-            </span>
+            </Link>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
               AI-powered supplemental training for student pilots.
               Not FAA-approved — for study use only.
@@ -34,12 +49,8 @@ const Footer = () => {
                 {item}
               </Link>
             ))}
-            <Link to="/contact" title="Contact SimPilot.AI support team" className="text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider">
-              Contact
-            </Link>
-            <Link to="/competitors" title="Compare SimPilot.AI vs competitors" className="text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider">
-              Competitors
-            </Link>
+            <FooterLink to="/contact" title="Contact SimPilot.AI support team">Contact</FooterLink>
+            <FooterLink to="/competitors" title="Compare SimPilot.AI vs competitors">Competitors</FooterLink>
           </div>
 
           {/* Legal */}
@@ -47,15 +58,9 @@ const Footer = () => {
             <h4 className="font-display text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-1">
               Legal
             </h4>
-            <Link to="/terms" title="SimPilot.AI Terms & Conditions" className="text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider">
-              Terms &amp; Conditions
-            </Link>
-            <Link to="/privacy" title="SimPilot.AI Privacy Policy" className="text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider">
-              Privacy Policy
-            </Link>
-            <Link to="/cookie-preferences" title="Manage your SimPilot.AI cookie preferences" className="text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider">
-              Cookie Preferences
-            </Link>
+            <FooterLink to="/terms" title="SimPilot.AI Terms & Conditions">Terms &amp; Conditions</FooterLink>
+            <FooterLink to="/privacy" title="SimPilot.AI Privacy Policy">Privacy Policy</FooterLink>
+            <FooterLink to="/cookie-preferences" title="Manage your SimPilot.AI cookie preferences">Cookie Preferences</FooterLink>
           </div>
         </div>
 
