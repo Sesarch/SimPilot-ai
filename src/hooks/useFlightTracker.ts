@@ -77,7 +77,11 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
       setAircraft(mapped);
       setLastUpdated(new Date());
     } catch (err: any) {
-      setError(err.message);
+      if (err.name === "AbortError") {
+        setError("Request timed out — the flight data source may be slow. Try again.");
+      } else {
+        setError(err.message || "Failed to fetch flight data.");
+      }
     } finally {
       setLoading(false);
     }
