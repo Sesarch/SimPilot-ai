@@ -437,6 +437,14 @@ const FlightTrackerMap = () => {
           </div>
         )}
 
+        {/* Demo data indicator */}
+        {dataSource === "demo" && !loading && (
+          <div className="absolute top-14 left-1/2 -translate-x-1/2 z-[1000] bg-accent/90 backdrop-blur-sm text-accent-foreground rounded-lg px-4 py-2 text-xs font-medium shadow-lg border border-accent/50 flex items-center gap-2">
+            <Plane className="h-3.5 w-3.5" />
+            <span>Showing demo flights — live data source is temporarily unavailable</span>
+          </div>
+        )}
+
         {/* Weather Legend */}
         {showAirports && (
           <div className="absolute bottom-3 left-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
