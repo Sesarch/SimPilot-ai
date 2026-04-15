@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Cookie } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -88,13 +90,14 @@ const CookiePreferencesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <SEOHead
         title="Cookie Preferences — SimPilot.AI"
         description="Manage your cookie preferences on SimPilot.AI. Control analytics, marketing, and personalization cookies for your pilot training experience."
         keywords="cookie preferences, SimPilot.AI cookies, privacy settings, cookie management, analytics cookies"
         canonical="/cookie-preferences"
       />
-      <div className="container mx-auto px-6 py-12 max-w-2xl">
+      <div className="container mx-auto px-6 py-12 pt-24 max-w-2xl">
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
@@ -170,6 +173,7 @@ const CookiePreferencesPage = () => {
           </Button>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
