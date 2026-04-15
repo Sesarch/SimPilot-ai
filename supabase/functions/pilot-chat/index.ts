@@ -391,7 +391,7 @@ ${pohText}`;
 
     // Check if any message contains images — use vision-capable model
     const hasImages = messages.some((m: any) => Array.isArray(m.content) && m.content.some((c: any) => c.type === "image_url"));
-    const model = hasImages ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
+    const model = "google/gemini-2.5-flash";
 
     // Build system prompt with image analysis instructions when images are present
     let finalSystemPrompt = systemPrompt;
