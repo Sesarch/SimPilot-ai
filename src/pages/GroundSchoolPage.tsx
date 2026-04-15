@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import groundSchoolLight from "@/assets/ground-school-light.jpg";
@@ -46,33 +48,10 @@ const GroundSchoolPage = () => {
           ]
         }}
       />
-      {/* Nav */}
-      <nav className="border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => selectedLesson ? setSelectedLesson(null) : navigate(user ? "/dashboard" : "/")}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <Link to="/" className="flex items-center gap-2">
-              <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
-                SIM<span className="text-accent">PILOT</span>.AI
-              </span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-primary" />
-            <span className="font-display text-sm font-semibold tracking-wider uppercase text-foreground">
-              Ground School
-            </span>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Content */}
-      {selectedLesson ? (
+      <div className="pt-20">
         <div className="flex-1 flex flex-col min-h-0">
           <div className="border-b border-border bg-secondary/30 px-6 py-3 shrink-0">
             <div className="container mx-auto flex items-center gap-3">
