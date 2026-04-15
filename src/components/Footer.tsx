@@ -50,7 +50,7 @@ const Footer = () => {
               </Link>
             ))}
             <FooterLink to="/contact" title="Contact SimPilot.AI support team">Contact</FooterLink>
-            <FooterLink to="/competitors" title="Compare SimPilot.AI vs competitors">Competitors</FooterLink>
+            <FooterLink to="/competitors#comparison-matrix" title="Compare SimPilot.AI vs competitors">Competitors</FooterLink>
           </div>
 
           {/* Legal */}
