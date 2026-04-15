@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard } from "lucide-react";
+import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown } from "lucide-react";
 import PlanComparisonTable from "./PlanComparisonTable";
 import PricingFAQ from "./PricingFAQ";
 
@@ -43,6 +43,26 @@ const plans = [
     ],
     cta: "Go Pro",
     highlighted: true,
+  },
+  {
+    icon: Crown,
+    name: "Gold Seal CFI",
+    monthly: 99,
+    annual: 79,
+    description: "The ultimate AI flight training experience",
+    priceSuffix: "/mo",
+    features: [
+      "Everything in Pro Pilot",
+      "Unlimited AI coaching sessions",
+      "Custom training scenarios & curricula",
+      "1-on-1 priority support (24/7)",
+      "Advanced checkride readiness analytics",
+      "Multi-aircraft POH library",
+      "Early access to new features",
+      "Personalized study plan generation",
+    ],
+    cta: "Go Gold Seal",
+    highlighted: false,
   },
   {
     icon: GraduationCap,
@@ -126,7 +146,7 @@ const PricingSection = () => {
           </div>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch">
           {plans.map((plan, i) => {
             const price = annual ? plan.annual : plan.monthly;
             return (
