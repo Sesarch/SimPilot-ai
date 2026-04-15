@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Aircraft {
   icao24: string;
@@ -13,8 +14,6 @@ export interface Aircraft {
   onGround: boolean;
   squawk: string | null;
 }
-
-const OPENSKY_API = "https://opensky-network.org/api/states/all";
 
 export const useFlightTracker = (bounds?: { north: number; south: number; east: number; west: number }) => {
   const [aircraft, setAircraft] = useState<Aircraft[]>([]);
@@ -33,8 +32,16 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
         params.set("lomin", bounds.west.toString());
         params.set("lomax", bounds.east.toString());
       }
-      const url = `${OPENSKY_API}${bounds ? `?${params}` : ""}`;
-      const res = await fetch(url);
+      const queryString = params.toString() ? `?${params}` : "";
+      const { data: { session } } = await supabase.auth.getSession();
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${supabaseUrl}/functions/v1/flight-tracker${queryString}`, {
+        headers: {
+          "Authorization": `Bearer ${session?.access_token || anonKey}`,
+          "apikey": anonKey,
+        },
+      });
       if (!res.ok) {
         if (res.status === 429) {
           throw new Error("Rate limited — please wait a moment before refreshing.");
