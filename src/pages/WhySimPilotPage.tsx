@@ -86,8 +86,8 @@ const pageJsonLd = {
 };
 
 const pricingFaqs = [
-  { q: "How much does SimPilot.AI cost?", a: "SimPilot.AI starts at just $19/month for sim enthusiasts, $49/month for individual pilots, and $199/month for flight schools. Annual billing saves you 20%. Every plan includes a 7-day free trial — no credit card required." },
-  { q: "Is SimPilot.AI cheaper than hiring a CFI for ground training?", a: "Significantly. A traditional CFI charges $50–$80/hour for ground instruction. With SimPilot.AI's Individual Pilot plan at $49/month, you get unlimited AI coaching sessions — equivalent to paying less than $1/hour for ground training available 24/7." },
+  { q: "How much does SimPilot.AI cost?", a: "SimPilot.AI starts at just $29/month for students, $59/month for pro pilots, and $39/seat/month for flight schools. Annual billing saves you 20%. Every plan includes a 7-day free trial — no credit card required." },
+  { q: "Is SimPilot.AI cheaper than hiring a CFI for ground training?", a: "Significantly. A traditional CFI charges $50–$80/hour for ground instruction. With SimPilot.AI's Pro Pilot plan at $59/month, you get unlimited AI coaching sessions — equivalent to paying less than $2/hour for ground training available 24/7." },
   { q: "Can SimPilot.AI replace my flight instructor?", a: "No, and it's not designed to. SimPilot.AI is a supplemental ground training and knowledge tool. You still need a certified flight instructor for in-aircraft training, endorsements, and sign-offs. Think of it as your always-available study partner between lessons." },
   { q: "What's included in the free trial?", a: "The 7-day free trial gives you full access to all features in your chosen plan — AI coaching, oral exam simulations, ground school lessons, progress tracking, and session history. No credit card required to start." },
   { q: "Do I need to pay for both SimPilot.AI and a CFI?", a: "Most student pilots already pay for CFI instruction. SimPilot.AI helps you arrive at each lesson better prepared, which can actually reduce the total hours (and cost) you need with your CFI. Many students report saving hundreds to thousands of dollars in reduced dual instruction time." },
@@ -333,8 +333,8 @@ const WhySimPilotPage = () => {
                 { factor: "Hourly Ground Cost", simpilot: "From $0.63/hr", cfi: "$50–$80/hr", simpilotHighlight: true },
                 { factor: "Availability", simpilot: "24/7, instant", cfi: "By appointment only", simpilotHighlight: true },
                 { factor: "Oral Exam Practice", simpilot: "Unlimited mock exams", cfi: "~$50–$80 per session", simpilotHighlight: true },
-                { factor: "Monthly Cost (est.)", simpilot: "Starting at $19/mo", cfi: "$400–$1,200+/mo", simpilotHighlight: true },
-                { factor: "Annual Cost (est.)", simpilot: "Starting at $180/yr", cfi: "$5,000–$15,000+/yr", simpilotHighlight: true },
+                { factor: "Monthly Cost (est.)", simpilot: "Starting at $29/mo", cfi: "$400–$1,200+/mo", simpilotHighlight: true },
+                { factor: "Annual Cost (est.)", simpilot: "Starting at $276/yr", cfi: "$5,000–$15,000+/yr", simpilotHighlight: true },
                 { factor: "Consistency", simpilot: "Same quality every session", cfi: "Varies by instructor", simpilotHighlight: true },
                 { factor: "Progress Tracking", simpilot: "Automated & detailed", cfi: "Manual, if at all", simpilotHighlight: true },
                 { factor: "Session Review", simpilot: "Full history saved", cfi: "Rely on your own notes", simpilotHighlight: true },
