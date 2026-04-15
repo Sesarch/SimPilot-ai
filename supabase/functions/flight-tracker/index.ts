@@ -6,9 +6,9 @@ const corsHeaders = {
 };
 
 const OPENSKY_API = "https://opensky-network.org/api/states/all";
+const ADSBEX_RAPID_API = "https://adsbexchange-com1.p.rapidapi.com/v2/lat/";
 
-// Realistic mock flight data covering major US routes
-// Format matches OpenSky states: [icao24, callsign, origin_country, time_position, last_contact, longitude, latitude, baro_altitude, on_ground, velocity, true_track, vertical_rate, sensors, geo_altitude, squawk, spi, position_source]
+// Realistic mock flight data
 function generateMockStates(): any[][] {
   const now = Math.floor(Date.now() / 1000);
   const routes = [
@@ -34,17 +34,106 @@ function generateMockStates(): any[][] {
     { icao: "c0u2w4", call: "BAW117  ", country: "United Kingdom", lon: -74.50, lat: 40.00, alt: 11582, vel: 255, hdg: 250, vr: -0.5, gnd: false, sqk: "5432" },
   ];
 
-  // Add slight position jitter to make it feel live
   return routes.map((r) => {
     const jitterLon = (Math.random() - 0.5) * 0.5;
     const jitterLat = (Math.random() - 0.5) * 0.5;
     return [
-      r.icao, r.call, r.country, now, now,
+      r.icao, r.call, r.country, Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000),
       r.lon + jitterLon, r.lat + jitterLat,
       r.alt, r.gnd, r.vel, r.hdg, r.vr,
       null, r.alt + 30, r.sqk, false, 0,
     ];
   });
+}
+
+// Try OpenSky with optional credentials
+async function tryOpenSky(params: URLSearchParams): Promise<Response | null> {
+  const username = Deno.env.get("OPENSKY_USERNAME");
+  const password = Deno.env.get("OPENSKY_PASSWORD");
+
+  const apiUrl = `${OPENSKY_API}${params.toString() ? `?${params}` : ""}`;
+  const headers: Record<string, string> = {};
+
+  if (username && password) {
+    headers["Authorization"] = `Basic ${btoa(`${username}:${password}`)}`;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const res = await fetch(apiUrl, { headers, signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (res.ok) return res;
+    console.log(`OpenSky returned ${res.status}`);
+    return null;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.log(`OpenSky fetch failed: ${err.message}`);
+    return null;
+  }
+}
+
+// Try ADS-B Exchange via RapidAPI (if key is configured)
+async function tryADSBExchange(lamin: string, lamax: string, lomin: string, lomax: string): Promise<any | null> {
+  const rapidApiKey = Deno.env.get("RAPIDAPI_KEY");
+  if (!rapidApiKey) return null;
+
+  // ADS-B Exchange uses center point + radius
+  const centerLat = ((parseFloat(lamin) + parseFloat(lamax)) / 2).toFixed(4);
+  const centerLon = ((parseFloat(lomin) + parseFloat(lomax)) / 2).toFixed(4);
+  const dist = "250"; // nautical miles
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const url = `${ADSBEX_RAPID_API}${centerLat}/lon/${centerLon}/dist/${dist}/`;
+    const res = await fetch(url, {
+      headers: {
+        "X-RapidAPI-Key": rapidApiKey,
+        "X-RapidAPI-Host": "adsbexchange-com1.p.rapidapi.com",
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      console.log(`ADS-B Exchange returned ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json();
+    if (!data.ac || data.ac.length === 0) return null;
+
+    // Convert ADS-B Exchange format to OpenSky-compatible states
+    const now = Math.floor(Date.now() / 1000);
+    const states = data.ac
+      .filter((ac: any) => ac.lat != null && ac.lon != null)
+      .slice(0, 300)
+      .map((ac: any) => [
+        ac.hex || "",
+        (ac.flight || "").padEnd(8),
+        "",
+        now, now,
+        ac.lon, ac.lat,
+        (ac.alt_baro === "ground" ? 0 : (ac.alt_baro || 0)) * 0.3048, // feet to meters
+        ac.alt_baro === "ground",
+        (ac.gs || 0) * 0.514444, // knots to m/s
+        ac.track || 0,
+        (ac.baro_rate || 0) * 0.00508, // fpm to m/s
+        null,
+        (ac.alt_geom || ac.alt_baro || 0) * 0.3048,
+        ac.squawk || null,
+        false, 0,
+      ]);
+
+    return { time: now, states, _source: "live" };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.log(`ADS-B Exchange fetch failed: ${err.message}`);
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -54,41 +143,38 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const lamin = url.searchParams.get("lamin");
-    const lamax = url.searchParams.get("lamax");
-    const lomin = url.searchParams.get("lomin");
-    const lomax = url.searchParams.get("lomax");
+    const lamin = url.searchParams.get("lamin") || "25";
+    const lamax = url.searchParams.get("lamax") || "50";
+    const lomin = url.searchParams.get("lomin") || "-130";
+    const lomax = url.searchParams.get("lomax") || "-60";
 
     const params = new URLSearchParams();
-    if (lamin) params.set("lamin", lamin);
-    if (lamax) params.set("lamax", lamax);
-    if (lomin) params.set("lomin", lomin);
-    if (lomax) params.set("lomax", lomax);
+    params.set("lamin", lamin);
+    params.set("lamax", lamax);
+    params.set("lomin", lomin);
+    params.set("lomax", lomax);
 
-    const apiUrl = `${OPENSKY_API}${params.toString() ? `?${params}` : ""}`;
-
-    // Attempt real API with a 5s timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    try {
-      const res = await fetch(apiUrl, { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (res.ok) {
-        const data = await res.json();
-        return new Response(JSON.stringify({ ...data, _source: "live" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      // Non-OK response — fall through to mock
-    } catch (_fetchErr) {
-      clearTimeout(timeoutId);
-      // Timeout or network error — fall through to mock
+    // Strategy 1: Try OpenSky API (with auth if available)
+    const openSkyRes = await tryOpenSky(params);
+    if (openSkyRes) {
+      const data = await openSkyRes.json();
+      console.log(`OpenSky returned ${data.states?.length || 0} aircraft`);
+      return new Response(JSON.stringify({ ...data, _source: "live" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Return mock data as fallback
-    console.log("OpenSky API unavailable, returning mock flight data");
+    // Strategy 2: Try ADS-B Exchange via RapidAPI
+    const adsbData = await tryADSBExchange(lamin, lamax, lomin, lomax);
+    if (adsbData) {
+      console.log(`ADS-B Exchange returned ${adsbData.states?.length || 0} aircraft`);
+      return new Response(JSON.stringify(adsbData), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Strategy 3: Fallback to mock data
+    console.log("All live sources unavailable, returning mock flight data");
     const mockData = {
       time: Math.floor(Date.now() / 1000),
       states: generateMockStates(),
