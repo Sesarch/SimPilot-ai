@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Shield, ArrowLeft, ChevronRight } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 
@@ -85,32 +87,10 @@ const OralExamPage = () => {
           ]
         }}
       />
-      {/* Nav */}
-      <nav className="border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => selectedExam ? setSelectedExam(null) : navigate(user ? "/dashboard" : "/")}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <Link to="/" className="flex items-center gap-2">
-              <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
-                SIM<span className="text-accent">PILOT</span>.AI
-              </span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-accent" />
-            <span className="font-display text-sm font-semibold tracking-wider uppercase text-foreground">
-              Oral Exam Prep
-            </span>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Content */}
+      <div className="pt-20 flex-1 flex flex-col">
       {selectedExam ? (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="border-b border-border bg-secondary/30 px-6 py-3 shrink-0">
