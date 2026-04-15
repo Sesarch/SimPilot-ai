@@ -70,7 +70,7 @@ const PricingSection = () => {
   const [annual, setAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="py-24 relative bg-gradient-hero">
+    <section id="pricing" className="py-24 relative bg-gradient-hero scroll-mt-20">
       <div className="absolute top-0 left-0 right-0 hud-line" />
       <div className="container mx-auto px-6">
         <motion.div
