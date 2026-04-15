@@ -101,15 +101,15 @@ const PlanComparisonTable = () => {
           </div>
           <div className="p-4 text-center border-l border-border">
             <span className="font-display text-xs tracking-widest uppercase text-muted-foreground">Student</span>
-            <p className="text-[10px] text-muted-foreground mt-0.5">$19/mo</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">$29/mo</p>
           </div>
           <div className="p-4 text-center border-l border-primary/30 bg-primary/5">
             <span className="font-display text-xs tracking-widest uppercase text-primary font-bold">Pro Pilot</span>
-            <p className="text-[10px] text-primary/70 mt-0.5">$39/mo</p>
+            <p className="text-[10px] text-primary/70 mt-0.5">$59/mo</p>
           </div>
           <div className="p-4 text-center border-l border-border">
             <span className="font-display text-xs tracking-widest uppercase text-muted-foreground">Flight School</span>
-            <p className="text-[10px] text-muted-foreground mt-0.5">$29/seat/mo</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">$39/seat/mo</p>
           </div>
         </div>
 
