@@ -114,7 +114,7 @@ const FlightTrackerMap = () => {
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
 
-  const { aircraft, loading, error, lastUpdated, refresh } = useFlightTracker(bounds);
+  const { aircraft, loading, error, lastUpdated, refresh, dataSource } = useFlightTracker(bounds);
   const [retryCountdown, setRetryCountdown] = useState<number | null>(null);
 
   // Auto-retry countdown when error occurs
