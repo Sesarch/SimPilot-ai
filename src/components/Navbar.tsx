@@ -49,8 +49,7 @@ const Navbar = () => {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
-          {navItems.map((item) =>
-            item.isRoute ? (
+          {navItems.map((item) => (
               <Link
                 key={item.label}
                 to={item.href}
@@ -66,17 +65,7 @@ const Navbar = () => {
                 )}
                 {item.label}
               </Link>
-            ) : (
-              <Link
-                key={item.label}
-                to={`/${item.href}`}
-                title={`View ${item.label} — SimPilot.AI aviation training`}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
-              >
-                {item.label}
-              </Link>
-            )
-          )}
+          ))}
           {!isInstalled && (
             <button
               onClick={handleInstall}
