@@ -1,6 +1,7 @@
-import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const PrivacyPolicyPage = () => {
   return (
@@ -23,18 +24,9 @@ const PrivacyPolicyPage = () => {
           "publisher": { "@type": "Organization", "name": "SimPilot.AI", "url": "https://simpilot.ai" }
         }}
       />
-      <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <Link to="/" className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
-            SIM<span className="text-accent">PILOT</span>.AI
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
-      <div className="container mx-auto px-6 py-12 max-w-3xl">
+      <div className="container mx-auto px-6 py-12 pt-24 max-w-3xl">
         <h1 className="font-display text-3xl font-bold text-foreground mb-2">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground mb-8">Last updated: March 27, 2026</p>
 
@@ -187,6 +179,7 @@ const PrivacyPolicyPage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
