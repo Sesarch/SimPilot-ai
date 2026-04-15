@@ -149,6 +149,8 @@ const OralExamPage = () => {
           </div>
         </div>
       )}
+      </div>
+      <Footer />
     </div>
   );
 };
