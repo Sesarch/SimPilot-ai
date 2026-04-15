@@ -31,7 +31,7 @@ const features: FeatureRow[] = [
   { label: "DPE Oral Exam Simulation", desc: "Structured checkride sim with scoring, debrief & pass/fail", icon: Target, values: [true, "partial", "partial", "partial", false, false] },
   { label: "HD Video Ground School", desc: "Professional video lessons with instructor-led content", icon: Video, values: [false, true, true, false, false, false] },
   { label: "Ground School Lessons (Text/AI)", desc: "Progressive structured lessons with AI-powered teaching", icon: BookOpen, values: [true, "partial", false, false, false, false] },
-  { label: "FAR/AIM & ACS References", desc: "Cites specific regulations and ACS task codes in every answer", icon: Shield, values: [true, "partial", "partial", "partial", false, false] },
+  { label: "FAR/AIM & ACS References", desc: "Cites specific regulations and ACS task codes in every answer", icon: Shield, values: [true, true, "partial", "partial", false, false] },
   { label: "FAA Written Test Prep", desc: "Practice questions and test prep for FAA knowledge exams", icon: GraduationCap, values: [true, true, true, true, false, false] },
   { label: "ATC Communication Training", desc: "Practice real radio phraseology and procedures", icon: Mic, values: [true, false, false, true, false, false] },
   { label: "Real-Time Weather Briefing", desc: "Live METAR/TAF integration with AI analysis", icon: Cloud, values: [true, false, false, false, false, false] },
