@@ -114,30 +114,8 @@ const FlightTrackerMap = () => {
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
 
-  const { aircraft, loading, error, lastUpdated, refresh } = useFlightTracker(bounds);
-  const [retryCountdown, setRetryCountdown] = useState<number | null>(null);
+  const { aircraft, loading, error, lastUpdated, refresh, dataSource } = useFlightTracker(bounds);
 
-  // Auto-retry countdown when error occurs
-  useEffect(() => {
-    if (error && !loading) {
-      setRetryCountdown(10);
-    } else {
-      setRetryCountdown(null);
-    }
-  }, [error, loading]);
-
-  useEffect(() => {
-    if (retryCountdown === null || retryCountdown <= 0) return;
-    const timer = setTimeout(() => setRetryCountdown(prev => (prev !== null ? prev - 1 : null)), 1000);
-    return () => clearTimeout(timer);
-  }, [retryCountdown]);
-
-  useEffect(() => {
-    if (retryCountdown === 0) {
-      setRetryCountdown(null);
-      refresh();
-    }
-  }, [retryCountdown, refresh]);
 
   // Update selected aircraft data and track history
   useEffect(() => {
@@ -399,16 +377,9 @@ const FlightTrackerMap = () => {
             <div className="flex-1">
               <p className="font-semibold text-xs mb-0.5">Flight Data Unavailable</p>
               <p className="text-[11px] opacity-90">{error}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Button size="sm" variant="secondary" onClick={() => { setRetryCountdown(null); refresh(); }} className="h-6 text-[11px] px-3">
-                  <RefreshCw className="h-3 w-3 mr-1" /> Retry Now
-                </Button>
-                {retryCountdown !== null && retryCountdown > 0 && (
-                  <span className="text-[11px] opacity-80">
-                    Auto-retry in {retryCountdown}s
-                  </span>
-                )}
-              </div>
+              <Button size="sm" variant="secondary" onClick={refresh} className="mt-2 h-6 text-[11px] px-3">
+                <RefreshCw className="h-3 w-3 mr-1" /> Retry
+              </Button>
             </div>
           </div>
         )}
@@ -434,6 +405,14 @@ const FlightTrackerMap = () => {
         {lastUpdated && (
           <div className="absolute bottom-3 right-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground">
             Updated: {lastUpdated.toLocaleTimeString()}
+          </div>
+        )}
+
+        {/* Demo data indicator */}
+        {dataSource === "demo" && !loading && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-[1000] bg-primary/90 backdrop-blur-sm text-primary-foreground rounded-lg px-4 py-2 text-xs font-medium shadow-lg border border-primary/50 flex items-center gap-2">
+            <Plane className="h-3.5 w-3.5" />
+            <span>Showing demo flights — live data temporarily unavailable</span>
           </div>
         )}
 
