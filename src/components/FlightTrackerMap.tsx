@@ -369,8 +369,35 @@ const FlightTrackerMap = () => {
         </div>
 
         {error && (
-          <div className="absolute top-3 left-3 z-[1000] bg-destructive/90 text-destructive-foreground rounded-lg px-3 py-1.5 text-xs max-w-[300px]">
-            {error}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] bg-destructive/95 backdrop-blur-sm text-destructive-foreground rounded-xl px-4 py-3 text-sm max-w-[360px] shadow-lg border border-destructive/50 flex items-start gap-3">
+            <div className="shrink-0 mt-0.5 w-8 h-8 rounded-full bg-destructive-foreground/20 flex items-center justify-center">
+              <Radio className="h-4 w-4" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-xs mb-0.5">Flight Data Unavailable</p>
+              <p className="text-[11px] opacity-90">{error}</p>
+              <Button size="sm" variant="secondary" onClick={refresh} className="mt-2 h-6 text-[11px] px-3">
+                <RefreshCw className="h-3 w-3 mr-1" /> Retry
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Loading skeleton overlay */}
+        {loading && aircraft.length === 0 && !error && (
+          <div className="absolute inset-0 z-[999] bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+            <div className="flex flex-col items-center gap-3 bg-card/90 border border-border rounded-2xl p-6 shadow-xl">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="text-center">
+                <p className="text-sm font-semibold text-foreground">Loading Live Flights</p>
+                <p className="text-xs text-muted-foreground mt-1">Fetching aircraft data from the network…</p>
+              </div>
+              <div className="flex gap-2 mt-1">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-2 w-10 rounded-full bg-primary/20 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
