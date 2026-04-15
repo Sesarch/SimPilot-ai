@@ -25,14 +25,14 @@ const Footer = () => {
               Quick Links
             </h4>
             {["Services", "Features"].map((item) => (
-              <a
+              <Link
                 key={item}
-                href={`#${item.toLowerCase()}`}
+                to={`/#${item.toLowerCase()}`}
                 title={`View SimPilot.AI ${item} — AI aviation training`}
                 className="text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider"
               >
                 {item}
-              </a>
+              </Link>
             ))}
             <Link to="/contact" title="Contact SimPilot.AI support team" className="text-xs text-muted-foreground hover:text-primary transition-colors tracking-wider">
               Contact
