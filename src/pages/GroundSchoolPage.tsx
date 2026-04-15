@@ -132,6 +132,7 @@ const GroundSchoolPage = () => {
       )}
       </div>
       <Footer />
+    </div>
   );
 };
 
