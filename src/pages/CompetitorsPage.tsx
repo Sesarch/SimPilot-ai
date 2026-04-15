@@ -27,21 +27,21 @@ interface FeatureRow {
 
 //                                                   SimPilot  Sporty's  King   AI CFI  TakeFlight  Navi
 const features: FeatureRow[] = [
-  { label: "AI CFI Persona (Socratic Teaching)", desc: "Dedicated instructor persona that teaches — not just answers", icon: Brain, values: [true, "partial", false, "partial", false, false] },
+  { label: "AI CFI Persona (Socratic Teaching)", desc: "Dedicated instructor persona that teaches — not just answers", icon: Brain, values: [true, "partial", false, true, false, false] },
   { label: "DPE Oral Exam Simulation", desc: "Structured checkride sim with scoring, debrief & pass/fail", icon: Target, values: [true, "partial", "partial", "partial", false, false] },
   { label: "HD Video Ground School", desc: "Professional video lessons with instructor-led content", icon: Video, values: [false, true, true, false, false, false] },
   { label: "Ground School Lessons (Text/AI)", desc: "Progressive structured lessons with AI-powered teaching", icon: BookOpen, values: [true, "partial", false, false, false, false] },
   { label: "FAR/AIM & ACS References", desc: "Cites specific regulations and ACS task codes in every answer", icon: Shield, values: [true, true, "partial", "partial", false, false] },
   { label: "FAA Written Test Prep", desc: "Practice questions and test prep for FAA knowledge exams", icon: GraduationCap, values: [true, true, true, true, false, false] },
   { label: "ATC Communication Training", desc: "Practice real radio phraseology and procedures", icon: Mic, values: [true, "partial", false, true, false, false] },
-  { label: "Real-Time Weather Briefing", desc: "Live METAR/TAF integration with AI analysis", icon: Cloud, values: [true, false, false, false, false, false] },
+  { label: "Real-Time Weather Briefing", desc: "Live METAR/TAF integration with AI analysis", icon: Cloud, values: [true, false, false, true, false, false] },
   { label: "Flight Tracker (Live Sky)", desc: "Live flight tracking with real-world data", icon: Plane, values: [true, false, false, false, false, false] },
-  { label: "Progress & Score Tracking", desc: "Track readiness across topics and mock exams over time", icon: TrendingUp, values: [true, true, "partial", false, false, false] },
-  { label: "Session History & Review", desc: "Revisit past conversations and study sessions", icon: Clock, values: [true, false, false, false, false, false] },
+  { label: "Progress & Score Tracking", desc: "Track readiness across topics and mock exams over time", icon: TrendingUp, values: [true, true, true, false, true, false] },
+  { label: "Session History & Review", desc: "Revisit past conversations and study sessions", icon: Clock, values: [true, false, false, false, false, true] },
   { label: "POH / Aircraft-Specific Grounding", desc: "Upload your POH for aircraft-specific answers", icon: Award, values: [true, false, false, false, false, false] },
-  { label: "AI-Adaptive Learning", desc: "AI adjusts to your knowledge gaps — not static content", icon: Brain, values: [true, "partial", false, "partial", false, false] },
+  { label: "AI-Adaptive Learning", desc: "AI adjusts to your knowledge gaps — not static content", icon: Brain, values: [true, "partial", false, true, false, false] },
   { label: "Web-Based (No Install Required)", desc: "Works on any device with a browser — plus PWA support", icon: Zap, values: [true, true, true, false, false, true] },
-  { label: "GA / Student Pilot Focus", desc: "Built specifically for general aviation training", icon: GraduationCap, values: [true, true, true, true, true, false] },
+  { label: "GA / Student Pilot Focus", desc: "Built specifically for general aviation training", icon: GraduationCap, values: [true, true, true, true, true, "partial"] },
 ];
 
 const CellIcon = ({ value }: { value: FeatureVal }) => {
