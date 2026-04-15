@@ -115,6 +115,29 @@ const FlightTrackerMap = () => {
   const { categories: weatherCategories } = useAirportWeatherBatch();
 
   const { aircraft, loading, error, lastUpdated, refresh } = useFlightTracker(bounds);
+  const [retryCountdown, setRetryCountdown] = useState<number | null>(null);
+
+  // Auto-retry countdown when error occurs
+  useEffect(() => {
+    if (error && !loading) {
+      setRetryCountdown(10);
+    } else {
+      setRetryCountdown(null);
+    }
+  }, [error, loading]);
+
+  useEffect(() => {
+    if (retryCountdown === null || retryCountdown <= 0) return;
+    const timer = setTimeout(() => setRetryCountdown(prev => (prev !== null ? prev - 1 : null)), 1000);
+    return () => clearTimeout(timer);
+  }, [retryCountdown]);
+
+  useEffect(() => {
+    if (retryCountdown === 0) {
+      setRetryCountdown(null);
+      refresh();
+    }
+  }, [retryCountdown, refresh]);
 
   // Update selected aircraft data and track history
   useEffect(() => {
