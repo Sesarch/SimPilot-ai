@@ -15,11 +15,14 @@ export interface Aircraft {
   squawk: string | null;
 }
 
+export type DataSource = "live" | "demo" | null;
+
 export const useFlightTracker = (bounds?: { north: number; south: number; east: number; west: number }) => {
   const [aircraft, setAircraft] = useState<Aircraft[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [dataSource, setDataSource] = useState<DataSource>(null);
 
   const fetchAircraft = useCallback(async () => {
     setLoading(true);
@@ -37,7 +40,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
       const res = await fetch(`${supabaseUrl}/functions/v1/flight-tracker${queryString}`, {
         headers: {
           "Authorization": `Bearer ${session?.access_token || anonKey}`,
@@ -53,6 +56,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
         throw new Error(`API error: ${res.status}`);
       }
       const data = await res.json();
+      setDataSource(data._source === "demo" ? "demo" : "live");
       if (!data.states) {
         setAircraft([]);
         setLastUpdated(new Date());
@@ -60,7 +64,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
       }
       const mapped: Aircraft[] = data.states
         .filter((s: any[]) => s[5] != null && s[6] != null)
-        .slice(0, 300) // limit for perf
+        .slice(0, 300)
         .map((s: any[]) => ({
           icao24: s[0] || "",
           callsign: (s[1] || "").trim(),
@@ -89,9 +93,9 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
 
   useEffect(() => {
     fetchAircraft();
-    const interval = setInterval(fetchAircraft, 15000); // refresh every 15s
+    const interval = setInterval(fetchAircraft, 15000);
     return () => clearInterval(interval);
   }, [fetchAircraft]);
 
-  return { aircraft, loading, error, lastUpdated, refresh: fetchAircraft };
+  return { aircraft, loading, error, lastUpdated, refresh: fetchAircraft, dataSource };
 };
