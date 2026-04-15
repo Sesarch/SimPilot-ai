@@ -377,16 +377,9 @@ const FlightTrackerMap = () => {
             <div className="flex-1">
               <p className="font-semibold text-xs mb-0.5">Flight Data Unavailable</p>
               <p className="text-[11px] opacity-90">{error}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Button size="sm" variant="secondary" onClick={() => { setRetryCountdown(null); refresh(); }} className="h-6 text-[11px] px-3">
-                  <RefreshCw className="h-3 w-3 mr-1" /> Retry Now
-                </Button>
-                {retryCountdown !== null && retryCountdown > 0 && (
-                  <span className="text-[11px] opacity-80">
-                    Auto-retry in {retryCountdown}s
-                  </span>
-                )}
-              </div>
+              <Button size="sm" variant="secondary" onClick={refresh} className="mt-2 h-6 text-[11px] px-3">
+                <RefreshCw className="h-3 w-3 mr-1" /> Retry
+              </Button>
             </div>
           </div>
         )}
