@@ -67,9 +67,9 @@ serve(async (req) => {
 
     const apiUrl = `${OPENSKY_API}${params.toString() ? `?${params}` : ""}`;
 
-    // Attempt real API with a 10s timeout
+    // Attempt real API with a 5s timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     try {
       const res = await fetch(apiUrl, { signal: controller.signal });
