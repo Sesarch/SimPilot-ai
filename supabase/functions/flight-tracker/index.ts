@@ -7,6 +7,11 @@ const corsHeaders = {
 
 const OPENSKY_API = "https://opensky-network.org/api/states/all";
 const ADSBEX_RAPID_API = "https://adsbexchange-com1.p.rapidapi.com/v2/lat/";
+const ADSB_LOL_API = "https://api.adsb.lol/v2/lat/";
+
+function getErrorMessage(err: unknown) {
+  return err instanceof Error ? err.message : String(err);
+}
 
 // Realistic mock flight data
 function generateMockStates(): any[][] {
@@ -76,7 +81,7 @@ async function tryOpenSky(params: URLSearchParams): Promise<Response | null> {
     return null;
   } catch (err) {
     clearTimeout(timeoutId);
-    console.log(`OpenSky fetch failed: ${err.message}`);
+    console.log(`OpenSky fetch failed: ${getErrorMessage(err)}`);
     return null;
   }
 }
@@ -138,7 +143,108 @@ async function tryADSBExchange(lamin: string, lamax: string, lomin: string, loma
     return { time: now, states, _source: "live" };
   } catch (err) {
     clearTimeout(timeoutId);
-    console.log(`ADS-B Exchange fetch failed: ${err.message}`);
+    console.log(`ADS-B Exchange fetch failed: ${getErrorMessage(err)}`);
+    return null;
+  }
+}
+
+function getCenterAndRadius(lamin: string, lamax: string, lomin: string, lomax: string) {
+  const south = Number(lamin);
+  const north = Number(lamax);
+  const west = Number(lomin);
+  const east = Number(lomax);
+
+  const centerLat = (south + north) / 2;
+  const centerLon = (west + east) / 2;
+  const latSpan = Math.abs(north - south);
+  const lonSpan = Math.abs(east - west);
+  const latNm = latSpan * 60;
+  const lonNm = lonSpan * 60 * Math.max(Math.cos((centerLat * Math.PI) / 180), 0.2);
+  const diagonalNm = Math.sqrt(latNm ** 2 + lonNm ** 2);
+  const radius = Math.min(Math.max(Math.ceil(diagonalNm / 2), 75), 2200);
+
+  return {
+    centerLat: centerLat.toFixed(4),
+    centerLon: centerLon.toFixed(4),
+    radius: String(radius),
+  };
+}
+
+function mapAdsbAircraft(ac: any, now: number) {
+  const altBaroFeet = ac.alt_baro === "ground"
+    ? 0
+    : typeof ac.alt_baro === "number"
+      ? ac.alt_baro
+      : Number(ac.alt_baro || 0);
+  const altGeomFeet = typeof ac.alt_geom === "number"
+    ? ac.alt_geom
+    : Number(ac.alt_geom || altBaroFeet || 0);
+  const gsKnots = typeof ac.gs === "number" ? ac.gs : Number(ac.gs || 0);
+  const baroRateFpm = typeof ac.baro_rate === "number" ? ac.baro_rate : Number(ac.baro_rate || 0);
+
+  return [
+    ac.hex || "",
+    (ac.flight || "").padEnd(8),
+    ac.country || ac.dbFlags || "",
+    now,
+    now,
+    ac.lon,
+    ac.lat,
+    altBaroFeet * 0.3048,
+    ac.alt_baro === "ground",
+    gsKnots * 0.514444,
+    ac.track || 0,
+    baroRateFpm * 0.00508,
+    null,
+    altGeomFeet * 0.3048,
+    ac.squawk || null,
+    false,
+    0,
+  ];
+}
+
+async function tryAdsbLol(lamin: string, lamax: string, lomin: string, lomax: string): Promise<any | null> {
+  const { centerLat, centerLon, radius } = getCenterAndRadius(lamin, lamax, lomin, lomax);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const url = `${ADSB_LOL_API}${centerLat}/lon/${centerLon}/dist/${radius}`;
+    console.log(`adsb.lol request: url=${url}`);
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Lovable-FlightTracker/1.0",
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.log(`adsb.lol returned ${res.status}: ${body.slice(0, 200)}`);
+      return null;
+    }
+
+    const data = await res.json();
+    if (!Array.isArray(data.ac) || data.ac.length === 0) {
+      console.log("adsb.lol returned no aircraft");
+      return null;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const states = data.ac
+      .filter((ac: any) => ac?.lat != null && ac?.lon != null)
+      .slice(0, 300)
+      .map((ac: any) => mapAdsbAircraft(ac, now));
+
+    return {
+      time: now,
+      states,
+      _source: "live",
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.log(`adsb.lol fetch failed: ${getErrorMessage(err)}`);
     return null;
   }
 }
@@ -161,7 +267,16 @@ serve(async (req) => {
     params.set("lomin", lomin);
     params.set("lomax", lomax);
 
-    // Strategy 1: Try OpenSky API (with auth if available)
+    // Strategy 1: Try adsb.lol live feed (no key required)
+    const adsbLolData = await tryAdsbLol(lamin, lamax, lomin, lomax);
+    if (adsbLolData) {
+      console.log(`adsb.lol returned ${adsbLolData.states?.length || 0} aircraft`);
+      return new Response(JSON.stringify(adsbLolData), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Strategy 2: Try OpenSky API (with auth if available)
     const openSkyRes = await tryOpenSky(params);
     if (openSkyRes) {
       const data = await openSkyRes.json();
@@ -171,7 +286,7 @@ serve(async (req) => {
       });
     }
 
-    // Strategy 2: Try ADS-B Exchange via RapidAPI
+    // Strategy 3: Try ADS-B Exchange via RapidAPI
     const adsbData = await tryADSBExchange(lamin, lamax, lomin, lomax);
     if (adsbData) {
       console.log(`ADS-B Exchange returned ${adsbData.states?.length || 0} aircraft`);
@@ -180,7 +295,7 @@ serve(async (req) => {
       });
     }
 
-    // Strategy 3: Fallback to mock data
+    // Strategy 4: Fallback to mock data
     console.log("All live sources unavailable, returning mock flight data");
     const mockData = {
       time: Math.floor(Date.now() / 1000),
@@ -193,7 +308,7 @@ serve(async (req) => {
     });
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: getErrorMessage(err) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
