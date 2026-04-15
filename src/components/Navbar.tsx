@@ -10,8 +10,8 @@ const navItems = [
   { label: "Ground School", href: "/ground-school", isRoute: true },
   { label: "Oral Exam", href: "/oral-exam", isRoute: true },
   { label: "Live Sky", href: "/live-tools", isRoute: true, live: true },
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Features", href: "/#features", isRoute: true },
+  { label: "Pricing", href: "/#pricing", isRoute: true },
 ];
 
 const Navbar = () => {
