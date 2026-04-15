@@ -226,7 +226,7 @@ const CompetitorsPage = () => {
       <section id="comparison-matrix" className="py-20">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <span className="inline-block px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-4">
+            <span className="inline-block px-5 py-2 rounded-full text-sm md:text-base font-bold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-6">
               Feature-by-Feature Competitor Comparison
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
