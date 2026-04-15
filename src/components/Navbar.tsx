@@ -6,12 +6,12 @@ import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
-  { label: "Why SimPilot.AI", href: "/why-simpilot", isRoute: true },
-  { label: "Ground School", href: "/ground-school", isRoute: true },
-  { label: "Oral Exam", href: "/oral-exam", isRoute: true },
-  { label: "Live Sky", href: "/live-tools", isRoute: true, live: true },
-  { label: "Features", href: "/#features", isRoute: true },
-  { label: "Pricing", href: "/#pricing", isRoute: true },
+  { label: "Why SimPilot.AI", href: "/why-simpilot" },
+  { label: "Ground School", href: "/ground-school" },
+  { label: "Oral Exam", href: "/oral-exam" },
+  { label: "Live Sky", href: "/live-tools", live: true },
+  { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "/#pricing" },
 ];
 
 const Navbar = () => {
