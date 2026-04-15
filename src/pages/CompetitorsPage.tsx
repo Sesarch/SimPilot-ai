@@ -1,5 +1,5 @@
 import { Check, X, Minus, Zap, Shield, Brain, BookOpen, Target, Award, Clock, TrendingUp, Mic, Cloud, Plane, GraduationCap, Users, Gamepad2, ChevronDown, Video } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
@@ -313,21 +313,32 @@ const CompetitorsPage = () => {
                       <p className="text-sm font-semibold text-foreground truncate">{f.label}</p>
                     </div>
                     <CellIcon value={f.values[0]} />
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
                   </button>
-                  {isOpen && (
-                    <div className="px-4 pb-4 space-y-2">
-                      <p className="text-xs text-muted-foreground">{f.desc}</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {competitors.slice(1).map((c, ci) => (
-                          <div key={c.name} className="flex items-center gap-2 text-xs">
-                            <CellIcon value={f.values[ci + 1]} />
-                            <span className="text-muted-foreground">{c.name}</span>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        key="content"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pb-4 space-y-2">
+                          <p className="text-xs text-muted-foreground">{f.desc}</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {competitors.slice(1).map((c, ci) => (
+                              <div key={c.name} className="flex items-center gap-2 text-xs">
+                                <CellIcon value={f.values[ci + 1]} />
+                                <span className="text-muted-foreground">{c.name}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               );
             })}
