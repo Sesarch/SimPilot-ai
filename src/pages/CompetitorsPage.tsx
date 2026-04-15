@@ -1,5 +1,5 @@
 import { Check, X, Minus, Zap, Shield, Brain, BookOpen, Target, Award, Clock, TrendingUp, Mic, Cloud, Plane, GraduationCap, Users, Gamepad2, ChevronDown, Video } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
