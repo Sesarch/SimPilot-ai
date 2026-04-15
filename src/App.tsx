@@ -29,6 +29,7 @@ import WeatherBriefingPage from "./pages/WeatherBriefingPage.tsx";
 import LiveToolsPage from "./pages/LiveToolsPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
+import ScrollToTop from "./components/ScrollToTop.tsx";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <Routes>
             {/* When installed as app, "/" goes straight to chat */}
