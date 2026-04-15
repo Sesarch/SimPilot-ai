@@ -239,7 +239,7 @@ const CompetitorsPage = () => {
           {/* Desktop table */}
           <div className="hidden lg:block max-w-6xl mx-auto overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-[68px] z-40 bg-background/95 backdrop-blur-sm">
                 <tr className="border-b border-border">
                   <th className="text-left py-4 px-3 text-muted-foreground font-medium">Feature</th>
                   {competitors.map((c) => (
