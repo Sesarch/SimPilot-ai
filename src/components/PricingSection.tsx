@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown } from "lucide-react";
 import PlanComparisonTable from "./PlanComparisonTable";
 import PricingFAQ from "./PricingFAQ";
-import PricingFAQ from "./PricingFAQ";
 
 const plans = [
   {
