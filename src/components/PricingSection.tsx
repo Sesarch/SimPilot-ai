@@ -1,39 +1,44 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, GraduationCap, User, Gamepad2, ShieldCheck, RefreshCcw, CreditCard } from "lucide-react";
+import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard } from "lucide-react";
 import PlanComparisonTable from "./PlanComparisonTable";
 import PricingFAQ from "./PricingFAQ";
 
 const plans = [
   {
-    icon: Gamepad2,
-    name: "Sim Enthusiast",
-    monthly: 29,
-    annual: 23,
-    description: "Perfect for home sim pilots who want real-world skills",
+    icon: Plane,
+    name: "Student",
+    monthly: 19,
+    annual: 15,
+    description: "Everything you need to pass your checkride",
+    priceSuffix: "/mo",
     features: [
-      "AI flight coaching sessions",
-      "MSFS & X-Plane integration",
-      "Procedure training library",
+      "19 Ground School modules (FAA ACS)",
+      "Oral Exam simulator",
+      "ATC communication trainer",
+      "Live Flight Tracker & Weather",
       "Performance tracking dashboard",
+      "Session history (30 days)",
       "Community access",
     ],
-    cta: "Start Flying",
+    cta: "Start Free Trial",
     highlighted: false,
   },
   {
     icon: User,
-    name: "Individual Pilot",
-    monthly: 79,
-    annual: 63,
-    description: "For student and certified pilots sharpening their edge",
+    name: "Pro Pilot",
+    monthly: 39,
+    annual: 29,
+    description: "Advanced tools for serious pilots and CFIs",
+    priceSuffix: "/mo",
     features: [
-      "Everything in Sim Enthusiast",
-      "Unlimited AI coaching",
-      "Checkride prep modules",
-      "ATC communication trainer",
-      "Currency & logbook tracking",
+      "Everything in Student",
+      "Unlimited AI coaching sessions",
+      "POH upload & aircraft-specific coaching",
+      "VFR/IFR chart image analysis",
+      "Sim debrief (.FLT file upload)",
       "Instrument procedure drills",
+      "Unlimited session history",
       "Priority AI response",
     ],
     cta: "Go Pro",
@@ -42,12 +47,13 @@ const plans = [
   {
     icon: GraduationCap,
     name: "Flight School",
-    monthly: 299,
-    annual: 239,
-    description: "Enterprise solution for flight training organizations",
+    monthly: 29,
+    annual: 23,
+    description: "Train your entire program under one roof",
+    priceSuffix: "/seat/mo",
     features: [
-      "Everything in Individual Pilot",
-      "Up to 20 student accounts",
+      "Everything in Pro Pilot",
+      "10-seat minimum",
       "Instructor admin dashboard",
       "Batch student analytics",
       "Curriculum integration API",
@@ -83,7 +89,7 @@ const PricingSection = () => {
             Transparent pricing for every level of aviator. Start free, upgrade when you're ready.
           </p>
           <p className="mt-3 font-display text-sm font-bold tracking-wide text-primary">
-            ✦ No Credit Card Required
+            ✦ 7-Day Free Trial · No Credit Card Required
           </p>
 
           {/* Billing toggle */}
@@ -113,7 +119,7 @@ const PricingSection = () => {
                   exit={{ opacity: 0, scale: 0.8 }}
                   className="text-[10px] font-display font-bold tracking-widest uppercase px-2.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25"
                 >
-                  Save 20%
+                  Save 20%+
                 </motion.span>
               )}
             </AnimatePresence>
@@ -123,7 +129,6 @@ const PricingSection = () => {
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
           {plans.map((plan, i) => {
             const price = annual ? plan.annual : plan.monthly;
-            const period = annual ? "/mo" : "/mo";
             return (
               <motion.div
                 key={plan.name}
@@ -169,7 +174,7 @@ const PricingSection = () => {
                   >
                     ${price}
                   </motion.span>
-                  <span className="text-muted-foreground text-sm">{period}</span>
+                  <span className="text-muted-foreground text-sm">{plan.priceSuffix}</span>
                   {annual && (
                     <span className="text-muted-foreground text-xs line-through ml-1">
                       ${plan.monthly}
@@ -179,6 +184,7 @@ const PricingSection = () => {
                 {annual && (
                   <p className="text-[11px] text-muted-foreground mb-1">
                     Billed ${price * 12}/year
+                    {plan.name === "Flight School" && " per seat"}
                   </p>
                 )}
                 <span className="inline-block text-[10px] font-display font-semibold tracking-widest uppercase px-3 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/25 mb-4 w-fit">
@@ -242,29 +248,27 @@ const PricingSection = () => {
             How SimPilot.AI Compares to Traditional Training
           </h3>
           <div className="grid md:grid-cols-2 gap-6 items-center">
-            {/* CFI Cost */}
             <div className="text-center p-6 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
-                100 Hours/Month with a CFI
+                Ground School + CFI Tutoring
               </p>
-              <p className="font-display text-4xl md:text-5xl font-bold text-destructive">$7,500–$15,000</p>
+              <p className="font-display text-4xl md:text-5xl font-bold text-destructive">$2,500+</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Scheduling headaches · Limited availability · No 24/7 access
+                Sporty's $299 + King Schools $349 + CFI tutoring hours
               </p>
             </div>
-            {/* SimPilot Cost */}
             <div className="text-center p-6 rounded-lg bg-primary/10 border border-primary/30">
               <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
-                100 Hours/Month of SimPilot.AI
+                SimPilot.AI Pro Pilot Plan
               </p>
-              <p className="font-display text-4xl md:text-5xl font-bold text-primary text-glow-cyan">$79</p>
+              <p className="font-display text-4xl md:text-5xl font-bold text-primary text-glow-cyan">$39/mo</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Unlimited AI coaching · 24/7 availability · Checkride prep included
+                Unlimited AI coaching · Oral Exam prep · Chart analysis · 24/7
               </p>
             </div>
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6">
-            <span className="text-accent font-semibold">100 hours of CFI time could cost up to $15,000</span> — SimPilot.AI gives you unlimited training for just $79/month.
+            <span className="text-accent font-semibold">Traditional ground school alone costs $300–$600</span> — SimPilot.AI adds unlimited AI tutoring, exam prep, and sim debriefs for just $39/month.
           </p>
         </motion.div>
 
