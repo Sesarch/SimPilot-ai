@@ -188,9 +188,9 @@ const FlightTrackerMap = () => {
     if (!searchQuery.trim() || searchQuery.length < 2) return { aircraft: [], airports: [] };
     const q = searchQuery.toLowerCase();
     const matchedAircraft = aircraft.filter(ac =>
-      ac.callsign.toLowerCase().includes(q) ||
-      ac.icao24.toLowerCase().includes(q) ||
-      ac.originCountry.toLowerCase().includes(q)
+      (ac.callsign || "").toLowerCase().includes(q) ||
+      (ac.icao24 || "").toLowerCase().includes(q) ||
+      (ac.originCountry || "").toLowerCase().includes(q)
     ).slice(0, 5);
     const matchedAirports = majorAirports.filter(ap =>
       ap.icao.toLowerCase().includes(q) ||
