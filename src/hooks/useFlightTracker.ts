@@ -106,9 +106,9 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
         .filter((s: any[]) => s[5] != null && s[6] != null)
         .slice(0, 300)
         .map((s: any[]) => ({
-          icao24: s[0] || "",
-          callsign: (s[1] || "").trim(),
-          originCountry: s[2] || "",
+          icao24: String(s[0] || ""),
+          callsign: String(s[1] || "").trim(),
+          originCountry: String(s[2] || ""),
           longitude: s[5],
           latitude: s[6],
           altitude: s[7] || 0,
