@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FlightTrackerMap from "@/components/FlightTrackerMap";
+import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary";
 import ATCTrainer from "@/components/ATCTrainer";
 import { Radar, Radio } from "lucide-react";
 
@@ -95,9 +96,11 @@ const LiveToolsPage = () => {
 
             {/* Content */}
             {activeTab === "tracker" ? (
-              <div className="h-[calc(100vh-200px)] sm:h-[600px] md:h-[700px]">
-                <FlightTrackerMap />
-              </div>
+              <FlightTrackerErrorBoundary>
+                <div className="h-[calc(100vh-200px)] sm:h-[600px] md:h-[700px]">
+                  <FlightTrackerMap />
+                </div>
+              </FlightTrackerErrorBoundary>
             ) : (
               <ATCTrainer />
             )}
