@@ -6,8 +6,10 @@ import { Mail, Lock, Plane, User, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import TermsAgreement from "@/components/TermsAgreement";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const AuthPage = () => {
+  const { settings } = useSiteSettings();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
