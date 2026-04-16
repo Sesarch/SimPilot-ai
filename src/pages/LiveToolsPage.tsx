@@ -12,8 +12,14 @@ const tabs = [
   { id: "atc", label: "ATC Trainer", icon: Radio },
 ] as const;
 
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import FeatureDisabledPage from "@/components/FeatureDisabledPage";
+
 const LiveToolsPage = () => {
+  const { settings } = useSiteSettings();
   const [activeTab, setActiveTab] = useState<"tracker" | "atc">("tracker");
+
+  if (!settings.live_tools_enabled) return <FeatureDisabledPage feature="Live Sky Tools" />;
 
   return (
     <>

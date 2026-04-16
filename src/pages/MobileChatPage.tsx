@@ -10,6 +10,8 @@ import { TrainingChat } from "@/components/TrainingChat";
 import { ChatMode } from "@/hooks/useChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import SEOHead from "@/components/SEOHead";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
 type ChatTab = {
   id: string;
@@ -46,11 +48,14 @@ const CHAT_TABS: ChatTab[] = [
 ];
 
 const MobileChatPage = () => {
+  const { settings } = useSiteSettings();
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ChatTab>(CHAT_TABS[0]);
   const [chatKey, setChatKey] = useState(0);
+
+  if (!settings.chat_enabled) return <FeatureDisabledPage feature="AI Chat" />;
 
   const switchTab = (tab: ChatTab) => {
     setActiveTab(tab);

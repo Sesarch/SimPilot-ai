@@ -6,16 +6,38 @@ import { useWeatherBriefing, WeatherData } from "@/hooks/useWeatherBriefing";
 import { Cloud, ArrowLeft, Search, Loader2, MapPin, Plus, X, Plane } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
 const WeatherBriefingPage = () => {
+  const { settings } = useSiteSettings();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const { data, loading, error, fetchWeather } = useWeatherBriefing();
-
   const [stationInput, setStationInput] = useState("");
   const [routeStations, setRouteStations] = useState<string[]>([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
+
+  const weatherSummary = useMemo(() => {
+    if (!data) return "";
+    const parts: string[] = [];
+    for (const [id, wx] of Object.entries(data.stations)) {
+      parts.push(`--- ${id} ---`);
+      if (wx.metar) parts.push(`METAR: ${wx.metar}`);
+      if (wx.taf) parts.push(`TAF: ${wx.taf}`);
+      parts.push("");
+    }
+    return parts.join("\n");
+  }, [data]);
+
+  const analysisPrompt = useMemo(() => {
+    if (!weatherSummary) return "";
+    const route = routeStations.join(" → ");
+    return `I'm planning a VFR flight along this route: ${route}. Here is the current weather data I just pulled:\n\n${weatherSummary}\n\nPlease analyze this weather for my flight. For each station:\n1. Decode the METAR in plain English (winds, visibility, ceiling, altimeter, remarks)\n2. Decode the TAF and highlight any significant changes\n3. Identify any hazards (low ceilings, gusty winds, convection, icing, IFR/MVFR conditions)\n\nThen give me an overall route weather assessment:\n- Is this a VFR go or no-go? Why?\n- Any alternates I should consider?\n- Best time window for departure based on the TAFs?\n- Any PIREPs or AIRMETs I should look for?\n\nUse plain English but include the raw data for reference. Be thorough like a CFI giving a pre-flight weather brief.`;
+  }, [weatherSummary, routeStations]);
+
+  if (!settings.weather_enabled) return <FeatureDisabledPage feature="Weather Briefing" />;
 
   const addStation = () => {
     const id = stationInput.trim().toUpperCase();
@@ -36,23 +58,6 @@ const WeatherBriefingPage = () => {
     await fetchWeather(routeStations);
   };
 
-  const weatherSummary = useMemo(() => {
-    if (!data) return "";
-    const parts: string[] = [];
-    for (const [id, wx] of Object.entries(data.stations)) {
-      parts.push(`--- ${id} ---`);
-      if (wx.metar) parts.push(`METAR: ${wx.metar}`);
-      if (wx.taf) parts.push(`TAF: ${wx.taf}`);
-      parts.push("");
-    }
-    return parts.join("\n");
-  }, [data]);
-
-  const analysisPrompt = useMemo(() => {
-    if (!weatherSummary) return "";
-    const route = routeStations.join(" → ");
-    return `I'm planning a VFR flight along this route: ${route}. Here is the current weather data I just pulled:\n\n${weatherSummary}\n\nPlease analyze this weather for my flight. For each station:\n1. Decode the METAR in plain English (winds, visibility, ceiling, altimeter, remarks)\n2. Decode the TAF and highlight any significant changes\n3. Identify any hazards (low ceilings, gusty winds, convection, icing, IFR/MVFR conditions)\n\nThen give me an overall route weather assessment:\n- Is this a VFR go or no-go? Why?\n- Any alternates I should consider?\n- Best time window for departure based on the TAFs?\n- Any PIREPs or AIRMETs I should look for?\n\nUse plain English but include the raw data for reference. Be thorough like a CFI giving a pre-flight weather brief.`;
-  }, [weatherSummary, routeStations]);
 
   if (authLoading) {
     return (

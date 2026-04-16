@@ -10,13 +10,18 @@ import SEOHead from "@/components/SEOHead";
 import groundSchoolLight from "@/assets/ground-school-light.jpg";
 import groundSchoolDark from "@/assets/ground-school-dark.jpg";
 import { LESSON_AREAS, type LessonArea } from "@/data/groundSchoolLessons";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
 const GroundSchoolPage = () => {
+  const { settings } = useSiteSettings();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
   const heroImage = resolvedTheme === "dark" ? groundSchoolDark : groundSchoolLight;
+
+  if (!settings.ground_school_enabled) return <FeatureDisabledPage feature="Ground School" />;
 
   if (loading) {
     return (

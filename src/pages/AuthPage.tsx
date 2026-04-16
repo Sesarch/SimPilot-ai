@@ -6,8 +6,10 @@ import { Mail, Lock, Plane, User, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import TermsAgreement from "@/components/TermsAgreement";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const AuthPage = () => {
+  const { settings } = useSiteSettings();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -211,15 +213,21 @@ const AuthPage = () => {
             </button>
           </form>
 
-          <p className="text-sm text-muted-foreground text-center mt-6">
-            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button
-              onClick={() => { setIsLogin(!isLogin); setAgreedToTerms(false); }}
-              className="text-primary hover:underline font-medium"
-            >
-              {isLogin ? "Sign up" : "Sign in"}
-            </button>
-          </p>
+          {!settings.signup_enabled && !isLogin ? (
+            <p className="text-sm text-destructive text-center mt-6">
+              New signups are currently disabled. Please check back later.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center mt-6">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+              <button
+                onClick={() => { setIsLogin(!isLogin); setAgreedToTerms(false); }}
+                className="text-primary hover:underline font-medium"
+              >
+                {isLogin ? (settings.signup_enabled ? "Sign up" : "Sign up (disabled)") : "Sign in"}
+              </button>
+            </p>
+          )}
         </div>
       </div>
     </div>
