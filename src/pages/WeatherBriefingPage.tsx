@@ -6,8 +6,12 @@ import { useWeatherBriefing, WeatherData } from "@/hooks/useWeatherBriefing";
 import { Cloud, ArrowLeft, Search, Loader2, MapPin, Plus, X, Plane } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
 const WeatherBriefingPage = () => {
+  const { settings } = useSiteSettings();
+  if (!settings.weather_enabled) return <FeatureDisabledPage feature="Weather Briefing" />;
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();

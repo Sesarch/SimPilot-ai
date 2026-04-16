@@ -10,6 +10,8 @@ import { TrainingChat } from "@/components/TrainingChat";
 import { ChatMode } from "@/hooks/useChat";
 import ThemeToggle from "@/components/ThemeToggle";
 import SEOHead from "@/components/SEOHead";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
 type ChatTab = {
   id: string;
