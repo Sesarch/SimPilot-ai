@@ -6,6 +6,9 @@ Disallow: /reset-password
 Disallow: /dashboard
 Disallow: /session-history
 Disallow: /progress
+Disallow: /admin
+Disallow: /chat
+Disallow: /unsubscribe
 
 User-agent: Googlebot
 Allow: /

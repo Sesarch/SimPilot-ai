@@ -133,10 +133,10 @@ const ProgressPage = () => {
       />
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => navigate("/dashboard")} title="Return to dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <Link to="/" className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
+          <Link to="/" title="SimPilot.AI — AI-Powered Pilot Training Home" className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
             SIM<span className="text-accent">PILOT</span>.AI
           </Link>
         </div>

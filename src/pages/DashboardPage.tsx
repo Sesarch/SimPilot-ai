@@ -97,7 +97,7 @@ const DashboardPage = () => {
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" title="SimPilot.AI — AI-Powered Pilot Training Home" className="flex items-center gap-2">
             <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
               SIM<span className="text-accent">PILOT</span>.AI
             </span>
