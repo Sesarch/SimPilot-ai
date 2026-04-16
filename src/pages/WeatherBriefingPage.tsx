@@ -11,15 +11,15 @@ import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
 const WeatherBriefingPage = () => {
   const { settings } = useSiteSettings();
-  if (!settings.weather_enabled) return <FeatureDisabledPage feature="Weather Briefing" />;
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const { data, loading, error, fetchWeather } = useWeatherBriefing();
-
   const [stationInput, setStationInput] = useState("");
   const [routeStations, setRouteStations] = useState<string[]>([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
+
+  if (!settings.weather_enabled) return <FeatureDisabledPage feature="Weather Briefing" />;
 
   const addStation = () => {
     const id = stationInput.trim().toUpperCase();

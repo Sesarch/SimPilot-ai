@@ -15,12 +15,13 @@ import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
 const GroundSchoolPage = () => {
   const { settings } = useSiteSettings();
-  if (!settings.ground_school_enabled) return <FeatureDisabledPage feature="Ground School" />;
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
   const heroImage = resolvedTheme === "dark" ? groundSchoolDark : groundSchoolLight;
+
+  if (!settings.ground_school_enabled) return <FeatureDisabledPage feature="Ground School" />;
 
   if (loading) {
     return (
