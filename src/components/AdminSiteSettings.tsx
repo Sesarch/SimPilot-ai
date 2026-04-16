@@ -1,12 +1,14 @@
-import { useState } from "react";
-import { Settings, Bell, Wrench, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Settings, Bell, Wrench, Globe, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminSiteSettings = () => {
-  // These are local state for UI — in production you'd persist to a site_settings table
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const [signupEnabled, setSignupEnabled] = useState(true);
@@ -15,9 +17,57 @@ const AdminSiteSettings = () => {
   const [weatherEnabled, setWeatherEnabled] = useState(true);
   const [liveToolsEnabled, setLiveToolsEnabled] = useState(true);
 
-  const handleSave = () => {
-    toast.success("Settings saved (local state only — persistence coming soon)");
+  useEffect(() => {
+    const fetch = async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("*")
+        .eq("id", 1)
+        .single();
+      if (data && !error) {
+        setMaintenanceMode(data.maintenance_mode);
+        setAnnouncement(data.announcement);
+        setSignupEnabled(data.signup_enabled);
+        setChatEnabled(data.chat_enabled);
+        setGroundSchoolEnabled(data.ground_school_enabled);
+        setWeatherEnabled(data.weather_enabled);
+        setLiveToolsEnabled(data.live_tools_enabled);
+      }
+      setLoading(false);
+    };
+    fetch();
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("site_settings")
+      .update({
+        maintenance_mode: maintenanceMode,
+        announcement,
+        signup_enabled: signupEnabled,
+        chat_enabled: chatEnabled,
+        ground_school_enabled: groundSchoolEnabled,
+        weather_enabled: weatherEnabled,
+        live_tools_enabled: liveToolsEnabled,
+      })
+      .eq("id", 1);
+
+    if (error) {
+      toast.error("Failed to save settings");
+    } else {
+      toast.success("Settings saved successfully");
+    }
+    setSaving(false);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -81,8 +131,8 @@ const AdminSiteSettings = () => {
           </div>
         </div>
 
-        <Button onClick={handleSave} className="w-full sm:w-auto">
-          Save Settings
+        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
+          {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : "Save Settings"}
         </Button>
       </div>
     </div>

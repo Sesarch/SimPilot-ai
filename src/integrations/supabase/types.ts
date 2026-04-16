@@ -342,6 +342,42 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          announcement: string
+          chat_enabled: boolean
+          ground_school_enabled: boolean
+          id: number
+          live_tools_enabled: boolean
+          maintenance_mode: boolean
+          signup_enabled: boolean
+          updated_at: string
+          weather_enabled: boolean
+        }
+        Insert: {
+          announcement?: string
+          chat_enabled?: boolean
+          ground_school_enabled?: boolean
+          id?: number
+          live_tools_enabled?: boolean
+          maintenance_mode?: boolean
+          signup_enabled?: boolean
+          updated_at?: string
+          weather_enabled?: boolean
+        }
+        Update: {
+          announcement?: string
+          chat_enabled?: boolean
+          ground_school_enabled?: boolean
+          id?: number
+          live_tools_enabled?: boolean
+          maintenance_mode?: boolean
+          signup_enabled?: boolean
+          updated_at?: string
+          weather_enabled?: boolean
+        }
+        Relationships: []
+      }
       support_chat_messages: {
         Row: {
           chat_id: string
