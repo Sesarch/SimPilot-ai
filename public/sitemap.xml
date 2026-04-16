@@ -1,57 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://simpilot.ai/</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://simpilot.ai/og-image.png</image:loc>
+      <image:title>SimPilot.AI — AI-Powered Pilot Training Platform</image:title>
+      <image:caption>Interactive AI CFI for ground school and oral exam preparation</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://simpilot.ai/ground-school</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://simpilot.ai/og-image.png</image:loc>
+      <image:title>AI Ground School — FAA ACS-Aligned Training</image:title>
+      <image:caption>19 comprehensive modules covering all FAA Airman Certification Standards</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://simpilot.ai/oral-exam</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://simpilot.ai/og-image.png</image:loc>
+      <image:title>Oral Exam Simulator — AI DPE Mode</image:title>
+      <image:caption>Practice with a strict AI examiner that asks follow-up questions</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://simpilot.ai/why-simpilot</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://simpilot.ai/og-image.png</image:loc>
+      <image:title>Why SimPilot.AI — Interactive Demo</image:title>
+      <image:caption>Try our Socratic AI instructor with real-time chart analysis</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://simpilot.ai/live-tools</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://simpilot.ai/og-image.png</image:loc>
+      <image:title>Live Sky — Flight Tracker & ATC Trainer</image:title>
+      <image:caption>Real-time flight tracking and interactive ATC communication practice</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://simpilot.ai/weather-briefing</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://simpilot.ai/og-image.png</image:loc>
+      <image:title>AI Weather Briefing — METAR & TAF Analysis</image:title>
+      <image:caption>Live aviation weather with AI-powered risk analysis and go/no-go recommendations</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://simpilot.ai/competitors</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://simpilot.ai/og-image.png</image:loc>
+      <image:title>SimPilot.AI vs Sporty's, King Schools & More</image:title>
+      <image:caption>Compare AI-powered pilot training with traditional ground school options</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://simpilot.ai/contact</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://simpilot.ai/terms</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://simpilot.ai/privacy</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://simpilot.ai/cookie-preferences</loc>
+    <lastmod>2025-01-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
