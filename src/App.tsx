@@ -6,6 +6,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { SiteSettingsProvider } from "@/hooks/useSiteSettings";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
+import MaintenanceGate from "@/components/MaintenanceGate";
 import Index from "./pages/Index.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
@@ -47,34 +50,39 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
+        <SiteSettingsProvider>
         <AuthProvider>
-          <Routes>
-            {/* When installed as app, "/" goes straight to chat */}
-            <Route path="/" element={isStandalone ? <Navigate to="/chat" replace /> : <Index />} />
-            <Route path="/chat" element={<MobileChatPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/ground-school" element={<GroundSchoolPage />} />
-            <Route path="/oral-exam" element={<OralExamPage />} />
-            <Route path="/weather-briefing" element={<WeatherBriefingPage />} />
-            <Route path="/live-tools" element={<LiveToolsPage />} />
-            <Route path="/session-history" element={<SessionHistoryPage />} />
-            <Route path="/progress" element={<ProgressPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/privacy" element={<PrivacyPolicyPage />} />
-            <Route path="/cookie-preferences" element={<CookiePreferencesPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/why-simpilot" element={<WhySimPilotPage />} />
-            <Route path="/competitors" element={<CompetitorsPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/unsubscribe" element={<UnsubscribePage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <SupportChatWidget />
-          <PWAInstallBanner />
+          <AnnouncementBanner />
+          <MaintenanceGate>
+            <Routes>
+              {/* When installed as app, "/" goes straight to chat */}
+              <Route path="/" element={isStandalone ? <Navigate to="/chat" replace /> : <Index />} />
+              <Route path="/chat" element={<MobileChatPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/ground-school" element={<GroundSchoolPage />} />
+              <Route path="/oral-exam" element={<OralExamPage />} />
+              <Route path="/weather-briefing" element={<WeatherBriefingPage />} />
+              <Route path="/live-tools" element={<LiveToolsPage />} />
+              <Route path="/session-history" element={<SessionHistoryPage />} />
+              <Route path="/progress" element={<ProgressPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/cookie-preferences" element={<CookiePreferencesPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/why-simpilot" element={<WhySimPilotPage />} />
+              <Route path="/competitors" element={<CompetitorsPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/unsubscribe" element={<UnsubscribePage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <SupportChatWidget />
+            <PWAInstallBanner />
+          </MaintenanceGate>
         </AuthProvider>
+        </SiteSettingsProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
