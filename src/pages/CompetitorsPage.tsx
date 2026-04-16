@@ -410,12 +410,14 @@ const CompetitorsPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/auth"
+                title="Sign up for SimPilot.AI — start your AI pilot training free trial"
                 className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
               >
                 <Zap className="w-4 h-4" /> Get Started Free
               </Link>
               <Link
                 to="/why-simpilot"
+                title="Learn why SimPilot.AI is the best AI pilot training platform"
                 className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg border border-border text-foreground font-semibold text-sm hover:border-primary/40 transition-colors"
               >
                 Learn More About SimPilot.AI

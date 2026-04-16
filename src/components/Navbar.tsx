@@ -121,6 +121,7 @@ const Navbar = () => {
                     key={item.label}
                     to={item.href}
                     onClick={() => setIsOpen(false)}
+                    title={`SimPilot.AI ${item.label} — AI pilot training module`}
                     className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
                   >
                     {item.live && (
@@ -147,6 +148,7 @@ const Navbar = () => {
                 <Link
                   to={user ? "/dashboard" : "/auth"}
                   onClick={() => setIsOpen(false)}
+                  title={user ? "Access your SimPilot.AI pilot training dashboard" : "Sign in to SimPilot.AI — start your AI pilot training"}
                   className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded text-center"
                 >
                   {user ? "Dashboard" : "Sign In"}

@@ -1,16 +1,35 @@
 import { useState } from "react";
-import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FlightTrackerMap from "@/components/FlightTrackerMap";
 import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary";
 import ATCTrainer from "@/components/ATCTrainer";
 import { Radar, Radio } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 
 const tabs = [
   { id: "tracker", label: "Live Flight Tracker", icon: Radar },
   { id: "atc", label: "ATC Trainer", icon: Radio },
 ] as const;
+
+const liveToolsJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Live Sky — SimPilot.AI",
+  description: "Real-time flight tracking on an interactive map and AI-powered ATC radio communication training.",
+  url: "https://simpilot.ai/live-tools",
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Web",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  featureList: [
+    "Real-time global flight tracking",
+    "Interactive map with aircraft positions",
+    "Live METAR weather at major airports",
+    "AI-powered ATC communication trainer",
+    "Altitude and callsign filtering",
+  ],
+  isPartOf: { "@type": "WebSite", name: "SimPilot.AI", url: "https://simpilot.ai" },
+};
 
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import FeatureDisabledPage from "@/components/FeatureDisabledPage";
@@ -23,45 +42,14 @@ const LiveToolsPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Live Sky — Flight Tracker & ATC Trainer | SimPilot.AI</title>
-        <meta name="description" content="Live Sky — real-time flight tracking on an interactive map and AI-powered ATC radio communication training." />
-        <link rel="canonical" href="https://simpilot.ai/live-tools" />
-        <meta property="og:title" content="Live Sky — Flight Tracker & ATC Trainer | SimPilot.AI" />
-        <meta property="og:description" content="Watch the skies in real time — track flights worldwide and sharpen your ATC radio skills with AI." />
-        <meta property="og:image" content="/og-live-sky.jpg" />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="/og-live-sky.jpg" />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
-            "name": "Live Sky — SimPilot.AI",
-            "description": "Real-time flight tracking on an interactive map and AI-powered ATC radio communication training.",
-            "url": "https://simpilot.ai/live-tools",
-            "applicationCategory": "UtilitiesApplication",
-            "operatingSystem": "Web",
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "USD"
-            },
-            "featureList": [
-              "Real-time global flight tracking",
-              "Interactive map with aircraft positions",
-              "Live METAR weather at major airports",
-              "AI-powered ATC communication trainer",
-              "Altitude and callsign filtering"
-            ],
-            "isPartOf": {
-              "@type": "WebSite",
-              "name": "SimPilot.AI",
-              "url": "https://simpilot.ai"
-            }
-          })}
-        </script>
-      </Helmet>
+      <SEOHead
+        title="Live Sky — Flight Tracker & ATC Trainer"
+        description="Live Sky — real-time flight tracking on an interactive map and AI-powered ATC radio communication training. Track flights worldwide and practice ATC radio skills."
+        keywords="live flight tracker, ATC trainer, real-time flight tracking, ATC radio practice, aviation map, aircraft tracking, flight radar, air traffic control simulation, pilot radio training"
+        canonical="/live-tools"
+        ogImage="/og-live-sky.jpg"
+        jsonLd={liveToolsJsonLd}
+      />
       <div className="min-h-screen bg-background">
         <Navbar />
         <main className="pt-20 sm:pt-24 pb-8 sm:pb-16">
