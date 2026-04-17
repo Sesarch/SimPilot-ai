@@ -65,6 +65,7 @@ const OralExamPage = () => {
   const location = useLocation();
   const [selectedExam, setSelectedExam] = useState<typeof EXAM_TYPES[0] | null>(null);
   const [stressMode, setStressMode] = useState(false);
+  const [stressTimerSeconds, setStressTimerSeconds] = useState<30 | 60 | 90>(60);
 
   // Auto-launch a weak-areas drill if arriving from a Checkride Readiness Report
   useEffect(() => {
@@ -136,7 +137,7 @@ const OralExamPage = () => {
                   <h2 className="font-display text-sm font-bold text-foreground">{selectedExam.title}</h2>
                   {stressMode && (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/30 text-[10px] font-semibold uppercase tracking-wider">
-                      <Flame className="w-3 h-3" /> Stress Mode
+                      <Flame className="w-3 h-3" /> Stress Mode · {stressTimerSeconds}s
                     </span>
                   )}
                 </div>
