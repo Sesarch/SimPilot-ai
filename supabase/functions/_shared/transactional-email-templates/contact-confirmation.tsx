@@ -25,7 +25,7 @@ interface ContactConfirmationProps {
 const ContactConfirmationEmail = ({ name }: ContactConfirmationProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Thanks for reaching out to {SITE_NAME}</Preview>
+    <Preview>Message received — your {SITE_NAME} crew is on it ✈️</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -46,7 +46,7 @@ const ContactConfirmationEmail = ({ name }: ContactConfirmationProps) => (
         <Text style={text}>
           In the meantime, feel free to explore our AI-powered ground school and oral exam prep tools.
         </Text>
-        <Text style={footer}>Best regards, The {SITE_NAME} Team ✈️</Text>
+        <Text style={footer}>Clear skies, The {SITE_NAME} crew ✈️</Text>
       </Container>
     </Body>
   </Html>
