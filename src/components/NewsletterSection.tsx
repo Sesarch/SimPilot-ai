@@ -33,6 +33,13 @@ const NewsletterSection = () => {
 
     setSubscribed(true);
     toast.success("You're subscribed! Welcome aboard ✈️");
+
+    // Sync to Omnisend (fire-and-forget — don't block UX if it fails)
+    supabase.functions
+      .invoke("sync-omnisend-contact", {
+        body: { email: trimmed, source: "homepage_newsletter_form" },
+      })
+      .catch((err) => console.warn("Omnisend sync failed:", err));
   };
 
   return (
