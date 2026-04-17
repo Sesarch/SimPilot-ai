@@ -143,12 +143,12 @@ export const TrainingChat = ({
         stress_mode: stressMode,
         acs_codes: structured ? structured.weak_areas.map((w) => w.acs_code) : null,
         report: structured
-          ? ({ ...structured, timer_seconds: stressMode ? stressTimerSeconds : null } as any)
-          : null,
+          ? ({ ...structured, timer_seconds: stressMode ? stressTimerSeconds : null, exam_type_id: examTypeId ?? null } as any)
+          : (examTypeId ? ({ exam_type_id: examTypeId, timer_seconds: stressMode ? stressTimerSeconds : null } as any) : null),
       } as any);
       if (error) console.error("Failed to save exam score:", error);
     },
-    [mode, user, sessionId, stressMode, stressTimerSeconds]
+    [mode, user, sessionId, stressMode, stressTimerSeconds, examTypeId]
   );
 
   // Save assistant message when streaming completes
