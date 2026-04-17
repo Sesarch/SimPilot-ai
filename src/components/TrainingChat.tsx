@@ -145,7 +145,7 @@ export const TrainingChat = ({
       } as any);
       if (error) console.error("Failed to save exam score:", error);
     },
-    [mode, user, sessionId, stressMode]
+    [mode, user, sessionId, stressMode, stressTimerSeconds]
   );
 
   // Save assistant message when streaming completes
