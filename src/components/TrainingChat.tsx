@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
-import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus } from "lucide-react";
+import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame } from "lucide-react";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
 import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 import ExamPassCelebration from "@/components/ExamPassCelebration";
+import CheckrideReadinessReport from "@/components/CheckrideReadinessReport";
+import { extractCheckrideReport, type CheckrideReport } from "@/lib/checkrideReport";
 
 interface TrainingChatProps {
   mode: ChatMode;
@@ -20,6 +22,8 @@ interface TrainingChatProps {
   topicId?: string;
   /** Overrides the certificate level in the pilot context sent to the AI (e.g. "PPL", "IR", "CPL") */
   certificateOverride?: string;
+  /** Enables aggressive 'Why?' DPE follow-ups for oral exam mode */
+  stressMode?: boolean;
 }
 
 export const TrainingChat = ({
@@ -29,6 +33,7 @@ export const TrainingChat = ({
   initialPrompt,
   topicId,
   certificateOverride,
+  stressMode = false,
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -64,9 +69,11 @@ export const TrainingChat = ({
     onAfterSend: () => recordUsage(),
     pilotContext: augmentedPilotContext,
     pohFilePath: pohFilePath ?? undefined,
+    stressMode: mode === "oral_exam" ? stressMode : false,
   });
   const [started, setStarted] = useState(false);
   const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
+  const [report, setReport] = useState<CheckrideReport | null>(null);
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
