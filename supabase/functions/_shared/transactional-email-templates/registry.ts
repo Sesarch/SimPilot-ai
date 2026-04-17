@@ -11,8 +11,10 @@ export interface TemplateEntry {
 
 import { template as contactConfirmation } from './contact-confirmation.tsx'
 import { template as newsletterConfirmation } from './newsletter-confirmation.tsx'
+import { template as welcomeSignup } from './welcome-signup.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-confirmation': contactConfirmation,
   'newsletter-confirmation': newsletterConfirmation,
+  'welcome-signup': welcomeSignup,
 }
