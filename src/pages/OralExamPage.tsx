@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, ArrowLeft, ChevronRight, Flame } from "lucide-react";
+import { Shield, ArrowLeft, ChevronRight, Flame, Target } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
+import type { CheckrideWeakArea } from "@/lib/checkrideReport";
 
 const EXAM_TYPES = [
   {
@@ -52,11 +53,44 @@ const EXAM_TYPES = [
   },
 ];
 
+type DrillState = {
+  certificate?: string;
+  stress_mode?: boolean;
+  weak_areas: CheckrideWeakArea[];
+};
+
 const OralExamPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedExam, setSelectedExam] = useState<typeof EXAM_TYPES[0] | null>(null);
   const [stressMode, setStressMode] = useState(false);
+
+  // Auto-launch a weak-areas drill if arriving from a Checkride Readiness Report
+  useEffect(() => {
+    const drill = (location.state as { drill?: DrillState } | null)?.drill;
+    if (!drill || !drill.weak_areas?.length) return;
+
+    const codeList = drill.weak_areas
+      .map((w) => `[${w.acs_code}] ${w.topic} — prior issue: ${w.issue}`)
+      .join("\n");
+
+    const certLine = drill.certificate && drill.certificate !== "MIXED"
+      ? `Certificate level: ${drill.certificate}.`
+      : "";
+
+    setSelectedExam({
+      id: "weak-areas-drill",
+      title: "Weak Area Drill (from prior report)",
+      description: "Targeted DPE drill on the ACS task codes flagged in your last Checkride Readiness Report.",
+      icon: "🎯",
+      prompt: `Conduct a focused DPE oral drill targeting ONLY the following FAA ACS task codes the student previously struggled with. ${certLine} Ask 2–3 progressively harder questions per task code, including realistic scenarios. Hold the student strictly to ACS standards and demand "why" reasoning. At the end, generate a fresh Checkride Readiness Report (with the structured checkride-report JSON block) scoring ONLY these task codes.\n\nWeak ACS Task Codes:\n${codeList}`,
+    });
+
+    if (drill.stress_mode) setStressMode(true);
+    // Clear state so refresh doesn't re-trigger
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location, navigate]);
 
   if (loading) {
     return (
