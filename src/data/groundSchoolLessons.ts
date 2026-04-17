@@ -19,7 +19,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "14 CFR Parts 1, 61, 91 — Airman certificates, privileges, limitations, and regulatory requirements.",
     icon: "📋",
     prompt: "I want to study FAA regulations and pilot qualifications for my Private Pilot certificate. Start with an overview of 14 CFR Part 61 and Part 91, then quiz me using Socratic questioning. Cover certificates, privileges, limitations, currency requirements, and required documents (ARROW).",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "airworthiness",
@@ -28,7 +28,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Aircraft documentation, required inspections (AVIATE/AV1ATES), MEL, and airworthiness directives.",
     icon: "🔧",
     prompt: "Teach me about airworthiness requirements for the private pilot ACS. Cover required aircraft documents, inspection requirements (Annual, 100-hour, ADs, VOR checks, Transponder, ELT, Static system), and when an aircraft is considered airworthy. Use the ARROW and AV1ATES mnemonics.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "weather",
@@ -37,7 +37,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Atmospheric science, weather hazards, METARs, TAFs, AIRMETs/SIGMETs, and weather decision making.",
     icon: "🌦️",
     prompt: "Let's study aviation weather for my Private Pilot ground school. Cover atmospheric stability, cloud formation, fronts, thunderstorms, icing, fog types, and how to read METARs and TAFs. Use Socratic method — ask me questions as we go. Reference ACS area PA.I.C.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "performance",
@@ -46,7 +46,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Weight and balance, takeoff/landing performance, density altitude, and aircraft limitations.",
     icon: "📊",
     prompt: "Teach me aircraft performance and limitations. Cover weight and balance calculations, density altitude effects, takeoff and landing performance charts, and how to interpret the POH performance section. Start with why density altitude matters and quiz me on calculations.",
-    levels: ["PPL", "CPL"],
+    levels: ["PPL", "CPL", "ATP"],
   },
   {
     id: "navigation",
@@ -64,7 +64,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Four forces, lift theory, stalls, load factor, turning tendency, ground effect, and stability.",
     icon: "✈️",
     prompt: "Let's study aerodynamics and principles of flight. Cover the four forces, how lift is generated, angle of attack, stalls (types and recovery), load factor, maneuvering speed, left turning tendencies (PLAT), ground effect, and aircraft stability. Use Socratic questioning throughout.",
-    levels: ["PPL", "CPL"],
+    levels: ["PPL", "CPL", "ATP"],
   },
   {
     id: "airport-ops",
@@ -82,7 +82,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "ADM process, DECIDE model, PAVE checklist, IMSAFE, hazardous attitudes, CRM, and risk management.",
     icon: "🧠",
     prompt: "Let's study Aeronautical Decision Making (ADM) and risk management. Cover the DECIDE model, PAVE checklist, IMSAFE checklist, 5 hazardous attitudes and their antidotes, CRM principles, and scenario-based risk assessment. This is critical for the ACS — use real scenarios to teach.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "emergencies",
@@ -91,7 +91,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Engine failures, system malfunctions, emergency equipment, lost procedures, and survival.",
     icon: "🚨",
     prompt: "Teach me emergency procedures for the private pilot. Cover engine failure (during takeoff, cruise, approach), electrical failures, vacuum system failure, emergency landings, lost procedures, emergency communications (121.5), and ELT operation. Present scenarios and ask what I would do.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "atc-comms",
@@ -100,7 +100,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Radio phraseology, phonetic alphabet, frequency management, and proper ATC communication procedures.",
     icon: "📻",
     prompt: "I want to practice ATC communications and radio phraseology. Teach me the phonetic alphabet, proper call-up procedures, how to communicate at towered and non-towered airports, flight following requests, and ATIS interpretation. Give me practice scripts and scenarios.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "xc-planning",
@@ -127,7 +127,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Hypoxia, hyperventilation, spatial disorientation, vision limitations, carbon monoxide poisoning, stress, fatigue, and IMSAFE checklist.",
     icon: "🫁",
     prompt: "Teach me about human factors and aeromedical topics for my Private Pilot training. Cover types of hypoxia (hypoxic, hypemic, stagnant, histotoxic), hyperventilation, spatial disorientation (the leans, Coriolis illusion, graveyard spiral), vision limitations (empty-field myopia, night vision physiology), carbon monoxide poisoning, middle ear and sinus issues with altitude, the effects of alcohol and drugs on flying (8 hour / 0.04% BAC rule), stress and fatigue management, and the IMSAFE checklist. Use Socratic questioning with real-world scenarios. Reference ACS area PA.I.D.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "systems",
@@ -136,7 +136,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Electrical, vacuum, pitot-static, fuel, hydraulic, landing gear, and flight control systems — how they work and what happens when they fail.",
     icon: "⚙️",
     prompt: "Teach me about aircraft systems and equipment for my Private Pilot training. Cover the electrical system (alternator, battery, bus bar, circuit breakers), vacuum system (attitude indicator, heading indicator), pitot-static system (airspeed indicator, altimeter, VSI — including errors and blockages), fuel system (gravity-fed vs pump-fed, fuel types, contamination, sumping), hydraulic system, landing gear, flight control surfaces and trim, and engine instruments. For each system, explain how it works and what happens when it fails. Use Socratic questioning and real scenarios. Reference ACS area PA.I.G.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "instruments",
@@ -145,7 +145,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Gyroscopic instruments, pitot-static instruments, magnetic compass errors (ANDS/UNOS), glass cockpit basics, and instrument cross-check techniques.",
     icon: "🧭",
     prompt: "Teach me about flight instruments and the flight deck for my Private Pilot training. Cover pitot-static instruments (airspeed indicator — V-speeds and color arcs, altimeter — types of altitude and setting errors, VSI), gyroscopic instruments (attitude indicator, heading indicator, turn coordinator — precession, rigidity in space, gimbal lock), the magnetic compass (variation, deviation, dip errors — ANDS/UNOS, acceleration errors — ANDS), glass cockpit basics (PFD, MFD, AHRS, ADC), and instrument scanning techniques. Explain what drives each instrument and how to identify failures. Use Socratic questioning with real scenarios. Reference ACS area PA.I.G.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "flight-maneuvers",
@@ -163,7 +163,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "VOR tracking and intercepting, ADF/NDB usage, DME, and basic instrument approach concepts.",
     icon: "📡",
     prompt: "Teach me about radio navigation for my Private Pilot training. Cover VOR principles (how it works, radials, TO/FROM, CDI, OBS), intercepting and tracking VOR radials, identifying stations, ADF and NDB basics (relative bearing, magnetic bearing formula MB = MH + RB), DME (slant range, groundspeed), and how these navaids are depicted on charts. Also introduce basic instrument approach concepts. Use Socratic questioning — quiz me on determining position using two VORs, and present navigation scenarios. Reference ACS area PA.I.F.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
   {
     id: "weight-balance-advanced",
@@ -172,7 +172,7 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Advanced W&B scenarios, CG envelope limits, loading problems, weight shift formula, and fuel burn effects.",
     icon: "⚖️",
     prompt: "Teach me advanced weight and balance for my Private Pilot training. Cover basic W&B concepts review, then go deeper into: the weight shift formula (weight moved × arm change = total weight × CG change), solving for added/removed weight, fuel burn effects on CG, multi-leg flight W&B planning, CG envelope interpretation, and what happens when CG is forward vs aft of limits. Give me realistic calculation problems to solve and use Socratic questioning throughout. Reference ACS area PA.I.E.",
-    levels: ["PPL", "CPL"],
+    levels: ["PPL", "CPL", "ATP"],
   },
   {
     id: "airspace-tfrs",
@@ -181,6 +181,6 @@ export const LESSON_AREAS: readonly LessonArea[] = [
     description: "Detailed airspace classes A–G, special use airspace, TFRs, VFR cloud clearances, and speed restrictions.",
     icon: "🗼",
     prompt: "Teach me the National Airspace System in detail for my Private Pilot training. Cover each airspace class (A through G) with dimensions, entry requirements, equipment, and VFR weather minimums. Use the 3-152 / 1-SCT memory aid. Then cover special use airspace (prohibited, restricted, warning, MOA, alert, CFA), TFRs (types, how to check, consequences of violation), VFR corridors and transition routes, and speed restrictions (250 below 10,000, 200 in Class C/D). Quiz me on scenarios like 'Can you fly VFR here?' with specific conditions. Use Socratic questioning. Reference ACS area PA.I.I.",
-    levels: ["PPL", "IR", "CPL"],
+    levels: ["PPL", "IR", "CPL", "ATP"],
   },
 ] as const;
