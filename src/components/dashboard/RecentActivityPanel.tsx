@@ -79,6 +79,7 @@ const RecentActivityPanel = () => {
             ? "hsl(var(--amber-instrument))"
             : "hsl(var(--destructive))",
           at: e.created_at,
+          href: `/oral-exam?report=${e.id}`,
         });
       }
 
@@ -91,6 +92,7 @@ const RecentActivityPanel = () => {
           metric: "✓",
           metricColor: "hsl(var(--cyan-glow))",
           at: t.completed_at!,
+          href: `/ground-school?topic=${encodeURIComponent(t.topic_id)}`,
         });
       }
 
