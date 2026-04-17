@@ -37,6 +37,9 @@ type ExamScore = {
   total_questions: number;
   result: string;
   created_at: string;
+  stress_mode?: boolean;
+  acs_codes?: string[] | null;
+  report?: { timer_seconds?: number | null; weak_areas?: { acs_code: string; topic?: string }[] } | null;
 };
 
 const ProgressPage = () => {
