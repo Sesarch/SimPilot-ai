@@ -521,6 +521,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          earned_at: string
+          exam_score_id: string | null
+          exam_type: string | null
+          id: string
+          percentile: number | null
+          tier: string
+          user_id: string
+        }
+        Insert: {
+          earned_at?: string
+          exam_score_id?: string | null
+          exam_type?: string | null
+          id?: string
+          percentile?: number | null
+          tier: string
+          user_id: string
+        }
+        Update: {
+          earned_at?: string
+          exam_score_id?: string | null
+          exam_type?: string | null
+          id?: string
+          percentile?: number | null
+          tier?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_exam_score_id_fkey"
+            columns: ["exam_score_id"]
+            isOneToOne: false
+            referencedRelation: "exam_scores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
