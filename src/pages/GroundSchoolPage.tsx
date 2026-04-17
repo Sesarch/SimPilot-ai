@@ -196,6 +196,25 @@ const GroundSchoolPage = () => {
               </div>
             </div>
 
+            {activeCategory && (
+              <div className="mb-3 flex items-center justify-between gap-2 bg-primary/10 border border-primary/30 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-display text-[10px] tracking-[0.25em] uppercase text-primary">
+                    Filtered
+                  </span>
+                  <span className="text-sm text-foreground truncate">
+                    {CATEGORY_LABELS[activeCategory]} topics only
+                  </span>
+                </div>
+                <button
+                  onClick={clearCategory}
+                  className="font-display text-[10px] tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                >
+                  Clear ✕
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
               <p className="text-xs text-muted-foreground">
                 Items not in your <span className="text-foreground font-display tracking-wider">{certLevel}</span> track are dimmed.
@@ -212,7 +231,10 @@ const GroundSchoolPage = () => {
             </div>
 
             <div className="space-y-3">
-              {LESSON_AREAS.filter((l) => !onlyRelevant || l.levels.includes(certLevel)).map((lesson) => {
+              {LESSON_AREAS
+                .filter((l) => !onlyRelevant || l.levels.includes(certLevel))
+                .filter((l) => !activeCategory || TOPIC_TO_CATEGORY[l.id] === activeCategory)
+                .map((lesson) => {
                 const relevant = lesson.levels.includes(certLevel);
                 return (
                   <button
