@@ -252,6 +252,71 @@ const FI_TASKS: Record<string, { task: string; description?: string }> = {
   "FI.XIV.A": { task: "After Landing, Parking, & Securing" },
 };
 
+// Airline Transport Pilot Airplane (ACS FAA-S-ACS-11)
+const ATP_AREAS: Record<string, string> = {
+  I: "Preflight Preparation",
+  II: "Preflight Procedures",
+  III: "Takeoff & Departure Phase",
+  IV: "Inflight Maneuvers & Procedures",
+  V: "Instrument Procedures",
+  VI: "Approaches",
+  VII: "Landings & Approaches to Landings",
+  VIII: "Normal & Abnormal Procedures",
+  IX: "Emergency Procedures",
+  X: "Postflight Procedures",
+};
+
+const ATP_TASKS: Record<string, { task: string; description?: string }> = {
+  "ATP.I.A": { task: "Pilot Qualifications", description: "ATP certification, currency, and 14 CFR Part 121/135 requirements." },
+  "ATP.I.B": { task: "Airworthiness Requirements", description: "Aircraft documents, MEL/CDL, and airworthiness for air carrier ops." },
+  "ATP.I.C": { task: "Weather Information", description: "Advanced weather products, turbulence, icing, windshear, and dispatch decisions." },
+  "ATP.I.D": { task: "Cross-Country Flight Planning", description: "ATC flight plans, fuel planning (reserves, alternates), and ETOPS where applicable." },
+  "ATP.I.E": { task: "Human Factors", description: "CRM, threat & error management, fatigue, and aeromedical considerations." },
+  "ATP.II.A": { task: "Preflight Inspection" },
+  "ATP.II.B": { task: "Powerplant Start" },
+  "ATP.II.C": { task: "Taxiing" },
+  "ATP.II.D": { task: "Pre-Takeoff Checks" },
+  "ATP.III.A": { task: "Normal & Crosswind Takeoff" },
+  "ATP.III.B": { task: "Instrument Takeoff" },
+  "ATP.III.C": { task: "Powerplant Failure During Takeoff", description: "Engine failure before/after V1, rejected takeoff, and continued takeoff procedures." },
+  "ATP.III.D": { task: "Rejected Takeoff" },
+  "ATP.III.E": { task: "Departure Procedures (DPs/SIDs)" },
+  "ATP.IV.A": { task: "Steep Turns" },
+  "ATP.IV.B": { task: "Approaches to Stalls", description: "Clean, takeoff/departure, and landing configuration stall recoveries." },
+  "ATP.IV.C": { task: "Powerplant Failure — Multiengine" },
+  "ATP.IV.D": { task: "Specific Flight Characteristics", description: "High-altitude handling, Mach buffet, and upset prevention & recovery (UPRT)." },
+  "ATP.IV.E": { task: "Recovery from Unusual Attitudes" },
+  "ATP.V.A": { task: "Standard Instrument Departures & Arrivals" },
+  "ATP.V.B": { task: "Holding" },
+  "ATP.V.C": { task: "Instrument Cross-Check & Interpretation" },
+  "ATP.VI.A": { task: "Precision Approach (ILS)", description: "Single-engine and all-engine precision approaches to CAT I/II/III minimums." },
+  "ATP.VI.B": { task: "Nonprecision Approach (RNAV/VOR/LOC)" },
+  "ATP.VI.C": { task: "Circling Approach" },
+  "ATP.VI.D": { task: "Missed Approach" },
+  "ATP.VII.A": { task: "Normal Landing" },
+  "ATP.VII.B": { task: "Crosswind Landing" },
+  "ATP.VII.C": { task: "Landing from a Precision Approach" },
+  "ATP.VII.D": { task: "Rejected Landing / Go-Around" },
+  "ATP.VII.E": { task: "Landing from a Circling Approach" },
+  "ATP.VII.F": { task: "Landing with Powerplant Failure (Multiengine)" },
+  "ATP.VIII.A": { task: "Normal & Abnormal Procedures", description: "Use of QRH/checklists for aircraft systems and abnormal conditions." },
+  "ATP.IX.A": { task: "Emergency Procedures", description: "Fire, smoke, decompression, ditching, and evacuation per QRH." },
+  "ATP.IX.B": { task: "Emergency Descent" },
+  "ATP.X.A": { task: "After Landing, Parking, & Securing" },
+};
+
+// ATP-CTP (Certification Training Program) — knowledge-only academic module
+const ATP_CTP_TASKS: Record<string, { task: string; description?: string }> = {
+  "ATP-CTP.I.A": { task: "Aerodynamics & Performance (High Altitude)", description: "Swept-wing aerodynamics, Mach effects, coffin corner, and stall characteristics." },
+  "ATP-CTP.I.B": { task: "Automation Management", description: "Autoflight modes, mode awareness, and automation surprise mitigation." },
+  "ATP-CTP.I.C": { task: "Adverse Weather Operations", description: "Windshear, icing, thunderstorms, and turbulence avoidance & recovery." },
+  "ATP-CTP.I.D": { task: "Air Carrier Operations", description: "14 CFR Part 117 fatigue rules, dispatch, and Part 121 operating environment." },
+  "ATP-CTP.I.E": { task: "Leadership, Professional Development, CRM, & SBT", description: "Captain authority, crew resource management, and scenario-based training." },
+  "ATP-CTP.II.A": { task: "Stall Prevention & Recovery (UPRT)", description: "Upset Prevention & Recovery Training in full flight simulator." },
+  "ATP-CTP.II.B": { task: "High-Altitude Operations Sim", description: "Sim training for high-altitude handling, emergency descent, and decompression." },
+  "ATP-CTP.II.C": { task: "Adverse Weather Sim", description: "Windshear escape, icing encounters, and thunderstorm avoidance in the sim." },
+};
+
 const IR_TASKS: Record<string, { task: string; description?: string }> = {
   "IR.I.A": { task: "Pilot Qualifications (IFR)" },
   "IR.I.B": { task: "Weather Information (IFR)" },
