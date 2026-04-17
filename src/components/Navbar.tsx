@@ -43,6 +43,8 @@ const StudyTrackBadge = ({ track, onClick }: { track: string; onClick?: () => vo
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+  const { context: pilotCtx } = usePilotContext();
+  const studyTrack = toTrackLabel(pilotCtx.certificate_type);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
