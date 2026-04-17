@@ -116,14 +116,47 @@ const GroundSchoolPage = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/75 to-background" />
           </div>
           <div className="container mx-auto px-6 py-8 max-w-3xl relative z-10">
-            <div className="mb-8">
+            <div className="mb-6">
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">
                 Ground School Lessons
               </h1>
               <p className="text-sm text-muted-foreground">
-                Select a knowledge area to begin an interactive lesson with your CFI-AI instructor. 
+                Select a knowledge area to begin an interactive lesson with your CFI-AI instructor.
                 Each lesson follows FAA Airman Certification Standards (ACS).
               </p>
+            </div>
+
+            {/* Certificate Level Toggle — global state shared across all 19 lessons */}
+            <div className="mb-6 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-4">
+              <div className="mb-3">
+                <p className="font-display text-xs font-bold tracking-widest uppercase text-foreground">
+                  Study Track
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Sets the ACS depth your CFI-AI uses for every lesson.
+                </p>
+              </div>
+              <div role="radiogroup" aria-label="Certificate level" className="grid grid-cols-3 gap-2">
+                {CERT_OPTIONS.map((opt) => {
+                  const active = certLevel === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setCertLevel(opt.value)}
+                      className={`px-3 py-2.5 rounded-lg border transition-all text-center ${
+                        active
+                          ? "bg-primary/15 border-primary text-foreground shadow-[0_0_15px_hsl(var(--cyan-glow)/0.2)]"
+                          : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="font-display text-sm font-bold tracking-wider">{opt.label}</div>
+                      <div className="text-[10px] uppercase tracking-widest opacity-80">{opt.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="space-y-3">
