@@ -117,6 +117,19 @@ const ProgressPage = () => {
     ? Math.round(examScores.reduce((s, e) => s + (e.score / e.total_questions) * 100, 0) / examScores.length)
     : 0;
 
+  // Streak: count consecutive most-recent oral exams with the same result (PASS or FAIL).
+  // examScores is ordered newest-first.
+  const oralExams = examScores.filter((e) => e.exam_type === "oral_exam");
+  let streakCount = 0;
+  let streakResult: "PASS" | "FAIL" | null = null;
+  if (oralExams.length > 0 && (oralExams[0].result === "PASS" || oralExams[0].result === "FAIL")) {
+    streakResult = oralExams[0].result as "PASS" | "FAIL";
+    for (const exam of oralExams) {
+      if (exam.result === streakResult) streakCount++;
+      else break;
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -148,14 +161,30 @@ const ProgressPage = () => {
 
       <div className="container mx-auto px-6 py-12 max-w-3xl space-y-10">
         {/* Header */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
             <TrendingUp className="w-6 h-6 text-primary" />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <h1 className="font-display text-2xl font-bold text-foreground">Training Progress</h1>
             <p className="text-sm text-muted-foreground">Track your ground school and oral exam performance</p>
           </div>
+          {streakCount >= 2 && streakResult && (
+            <div
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-display font-bold uppercase tracking-wider shrink-0 ${
+                streakResult === "PASS"
+                  ? "bg-primary/10 border-primary/40 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.2)]"
+                  : "bg-destructive/10 border-destructive/40 text-destructive"
+              }`}
+              title={`${streakCount} consecutive ${streakResult === "PASS" ? "passes" : "fails"} on your most recent oral exams`}
+            >
+              <span aria-hidden className="text-sm leading-none">
+                {streakResult === "PASS" ? "🔥" : "⚠️"}
+              </span>
+              <span className="tabular-nums">{streakCount}</span>
+              <span>{streakResult}{streakCount === 1 ? "" : "es"} in a row</span>
+            </div>
+          )}
         </div>
 
         {/* Stats row */}
