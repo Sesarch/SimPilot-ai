@@ -86,6 +86,12 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
     };
 
     wrapAndPrint("Summary", report.summary);
+    if (showPercentile && percentile) {
+      wrapAndPrint(
+        "Community Percentile",
+        `You scored higher than ${percentile.percentile}% of SimPilot users on this exam type${report.stress_mode ? " (Stress Mode cohort)" : ""}. Based on ${percentile.sample_size.toLocaleString()} anonymized exams.`
+      );
+    }
     wrapAndPrint("Strengths", report.strengths.map((s) => `• ${s}`).join("\n"));
 
     doc.setFont("helvetica", "bold");
@@ -155,6 +161,25 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
         <p className="text-sm text-foreground mb-4 italic border-l-2 border-primary/40 pl-3">
           {report.summary}
         </p>
+      )}
+
+      {showPercentile && percentile && (
+        <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/15 text-primary border border-primary/30 flex items-center justify-center shrink-0">
+            <TrendingUp className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-foreground">
+              You scored higher than{" "}
+              <span className="font-display font-bold text-primary">{percentile.percentile}%</span>{" "}
+              of SimPilot users on this exam type
+              {report.stress_mode ? " (Stress Mode cohort)" : ""}.
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Based on {percentile.sample_size.toLocaleString()} anonymized exam{percentile.sample_size === 1 ? "" : "s"}.
+            </p>
+          </div>
+        </div>
       )}
 
       {report.strengths.length > 0 && (
