@@ -359,6 +359,11 @@ export const ACS_TASKS: Record<string, AcsTaskInfo> = (() => {
   }, "IR");
   addCert(CA_TASKS, CA_AREAS, "CA");
   addCert(FI_TASKS, FI_AREAS, "FI");
+  addCert(ATP_TASKS, ATP_AREAS, "ATP");
+  addCert(ATP_CTP_TASKS, {
+    I: "Academic Knowledge",
+    II: "Simulator Training",
+  }, "ATP-CTP");
   return all;
 })();
 
