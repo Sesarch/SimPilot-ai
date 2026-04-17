@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
-import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame } from "lucide-react";
+import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame, Timer } from "lucide-react";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -74,6 +74,12 @@ export const TrainingChat = ({
   const [started, setStarted] = useState(false);
   const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
   const [report, setReport] = useState<CheckrideReport | null>(null);
+
+  // Stress-Mode per-question countdown
+  const STRESS_TIMER_SECONDS = 60;
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const timeoutCountRef = useRef(0);
+  const [timeoutCount, setTimeoutCount] = useState(0);
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
@@ -172,6 +178,36 @@ export const TrainingChat = ({
     }
   }, [messages, topicId, user]);
 
+  // Stress-Mode timer: starts when assistant finishes, resets on user send, fires TIMEOUT on expiry
+  const timerActive = mode === "oral_exam" && stressMode && started && !report;
+  const lastAssistantTickRef = useRef(0);
+  useEffect(() => {
+    if (!timerActive) { setSecondsLeft(null); return; }
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant" || isLoading) {
+      setSecondsLeft(null);
+      return;
+    }
+    // Reset countdown on each new assistant turn
+    setSecondsLeft(STRESS_TIMER_SECONDS);
+    lastAssistantTickRef.current = messages.length;
+    const interval = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s === null) return s;
+        if (s <= 1) {
+          clearInterval(interval);
+          // Fire timeout
+          timeoutCountRef.current += 1;
+          setTimeoutCount(timeoutCountRef.current);
+          send("(TIMEOUT — student did not answer within 60 seconds. Mark this question as a timeout in the final report and continue with the next question.)");
+          return null;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [messages.length, isLoading, timerActive, send]);
+
   const handleSend = () => {
     if ((!input.trim() && !pendingImage) || isLoading) return;
     if (!started) setStarted(true);
@@ -204,6 +240,9 @@ export const TrainingChat = ({
     setStarted(false);
     setPendingImage(null);
     setReport(null);
+    setSecondsLeft(null);
+    timeoutCountRef.current = 0;
+    setTimeoutCount(0);
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,9 +355,41 @@ export const TrainingChat = ({
 
       {/* Input area */}
       <div className="border-t border-border p-4">
+        {timerActive && secondsLeft !== null && (
+          <div className="mb-3">
+            <div className={`flex items-center justify-between mb-1.5 text-[11px] font-display font-bold uppercase tracking-wider ${
+              secondsLeft <= 10 ? "text-destructive animate-pulse" : secondsLeft <= 20 ? "text-accent" : "text-muted-foreground"
+            }`}>
+              <span className="flex items-center gap-1.5">
+                <Timer className="w-3.5 h-3.5" />
+                {secondsLeft <= 10 ? "Hurry — DPE is waiting" : "Answer Window"}
+              </span>
+              <span className="tabular-nums">{secondsLeft}s</span>
+            </div>
+            <div className="h-1 rounded-full bg-secondary overflow-hidden">
+              <div
+                className={`h-full transition-[width] duration-1000 ease-linear ${
+                  secondsLeft <= 10 ? "bg-destructive" : secondsLeft <= 20 ? "bg-accent" : "bg-primary"
+                }`}
+                style={{ width: `${(secondsLeft / STRESS_TIMER_SECONDS) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+        {mode === "oral_exam" && stressMode && timeoutCount > 0 && !report && (
+          <p className="text-[11px] text-destructive/80 mb-2 text-center font-display uppercase tracking-wider">
+            ⚠ {timeoutCount} timeout{timeoutCount > 1 ? "s" : ""} recorded this session
+          </p>
+        )}
         {mode === "oral_exam" && messages.length >= 6 && !isLoading && !report && (
           <button
-            onClick={() => send("End the exam now. Generate my full Checkride Readiness Report including the structured checkride-report JSON block.")}
+            onClick={() => send(
+              `End the exam now. Generate my full Checkride Readiness Report including the structured checkride-report JSON block.${
+                stressMode && timeoutCount > 0
+                  ? ` Note: the student timed out (failed to answer within 60s) on ${timeoutCount} question${timeoutCount > 1 ? "s" : ""} during Stress Mode — reflect this in the examiner_notes and weak_areas.`
+                  : ""
+              }`
+            )}
             className="w-full mb-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent/10 border border-accent/30 text-accent rounded-lg text-xs font-display font-semibold tracking-wider uppercase hover:bg-accent/20 transition-all"
           >
             <ClipboardCheck className="w-4 h-4" />
