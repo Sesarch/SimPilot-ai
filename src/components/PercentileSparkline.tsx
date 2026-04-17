@@ -54,6 +54,8 @@ export const PercentileSparkline = ({
   total,
   stressMode,
   minSample = 5,
+  showTopTier = false,
+  topTierMinSample = 10,
 }: Props) => {
   const { data, loading } = useExamPercentile(examType, score, total, stressMode);
 
@@ -71,6 +73,7 @@ export const PercentileSparkline = ({
   const isTop = pos >= 75;
   const isLow = pos < 25;
   const trackColor = isTop ? "hsl(var(--primary))" : isLow ? "hsl(var(--destructive))" : "hsl(var(--accent))";
+  const topTier = showTopTier && data.sample_size >= topTierMinSample ? getTopTier(pos) : null;
 
   return (
     <div
@@ -94,6 +97,16 @@ export const PercentileSparkline = ({
       <span className="text-muted-foreground">
         of {data.sample_size.toLocaleString()}
       </span>
+      {topTier && (
+        <span
+          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[9px] font-display font-bold uppercase tracking-widest animate-[pulse_3s_ease-in-out_infinite] ${topTier.classes}`}
+          title={`Achievement: ${topTier.label} of anonymized SimPilot exams of this type`}
+          aria-label={`Achievement: ${topTier.label}`}
+        >
+          <Trophy className={`w-2.5 h-2.5 ${topTier.iconClass}`} />
+          {topTier.label}
+        </span>
+      )}
     </div>
   );
 };
