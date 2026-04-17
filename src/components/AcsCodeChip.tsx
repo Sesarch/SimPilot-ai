@@ -8,14 +8,36 @@ interface AcsCodeChipProps {
   className?: string;
 }
 
+type CertMeta = { label: string; full: string; className: string };
+
+// Color-coded certificate level badges. Uses semantic tokens via inline
+// HSL utility classes so they adapt to light/dark themes automatically.
+const CERT_META: Record<string, CertMeta> = {
+  PA: { label: "PA", full: "Private Pilot Airplane", className: "bg-primary/15 text-primary border-primary/30" },
+  IR: { label: "IR", full: "Instrument Rating", className: "bg-accent/15 text-accent border-accent/30" },
+  CA: { label: "CA", full: "Commercial Airplane", className: "bg-secondary text-secondary-foreground border-border" },
+  FI: { label: "FI", full: "Flight Instructor (CFI)", className: "bg-destructive/15 text-destructive border-destructive/30" },
+  ATP: { label: "ATP", full: "Airline Transport Pilot", className: "bg-foreground/10 text-foreground border-foreground/20" },
+  "ATP-CTP": { label: "CTP", full: "ATP Certification Training Program", className: "bg-muted text-muted-foreground border-border" },
+};
+
+const getCertPrefix = (code: string): string | null => {
+  const upper = code.trim().toUpperCase();
+  if (upper.startsWith("ATP-CTP.")) return "ATP-CTP";
+  const prefix = upper.split(".")[0];
+  return CERT_META[prefix] ? prefix : null;
+};
+
 /**
  * Pill-style chip for an FAA ACS task code with hover tooltip showing
- * the task title and description. Optionally clickable to drill the code.
- * Unknown codes show a "Report missing code" link in the tooltip that
- * opens the support chat pre-filled with the code.
+ * the task title and description. Renders a small certificate-level badge
+ * (PA / IR / CA / FI / ATP / CTP) next to the code so users can instantly
+ * see which checkride a code belongs to.
  */
 export const AcsCodeChip = ({ code, onClick, className }: AcsCodeChipProps) => {
   const info = resolveAcsTask(code);
+  const certPrefix = getCertPrefix(code);
+  const cert = certPrefix ? CERT_META[certPrefix] : null;
   const label = info ? `${code}: ${info.task}` : `${code}: Unknown ACS task`;
   const subtext = info?.description || (info?.area ? `Area: ${info.area}` : "No description available.");
 
@@ -29,17 +51,33 @@ export const AcsCodeChip = ({ code, onClick, className }: AcsCodeChipProps) => {
   };
 
   const chip = (
-    <Badge
-      variant="secondary"
-      className={`font-mono text-[11px] cursor-${onClick ? "pointer" : "help"} hover:bg-secondary/80 transition-colors ${className ?? ""}`}
+    <span
+      className={`inline-flex items-center gap-1 ${onClick ? "cursor-pointer" : "cursor-help"} ${className ?? ""}`}
     >
-      {code}
-    </Badge>
+      {cert && (
+        <span
+          className={`font-display font-bold text-[9px] tracking-wider uppercase px-1.5 py-0.5 rounded border ${cert.className}`}
+          aria-label={cert.full}
+          title={cert.full}
+        >
+          {cert.label}
+        </span>
+      )}
+      <Badge
+        variant="secondary"
+        className="font-mono text-[11px] hover:bg-secondary/80 transition-colors"
+      >
+        {code}
+      </Badge>
+    </span>
   );
 
   const content = (
     <TooltipContent side="top" className="max-w-xs">
       <div className="space-y-1">
+        {cert && (
+          <p className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">{cert.full}</p>
+        )}
         <p className="font-display font-bold text-xs">{label}</p>
         {info?.area && <p className="text-[10px] uppercase tracking-wider opacity-70">{info.area}</p>}
         <p className="text-[11px] leading-snug">{subtext}</p>
