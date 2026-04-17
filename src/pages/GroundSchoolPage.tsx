@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,29 +12,46 @@ import groundSchoolDark from "@/assets/ground-school-dark.jpg";
 import { LESSON_AREAS, type LessonArea } from "@/data/groundSchoolLessons";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import FeatureDisabledPage from "@/components/FeatureDisabledPage";
+import { usePilotContext } from "@/hooks/usePilotContext";
 
 type CertLevel = "PPL" | "IR" | "CPL";
-const CERT_KEY = "simpilot_ground_school_cert";
-const CERT_OPTIONS: { value: CertLevel; label: string; sub: string }[] = [
-  { value: "PPL", label: "PPL", sub: "Private" },
-  { value: "IR", label: "IR", sub: "Instrument" },
-  { value: "CPL", label: "CPL", sub: "Commercial" },
+const CERT_OPTIONS: { value: CertLevel; label: string; sub: string; profile: string }[] = [
+  { value: "PPL", label: "PPL", sub: "Private", profile: "Private Pilot (PPL)" },
+  { value: "IR", label: "IR", sub: "Instrument", profile: "Instrument Rating (IR)" },
+  { value: "CPL", label: "CPL", sub: "Commercial", profile: "Commercial Pilot (CPL)" },
 ];
+
+/** Map any profile certificate_type string back to one of our 3 toggle values. */
+function profileToCertLevel(value: string | null | undefined): CertLevel | null {
+  if (!value) return null;
+  const v = value.toLowerCase();
+  if (v.includes("instrument") || v === "ir") return "IR";
+  if (v.includes("commercial") || v === "cpl" || v.includes("atp")) return "CPL";
+  if (v.includes("private") || v === "ppl" || v.includes("student") || v.includes("sport") || v.includes("recreational")) return "PPL";
+  return null;
+}
 
 const GroundSchoolPage = () => {
   const { settings } = useSiteSettings();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
+  const pilotCtx = usePilotContext();
   const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
-  const [certLevel, setCertLevel] = useState<CertLevel>(() => {
-    if (typeof window === "undefined") return "PPL";
-    const saved = localStorage.getItem(CERT_KEY) as CertLevel | null;
-    return saved && ["PPL", "IR", "CPL"].includes(saved) ? saved : "PPL";
-  });
-  useEffect(() => {
-    localStorage.setItem(CERT_KEY, certLevel);
-  }, [certLevel]);
+
+  // Derive the active toggle value from the synced pilot context (profile + localStorage).
+  // Defaults to PPL until the user picks one.
+  const certLevel: CertLevel = useMemo(
+    () => profileToCertLevel(pilotCtx.context.certificate_type) ?? "PPL",
+    [pilotCtx.context.certificate_type]
+  );
+
+  const setCertLevel = (next: CertLevel) => {
+    const opt = CERT_OPTIONS.find((o) => o.value === next)!;
+    // Writes to localStorage always, and to profiles.certificate_type when signed in.
+    pilotCtx.updateField("certificate_type", opt.profile);
+  };
+
   const heroImage = resolvedTheme === "dark" ? groundSchoolDark : groundSchoolLight;
 
   if (!settings.ground_school_enabled) return <FeatureDisabledPage feature="Ground School" />;
