@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Award, AlertTriangle, BookOpen, Download, X, Flame, Target, TrendingUp, Trophy } from "lucide-react";
 import type { CheckrideReport } from "@/lib/checkrideReport";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 /** localStorage key tracking which top-tier achievements the user has already celebrated. */
 const CELEBRATED_TIERS_KEY = "simpilot:celebrated-tiers";
