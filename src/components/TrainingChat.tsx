@@ -201,13 +201,18 @@ export const TrainingChat = ({
         if (s === null) return s;
         if (s <= 1) {
           clearInterval(interval);
+          // Final urgent tick at zero
+          playTick(true);
           // Fire timeout
           timeoutCountRef.current += 1;
           setTimeoutCount(timeoutCountRef.current);
           send(`(TIMEOUT — student did not answer within ${STRESS_TIMER_SECONDS} seconds. Mark this question as a timeout in the final report and continue with the next question.)`);
           return null;
         }
-        return s - 1;
+        const next = s - 1;
+        // Tick during the last 10 seconds (10s … 1s remaining)
+        if (next <= 10 && next >= 1) playTick(next <= 3);
+        return next;
       });
     }, 1000);
     return () => clearInterval(interval);
