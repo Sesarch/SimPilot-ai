@@ -59,6 +59,12 @@ type DrillState = {
   weak_areas: CheckrideWeakArea[];
 };
 
+type RepeatState = {
+  exam_type: string;
+  stress_mode?: boolean;
+  timer_seconds?: 30 | 60 | 90 | null;
+};
+
 const OralExamPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
