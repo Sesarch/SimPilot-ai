@@ -178,6 +178,36 @@ export const TrainingChat = ({
     }
   }, [messages, topicId, user]);
 
+  // Stress-Mode timer: starts when assistant finishes, resets on user send, fires TIMEOUT on expiry
+  const timerActive = mode === "oral_exam" && stressMode && started && !report;
+  const lastAssistantTickRef = useRef(0);
+  useEffect(() => {
+    if (!timerActive) { setSecondsLeft(null); return; }
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant" || isLoading) {
+      setSecondsLeft(null);
+      return;
+    }
+    // Reset countdown on each new assistant turn
+    setSecondsLeft(STRESS_TIMER_SECONDS);
+    lastAssistantTickRef.current = messages.length;
+    const interval = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s === null) return s;
+        if (s <= 1) {
+          clearInterval(interval);
+          // Fire timeout
+          timeoutCountRef.current += 1;
+          setTimeoutCount(timeoutCountRef.current);
+          send("(TIMEOUT — student did not answer within 60 seconds. Mark this question as a timeout in the final report and continue with the next question.)");
+          return null;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [messages.length, isLoading, timerActive, send]);
+
   const handleSend = () => {
     if ((!input.trim() && !pendingImage) || isLoading) return;
     if (!started) setStarted(true);
@@ -210,6 +240,9 @@ export const TrainingChat = ({
     setStarted(false);
     setPendingImage(null);
     setReport(null);
+    setSecondsLeft(null);
+    timeoutCountRef.current = 0;
+    setTimeoutCount(0);
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
