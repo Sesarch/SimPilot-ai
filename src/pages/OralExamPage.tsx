@@ -112,7 +112,7 @@ const OralExamPage = () => {
       title: "Weak Area Drill (from prior report)",
       description: "Targeted DPE drill on the ACS task codes flagged in your last Checkride Readiness Report.",
       icon: "🎯",
-      prompt: `Conduct a focused DPE oral drill targeting ONLY the following FAA ACS task codes the student previously struggled with. ${certLine} Ask 2–3 progressively harder questions per task code, including realistic scenarios. Hold the student strictly to ACS standards and demand "why" reasoning. At the end, generate a fresh Checkride Readiness Report (with the structured checkride-report JSON block) scoring ONLY these task codes.\n\nWeak ACS Task Codes:\n${codeList}`,
+      prompt: `Conduct a focused DPE oral drill targeting ONLY the following FAA ACS task codes the student previously struggled with. ${certLine}\n\nIMPORTANT: Your VERY FIRST sentence to the student must be exactly:\n"I've noted the areas where we struggled last time. Let's dive deep into those specific ACS tasks starting now."\n\nThen briefly list (in one short line) the ACS task codes you'll cover, and immediately ask the first question for the first code. Ask 2–3 progressively harder questions per task code, including realistic scenarios. Hold the student strictly to ACS standards and demand "why" reasoning. At the end, generate a fresh Checkride Readiness Report (with the structured checkride-report JSON block) scoring ONLY these task codes.\n\nWeak ACS Task Codes:\n${codeList}`,
     });
 
     if (drill.stress_mode) setStressMode(true);
