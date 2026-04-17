@@ -65,6 +65,7 @@ const OralExamPage = () => {
   const location = useLocation();
   const [selectedExam, setSelectedExam] = useState<typeof EXAM_TYPES[0] | null>(null);
   const [stressMode, setStressMode] = useState(false);
+  const [stressTimerSeconds, setStressTimerSeconds] = useState<30 | 60 | 90>(60);
 
   // Auto-launch a weak-areas drill if arriving from a Checkride Readiness Report
   useEffect(() => {
@@ -136,7 +137,7 @@ const OralExamPage = () => {
                   <h2 className="font-display text-sm font-bold text-foreground">{selectedExam.title}</h2>
                   {stressMode && (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/30 text-[10px] font-semibold uppercase tracking-wider">
-                      <Flame className="w-3 h-3" /> Stress Mode
+                      <Flame className="w-3 h-3" /> Stress Mode · {stressTimerSeconds}s
                     </span>
                   )}
                 </div>
@@ -154,9 +155,10 @@ const OralExamPage = () => {
             <TrainingChat
               mode="oral_exam"
               placeholder="Answer the examiner's question..."
-              welcomeMessage={`Ready for your ${selectedExam.title} oral exam?${stressMode ? " Stress Mode is ON — expect aggressive 'Why?' follow-ups." : ""} The DPE will evaluate your knowledge against ACS standards.`}
+              welcomeMessage={`Ready for your ${selectedExam.title} oral exam?${stressMode ? ` Stress Mode is ON — expect aggressive 'Why?' follow-ups with a ${stressTimerSeconds}s answer window.` : ""} The DPE will evaluate your knowledge against ACS standards.`}
               initialPrompt={selectedExam.prompt}
               stressMode={stressMode}
+              stressTimerSeconds={stressTimerSeconds}
             />
           </div>
         </div>
@@ -173,34 +175,66 @@ const OralExamPage = () => {
               </p>
             </div>
 
-            {/* Stress Mode toggle */}
-            <button
-              type="button"
-              onClick={() => setStressMode((v) => !v)}
-              className={`w-full mb-6 flex items-start gap-3 text-left p-4 rounded-xl border transition-all ${
+            {/* Stress Mode toggle + timer length */}
+            <div
+              className={`w-full mb-6 rounded-xl border transition-all ${
                 stressMode
                   ? "bg-accent/10 border-accent/40 shadow-[0_0_20px_hsl(var(--amber-instrument)/0.15)]"
                   : "bg-secondary/30 border-border hover:border-accent/30"
               }`}
             >
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${stressMode ? "bg-accent/20 text-accent" : "bg-secondary text-muted-foreground"}`}>
-                <Flame className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-display text-sm font-bold text-foreground">Stress Mode</h3>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${stressMode ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
-                    {stressMode ? "ON" : "OFF"}
+              <button
+                type="button"
+                onClick={() => setStressMode((v) => !v)}
+                className="w-full flex items-start gap-3 text-left p-4"
+              >
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${stressMode ? "bg-accent/20 text-accent" : "bg-secondary text-muted-foreground"}`}>
+                  <Flame className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-sm font-bold text-foreground">Stress Mode</h3>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${stressMode ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                      {stressMode ? "ON" : "OFF"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    DPE drills aggressive "Why?" follow-ups after every answer. Simulates worst-case checkride pressure so you're over-prepared.
+                  </p>
+                </div>
+                <div className={`w-10 h-6 rounded-full transition-colors shrink-0 mt-0.5 ${stressMode ? "bg-accent" : "bg-muted"}`}>
+                  <div className={`w-5 h-5 rounded-full bg-background shadow transition-transform mt-0.5 ${stressMode ? "translate-x-[18px]" : "translate-x-0.5"}`} />
+                </div>
+              </button>
+
+              {stressMode && (
+                <div className="px-4 pb-4 -mt-1 flex items-center gap-3 flex-wrap border-t border-accent/20 pt-3">
+                  <span className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
+                    Answer Window
+                  </span>
+                  <div className="inline-flex rounded-lg border border-accent/30 bg-background/40 p-0.5">
+                    {([30, 60, 90] as const).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setStressTimerSeconds(s)}
+                        className={`px-3 py-1.5 text-xs font-display font-semibold tracking-wider uppercase rounded-md transition-all ${
+                          stressTimerSeconds === s
+                            ? "bg-accent text-accent-foreground shadow-[0_0_10px_hsl(var(--amber-instrument)/0.4)]"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                        aria-pressed={stressTimerSeconds === s}
+                      >
+                        {s}s
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    {stressTimerSeconds === 30 ? "Brutal — instant recall only" : stressTimerSeconds === 60 ? "Realistic checkride pace" : "Generous — time to reason"}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  DPE drills aggressive "Why?" follow-ups after every answer. Simulates worst-case checkride pressure so you're over-prepared.
-                </p>
-              </div>
-              <div className={`w-10 h-6 rounded-full transition-colors shrink-0 mt-0.5 ${stressMode ? "bg-accent" : "bg-muted"}`}>
-                <div className={`w-5 h-5 rounded-full bg-background shadow transition-transform mt-0.5 ${stressMode ? "translate-x-[18px]" : "translate-x-0.5"}`} />
-              </div>
-            </button>
+              )}
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {EXAM_TYPES.map((exam) => (
