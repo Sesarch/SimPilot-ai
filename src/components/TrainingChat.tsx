@@ -24,6 +24,8 @@ interface TrainingChatProps {
   certificateOverride?: string;
   /** Enables aggressive 'Why?' DPE follow-ups for oral exam mode */
   stressMode?: boolean;
+  /** Per-question countdown length in seconds when stressMode is on */
+  stressTimerSeconds?: number;
 }
 
 export const TrainingChat = ({
@@ -34,6 +36,7 @@ export const TrainingChat = ({
   topicId,
   certificateOverride,
   stressMode = false,
+  stressTimerSeconds = 60,
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -76,7 +79,7 @@ export const TrainingChat = ({
   const [report, setReport] = useState<CheckrideReport | null>(null);
 
   // Stress-Mode per-question countdown
-  const STRESS_TIMER_SECONDS = 60;
+  const STRESS_TIMER_SECONDS = stressTimerSeconds;
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const timeoutCountRef = useRef(0);
   const [timeoutCount, setTimeoutCount] = useState(0);
