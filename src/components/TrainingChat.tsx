@@ -457,6 +457,36 @@ export const TrainingChat = ({
               <RotateCcw className="w-4 h-4" />
             </button>
           )}
+          {mode === "oral_exam" && voice.supported && (
+            <button
+              type="button"
+              onClick={() => {
+                if (voice.enabled) {
+                  voice.cancel();
+                  voice.setEnabled(false);
+                } else {
+                  voice.setEnabled(true);
+                  // Speak the latest assistant message immediately so the user hears it works
+                  const lastAi = [...messages].reverse().find((m) => m.role === "assistant");
+                  if (lastAi) voice.speak(getTextContent(lastAi.content));
+                }
+              }}
+              className={`p-2.5 transition-colors ${
+                voice.enabled
+                  ? "text-accent hover:text-accent/80"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title={voice.enabled ? "DPE Voice Mode: ON (click to mute)" : "DPE Voice Mode: OFF (click to hear examiner)"}
+              aria-pressed={voice.enabled}
+              aria-label="Toggle DPE voice mode"
+            >
+              {voice.enabled ? (
+                <Mic className={`w-4 h-4 ${voice.speaking ? "animate-pulse" : ""}`} />
+              ) : (
+                <MicOff className="w-4 h-4" />
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
