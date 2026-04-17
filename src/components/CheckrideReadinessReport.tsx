@@ -33,6 +33,15 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
   );
   const passed = report.result === "PASS";
 
+  // Anonymized peer percentile — only shown if the cohort is large enough to be meaningful.
+  const { data: percentile } = useExamPercentile(
+    report.exam_type_id,
+    report.score,
+    report.total,
+    report.stress_mode
+  );
+  const showPercentile = !!percentile && percentile.sample_size >= 10;
+
   const downloadPDF = () => {
     const doc = new jsPDF({ unit: "pt", format: "letter" });
     const pageW = doc.internal.pageSize.getWidth();
