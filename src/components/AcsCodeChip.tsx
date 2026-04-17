@@ -1,6 +1,23 @@
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { resolveAcsTask } from "@/data/acsTasks";
+import { supabase } from "@/integrations/supabase/client";
+
+// In-memory dedupe so each unknown code only auto-logs once per page load
+const loggedMissingCodes = new Set<string>();
+
+const logMissingCode = async (code: string) => {
+  const key = code.trim().toUpperCase();
+  if (!key || loggedMissingCodes.has(key)) return;
+  loggedMissingCodes.add(key);
+  try {
+    await (supabase.rpc as any)("log_missing_acs_code", { _code: key });
+  } catch {
+    // Best-effort: never break the UI if logging fails
+    loggedMissingCodes.delete(key);
+  }
+};
 
 interface AcsCodeChipProps {
   code: string;
