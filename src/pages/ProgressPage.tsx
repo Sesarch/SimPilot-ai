@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import SEOHead from "@/components/SEOHead";
 import { AcsCodeChip } from "@/components/AcsCodeChip";
+import { PercentileSparkline } from "@/components/PercentileSparkline";
 
 const GROUND_SCHOOL_TOPICS = [
   { id: "regulations", title: "Regulations & Pilot Qualifications", acs: "PA.I.A", icon: "📋" },
@@ -359,6 +360,14 @@ const ProgressPage = () => {
                                 minute: "2-digit",
                               })}
                             </p>
+                            <div className="mt-1.5">
+                              <PercentileSparkline
+                                examType={exam.exam_type}
+                                score={exam.score}
+                                total={exam.total_questions}
+                                stressMode={exam.stress_mode}
+                              />
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -468,6 +477,14 @@ const ProgressPage = () => {
                       <p className="text-xs text-muted-foreground">
                         {exam.score}/{exam.total_questions} · {exam.result} · {new Date(exam.created_at).toLocaleDateString()}
                       </p>
+                      <div className="mt-1">
+                        <PercentileSparkline
+                          examType={exam.exam_type}
+                          score={exam.score}
+                          total={exam.total_questions}
+                          stressMode={exam.stress_mode}
+                        />
+                      </div>
                     </div>
                   </div>
                 );
