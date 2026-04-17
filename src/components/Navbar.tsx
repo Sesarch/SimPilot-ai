@@ -105,6 +105,7 @@ const Navbar = () => {
             </button>
           )}
           <ThemeToggle />
+          {studyTrack && <StudyTrackBadge track={studyTrack} />}
           {user ? (
             <Link
               to="/dashboard"
@@ -171,8 +172,11 @@ const Navbar = () => {
                   Install App
                 </button>
               )}
-              <div className="flex items-center justify-between">
-                <ThemeToggle />
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <ThemeToggle />
+                  {studyTrack && <StudyTrackBadge track={studyTrack} onClick={() => setIsOpen(false)} />}
+                </div>
                 <Link
                   to={user ? "/dashboard" : "/auth"}
                   onClick={() => setIsOpen(false)}
