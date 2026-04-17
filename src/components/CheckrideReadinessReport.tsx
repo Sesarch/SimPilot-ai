@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
-import { Award, AlertTriangle, BookOpen, Download, X, Flame, Target, TrendingUp } from "lucide-react";
+import { Award, AlertTriangle, BookOpen, Download, X, Flame, Target, TrendingUp, Trophy } from "lucide-react";
 import type { CheckrideReport } from "@/lib/checkrideReport";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 
@@ -10,6 +10,39 @@ interface Props {
   onClose?: () => void;
   onRetry?: () => void;
 }
+
+type TopTier = { label: string; sublabel: string; classes: string; iconClass: string } | null;
+
+/** Returns badge metadata when the user lands in an exceptional percentile bracket. */
+const getTopTier = (percentile: number): TopTier => {
+  if (percentile >= 95) {
+    return {
+      label: "Top 5%",
+      sublabel: "Elite",
+      classes:
+        "bg-gradient-to-r from-[hsl(var(--amber-instrument)/0.25)] to-[hsl(var(--amber-instrument)/0.1)] text-[hsl(var(--amber-instrument))] border-[hsl(var(--amber-instrument)/0.6)] shadow-[0_0_24px_hsl(var(--amber-instrument)/0.55)]",
+      iconClass: "drop-shadow-[0_0_6px_hsl(var(--amber-instrument)/0.9)]",
+    };
+  }
+  if (percentile >= 90) {
+    return {
+      label: "Top 10%",
+      sublabel: "Outstanding",
+      classes:
+        "bg-gradient-to-r from-[hsl(var(--amber-instrument)/0.18)] to-[hsl(var(--amber-instrument)/0.05)] text-[hsl(var(--amber-instrument))] border-[hsl(var(--amber-instrument)/0.5)] shadow-[0_0_18px_hsl(var(--amber-instrument)/0.4)]",
+      iconClass: "drop-shadow-[0_0_4px_hsl(var(--amber-instrument)/0.7)]",
+    };
+  }
+  if (percentile >= 75) {
+    return {
+      label: "Top 25%",
+      sublabel: "Strong",
+      classes: "bg-primary/10 text-primary border-primary/40 shadow-[0_0_14px_hsl(var(--primary)/0.35)]",
+      iconClass: "drop-shadow-[0_0_3px_hsl(var(--primary)/0.6)]",
+    };
+  }
+  return null;
+};
 
 export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) => {
   const navigate = useNavigate();
@@ -41,6 +74,7 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
     report.stress_mode
   );
   const showPercentile = !!percentile && percentile.sample_size >= 10;
+  const topTier = showPercentile && percentile ? getTopTier(percentile.percentile) : null;
 
   const downloadPDF = () => {
     const doc = new jsPDF({ unit: "pt", format: "letter" });
