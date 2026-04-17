@@ -18,6 +18,7 @@ const FlightDeckPage = () => {
       <SEOHead
         title="Flight Deck — SimPilot Avionics Suite"
         description="Your readiness gauge and category proficiency at a glance."
+        keywords="pilot dashboard, readiness, ACS, ground school progress"
         canonical="/dashboard"
         noIndex
       />
