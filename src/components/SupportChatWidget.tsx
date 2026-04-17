@@ -35,6 +35,35 @@ const SupportChatWidget = () => {
     }
   }, [messages, isLoading]);
 
+  // Listen for external requests to open the widget with a pre-filled message
+  // (e.g. "Report missing code" link from AcsCodeChip tooltips).
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ message?: string }>).detail;
+      setIsOpen(true);
+      if (detail?.message) {
+        if (emailCaptured) {
+          setInput(detail.message);
+        } else {
+          sessionStorage.setItem("simpilot:support-prefill", detail.message);
+        }
+      }
+    };
+    window.addEventListener("simpilot:open-support", handler);
+    return () => window.removeEventListener("simpilot:open-support", handler);
+  }, [emailCaptured]);
+
+  // After email capture, hydrate any stashed pre-fill into the input
+  useEffect(() => {
+    if (emailCaptured) {
+      const stashed = sessionStorage.getItem("simpilot:support-prefill");
+      if (stashed) {
+        setInput(stashed);
+        sessionStorage.removeItem("simpilot:support-prefill");
+      }
+    }
+  }, [emailCaptured]);
+
   const streamChat = useCallback(async (allMessages: Msg[]) => {
     setIsLoading(true);
     let assistantSoFar = "";
