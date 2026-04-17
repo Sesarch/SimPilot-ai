@@ -186,6 +186,7 @@ const OralExamPage = () => {
               initialPrompt={selectedExam.prompt}
               stressMode={stressMode}
               stressTimerSeconds={stressTimerSeconds}
+              examTypeId={selectedExam.id}
             />
           </div>
         </div>
