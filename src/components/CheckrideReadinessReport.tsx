@@ -120,24 +120,59 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
   const showPercentile = !!percentile && percentile.sample_size >= 10;
   const topTier = showPercentile && percentile ? getTopTier(percentile.percentile) : null;
 
-  // First-time celebration for Top 10% / Top 5% achievements (per-browser, per-tier).
+  // First-time celebration for Top 10% / Top 5% achievements — persisted server-side
+  // in `user_achievements` so the celebration only fires once per user, across all devices.
+  // Falls back to localStorage for unauthenticated viewers.
+  const { user } = useAuth();
   const celebratedRef = useRef(false);
   useEffect(() => {
     if (celebratedRef.current) return;
     if (!showPercentile || !percentile) return;
     const tier = getCelebrationTier(percentile.percentile);
     if (!tier) return;
-    const celebrated = getCelebratedTiers();
-    if (celebrated.has(tier)) return;
     celebratedRef.current = true;
-    markTierCelebrated(tier);
-    fireCelebration();
-    const label = tier === "top-5" ? "Top 5% — Elite" : "Top 10% — Outstanding";
-    toast.success(`🏆 Achievement unlocked: ${label}`, {
-      description: `You scored higher than ${percentile.percentile}% of SimPilot users on this exam type.`,
-      duration: 7000,
-    });
-  }, [showPercentile, percentile]);
+
+    const celebrate = () => {
+      fireCelebration();
+      const label = tier === "top-5" ? "Top 5% — Elite" : "Top 10% — Outstanding";
+      toast.success(`🏆 Achievement unlocked: ${label}`, {
+        description: `You scored higher than ${percentile.percentile}% of SimPilot users on this exam type.`,
+        duration: 7000,
+      });
+    };
+
+    (async () => {
+      // Anonymous users: keep per-browser localStorage tracking.
+      if (!user) {
+        if (getCelebratedTiers().has(tier)) return;
+        markTierCelebrated(tier);
+        celebrate();
+        return;
+      }
+
+      // Authenticated: check server first.
+      const { data: existing } = await supabase
+        .from("user_achievements")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("tier", tier)
+        .maybeSingle();
+      if (existing) return;
+
+      // Insert; UNIQUE (user_id, tier) protects against double-fires across tabs/devices.
+      const { error } = await supabase.from("user_achievements").insert({
+        user_id: user.id,
+        tier,
+        exam_type: report.exam_type_id,
+        percentile: percentile.percentile,
+      });
+      if (error) {
+        // Likely unique-violation (already earned on another device) — skip celebration.
+        return;
+      }
+      celebrate();
+    })();
+  }, [showPercentile, percentile, user, report.exam_type_id]);
 
   const downloadPDF = () => {
     const doc = new jsPDF({ unit: "pt", format: "letter" });
