@@ -88,6 +88,26 @@ const AccountSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* Study Track */}
+      <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+          <GraduationCap className="w-4 h-4 text-primary" /> Study Track
+        </h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Sets the ACS depth your CFI-AI uses across Ground School, Oral Exam, and chat. Syncs across devices.
+        </p>
+        <Select value={currentTrack} onValueChange={handleTrackChange}>
+          <SelectTrigger className="w-full sm:w-[320px]">
+            <SelectValue placeholder="Select your certificate level" />
+          </SelectTrigger>
+          <SelectContent>
+            {TRACK_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Change Email */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
