@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "soar-ai-guide"
+const SITE_NAME = "SimPilot"
 const SENDER_DOMAIN = "notify.simpilot.ai"
 const ROOT_DOMAIN = "simpilot.ai"
 const FROM_DOMAIN = "simpilot.ai" // Domain shown in From address (may be root or sender subdomain)
