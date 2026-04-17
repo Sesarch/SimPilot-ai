@@ -6,7 +6,7 @@ import { LESSON_AREAS } from "@/data/groundSchoolLessons";
 export type ReadinessCategoryKey = "regulations" | "weather" | "navigation" | "aerodynamics";
 
 /** Map every ground-school lesson topic_id to one of the 4 ACS categories. */
-const TOPIC_TO_CATEGORY: Record<string, ReadinessCategoryKey> = {
+export const TOPIC_TO_CATEGORY: Record<string, ReadinessCategoryKey> = {
   // Regulations bucket — rules, airworthiness, ADM, human factors, airspace, ATC, emergencies
   regulations: "regulations",
   airworthiness: "regulations",

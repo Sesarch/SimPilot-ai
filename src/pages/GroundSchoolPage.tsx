@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
@@ -13,6 +13,14 @@ import { LESSON_AREAS, type LessonArea } from "@/data/groundSchoolLessons";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 import { usePilotContext } from "@/hooks/usePilotContext";
+import { TOPIC_TO_CATEGORY, type ReadinessCategoryKey } from "@/hooks/useReadiness";
+
+const CATEGORY_LABELS: Record<ReadinessCategoryKey, string> = {
+  regulations: "Regulations",
+  weather: "Weather",
+  navigation: "Navigation",
+  aerodynamics: "Aerodynamics",
+};
 
 type CertLevel = "PPL" | "IR" | "CPL" | "ATP";
 const CERT_OPTIONS: { value: CertLevel; label: string; sub: string; profile: string }[] = [
@@ -41,6 +49,15 @@ const GroundSchoolPage = () => {
   const pilotCtx = usePilotContext();
   const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
   const [onlyRelevant, setOnlyRelevant] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category") as ReadinessCategoryKey | null;
+  const activeCategory: ReadinessCategoryKey | null =
+    categoryParam && CATEGORY_LABELS[categoryParam] ? categoryParam : null;
+  const clearCategory = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("category");
+    setSearchParams(next, { replace: true });
+  };
 
   // Derive the active toggle value from the synced pilot context (profile + localStorage).
   // Defaults to PPL until the user picks one.
@@ -179,6 +196,25 @@ const GroundSchoolPage = () => {
               </div>
             </div>
 
+            {activeCategory && (
+              <div className="mb-3 flex items-center justify-between gap-2 bg-primary/10 border border-primary/30 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-display text-[10px] tracking-[0.25em] uppercase text-primary">
+                    Filtered
+                  </span>
+                  <span className="text-sm text-foreground truncate">
+                    {CATEGORY_LABELS[activeCategory]} topics only
+                  </span>
+                </div>
+                <button
+                  onClick={clearCategory}
+                  className="font-display text-[10px] tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                >
+                  Clear ✕
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
               <p className="text-xs text-muted-foreground">
                 Items not in your <span className="text-foreground font-display tracking-wider">{certLevel}</span> track are dimmed.
@@ -195,7 +231,10 @@ const GroundSchoolPage = () => {
             </div>
 
             <div className="space-y-3">
-              {LESSON_AREAS.filter((l) => !onlyRelevant || l.levels.includes(certLevel)).map((lesson) => {
+              {LESSON_AREAS
+                .filter((l) => !onlyRelevant || l.levels.includes(certLevel))
+                .filter((l) => !activeCategory || TOPIC_TO_CATEGORY[l.id] === activeCategory)
+                .map((lesson) => {
                 const relevant = lesson.levels.includes(certLevel);
                 return (
                   <button

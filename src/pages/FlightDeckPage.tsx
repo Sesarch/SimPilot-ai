@@ -11,11 +11,12 @@ const CATEGORY_META: Array<{
   label: string;
   icon: typeof Scale;
   accent: "cyan" | "amber";
+  href: string;
 }> = [
-  { key: "regulations", label: "Regulations", icon: Scale, accent: "cyan" },
-  { key: "weather", label: "Weather", icon: Cloud, accent: "amber" },
-  { key: "navigation", label: "Navigation", icon: Compass, accent: "cyan" },
-  { key: "aerodynamics", label: "Aerodynamics", icon: Wind, accent: "amber" },
+  { key: "regulations", label: "Regulations", icon: Scale, accent: "cyan", href: "/ground-school?category=regulations" },
+  { key: "weather", label: "Weather", icon: Cloud, accent: "amber", href: "/ground-school?category=weather" },
+  { key: "navigation", label: "Navigation", icon: Compass, accent: "cyan", href: "/ground-school?category=navigation" },
+  { key: "aerodynamics", label: "Aerodynamics", icon: Wind, accent: "amber", href: "/ground-school?category=aerodynamics" },
 ];
 
 const FlightDeckPage = () => {
@@ -114,6 +115,7 @@ const FlightDeckPage = () => {
               icon={c.icon}
               label={c.label}
               accent={c.accent}
+              href={c.href}
               score={loading ? 0 : categories[c.key].score}
               trend={loading ? undefined : categories[c.key].trend || undefined}
             />
