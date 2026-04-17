@@ -18,6 +18,8 @@ interface TrainingChatProps {
   welcomeMessage?: string;
   initialPrompt?: string;
   topicId?: string;
+  /** Overrides the certificate level in the pilot context sent to the AI (e.g. "PPL", "IR", "CPL") */
+  certificateOverride?: string;
 }
 
 export const TrainingChat = ({
@@ -26,6 +28,7 @@ export const TrainingChat = ({
   welcomeMessage,
   initialPrompt,
   topicId,
+  certificateOverride,
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -38,11 +41,26 @@ export const TrainingChat = ({
   const { upload: uploadPOH, pohFilePath, clearPOH } = usePOHUpload();
   const topicMarkedRef = useRef(false);
   const { saveMessage, resetSession, sessionId } = useChatSession(mode);
+  const basePilotContext = pilotCtx.toPromptString();
+  const certLabels: Record<string, string> = {
+    PPL: "Private Pilot (PPL)",
+    IR: "Instrument Rating (IR)",
+    CPL: "Commercial Pilot (CPL)",
+  };
+  const certDepth: Record<string, string> = {
+    PPL: "Use Private Pilot ACS depth: foundational concepts, VFR-focused, basic aerodynamics, regulations (Part 61/91), weather basics. Avoid advanced IFR/commercial nuance unless directly asked.",
+    IR: "Use Instrument Rating ACS depth: emphasize IFR procedures, approach plates, holds, clearances, IMC decision-making, partial panel, regulations relevant to instrument ops. Assume PPL knowledge.",
+    CPL: "Use Commercial Pilot ACS depth: assume PPL+IR knowledge. Emphasize precision maneuvers, complex/high-performance ops, commercial regulations (Part 119/135 awareness), advanced ADM, performance and W&B at commercial standards.",
+  };
+  const augmentedPilotContext = certificateOverride
+    ? `${basePilotContext ? basePilotContext + " | " : ""}Active Study Track: ${certLabels[certificateOverride] ?? certificateOverride}\nACS DEPTH DIRECTIVE: ${certDepth[certificateOverride] ?? ""}`
+    : basePilotContext;
+
   const { messages, isLoading, error, send, scrollRef, reset } = useChat({
     mode,
     onBeforeSend: () => checkLimit(),
     onAfterSend: () => recordUsage(),
-    pilotContext: pilotCtx.toPromptString(),
+    pilotContext: augmentedPilotContext,
     pohFilePath: pohFilePath ?? undefined,
   });
   const [started, setStarted] = useState(false);

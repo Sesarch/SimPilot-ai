@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,12 +13,28 @@ import { LESSON_AREAS, type LessonArea } from "@/data/groundSchoolLessons";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
+type CertLevel = "PPL" | "IR" | "CPL";
+const CERT_KEY = "simpilot_ground_school_cert";
+const CERT_OPTIONS: { value: CertLevel; label: string; sub: string }[] = [
+  { value: "PPL", label: "PPL", sub: "Private" },
+  { value: "IR", label: "IR", sub: "Instrument" },
+  { value: "CPL", label: "CPL", sub: "Commercial" },
+];
+
 const GroundSchoolPage = () => {
   const { settings } = useSiteSettings();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
+  const [certLevel, setCertLevel] = useState<CertLevel>(() => {
+    if (typeof window === "undefined") return "PPL";
+    const saved = localStorage.getItem(CERT_KEY) as CertLevel | null;
+    return saved && ["PPL", "IR", "CPL"].includes(saved) ? saved : "PPL";
+  });
+  useEffect(() => {
+    localStorage.setItem(CERT_KEY, certLevel);
+  }, [certLevel]);
   const heroImage = resolvedTheme === "dark" ? groundSchoolDark : groundSchoolLight;
 
   if (!settings.ground_school_enabled) return <FeatureDisabledPage feature="Ground School" />;
@@ -65,19 +81,24 @@ const GroundSchoolPage = () => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <span className="text-2xl">{selectedLesson.icon}</span>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h2 className="font-display text-sm font-bold text-foreground">{selectedLesson.title}</h2>
-                <p className="text-xs text-muted-foreground">ACS: {selectedLesson.acs}</p>
+                <p className="text-xs text-muted-foreground">ACS: {selectedLesson.acs} · Track: {certLevel}</p>
               </div>
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-display tracking-widest uppercase text-primary bg-primary/10 border border-primary/30 px-2 py-1 rounded">
+                {certLevel} Depth
+              </span>
             </div>
           </div>
           <div className="flex-1 container mx-auto max-w-3xl min-h-0">
             <TrainingChat
+              key={`${selectedLesson.id}-${certLevel}`}
               mode="ground_school"
               placeholder="Type your answer or ask a question..."
-              welcomeMessage={`Ready to study ${selectedLesson.title}? Your CFI-AI instructor will guide you through this ACS knowledge area using the Socratic method.`}
-              initialPrompt={selectedLesson.prompt}
+              welcomeMessage={`Ready to study ${selectedLesson.title} at the ${certLevel} level? Your CFI-AI instructor will guide you through this ACS knowledge area using the Socratic method.`}
+              initialPrompt={`${selectedLesson.prompt}\n\n(Tailor depth and examples to a ${certLevel} candidate.)`}
               topicId={selectedLesson.id}
+              certificateOverride={certLevel}
             />
           </div>
         </div>
@@ -95,14 +116,47 @@ const GroundSchoolPage = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/75 to-background" />
           </div>
           <div className="container mx-auto px-6 py-8 max-w-3xl relative z-10">
-            <div className="mb-8">
+            <div className="mb-6">
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">
                 Ground School Lessons
               </h1>
               <p className="text-sm text-muted-foreground">
-                Select a knowledge area to begin an interactive lesson with your CFI-AI instructor. 
+                Select a knowledge area to begin an interactive lesson with your CFI-AI instructor.
                 Each lesson follows FAA Airman Certification Standards (ACS).
               </p>
+            </div>
+
+            {/* Certificate Level Toggle — global state shared across all 19 lessons */}
+            <div className="mb-6 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-4">
+              <div className="mb-3">
+                <p className="font-display text-xs font-bold tracking-widest uppercase text-foreground">
+                  Study Track
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Sets the ACS depth your CFI-AI uses for every lesson.
+                </p>
+              </div>
+              <div role="radiogroup" aria-label="Certificate level" className="grid grid-cols-3 gap-2">
+                {CERT_OPTIONS.map((opt) => {
+                  const active = certLevel === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setCertLevel(opt.value)}
+                      className={`px-3 py-2.5 rounded-lg border transition-all text-center ${
+                        active
+                          ? "bg-primary/15 border-primary text-foreground shadow-[0_0_15px_hsl(var(--cyan-glow)/0.2)]"
+                          : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="font-display text-sm font-bold tracking-wider">{opt.label}</div>
+                      <div className="text-[10px] uppercase tracking-widest opacity-80">{opt.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="space-y-3">
