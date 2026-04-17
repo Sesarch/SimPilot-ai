@@ -99,7 +99,7 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.text(
-      `Certificate: ${report.certificate}   ${report.stress_mode ? "• Stress Mode" : ""}`,
+      `Certificate: ${report.certificate}   ${report.stress_mode ? "• Stress Mode" : ""}${topTier ? `   • Achievement: ${topTier.label} (${topTier.sublabel})` : ""}`,
       56,
       y
     );
