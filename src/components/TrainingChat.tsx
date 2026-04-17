@@ -46,11 +46,13 @@ export const TrainingChat = ({
     PPL: "Private Pilot (PPL)",
     IR: "Instrument Rating (IR)",
     CPL: "Commercial Pilot (CPL)",
+    ATP: "Airline Transport Pilot (ATP)",
   };
   const certDepth: Record<string, string> = {
     PPL: "Use Private Pilot ACS depth: foundational concepts, VFR-focused, basic aerodynamics, regulations (Part 61/91), weather basics. Avoid advanced IFR/commercial nuance unless directly asked.",
     IR: "Use Instrument Rating ACS depth: emphasize IFR procedures, approach plates, holds, clearances, IMC decision-making, partial panel, regulations relevant to instrument ops. Assume PPL knowledge.",
     CPL: "Use Commercial Pilot ACS depth: assume PPL+IR knowledge. Emphasize precision maneuvers, complex/high-performance ops, commercial regulations (Part 119/135 awareness), advanced ADM, performance and W&B at commercial standards.",
+    ATP: "Use Airline Transport Pilot ACS depth: assume full PPL+IR+CPL mastery. Emphasize Part 121/135 ops, multi-crew CRM, jet/turboprop systems, high-altitude aerodynamics (Mach, coffin corner, Dutch roll), advanced meteorology (jet streams, CAT, icing certification), FMS/automation management, ETOPS, RVSM, performance-based navigation (RNP/RNAV), and Threat & Error Management (TEM). Hold the student to airline-transport-pilot precision standards.",
   };
   const augmentedPilotContext = certificateOverride
     ? `${basePilotContext ? basePilotContext + " | " : ""}Active Study Track: ${certLabels[certificateOverride] ?? certificateOverride}\nACS DEPTH DIRECTIVE: ${certDepth[certificateOverride] ?? ""}`
