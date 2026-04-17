@@ -278,6 +278,14 @@ export const TrainingChat = ({
           </div>
         ))}
 
+        {report && mode === "oral_exam" && (
+          <CheckrideReadinessReport
+            report={report}
+            onClose={() => setReport(null)}
+            onRetry={handleReset}
+          />
+        )}
+
         {isLoading && messages[messages.length - 1]?.role === "user" && (
           <div className="flex justify-start">
             <div className="bg-secondary border border-border rounded-xl px-4 py-3">
