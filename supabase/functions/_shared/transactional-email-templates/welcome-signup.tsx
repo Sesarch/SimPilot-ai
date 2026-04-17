@@ -10,6 +10,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -30,6 +31,15 @@ const WelcomeSignupEmail = ({ name }: WelcomeSignupProps) => (
     <Preview>Welcome aboard {SITE_NAME} — your AI flight instructor is ready</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
+          <Img
+            src={`${SITE_URL}/icon-512x512.png`}
+            alt={`${SITE_NAME} logo`}
+            width="64"
+            height="64"
+            style={{ borderRadius: '12px', display: 'inline-block' }}
+          />
+        </Section>
         <Heading style={h1}>
           {name ? `Welcome aboard, ${name}! ✈️` : 'Welcome aboard, pilot! ✈️'}
         </Heading>
