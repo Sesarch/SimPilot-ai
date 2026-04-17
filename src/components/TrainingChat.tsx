@@ -84,6 +84,7 @@ export const TrainingChat = ({
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const timeoutCountRef = useRef(0);
   const [timeoutCount, setTimeoutCount] = useState(0);
+  const { enabled: tickEnabled, setEnabled: setTickEnabled, playTick } = useTickSound();
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
