@@ -75,7 +75,28 @@ const OralExamPage = () => {
 
   // Auto-launch a weak-areas drill if arriving from a Checkride Readiness Report
   useEffect(() => {
-    const drill = (location.state as { drill?: DrillState } | null)?.drill;
+    const state = location.state as { drill?: DrillState; repeat?: RepeatState } | null;
+
+    // Repeat a prior checkride with same stress + timer settings
+    const repeat = state?.repeat;
+    if (repeat) {
+      const match = EXAM_TYPES.find((e) => e.id === repeat.exam_type);
+      if (match) {
+        setSelectedExam(match);
+        if (repeat.stress_mode) {
+          setStressMode(true);
+          if (repeat.timer_seconds === 30 || repeat.timer_seconds === 60 || repeat.timer_seconds === 90) {
+            setStressTimerSeconds(repeat.timer_seconds);
+          }
+        } else {
+          setStressMode(false);
+        }
+        navigate(location.pathname, { replace: true, state: null });
+        return;
+      }
+    }
+
+    const drill = state?.drill;
     if (!drill || !drill.weak_areas?.length) return;
 
     const codeList = drill.weak_areas
