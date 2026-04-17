@@ -92,7 +92,7 @@ const AdminMissingAcsCodes = () => {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h2 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <AlertTriangle className="w-4 h-4 text-accent" />
             Missing ACS Codes
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
