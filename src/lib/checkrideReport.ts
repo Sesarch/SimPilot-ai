@@ -17,6 +17,8 @@ export type CheckrideReport = {
   weak_areas: CheckrideWeakArea[];
   recommended_study: string[];
   examiner_notes: string;
+  /** Oral-exam-page id (e.g. "ppl", "instrument") used for percentile cohort lookup */
+  exam_type_id?: string;
 };
 
 const REPORT_FENCE_RE = /```checkride-report\s*\n([\s\S]*?)\n```/i;

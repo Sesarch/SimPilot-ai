@@ -555,6 +555,19 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_exam_percentile: {
+        Args: {
+          _exam_type: string
+          _score: number
+          _stress_mode?: boolean
+          _total: number
+        }
+        Returns: {
+          at_or_below: number
+          percentile: number
+          sample_size: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

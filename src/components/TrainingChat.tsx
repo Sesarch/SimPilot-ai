@@ -121,7 +121,9 @@ export const TrainingChat = ({
         score = structured.score;
         total = structured.total;
         result = structured.result;
-        setReport(structured);
+        // Stamp the exam type id so the report UI can show a percentile against
+        // the right cohort (e.g. only PPL oral exams).
+        setReport({ ...structured, exam_type_id: examTypeId });
       } else {
         const scoreMatch = content.match(/(\d+)\s*(?:\/|out of)\s*(\d+)/i);
         const resultMatch = content.match(/\b(PASS|FAIL|INCOMPLETE)\b/i);
