@@ -370,38 +370,56 @@ export const TrainingChat = ({
 
       {/* Input area */}
       <div className="border-t border-border p-4">
-        {timerActive && secondsLeft !== null && (
-          <div className="mb-3">
-            <div className={`flex items-center justify-between mb-1.5 text-[11px] font-display font-bold uppercase tracking-wider ${
-              secondsLeft <= 10 ? "text-destructive animate-pulse" : secondsLeft <= 20 ? "text-accent" : "text-muted-foreground"
+        {timerActive && secondsLeft !== null && (() => {
+          const isCritical = secondsLeft <= 3;
+          const isUrgent = secondsLeft <= 10;
+          const isWarning = secondsLeft <= 20;
+          const pct = (secondsLeft / STRESS_TIMER_SECONDS) * 100;
+          return (
+            <div className={`mb-3 rounded-lg p-2.5 transition-all ${
+              isUrgent
+                ? "bg-[hsl(var(--amber-instrument)/0.08)] border border-[hsl(var(--amber-instrument)/0.45)] shadow-[0_0_18px_hsl(var(--amber-instrument)/0.35)] animate-pulse"
+                : "bg-transparent border border-transparent"
             }`}>
-              <span className="flex items-center gap-1.5">
-                <Timer className="w-3.5 h-3.5" />
-                {secondsLeft <= 10 ? "Hurry — DPE is waiting" : "Answer Window"}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); setTickEnabled((v) => !v); }}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label={tickEnabled ? "Mute timer ticking" : "Enable timer ticking"}
-                  title={tickEnabled ? "Mute timer ticking" : "Enable timer ticking"}
-                >
-                  {tickEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                </button>
-                <span className="tabular-nums">{secondsLeft}s</span>
+              <div className={`flex items-center justify-between mb-1.5 text-[11px] font-display font-bold uppercase tracking-wider ${
+                isCritical ? "text-destructive" : isUrgent ? "text-[hsl(var(--amber-instrument))] text-glow-amber" : isWarning ? "text-accent" : "text-muted-foreground"
+              }`}>
+                <span className="flex items-center gap-1.5">
+                  <Timer className={`w-3.5 h-3.5 ${isUrgent ? "animate-pulse" : ""}`} />
+                  {isCritical ? "TIME!" : isUrgent ? "Hurry — DPE is waiting" : "Answer Window"}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setTickEnabled((v) => !v); }}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={tickEnabled ? "Mute timer ticking" : "Enable timer ticking"}
+                    title={tickEnabled ? "Mute timer ticking" : "Enable timer ticking"}
+                  >
+                    {tickEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                  </button>
+                  <span className={`tabular-nums text-base ${isUrgent ? "drop-shadow-[0_0_8px_hsl(var(--amber-instrument)/0.8)]" : ""}`}>
+                    {secondsLeft}s
+                  </span>
+                </div>
+              </div>
+              <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                <div
+                  className={`h-full transition-[width] duration-1000 ease-linear ${
+                    isCritical
+                      ? "bg-destructive shadow-[0_0_12px_hsl(var(--destructive)/0.8)]"
+                      : isUrgent
+                      ? "bg-[hsl(var(--amber-instrument))] shadow-[0_0_12px_hsl(var(--amber-instrument)/0.7)]"
+                      : isWarning
+                      ? "bg-accent"
+                      : "bg-primary"
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
               </div>
             </div>
-            <div className="h-1 rounded-full bg-secondary overflow-hidden">
-              <div
-                className={`h-full transition-[width] duration-1000 ease-linear ${
-                  secondsLeft <= 10 ? "bg-destructive" : secondsLeft <= 20 ? "bg-accent" : "bg-primary"
-                }`}
-                style={{ width: `${(secondsLeft / STRESS_TIMER_SECONDS) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
+          );
+        })()}
         {mode === "oral_exam" && stressMode && timeoutCount > 0 && !report && (
           <p className="text-[11px] text-destructive/80 mb-2 text-center font-display uppercase tracking-wider">
             ⚠ {timeoutCount} timeout{timeoutCount > 1 ? "s" : ""} recorded this session
