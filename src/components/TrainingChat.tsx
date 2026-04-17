@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
-import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame, Timer, Volume2, VolumeX } from "lucide-react";
+import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame, Timer, Volume2, VolumeX, Mic, MicOff } from "lucide-react";
 import { useTickSound } from "@/hooks/useTickSound";
+import { useSpeech } from "@/hooks/useSpeech";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -88,6 +89,8 @@ export const TrainingChat = ({
   const timeoutCountRef = useRef(0);
   const [timeoutCount, setTimeoutCount] = useState(0);
   const { enabled: tickEnabled, setEnabled: setTickEnabled, playTick } = useTickSound();
+  const voice = useSpeech();
+  const voiceActive = mode === "oral_exam" && voice.supported && voice.enabled;
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
