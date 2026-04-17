@@ -374,7 +374,18 @@ export const TrainingChat = ({
                 <Timer className="w-3.5 h-3.5" />
                 {secondsLeft <= 10 ? "Hurry — DPE is waiting" : "Answer Window"}
               </span>
-              <span className="tabular-nums">{secondsLeft}s</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setTickEnabled((v) => !v); }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={tickEnabled ? "Mute timer ticking" : "Enable timer ticking"}
+                  title={tickEnabled ? "Mute timer ticking" : "Enable timer ticking"}
+                >
+                  {tickEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                </button>
+                <span className="tabular-nums">{secondsLeft}s</span>
+              </div>
             </div>
             <div className="h-1 rounded-full bg-secondary overflow-hidden">
               <div
