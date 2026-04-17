@@ -161,11 +161,13 @@ export const TrainingChat = ({
       const last = messages[messages.length - 1];
       if (last.role === "assistant") {
         saveMessage(last, firstUserMsgRef.current);
-        parseAndSaveScore(getTextContent(last.content));
+        const text = getTextContent(last.content);
+        parseAndSaveScore(text);
+        if (voiceActive) voice.speak(text);
       }
     }
     prevLoadingRef.current = isLoading;
-  }, [isLoading, messages, saveMessage, parseAndSaveScore]);
+  }, [isLoading, messages, saveMessage, parseAndSaveScore, voiceActive, voice]);
 
   // Auto-mark ground school topic as completed
   useEffect(() => {
@@ -229,6 +231,7 @@ export const TrainingChat = ({
   const handleSend = () => {
     if ((!input.trim() && !pendingImage) || isLoading) return;
     if (!started) setStarted(true);
+    if (voice.supported) voice.cancel();
     send(input.trim() || "Analyze this chart", pendingImage || undefined);
     setInput("");
     setPendingImage(null);
@@ -249,6 +252,7 @@ export const TrainingChat = ({
   };
 
   const handleReset = () => {
+    if (voice.supported) voice.cancel();
     reset();
     resetSession();
     firstUserMsgRef.current = "";
