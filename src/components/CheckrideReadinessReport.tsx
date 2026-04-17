@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
-import { Award, AlertTriangle, BookOpen, Download, X, Flame, Target } from "lucide-react";
+import { Award, AlertTriangle, BookOpen, Download, X, Flame, Target, TrendingUp } from "lucide-react";
 import type { CheckrideReport } from "@/lib/checkrideReport";
+import { useExamPercentile } from "@/hooks/useExamPercentile";
 
 interface Props {
   report: CheckrideReport;
