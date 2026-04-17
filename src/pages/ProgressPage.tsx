@@ -342,6 +342,27 @@ const ProgressPage = () => {
                               <Timer className="w-3 h-3" /> {timerSec}s/Q
                             </Badge>
                           ) : null}
+                          {exam.report?.exam_type_id && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigate("/oral-exam", {
+                                  state: {
+                                    repeat: {
+                                      exam_type: exam.report?.exam_type_id,
+                                      stress_mode: exam.stress_mode,
+                                      timer_seconds: timerSec,
+                                    },
+                                  },
+                                })
+                              }
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-primary/40 bg-primary/10 text-primary text-xs font-display font-semibold uppercase tracking-wider hover:bg-primary/20 hover:border-primary/60 transition-colors"
+                              title="Start a new oral exam with the same Stress Mode and timer length"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              Repeat
+                            </button>
+                          )}
                         </div>
                       </div>
 
