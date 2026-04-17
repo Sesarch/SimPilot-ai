@@ -120,6 +120,25 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
   const showPercentile = !!percentile && percentile.sample_size >= 10;
   const topTier = showPercentile && percentile ? getTopTier(percentile.percentile) : null;
 
+  // First-time celebration for Top 10% / Top 5% achievements (per-browser, per-tier).
+  const celebratedRef = useRef(false);
+  useEffect(() => {
+    if (celebratedRef.current) return;
+    if (!showPercentile || !percentile) return;
+    const tier = getCelebrationTier(percentile.percentile);
+    if (!tier) return;
+    const celebrated = getCelebratedTiers();
+    if (celebrated.has(tier)) return;
+    celebratedRef.current = true;
+    markTierCelebrated(tier);
+    fireCelebration();
+    const label = tier === "top-5" ? "Top 5% — Elite" : "Top 10% — Outstanding";
+    toast.success(`🏆 Achievement unlocked: ${label}`, {
+      description: `You scored higher than ${percentile.percentile}% of SimPilot users on this exam type.`,
+      duration: 7000,
+    });
+  }, [showPercentile, percentile]);
+
   const downloadPDF = () => {
     const doc = new jsPDF({ unit: "pt", format: "letter" });
     const pageW = doc.internal.pageSize.getWidth();
