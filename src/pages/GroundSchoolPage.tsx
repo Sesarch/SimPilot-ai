@@ -176,32 +176,68 @@ const GroundSchoolPage = () => {
               </div>
             </div>
 
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <p className="text-xs text-muted-foreground">
+                Items not in your <span className="text-foreground font-display tracking-wider">{certLevel}</span> track are dimmed.
+              </p>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={onlyRelevant}
+                  onChange={(e) => setOnlyRelevant(e.target.checked)}
+                  className="accent-primary"
+                />
+                Only show {certLevel}
+              </label>
+            </div>
+
             <div className="space-y-3">
-              {LESSON_AREAS.map((lesson) => (
-                <button
-                  key={lesson.id}
-                  onClick={() => setSelectedLesson(lesson)}
-                  className="w-full text-left bg-gradient-card rounded-xl border border-border hover:border-primary/40 p-5 transition-all group hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.1)]"
-                >
-                  <div className="flex items-center gap-4">
-                    <span className="text-3xl">{lesson.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-display text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                          {lesson.title}
-                        </h3>
-                        <span className="text-[10px] font-display tracking-wider text-muted-foreground bg-secondary px-2 py-0.5 rounded">
-                          {lesson.acs}
-                        </span>
+              {LESSON_AREAS.filter((l) => !onlyRelevant || l.levels.includes(certLevel)).map((lesson) => {
+                const relevant = lesson.levels.includes(certLevel);
+                return (
+                  <button
+                    key={lesson.id}
+                    onClick={() => setSelectedLesson(lesson)}
+                    className={`w-full text-left bg-gradient-card rounded-xl border p-5 transition-all group ${
+                      relevant
+                        ? "border-border hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.1)]"
+                        : "border-border/50 opacity-50 hover:opacity-90 hover:border-border"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="text-3xl">{lesson.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="font-display text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                            {lesson.title}
+                          </h3>
+                          <span className="text-[10px] font-display tracking-wider text-muted-foreground bg-secondary px-2 py-0.5 rounded">
+                            {lesson.acs}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            {lesson.levels.map((lvl) => (
+                              <span
+                                key={lvl}
+                                className={`text-[10px] font-display tracking-widest px-1.5 py-0.5 rounded border ${
+                                  lvl === certLevel
+                                    ? "bg-primary/15 text-primary border-primary/40"
+                                    : "bg-secondary/50 text-muted-foreground border-border"
+                                }`}
+                              >
+                                {lvl}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {lesson.description}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {lesson.description}
-                      </p>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
