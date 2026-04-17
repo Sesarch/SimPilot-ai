@@ -28,7 +28,7 @@ export const MagicLinkEmail = ({
 }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your login link for {siteName}</Preview>
+    <Preview>Your {siteName} flight deck access link ✈️</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -43,7 +43,9 @@ export const MagicLinkEmail = ({
           Log In
         </Button>
         <Text style={footer}>
-          If you didn't request this link, you can safely ignore this email.
+          Didn't request this link? You can safely ignore this email.
+          <br />
+          Clear skies, The {siteName} crew ✈️
         </Text>
       </Container>
     </Body>
