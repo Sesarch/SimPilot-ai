@@ -106,6 +106,12 @@ const AccountSettings = () => {
             ))}
           </SelectContent>
         </Select>
+        <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+          <p><span className="font-semibold text-foreground">PPL</span> — VFR fundamentals, basic aerodynamics, Part 91</p>
+          <p><span className="font-semibold text-foreground">IR</span> — IFR procedures, approach plates, weather minima</p>
+          <p><span className="font-semibold text-foreground">CPL</span> — Commercial maneuvers, complex aircraft, Part 119</p>
+          <p><span className="font-semibold text-foreground">ATP</span> — High-altitude, multi-crew CRM, Part 121/135</p>
+        </div>
       </div>
 
       {/* Change Email */}
