@@ -81,19 +81,24 @@ const GroundSchoolPage = () => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <span className="text-2xl">{selectedLesson.icon}</span>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h2 className="font-display text-sm font-bold text-foreground">{selectedLesson.title}</h2>
-                <p className="text-xs text-muted-foreground">ACS: {selectedLesson.acs}</p>
+                <p className="text-xs text-muted-foreground">ACS: {selectedLesson.acs} · Track: {certLevel}</p>
               </div>
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-display tracking-widest uppercase text-primary bg-primary/10 border border-primary/30 px-2 py-1 rounded">
+                {certLevel} Depth
+              </span>
             </div>
           </div>
           <div className="flex-1 container mx-auto max-w-3xl min-h-0">
             <TrainingChat
+              key={`${selectedLesson.id}-${certLevel}`}
               mode="ground_school"
               placeholder="Type your answer or ask a question..."
-              welcomeMessage={`Ready to study ${selectedLesson.title}? Your CFI-AI instructor will guide you through this ACS knowledge area using the Socratic method.`}
-              initialPrompt={selectedLesson.prompt}
+              welcomeMessage={`Ready to study ${selectedLesson.title} at the ${certLevel} level? Your CFI-AI instructor will guide you through this ACS knowledge area using the Socratic method.`}
+              initialPrompt={`${selectedLesson.prompt}\n\n(Tailor depth and examples to a ${certLevel} candidate.)`}
               topicId={selectedLesson.id}
+              certificateOverride={certLevel}
             />
           </div>
         </div>
