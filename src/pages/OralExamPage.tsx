@@ -201,7 +201,29 @@ const OralExamPage = () => {
 
       {/* Content */}
       <div className="pt-20 flex-1 flex flex-col">
-      {selectedExam ? (
+      {reportId ? (
+        <div className="flex-1 overflow-y-auto">
+          <div className="container mx-auto px-4 sm:px-6 py-6 max-w-3xl">
+            <button
+              onClick={closePastReport}
+              className="mb-4 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Oral Exam
+            </button>
+            {reportLoading && (
+              <div className="text-sm text-muted-foreground">Loading report…</div>
+            )}
+            {reportError && !reportLoading && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+                {reportError}
+              </div>
+            )}
+            {pastReport && !reportLoading && (
+              <CheckrideReadinessReport report={pastReport} onClose={closePastReport} />
+            )}
+          </div>
+        </div>
+      ) : selectedExam ? (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="border-b border-border bg-secondary/30 px-6 py-3 shrink-0">
             <div className="container mx-auto flex items-center gap-3">
