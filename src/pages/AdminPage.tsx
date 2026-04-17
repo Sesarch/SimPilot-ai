@@ -487,7 +487,10 @@ const AdminPage = () => {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <AdminSiteSettings />
+            <div className="space-y-6">
+              <AdminSiteSettings />
+              <AdminMissingAcsCodes />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
