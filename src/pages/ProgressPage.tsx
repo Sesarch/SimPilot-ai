@@ -117,6 +117,19 @@ const ProgressPage = () => {
     ? Math.round(examScores.reduce((s, e) => s + (e.score / e.total_questions) * 100, 0) / examScores.length)
     : 0;
 
+  // Streak: count consecutive most-recent oral exams with the same result (PASS or FAIL).
+  // examScores is ordered newest-first.
+  const oralExams = examScores.filter((e) => e.exam_type === "oral_exam");
+  let streakCount = 0;
+  let streakResult: "PASS" | "FAIL" | null = null;
+  if (oralExams.length > 0 && (oralExams[0].result === "PASS" || oralExams[0].result === "FAIL")) {
+    streakResult = oralExams[0].result as "PASS" | "FAIL";
+    for (const exam of oralExams) {
+      if (exam.result === streakResult) streakCount++;
+      else break;
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
