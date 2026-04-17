@@ -14,6 +14,8 @@ import AuthPage from "./pages/AuthPage.tsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
+import FlightDeckPage from "./pages/FlightDeckPage.tsx";
+import DashboardLayout from "./components/dashboard/DashboardLayout.tsx";
 import GroundSchoolPage from "./pages/GroundSchoolPage.tsx";
 import OralExamPage from "./pages/OralExamPage.tsx";
 import SessionHistoryPage from "./pages/SessionHistoryPage.tsx";
@@ -61,13 +63,17 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/ground-school" element={<GroundSchoolPage />} />
-              <Route path="/oral-exam" element={<OralExamPage />} />
-              <Route path="/weather-briefing" element={<WeatherBriefingPage />} />
-              <Route path="/live-tools" element={<LiveToolsPage />} />
-              <Route path="/session-history" element={<SessionHistoryPage />} />
-              <Route path="/progress" element={<ProgressPage />} />
+              {/* Authenticated dashboard area — persistent sidebar + G3000 theme */}
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<FlightDeckPage />} />
+                <Route path="/account" element={<DashboardPage />} />
+                <Route path="/ground-school" element={<GroundSchoolPage />} />
+                <Route path="/oral-exam" element={<OralExamPage />} />
+                <Route path="/weather-briefing" element={<WeatherBriefingPage />} />
+                <Route path="/live-tools" element={<LiveToolsPage />} />
+                <Route path="/session-history" element={<SessionHistoryPage />} />
+                <Route path="/progress" element={<ProgressPage />} />
+              </Route>
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/cookie-preferences" element={<CookiePreferencesPage />} />
