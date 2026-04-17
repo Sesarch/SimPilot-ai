@@ -1,0 +1,1 @@
+ALTER TABLE public.exam_scores ADD COLUMN IF NOT EXISTS acs_codes jsonb, ADD COLUMN IF NOT EXISTS report jsonb, ADD COLUMN IF NOT EXISTS stress_mode boolean NOT NULL DEFAULT false;
