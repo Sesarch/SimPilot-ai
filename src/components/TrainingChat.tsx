@@ -75,6 +75,12 @@ export const TrainingChat = ({
   const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
   const [report, setReport] = useState<CheckrideReport | null>(null);
 
+  // Stress-Mode per-question countdown
+  const STRESS_TIMER_SECONDS = 60;
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const timeoutCountRef = useRef(0);
+  const [timeoutCount, setTimeoutCount] = useState(0);
+
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
   useEffect(() => {
