@@ -202,7 +202,7 @@ export const TrainingChat = ({
           // Fire timeout
           timeoutCountRef.current += 1;
           setTimeoutCount(timeoutCountRef.current);
-          send("(TIMEOUT — student did not answer within 60 seconds. Mark this question as a timeout in the final report and continue with the next question.)");
+          send(`(TIMEOUT — student did not answer within ${STRESS_TIMER_SECONDS} seconds. Mark this question as a timeout in the final report and continue with the next question.)`);
           return null;
         }
         return s - 1;
