@@ -91,26 +91,34 @@ export const TrainingChat = ({
     prevLenRef.current = messages.length;
   }, [messages.length, saveMessage]);
 
-  // Parse debrief score from assistant message
+  // Parse debrief score / structured Checkride Readiness Report from assistant message
   const scoresSavedRef = useRef(false);
   const parseAndSaveScore = useCallback(
     async (content: string) => {
-      if (mode !== "oral_exam" || !user || scoresSavedRef.current) return;
-      const scoreMatch = content.match(/(\d+)\s*(?:\/|out of)\s*(\d+)/i);
-      const resultMatch = content.match(/\b(PASS|FAIL|INCOMPLETE)\b/i);
-      if (!scoreMatch) return;
+      if (mode !== "oral_exam" || scoresSavedRef.current) return;
 
-      const score = parseInt(scoreMatch[1], 10);
-      const total = parseInt(scoreMatch[2], 10);
-      if (isNaN(score) || isNaN(total) || total === 0) return;
-
-      scoresSavedRef.current = true;
-      const result = resultMatch ? resultMatch[1].toUpperCase() : (score / total >= 0.7 ? "PASS" : "FAIL");
-
-      if (result === "PASS") {
-        setCelebration({ score, total });
+      // Prefer structured report block
+      const structured = extractCheckrideReport(content);
+      let score: number, total: number, result: string;
+      if (structured) {
+        score = structured.score;
+        total = structured.total;
+        result = structured.result;
+        setReport(structured);
+      } else {
+        const scoreMatch = content.match(/(\d+)\s*(?:\/|out of)\s*(\d+)/i);
+        const resultMatch = content.match(/\b(PASS|FAIL|INCOMPLETE)\b/i);
+        if (!scoreMatch) return;
+        score = parseInt(scoreMatch[1], 10);
+        total = parseInt(scoreMatch[2], 10);
+        if (isNaN(score) || isNaN(total) || total === 0) return;
+        result = resultMatch ? resultMatch[1].toUpperCase() : (score / total >= 0.7 ? "PASS" : "FAIL");
       }
 
+      scoresSavedRef.current = true;
+      if (result === "PASS") setCelebration({ score, total });
+
+      if (!user) return;
       const { error } = await supabase.from("exam_scores").insert({
         user_id: user.id,
         exam_type: "oral_exam",
@@ -118,10 +126,13 @@ export const TrainingChat = ({
         total_questions: total,
         result,
         session_id: sessionId.current,
-      });
+        stress_mode: stressMode,
+        acs_codes: structured ? structured.weak_areas.map((w) => w.acs_code) : null,
+        report: structured ? (structured as any) : null,
+      } as any);
       if (error) console.error("Failed to save exam score:", error);
     },
-    [mode, user, sessionId]
+    [mode, user, sessionId, stressMode]
   );
 
   // Save assistant message when streaming completes
@@ -192,6 +203,7 @@ export const TrainingChat = ({
     prevLenRef.current = 0;
     setStarted(false);
     setPendingImage(null);
+    setReport(null);
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
