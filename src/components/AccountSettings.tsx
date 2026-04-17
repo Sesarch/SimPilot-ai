@@ -31,6 +31,12 @@ import {
 
 const AccountSettings = () => {
   const { user } = useAuth();
+  const { context, updateField } = usePilotContext();
+  const currentTrack = normalizeTrack(context.certificate_type);
+  const handleTrackChange = (value: string) => {
+    updateField("certificate_type", value);
+    toast.success(`Study Track set to ${value}. Your CFI-AI will use ${value} ACS depth.`);
+  };
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
