@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,12 +13,28 @@ import { LESSON_AREAS, type LessonArea } from "@/data/groundSchoolLessons";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
+type CertLevel = "PPL" | "IR" | "CPL";
+const CERT_KEY = "simpilot_ground_school_cert";
+const CERT_OPTIONS: { value: CertLevel; label: string; sub: string }[] = [
+  { value: "PPL", label: "PPL", sub: "Private" },
+  { value: "IR", label: "IR", sub: "Instrument" },
+  { value: "CPL", label: "CPL", sub: "Commercial" },
+];
+
 const GroundSchoolPage = () => {
   const { settings } = useSiteSettings();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
+  const [certLevel, setCertLevel] = useState<CertLevel>(() => {
+    if (typeof window === "undefined") return "PPL";
+    const saved = localStorage.getItem(CERT_KEY) as CertLevel | null;
+    return saved && ["PPL", "IR", "CPL"].includes(saved) ? saved : "PPL";
+  });
+  useEffect(() => {
+    localStorage.setItem(CERT_KEY, certLevel);
+  }, [certLevel]);
   const heroImage = resolvedTheme === "dark" ? groundSchoolDark : groundSchoolLight;
 
   if (!settings.ground_school_enabled) return <FeatureDisabledPage feature="Ground School" />;
