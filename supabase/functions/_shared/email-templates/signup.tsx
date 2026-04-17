@@ -38,6 +38,7 @@ export const SignupEmail = ({
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
           <Img src={LOGO_URL} alt={`${siteName} logo`} width="64" height="64" style={{ borderRadius: '12px', display: 'inline-block' }} />
+          <Text style={tagline}>Your AI Senior CFI</Text>
         </Section>
         <Heading style={h1}>Confirm your email</Heading>
         <Text style={text}>
@@ -93,3 +94,5 @@ const button = {
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+
+const tagline = { fontSize: '11px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '1.5px', textTransform: 'uppercase' as const, margin: '8px 0 0', textAlign: 'center' as const }

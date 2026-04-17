@@ -36,6 +36,7 @@ const ContactConfirmationEmail = ({ name }: ContactConfirmationProps) => (
             height="64"
             style={{ borderRadius: '12px', display: 'inline-block' }}
           />
+          <Text style={tagline}>Your AI Senior CFI</Text>
         </Section>
         <Heading style={h1}>
           {name ? `Thank you, ${name}!` : 'Thank you for reaching out!'}
@@ -74,3 +75,5 @@ const text = {
   margin: '0 0 25px',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+
+const tagline = { fontSize: '11px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '1.5px', textTransform: 'uppercase' as const, margin: '8px 0 0', textAlign: 'center' as const }

@@ -28,6 +28,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
           <Img src={LOGO_URL} alt="SimPilot logo" width="64" height="64" style={{ borderRadius: '12px', display: 'inline-block' }} />
+          <Text style={tagline}>Your AI Senior CFI</Text>
         </Section>
         <Heading style={h1}>Confirm reauthentication</Heading>
         <Text style={text}>Use the code below to confirm your identity:</Text>
@@ -66,3 +67,5 @@ const codeStyle = {
   margin: '0 0 30px',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+
+const tagline = { fontSize: '11px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '1.5px', textTransform: 'uppercase' as const, margin: '8px 0 0', textAlign: 'center' as const }
