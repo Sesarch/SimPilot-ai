@@ -366,6 +366,7 @@ const ProgressPage = () => {
                                 score={exam.score}
                                 total={exam.total_questions}
                                 stressMode={exam.stress_mode}
+                                showTopTier
                               />
                             </div>
                           </div>
@@ -483,6 +484,7 @@ const ProgressPage = () => {
                           score={exam.score}
                           total={exam.total_questions}
                           stressMode={exam.stress_mode}
+                          showTopTier
                         />
                       </div>
                     </div>
