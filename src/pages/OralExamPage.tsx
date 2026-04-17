@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Shield, ArrowLeft, ChevronRight, Flame, Target } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
-import type { CheckrideWeakArea } from "@/lib/checkrideReport";
+import CheckrideReadinessReport from "@/components/CheckrideReadinessReport";
+import { supabase } from "@/integrations/supabase/client";
+import type { CheckrideReport, CheckrideWeakArea } from "@/lib/checkrideReport";
 
 const EXAM_TYPES = [
   {
@@ -69,9 +71,54 @@ const OralExamPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedExam, setSelectedExam] = useState<typeof EXAM_TYPES[0] | null>(null);
   const [stressMode, setStressMode] = useState(false);
   const [stressTimerSeconds, setStressTimerSeconds] = useState<30 | 60 | 90>(60);
+
+  // Past report viewing via ?report=<exam_score_id>
+  const reportId = searchParams.get("report");
+  const [pastReport, setPastReport] = useState<CheckrideReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!reportId || !user) {
+      setPastReport(null);
+      setReportError(null);
+      return;
+    }
+    let cancelled = false;
+    setReportLoading(true);
+    setReportError(null);
+    supabase
+      .from("exam_scores")
+      .select("report")
+      .eq("id", reportId)
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        setReportLoading(false);
+        if (error || !data?.report) {
+          setReportError("Report not found.");
+          setPastReport(null);
+          return;
+        }
+        setPastReport(data.report as unknown as CheckrideReport);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reportId, user]);
+
+  const closePastReport = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("report");
+    setSearchParams(next, { replace: true });
+    setPastReport(null);
+    setReportError(null);
+  };
 
   // Auto-launch a weak-areas drill if arriving from a Checkride Readiness Report
   useEffect(() => {
@@ -154,7 +201,29 @@ const OralExamPage = () => {
 
       {/* Content */}
       <div className="pt-20 flex-1 flex flex-col">
-      {selectedExam ? (
+      {reportId ? (
+        <div className="flex-1 overflow-y-auto">
+          <div className="container mx-auto px-4 sm:px-6 py-6 max-w-3xl">
+            <button
+              onClick={closePastReport}
+              className="mb-4 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Oral Exam
+            </button>
+            {reportLoading && (
+              <div className="text-sm text-muted-foreground">Loading report…</div>
+            )}
+            {reportError && !reportLoading && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+                {reportError}
+              </div>
+            )}
+            {pastReport && !reportLoading && (
+              <CheckrideReadinessReport report={pastReport} onClose={closePastReport} />
+            )}
+          </div>
+        </div>
+      ) : selectedExam ? (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="border-b border-border bg-secondary/30 px-6 py-3 shrink-0">
             <div className="container mx-auto flex items-center gap-3">

@@ -59,6 +59,20 @@ const GroundSchoolPage = () => {
     setSearchParams(next, { replace: true });
   };
 
+  // Auto-open a lesson via ?topic=<id> deep link
+  useEffect(() => {
+    const topicId = searchParams.get("topic");
+    if (!topicId) return;
+    const lesson = LESSON_AREAS.find((l) => l.id === topicId);
+    if (lesson) {
+      setSelectedLesson(lesson);
+      const next = new URLSearchParams(searchParams);
+      next.delete("topic");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Derive the active toggle value from the synced pilot context (profile + localStorage).
   // Defaults to PPL until the user picks one.
   const certLevel: CertLevel = useMemo(
