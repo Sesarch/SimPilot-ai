@@ -97,18 +97,32 @@ const OralExamPage = () => {
           <div className="border-b border-border bg-secondary/30 px-6 py-3 shrink-0">
             <div className="container mx-auto flex items-center gap-3">
               <span className="text-2xl">{selectedExam.icon}</span>
-              <div>
-                <h2 className="font-display text-sm font-bold text-foreground">{selectedExam.title}</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-display text-sm font-bold text-foreground">{selectedExam.title}</h2>
+                  {stressMode && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/30 text-[10px] font-semibold uppercase tracking-wider">
+                      <Flame className="w-3 h-3" /> Stress Mode
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">DPE Oral Examination Simulation</p>
               </div>
+              <button
+                onClick={() => { setSelectedExam(null); }}
+                className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+              >
+                ← Change exam
+              </button>
             </div>
           </div>
           <div className="flex-1 container mx-auto max-w-3xl min-h-0">
             <TrainingChat
               mode="oral_exam"
               placeholder="Answer the examiner's question..."
-              welcomeMessage={`Ready for your ${selectedExam.title} oral exam? The DPE will evaluate your knowledge against ACS standards. Answer thoroughly and accurately.`}
+              welcomeMessage={`Ready for your ${selectedExam.title} oral exam?${stressMode ? " Stress Mode is ON — expect aggressive 'Why?' follow-ups." : ""} The DPE will evaluate your knowledge against ACS standards.`}
               initialPrompt={selectedExam.prompt}
+              stressMode={stressMode}
             />
           </div>
         </div>
@@ -124,6 +138,35 @@ const OralExamPage = () => {
                 Choose your certificate level or try a quick quiz.
               </p>
             </div>
+
+            {/* Stress Mode toggle */}
+            <button
+              type="button"
+              onClick={() => setStressMode((v) => !v)}
+              className={`w-full mb-6 flex items-start gap-3 text-left p-4 rounded-xl border transition-all ${
+                stressMode
+                  ? "bg-accent/10 border-accent/40 shadow-[0_0_20px_hsl(var(--amber-instrument)/0.15)]"
+                  : "bg-secondary/30 border-border hover:border-accent/30"
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${stressMode ? "bg-accent/20 text-accent" : "bg-secondary text-muted-foreground"}`}>
+                <Flame className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-display text-sm font-bold text-foreground">Stress Mode</h3>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${stressMode ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                    {stressMode ? "ON" : "OFF"}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  DPE drills aggressive "Why?" follow-ups after every answer. Simulates worst-case checkride pressure so you're over-prepared.
+                </p>
+              </div>
+              <div className={`w-10 h-6 rounded-full transition-colors shrink-0 mt-0.5 ${stressMode ? "bg-accent" : "bg-muted"}`}>
+                <div className={`w-5 h-5 rounded-full bg-background shadow transition-transform mt-0.5 ${stressMode ? "translate-x-[18px]" : "translate-x-0.5"}`} />
+              </div>
+            </button>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {EXAM_TYPES.map((exam) => (
