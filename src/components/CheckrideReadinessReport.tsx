@@ -1,6 +1,7 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
-import { Award, AlertTriangle, BookOpen, Download, X, Flame } from "lucide-react";
+import { Award, AlertTriangle, BookOpen, Download, X, Flame, Target } from "lucide-react";
 import type { CheckrideReport } from "@/lib/checkrideReport";
 
 interface Props {
@@ -10,6 +11,21 @@ interface Props {
 }
 
 export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) => {
+  const navigate = useNavigate();
+  const hasWeakAreas = report.weak_areas.length > 0;
+
+  const drillWeakAreas = () => {
+    navigate("/oral-exam", {
+      state: {
+        drill: {
+          certificate: report.certificate,
+          stress_mode: report.stress_mode,
+          weak_areas: report.weak_areas,
+        },
+      },
+    });
+  };
+
   const pct = useMemo(
     () => (report.total > 0 ? Math.round((report.score / report.total) * 100) : 0),
     [report]
@@ -202,6 +218,14 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
         >
           <Download className="w-3.5 h-3.5" /> Download PDF
         </button>
+        {hasWeakAreas && (
+          <button
+            onClick={drillWeakAreas}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-xs font-display font-semibold tracking-wider uppercase hover:shadow-[0_0_15px_hsl(var(--amber-instrument)/0.4)] transition-all"
+          >
+            <Target className="w-3.5 h-3.5" /> Drill Weak Areas ({report.weak_areas.length})
+          </button>
+        )}
         {onRetry && (
           <button
             onClick={onRetry}
