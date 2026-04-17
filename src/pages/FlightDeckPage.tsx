@@ -4,6 +4,7 @@ import CategoryCard from "@/components/dashboard/CategoryCard";
 import SEOHead from "@/components/SEOHead";
 import { useReadiness, type ReadinessCategoryKey } from "@/hooks/useReadiness";
 import { Skeleton } from "@/components/ui/skeleton";
+import RecentActivityPanel from "@/components/dashboard/RecentActivityPanel";
 
 const CATEGORY_META: Array<{
   key: ReadinessCategoryKey;
@@ -117,6 +118,11 @@ const FlightDeckPage = () => {
               trend={loading ? undefined : categories[c.key].trend || undefined}
             />
           ))}
+        </div>
+
+        {/* Recent Activity */}
+        <div className="mt-4">
+          <RecentActivityPanel />
         </div>
 
         {/* Footer status bar */}
