@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, CheckCircle2, Circle, TrendingUp, Award, BookOpen, BarChart3, ShieldCheck, Flame, Timer, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, TrendingUp, Award, BookOpen, BarChart3, ShieldCheck, Flame, Timer, XCircle, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
