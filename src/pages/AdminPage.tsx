@@ -20,6 +20,7 @@ import AdminEmailDashboard from "@/components/AdminEmailDashboard";
 import AdminSupportChats from "@/components/AdminSupportChats";
 import AdminAnalytics from "@/components/AdminAnalytics";
 import AdminSiteSettings from "@/components/AdminSiteSettings";
+import AdminMissingAcsCodes from "@/components/AdminMissingAcsCodes";
 
 type AdminUser = {
   id: string;
@@ -487,7 +488,10 @@ const AdminPage = () => {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <AdminSiteSettings />
+            <div className="space-y-6">
+              <AdminSiteSettings />
+              <AdminMissingAcsCodes />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
