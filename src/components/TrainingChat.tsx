@@ -139,7 +139,9 @@ export const TrainingChat = ({
         session_id: sessionId.current,
         stress_mode: stressMode,
         acs_codes: structured ? structured.weak_areas.map((w) => w.acs_code) : null,
-        report: structured ? (structured as any) : null,
+        report: structured
+          ? ({ ...structured, timer_seconds: stressMode ? stressTimerSeconds : null } as any)
+          : null,
       } as any);
       if (error) console.error("Failed to save exam score:", error);
     },
