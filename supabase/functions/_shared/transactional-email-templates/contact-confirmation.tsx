@@ -8,12 +8,15 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
 const SITE_NAME = "SimPilot.AI"
+const SITE_URL = 'https://simpilot.ai'
 
 interface ContactConfirmationProps {
   name?: string
@@ -25,6 +28,15 @@ const ContactConfirmationEmail = ({ name }: ContactConfirmationProps) => (
     <Preview>Thanks for reaching out to {SITE_NAME}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
+          <Img
+            src={`${SITE_URL}/icon-512x512.png`}
+            alt={`${SITE_NAME} logo`}
+            width="64"
+            height="64"
+            style={{ borderRadius: '12px', display: 'inline-block' }}
+          />
+        </Section>
         <Heading style={h1}>
           {name ? `Thank you, ${name}!` : 'Thank you for reaching out!'}
         </Heading>

@@ -1,10 +1,11 @@
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Container, Head, Heading, Html, Preview, Text, Section, Hr,
+  Body, Container, Head, Heading, Html, Img, Preview, Text, Section, Hr,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
 const SITE_NAME = 'SimPilot.AI'
+const SITE_URL = 'https://simpilot.ai'
 
 interface NewsletterConfirmationProps {
   email?: string
@@ -16,6 +17,15 @@ const NewsletterConfirmationEmail = ({ email }: NewsletterConfirmationProps) => 
     <Preview>You're cleared for takeoff — welcome to Pilot Briefings ✈️</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Section style={{ textAlign: 'center' as const, margin: '0 0 20px' }}>
+          <Img
+            src={`${SITE_URL}/icon-512x512.png`}
+            alt={`${SITE_NAME} logo`}
+            width="64"
+            height="64"
+            style={{ borderRadius: '12px', display: 'inline-block' }}
+          />
+        </Section>
         <Section style={header}>
           <Text style={brandTag}>SIMPILOT.AI · PILOT BRIEFINGS</Text>
         </Section>
