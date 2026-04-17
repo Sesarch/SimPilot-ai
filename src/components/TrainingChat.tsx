@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
-import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame, Timer, Volume2, VolumeX } from "lucide-react";
+import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame, Timer, Volume2, VolumeX, Mic, MicOff } from "lucide-react";
 import { useTickSound } from "@/hooks/useTickSound";
+import { useSpeech } from "@/hooks/useSpeech";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -88,6 +89,8 @@ export const TrainingChat = ({
   const timeoutCountRef = useRef(0);
   const [timeoutCount, setTimeoutCount] = useState(0);
   const { enabled: tickEnabled, setEnabled: setTickEnabled, playTick } = useTickSound();
+  const voice = useSpeech();
+  const voiceActive = mode === "oral_exam" && voice.supported && voice.enabled;
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
@@ -158,11 +161,13 @@ export const TrainingChat = ({
       const last = messages[messages.length - 1];
       if (last.role === "assistant") {
         saveMessage(last, firstUserMsgRef.current);
-        parseAndSaveScore(getTextContent(last.content));
+        const text = getTextContent(last.content);
+        parseAndSaveScore(text);
+        if (voiceActive) voice.speak(text);
       }
     }
     prevLoadingRef.current = isLoading;
-  }, [isLoading, messages, saveMessage, parseAndSaveScore]);
+  }, [isLoading, messages, saveMessage, parseAndSaveScore, voiceActive, voice]);
 
   // Auto-mark ground school topic as completed
   useEffect(() => {
@@ -226,6 +231,7 @@ export const TrainingChat = ({
   const handleSend = () => {
     if ((!input.trim() && !pendingImage) || isLoading) return;
     if (!started) setStarted(true);
+    if (voice.supported) voice.cancel();
     send(input.trim() || "Analyze this chart", pendingImage || undefined);
     setInput("");
     setPendingImage(null);
@@ -246,6 +252,7 @@ export const TrainingChat = ({
   };
 
   const handleReset = () => {
+    if (voice.supported) voice.cancel();
     reset();
     resetSession();
     firstUserMsgRef.current = "";
@@ -448,6 +455,36 @@ export const TrainingChat = ({
               title="Reset session"
             >
               <RotateCcw className="w-4 h-4" />
+            </button>
+          )}
+          {mode === "oral_exam" && voice.supported && (
+            <button
+              type="button"
+              onClick={() => {
+                if (voice.enabled) {
+                  voice.cancel();
+                  voice.setEnabled(false);
+                } else {
+                  voice.setEnabled(true);
+                  // Speak the latest assistant message immediately so the user hears it works
+                  const lastAi = [...messages].reverse().find((m) => m.role === "assistant");
+                  if (lastAi) voice.speak(getTextContent(lastAi.content));
+                }
+              }}
+              className={`p-2.5 transition-colors ${
+                voice.enabled
+                  ? "text-accent hover:text-accent/80"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title={voice.enabled ? "DPE Voice Mode: ON (click to mute)" : "DPE Voice Mode: OFF (click to hear examiner)"}
+              aria-pressed={voice.enabled}
+              aria-label="Toggle DPE voice mode"
+            >
+              {voice.enabled ? (
+                <Mic className={`w-4 h-4 ${voice.speaking ? "animate-pulse" : ""}`} />
+              ) : (
+                <MicOff className="w-4 h-4" />
+              )}
             </button>
           )}
           <button
