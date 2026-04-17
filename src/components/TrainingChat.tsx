@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
-import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame, Timer } from "lucide-react";
+import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame, Timer, Volume2, VolumeX } from "lucide-react";
+import { useTickSound } from "@/hooks/useTickSound";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -83,6 +84,7 @@ export const TrainingChat = ({
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const timeoutCountRef = useRef(0);
   const [timeoutCount, setTimeoutCount] = useState(0);
+  const { enabled: tickEnabled, setEnabled: setTickEnabled, playTick } = useTickSound();
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
@@ -199,13 +201,18 @@ export const TrainingChat = ({
         if (s === null) return s;
         if (s <= 1) {
           clearInterval(interval);
+          // Final urgent tick at zero
+          playTick(true);
           // Fire timeout
           timeoutCountRef.current += 1;
           setTimeoutCount(timeoutCountRef.current);
           send(`(TIMEOUT — student did not answer within ${STRESS_TIMER_SECONDS} seconds. Mark this question as a timeout in the final report and continue with the next question.)`);
           return null;
         }
-        return s - 1;
+        const next = s - 1;
+        // Tick during the last 10 seconds (10s … 1s remaining)
+        if (next <= 10 && next >= 1) playTick(next <= 3);
+        return next;
       });
     }, 1000);
     return () => clearInterval(interval);
@@ -367,7 +374,18 @@ export const TrainingChat = ({
                 <Timer className="w-3.5 h-3.5" />
                 {secondsLeft <= 10 ? "Hurry — DPE is waiting" : "Answer Window"}
               </span>
-              <span className="tabular-nums">{secondsLeft}s</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setTickEnabled((v) => !v); }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={tickEnabled ? "Mute timer ticking" : "Enable timer ticking"}
+                  title={tickEnabled ? "Mute timer ticking" : "Enable timer ticking"}
+                >
+                  {tickEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                </button>
+                <span className="tabular-nums">{secondsLeft}s</span>
+              </div>
             </div>
             <div className="h-1 rounded-full bg-secondary overflow-hidden">
               <div
