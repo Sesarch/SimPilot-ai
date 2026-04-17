@@ -40,7 +40,7 @@ type ExamScore = {
   created_at: string;
   stress_mode?: boolean;
   acs_codes?: string[] | null;
-  report?: { timer_seconds?: number | null; weak_areas?: { acs_code: string; topic?: string }[] } | null;
+  report?: { timer_seconds?: number | null; exam_type_id?: string | null; weak_areas?: { acs_code: string; topic?: string }[] } | null;
 };
 
 const ProgressPage = () => {
