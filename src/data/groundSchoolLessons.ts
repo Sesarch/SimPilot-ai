@@ -1,4 +1,4 @@
-export type CertLevel = "PPL" | "IR" | "CPL";
+export type CertLevel = "PPL" | "IR" | "CPL" | "ATP";
 
 export interface LessonArea {
   id: string;
