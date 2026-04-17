@@ -156,7 +156,7 @@ const GroundSchoolPage = () => {
                   Sets the ACS depth your CFI-AI uses for every lesson.
                 </p>
               </div>
-              <div role="radiogroup" aria-label="Certificate level" className="grid grid-cols-3 gap-2">
+              <div role="radiogroup" aria-label="Certificate level" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {CERT_OPTIONS.map((opt) => {
                   const active = certLevel === opt.value;
                   return (
