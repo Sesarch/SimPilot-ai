@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
@@ -13,6 +13,14 @@ import { LESSON_AREAS, type LessonArea } from "@/data/groundSchoolLessons";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 import { usePilotContext } from "@/hooks/usePilotContext";
+import { TOPIC_TO_CATEGORY, type ReadinessCategoryKey } from "@/hooks/useReadiness";
+
+const CATEGORY_LABELS: Record<ReadinessCategoryKey, string> = {
+  regulations: "Regulations",
+  weather: "Weather",
+  navigation: "Navigation",
+  aerodynamics: "Aerodynamics",
+};
 
 type CertLevel = "PPL" | "IR" | "CPL" | "ATP";
 const CERT_OPTIONS: { value: CertLevel; label: string; sub: string; profile: string }[] = [
