@@ -115,6 +115,7 @@ const FlightDeckPage = () => {
               icon={c.icon}
               label={c.label}
               accent={c.accent}
+              href={c.href}
               score={loading ? 0 : categories[c.key].score}
               trend={loading ? undefined : categories[c.key].trend || undefined}
             />
