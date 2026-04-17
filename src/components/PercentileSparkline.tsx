@@ -1,4 +1,4 @@
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Trophy } from "lucide-react";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 
 interface Props {
@@ -8,7 +8,40 @@ interface Props {
   stressMode?: boolean;
   /** Minimum cohort size before the sparkline is shown. */
   minSample?: number;
+  /** When true, renders an inline Top 5/10/25% trophy badge for exceptional percentiles. */
+  showTopTier?: boolean;
+  /** Minimum cohort size before the top-tier badge is shown (defaults to 10). */
+  topTierMinSample?: number;
 }
+
+type TopTier = { label: string; classes: string; iconClass: string } | null;
+
+const getTopTier = (percentile: number): TopTier => {
+  if (percentile >= 95) {
+    return {
+      label: "Top 5%",
+      classes:
+        "bg-gradient-to-r from-[hsl(var(--amber-instrument)/0.25)] to-[hsl(var(--amber-instrument)/0.1)] text-[hsl(var(--amber-instrument))] border-[hsl(var(--amber-instrument)/0.6)] shadow-[0_0_14px_hsl(var(--amber-instrument)/0.5)]",
+      iconClass: "drop-shadow-[0_0_4px_hsl(var(--amber-instrument)/0.9)]",
+    };
+  }
+  if (percentile >= 90) {
+    return {
+      label: "Top 10%",
+      classes:
+        "bg-gradient-to-r from-[hsl(var(--amber-instrument)/0.18)] to-[hsl(var(--amber-instrument)/0.05)] text-[hsl(var(--amber-instrument))] border-[hsl(var(--amber-instrument)/0.5)] shadow-[0_0_10px_hsl(var(--amber-instrument)/0.35)]",
+      iconClass: "drop-shadow-[0_0_3px_hsl(var(--amber-instrument)/0.7)]",
+    };
+  }
+  if (percentile >= 75) {
+    return {
+      label: "Top 25%",
+      classes: "bg-primary/10 text-primary border-primary/40 shadow-[0_0_8px_hsl(var(--primary)/0.3)]",
+      iconClass: "drop-shadow-[0_0_2px_hsl(var(--primary)/0.6)]",
+    };
+  }
+  return null;
+};
 
 /**
  * Tiny inline percentile visualization for a past exam attempt.
