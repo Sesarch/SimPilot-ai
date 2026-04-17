@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, CheckCircle2, Circle, TrendingUp, Award, BookOpen, BarChart3, ShieldCheck, Flame, Timer, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, TrendingUp, Award, BookOpen, BarChart3, ShieldCheck, Flame, Timer, XCircle, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
@@ -40,7 +40,7 @@ type ExamScore = {
   created_at: string;
   stress_mode?: boolean;
   acs_codes?: string[] | null;
-  report?: { timer_seconds?: number | null; weak_areas?: { acs_code: string; topic?: string }[] } | null;
+  report?: { timer_seconds?: number | null; exam_type_id?: string | null; weak_areas?: { acs_code: string; topic?: string }[] } | null;
 };
 
 const ProgressPage = () => {
@@ -342,6 +342,27 @@ const ProgressPage = () => {
                               <Timer className="w-3 h-3" /> {timerSec}s/Q
                             </Badge>
                           ) : null}
+                          {exam.report?.exam_type_id && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigate("/oral-exam", {
+                                  state: {
+                                    repeat: {
+                                      exam_type: exam.report?.exam_type_id,
+                                      stress_mode: exam.stress_mode,
+                                      timer_seconds: timerSec,
+                                    },
+                                  },
+                                })
+                              }
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-primary/40 bg-primary/10 text-primary text-xs font-display font-semibold uppercase tracking-wider hover:bg-primary/20 hover:border-primary/60 transition-colors"
+                              title="Start a new oral exam with the same Stress Mode and timer length"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              Repeat
+                            </button>
+                          )}
                         </div>
                       </div>
 

@@ -27,6 +27,8 @@ interface TrainingChatProps {
   stressMode?: boolean;
   /** Per-question countdown length in seconds when stressMode is on */
   stressTimerSeconds?: number;
+  /** Identifier for the selected oral-exam type (e.g. "ppl", "instrument") — saved to report for repeat-attempt support */
+  examTypeId?: string;
 }
 
 export const TrainingChat = ({
@@ -38,6 +40,7 @@ export const TrainingChat = ({
   certificateOverride,
   stressMode = false,
   stressTimerSeconds = 60,
+  examTypeId,
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -140,12 +143,12 @@ export const TrainingChat = ({
         stress_mode: stressMode,
         acs_codes: structured ? structured.weak_areas.map((w) => w.acs_code) : null,
         report: structured
-          ? ({ ...structured, timer_seconds: stressMode ? stressTimerSeconds : null } as any)
-          : null,
+          ? ({ ...structured, timer_seconds: stressMode ? stressTimerSeconds : null, exam_type_id: examTypeId ?? null } as any)
+          : (examTypeId ? ({ exam_type_id: examTypeId, timer_seconds: stressMode ? stressTimerSeconds : null } as any) : null),
       } as any);
       if (error) console.error("Failed to save exam score:", error);
     },
-    [mode, user, sessionId, stressMode, stressTimerSeconds]
+    [mode, user, sessionId, stressMode, stressTimerSeconds, examTypeId]
   );
 
   // Save assistant message when streaming completes
