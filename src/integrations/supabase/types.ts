@@ -285,6 +285,30 @@ export type Database = {
         }
         Relationships: []
       }
+      missing_acs_codes: {
+        Row: {
+          code: string
+          first_seen_at: string
+          hit_count: number
+          id: string
+          last_seen_at: string
+        }
+        Insert: {
+          code: string
+          first_seen_at?: string
+          hit_count?: number
+          id?: string
+          last_seen_at?: string
+        }
+        Update: {
+          code?: string
+          first_seen_at?: string
+          hit_count?: number
+          id?: string
+          last_seen_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           email: string
@@ -538,6 +562,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_missing_acs_code: { Args: { _code: string }; Returns: undefined }
       move_to_dlq: {
         Args: {
           dlq_name: string
