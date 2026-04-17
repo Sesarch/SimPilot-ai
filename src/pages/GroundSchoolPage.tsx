@@ -14,19 +14,21 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 import { usePilotContext } from "@/hooks/usePilotContext";
 
-type CertLevel = "PPL" | "IR" | "CPL";
+type CertLevel = "PPL" | "IR" | "CPL" | "ATP";
 const CERT_OPTIONS: { value: CertLevel; label: string; sub: string; profile: string }[] = [
   { value: "PPL", label: "PPL", sub: "Private", profile: "Private Pilot (PPL)" },
   { value: "IR", label: "IR", sub: "Instrument", profile: "Instrument Rating (IR)" },
   { value: "CPL", label: "CPL", sub: "Commercial", profile: "Commercial Pilot (CPL)" },
+  { value: "ATP", label: "ATP", sub: "Airline Transport", profile: "Airline Transport Pilot (ATP)" },
 ];
 
-/** Map any profile certificate_type string back to one of our 3 toggle values. */
+/** Map any profile certificate_type string back to one of our toggle values. */
 function profileToCertLevel(value: string | null | undefined): CertLevel | null {
   if (!value) return null;
   const v = value.toLowerCase();
+  if (v.includes("atp") || v.includes("airline transport")) return "ATP";
   if (v.includes("instrument") || v === "ir") return "IR";
-  if (v.includes("commercial") || v === "cpl" || v.includes("atp")) return "CPL";
+  if (v.includes("commercial") || v === "cpl") return "CPL";
   if (v.includes("private") || v === "ppl" || v.includes("student") || v.includes("sport") || v.includes("recreational")) return "PPL";
   return null;
 }
@@ -154,7 +156,7 @@ const GroundSchoolPage = () => {
                   Sets the ACS depth your CFI-AI uses for every lesson.
                 </p>
               </div>
-              <div role="radiogroup" aria-label="Certificate level" className="grid grid-cols-3 gap-2">
+              <div role="radiogroup" aria-label="Certificate level" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {CERT_OPTIONS.map((opt) => {
                   const active = certLevel === opt.value;
                   return (
