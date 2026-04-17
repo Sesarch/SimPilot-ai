@@ -13,6 +13,7 @@ type ActivityItem = {
   metric: string;
   metricColor: string;
   at: string; // ISO
+  href: string;
 };
 
 const TOPIC_TITLES: Record<string, string> = Object.fromEntries(
@@ -146,7 +147,12 @@ const RecentActivityPanel = () => {
             const accent =
               it.kind === "exam" ? "hsl(var(--amber-instrument))" : "hsl(var(--cyan-glow))";
             return (
-              <div key={it.id} className="py-3 flex items-center gap-3">
+              <Link
+                key={it.id}
+                to={it.href}
+                aria-label={`Open ${it.kind === "exam" ? "report for" : "lesson"} ${it.title}`}
+                className="py-3 flex items-center gap-3 group rounded-md -mx-1 px-1 transition-colors hover:bg-primary/5 focus:outline-none focus:bg-primary/5"
+              >
                 <div
                   className="w-8 h-8 rounded-md flex items-center justify-center border shrink-0"
                   style={{
@@ -157,7 +163,7 @@ const RecentActivityPanel = () => {
                   <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-display text-xs uppercase tracking-wider text-foreground truncate">
+                  <div className="font-display text-xs uppercase tracking-wider text-foreground truncate group-hover:text-primary transition-colors">
                     {it.title}
                   </div>
                   <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground truncate">
@@ -175,7 +181,8 @@ const RecentActivityPanel = () => {
                     {formatAgo(it.at)}
                   </span>
                 </div>
-              </div>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors shrink-0" />
+              </Link>
             );
           })
         )}
