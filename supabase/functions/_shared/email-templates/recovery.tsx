@@ -9,9 +9,13 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
+
+const LOGO_URL = 'https://simpilot.ai/icon-512x512.png'
 
 interface RecoveryEmailProps {
   siteName: string
@@ -27,6 +31,9 @@ export const RecoveryEmail = ({
     <Preview>Reset your password for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
+          <Img src={LOGO_URL} alt={`${siteName} logo`} width="64" height="64" style={{ borderRadius: '12px', display: 'inline-block' }} />
+        </Section>
         <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
           We received a request to reset your password for {siteName}. Click
