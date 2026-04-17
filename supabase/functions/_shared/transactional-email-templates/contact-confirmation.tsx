@@ -36,6 +36,7 @@ const ContactConfirmationEmail = ({ name }: ContactConfirmationProps) => (
             height="64"
             style={{ borderRadius: '12px', display: 'inline-block' }}
           />
+          <Text style={tagline}>Your AI Senior CFI</Text>
         </Section>
         <Heading style={h1}>
           {name ? `Thank you, ${name}!` : 'Thank you for reaching out!'}

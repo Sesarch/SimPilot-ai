@@ -33,6 +33,7 @@ export const MagicLinkEmail = ({
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
           <Img src={LOGO_URL} alt={`${siteName} logo`} width="64" height="64" style={{ borderRadius: '12px', display: 'inline-block' }} />
+          <Text style={tagline}>Your AI Senior CFI</Text>
         </Section>
         <Heading style={h1}>Your login link</Heading>
         <Text style={text}>

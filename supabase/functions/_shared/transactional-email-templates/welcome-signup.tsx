@@ -39,6 +39,7 @@ const WelcomeSignupEmail = ({ name }: WelcomeSignupProps) => (
             height="64"
             style={{ borderRadius: '12px', display: 'inline-block' }}
           />
+          <Text style={tagline}>Your AI Senior CFI</Text>
         </Section>
         <Heading style={h1}>
           {name ? `Welcome aboard, ${name}! ✈️` : 'Welcome aboard, pilot! ✈️'}

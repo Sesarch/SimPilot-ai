@@ -25,6 +25,7 @@ const NewsletterConfirmationEmail = ({ email }: NewsletterConfirmationProps) => 
             height="64"
             style={{ borderRadius: '12px', display: 'inline-block' }}
           />
+          <Text style={tagline}>Your AI Senior CFI</Text>
         </Section>
         <Section style={header}>
           <Text style={brandTag}>SIMPILOT.AI · PILOT BRIEFINGS</Text>
