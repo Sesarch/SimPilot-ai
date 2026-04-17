@@ -58,6 +58,11 @@ export const AcsCodeChip = ({ code, onClick, className }: AcsCodeChipProps) => {
   const label = info ? `${code}: ${info.task}` : `${code}: Unknown ACS task`;
   const subtext = info?.description || (info?.area ? `Area: ${info.area}` : "No description available.");
 
+  // Auto-log unknown codes so admins can backfill the lookup table
+  useEffect(() => {
+    if (!info) void logMissingCode(code);
+  }, [code, info]);
+
   const handleReportMissing = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
