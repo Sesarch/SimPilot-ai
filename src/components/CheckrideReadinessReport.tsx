@@ -1,9 +1,53 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
+import confetti from "canvas-confetti";
+import { toast } from "sonner";
 import { Award, AlertTriangle, BookOpen, Download, X, Flame, Target, TrendingUp, Trophy } from "lucide-react";
 import type { CheckrideReport } from "@/lib/checkrideReport";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
+
+/** localStorage key tracking which top-tier achievements the user has already celebrated. */
+const CELEBRATED_TIERS_KEY = "simpilot:celebrated-tiers";
+
+const getCelebratedTiers = (): Set<string> => {
+  try {
+    const raw = localStorage.getItem(CELEBRATED_TIERS_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+};
+
+const markTierCelebrated = (tier: string) => {
+  try {
+    const set = getCelebratedTiers();
+    set.add(tier);
+    localStorage.setItem(CELEBRATED_TIERS_KEY, JSON.stringify([...set]));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+/** Fires a celebratory confetti burst from both lower corners. */
+const fireCelebration = () => {
+  const defaults = { spread: 70, ticks: 200, gravity: 0.9, decay: 0.94, startVelocity: 45 };
+  const colors = ["#FFB400", "#009199", "#FFD700", "#22D3EE"];
+  confetti({ ...defaults, particleCount: 80, origin: { x: 0.1, y: 0.85 }, angle: 60, colors });
+  confetti({ ...defaults, particleCount: 80, origin: { x: 0.9, y: 0.85 }, angle: 120, colors });
+  setTimeout(() => {
+    confetti({ ...defaults, particleCount: 60, origin: { x: 0.5, y: 0.7 }, angle: 90, spread: 100, colors });
+  }, 250);
+};
+
+/** Maps percentile to celebration tier key — only Top 5% / Top 10% trigger celebrations. */
+const getCelebrationTier = (percentile: number): "top-5" | "top-10" | null => {
+  if (percentile >= 95) return "top-5";
+  if (percentile >= 90) return "top-10";
+  return null;
+};
 
 interface Props {
   report: CheckrideReport;
