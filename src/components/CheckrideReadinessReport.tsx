@@ -177,6 +177,16 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
                   <Flame className="w-3 h-3" /> Stress Mode
                 </span>
               )}
+              {topTier && (
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-display font-bold uppercase tracking-widest animate-[pulse_3s_ease-in-out_infinite] ${topTier.classes}`}
+                  title={`${topTier.sublabel} — ${topTier.label} of ${percentile?.sample_size.toLocaleString()} anonymized SimPilot exams of this type`}
+                  aria-label={`Achievement: ${topTier.label} of SimPilot users on this exam type`}
+                >
+                  <Trophy className={`w-3 h-3 ${topTier.iconClass}`} />
+                  {topTier.label}
+                </span>
+              )}
             </p>
           </div>
         </div>
