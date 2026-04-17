@@ -4,7 +4,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { KeyRound, Mail, Trash2, AlertTriangle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap } from "lucide-react";
+import { usePilotContext } from "@/hooks/usePilotContext";
+
+const TRACK_OPTIONS = [
+  { value: "PPL", label: "PPL — Private Pilot" },
+  { value: "IR", label: "IR — Instrument Rating" },
+  { value: "CPL", label: "CPL — Commercial Pilot" },
+  { value: "ATP", label: "ATP — Airline Transport Pilot" },
+];
+
+function normalizeTrack(value: string | null | undefined): string {
+  if (!value) return "";
+  const v = value.toLowerCase();
+  if (v.includes("atp") || v.includes("airline transport")) return "ATP";
+  if (v.includes("instrument") || v === "ir") return "IR";
+  if (v.includes("commercial") || v === "cpl") return "CPL";
+  if (v.includes("private") || v === "ppl" || v.includes("student") || v.includes("sport") || v.includes("recreational")) return "PPL";
+  return "";
+}
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -12,6 +31,12 @@ import {
 
 const AccountSettings = () => {
   const { user } = useAuth();
+  const { context, updateField } = usePilotContext();
+  const currentTrack = normalizeTrack(context.certificate_type);
+  const handleTrackChange = (value: string) => {
+    updateField("certificate_type", value);
+    toast.success(`Study Track set to ${value}. Your CFI-AI will use ${value} ACS depth.`);
+  };
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -63,6 +88,26 @@ const AccountSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* Study Track */}
+      <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+          <GraduationCap className="w-4 h-4 text-primary" /> Study Track
+        </h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Sets the ACS depth your CFI-AI uses across Ground School, Oral Exam, and chat. Syncs across devices.
+        </p>
+        <Select value={currentTrack} onValueChange={handleTrackChange}>
+          <SelectTrigger className="w-full sm:w-[320px]">
+            <SelectValue placeholder="Select your certificate level" />
+          </SelectTrigger>
+          <SelectContent>
+            {TRACK_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Change Email */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
