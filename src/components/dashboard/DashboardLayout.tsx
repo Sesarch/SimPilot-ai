@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import PilotIdentityChip from "./PilotIdentityChip";
 import { useAuth } from "@/hooks/useAuth";
 import { Plane } from "lucide-react";
 
@@ -33,11 +34,15 @@ const DashboardLayout = () => {
               <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
                 SimPilot Avionics Suite
               </span>
-              <div className="ml-auto flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
-                <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-                  System Nominal
-                </span>
+              <div className="ml-auto flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
+                  <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                    System Nominal
+                  </span>
+                </div>
+                <div className="h-4 w-px bg-border hidden md:block" />
+                <PilotIdentityChip />
               </div>
             </header>
             <main className="flex-1 overflow-auto">
