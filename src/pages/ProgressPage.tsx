@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, CheckCircle2, Circle, TrendingUp, Award, BookOpen, BarChart3 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, TrendingUp, Award, BookOpen, BarChart3, ShieldCheck, Flame, Timer, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import SEOHead from "@/components/SEOHead";
@@ -37,6 +38,9 @@ type ExamScore = {
   total_questions: number;
   result: string;
   created_at: string;
+  stress_mode?: boolean;
+  acs_codes?: string[] | null;
+  report?: { timer_seconds?: number | null; weak_areas?: { acs_code: string; topic?: string }[] } | null;
 };
 
 const ProgressPage = () => {
@@ -263,6 +267,109 @@ const ProgressPage = () => {
             </div>
           )}
         </div>
+
+
+        {/* Checkride Readiness History */}
+        {(() => {
+          const checkrides = examScores.filter((e) => e.exam_type === "oral_exam");
+          if (checkrides.length === 0) return null;
+          return (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                <h2 className="font-display text-lg font-semibold text-foreground">Checkride Readiness History</h2>
+              </div>
+              <div className="space-y-3">
+                {checkrides.map((exam) => {
+                  const pct = Math.round((exam.score / exam.total_questions) * 100);
+                  const isPass = exam.result === "PASS";
+                  const acsCodes: string[] = Array.isArray(exam.acs_codes)
+                    ? (exam.acs_codes as string[])
+                    : exam.report?.weak_areas?.map((w) => w.acs_code) ?? [];
+                  const timerSec = exam.report?.timer_seconds ?? null;
+                  return (
+                    <div
+                      key={exam.id}
+                      className="rounded-xl border border-border bg-gradient-card p-4 space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${
+                              isPass ? "bg-primary/20" : "bg-destructive/20"
+                            }`}
+                          >
+                            {isPass ? (
+                              <CheckCircle2 className="w-6 h-6 text-primary" />
+                            ) : (
+                              <XCircle className="w-6 h-6 text-destructive" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge
+                                variant={isPass ? "default" : "destructive"}
+                                className={isPass ? "bg-primary text-primary-foreground" : ""}
+                              >
+                                {exam.result}
+                              </Badge>
+                              <span className="font-display text-lg font-bold text-foreground tabular-nums">
+                                {pct}%
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                ({exam.score}/{exam.total_questions})
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(exam.created_at).toLocaleString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {exam.stress_mode && (
+                            <Badge variant="outline" className="border-destructive/40 text-destructive gap-1">
+                              <Flame className="w-3 h-3" /> Stress
+                            </Badge>
+                          )}
+                          {timerSec ? (
+                            <Badge variant="outline" className="border-accent/40 text-accent gap-1">
+                              <Timer className="w-3 h-3" /> {timerSec}s/Q
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {acsCodes.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+                            ACS Codes Flagged for Review
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {acsCodes.map((code, i) => (
+                              <Badge
+                                key={`${exam.id}-${code}-${i}`}
+                                variant="secondary"
+                                className="font-mono text-[11px]"
+                              >
+                                {code}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Oral Exam Scores */}
         <div>
