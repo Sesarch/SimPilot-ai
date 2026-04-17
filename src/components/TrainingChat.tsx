@@ -389,7 +389,7 @@ export const TrainingChat = ({
             onClick={() => send(
               `End the exam now. Generate my full Checkride Readiness Report including the structured checkride-report JSON block.${
                 stressMode && timeoutCount > 0
-                  ? ` Note: the student timed out (failed to answer within 60s) on ${timeoutCount} question${timeoutCount > 1 ? "s" : ""} during Stress Mode — reflect this in the examiner_notes and weak_areas.`
+                  ? ` Note: the student timed out (failed to answer within ${STRESS_TIMER_SECONDS}s) on ${timeoutCount} question${timeoutCount > 1 ? "s" : ""} during Stress Mode — reflect this in the examiner_notes and weak_areas.`
                   : ""
               }`
             )}
