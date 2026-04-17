@@ -316,13 +316,13 @@ export const TrainingChat = ({
 
       {/* Input area */}
       <div className="border-t border-border p-4">
-        {mode === "oral_exam" && messages.length >= 6 && !isLoading && (
+        {mode === "oral_exam" && messages.length >= 6 && !isLoading && !report && (
           <button
-            onClick={() => send("Give me my debrief. How did I do?")}
+            onClick={() => send("End the exam now. Generate my full Checkride Readiness Report including the structured checkride-report JSON block.")}
             className="w-full mb-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent/10 border border-accent/30 text-accent rounded-lg text-xs font-display font-semibold tracking-wider uppercase hover:bg-accent/20 transition-all"
           >
             <ClipboardCheck className="w-4 h-4" />
-            Request Debrief & Score
+            End Exam &amp; Generate Report
           </button>
         )}
         <div className="flex items-end gap-2">
