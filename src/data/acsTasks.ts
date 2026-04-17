@@ -292,6 +292,8 @@ export const ACS_TASKS: Record<string, AcsTaskInfo> = (() => {
     V: "Emergency Operations",
     VI: "Postflight Procedures",
   }, "IR");
+  addCert(CA_TASKS, CA_AREAS, "CA");
+  addCert(FI_TASKS, FI_AREAS, "FI");
   return all;
 })();
 
