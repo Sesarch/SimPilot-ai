@@ -399,16 +399,25 @@ const ProgressPage = () => {
                         <div>
                           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
                             ACS Codes Flagged for Review
+                            <span className="ml-1.5 normal-case font-normal opacity-70">— hover for task name, click to drill</span>
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             {acsCodes.map((code, i) => (
-                              <Badge
+                              <AcsCodeChip
                                 key={`${exam.id}-${code}-${i}`}
-                                variant="secondary"
-                                className="font-mono text-[11px]"
-                              >
-                                {code}
-                              </Badge>
+                                code={code}
+                                onClick={(c) =>
+                                  navigate("/oral-exam", {
+                                    state: {
+                                      drill: {
+                                        certificate: exam.report?.exam_type_id?.toUpperCase(),
+                                        stress_mode: exam.stress_mode,
+                                        weak_areas: [{ acs_code: c, topic: c, issue: "Flagged in prior Checkride Readiness Report" }],
+                                      },
+                                    },
+                                  })
+                                }
+                              />
                             ))}
                           </div>
                         </div>
