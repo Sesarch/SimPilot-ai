@@ -67,3 +67,5 @@ const codeStyle = {
   margin: '0 0 30px',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+
+const tagline = { fontSize: '11px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '1.5px', textTransform: 'uppercase' as const, margin: '8px 0 0', textAlign: 'center' as const }

@@ -77,3 +77,5 @@ const text = { fontSize: '15px', color: '#3a4a5c', lineHeight: '1.6', margin: '0
 const hr = { borderColor: '#e2e8f0', margin: '28px 0' }
 const callout = { fontSize: '14px', color: '#009199', fontWeight: 600, margin: '0 0 12px' }
 const footer = { fontSize: '13px', color: '#94a3b8', margin: '20px 0 0' }
+
+const tagline = { fontSize: '11px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '1.5px', textTransform: 'uppercase' as const, margin: '8px 0 0', textAlign: 'center' as const }

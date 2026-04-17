@@ -138,3 +138,5 @@ const disclaimer = {
   fontStyle: 'italic' as const,
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '20px 0 0' }
+
+const tagline = { fontSize: '11px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '1.5px', textTransform: 'uppercase' as const, margin: '8px 0 0', textAlign: 'center' as const }
