@@ -31,7 +31,7 @@ export const InviteEmail = ({
 }: InviteEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>You've been invited to join {siteName}</Preview>
+    <Preview>You're cleared to join {siteName} ✈️</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -50,8 +50,9 @@ export const InviteEmail = ({
           Accept Invitation
         </Button>
         <Text style={footer}>
-          If you weren't expecting this invitation, you can safely ignore this
-          email.
+          Not expecting this invite? You can safely ignore this email.
+          <br />
+          Clear skies, The {siteName} crew ✈️
         </Text>
       </Container>
     </Body>

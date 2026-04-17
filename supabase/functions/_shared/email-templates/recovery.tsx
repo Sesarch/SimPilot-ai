@@ -28,7 +28,7 @@ export const RecoveryEmail = ({
 }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Reset your password for {siteName}</Preview>
+    <Preview>Reset your {siteName} password and get back in the cockpit ✈️</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -43,8 +43,9 @@ export const RecoveryEmail = ({
           Reset Password
         </Button>
         <Text style={footer}>
-          If you didn't request a password reset, you can safely ignore this
-          email. Your password will not be changed.
+          Didn't request this reset? You can safely ignore this email — your password stays unchanged.
+          <br />
+          Clear skies, The {siteName} crew ✈️
         </Text>
       </Container>
     </Body>

@@ -33,7 +33,7 @@ export const EmailChangeEmail = ({
 }: EmailChangeEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email change for {siteName}</Preview>
+    <Preview>Confirm your new {siteName} email address ✈️</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -58,8 +58,9 @@ export const EmailChangeEmail = ({
           Confirm Email Change
         </Button>
         <Text style={footer}>
-          If you didn't request this change, please secure your account
-          immediately.
+          Didn't request this change? Please secure your account immediately.
+          <br />
+          Clear skies, The {siteName} crew ✈️
         </Text>
       </Container>
     </Body>

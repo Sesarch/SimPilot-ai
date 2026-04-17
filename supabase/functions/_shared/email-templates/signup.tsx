@@ -33,7 +33,7 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Pre-flight check: confirm your {siteName} email ✈️</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -58,7 +58,9 @@ export const SignupEmail = ({
           Verify Email
         </Button>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          If you didn't sign up, you can safely ignore this email — no account will be created.
+          <br />
+          Clear skies, The {siteName} crew ✈️
         </Text>
       </Container>
     </Body>
