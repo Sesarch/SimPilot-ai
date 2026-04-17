@@ -60,6 +60,25 @@ const AuthPage = () => {
             .from("profiles")
             .update({ terms_agreed_at: new Date().toISOString() })
             .eq("user_id", data.user.id);
+
+          // Send branded welcome email (fire-and-forget, idempotent per user)
+          supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "welcome-signup",
+              recipientEmail: email,
+              idempotencyKey: `welcome-signup-${data.user.id}`,
+              templateData: { name: fullName || undefined },
+            },
+          }).catch((err) => console.error("Welcome email failed:", err));
+
+          // Sync new user to Omnisend with signup tags
+          supabase.functions.invoke("sync-omnisend-contact", {
+            body: {
+              email,
+              source: "user_signup",
+              pilotContext: fullName ? { full_name: fullName } : null,
+            },
+          }).catch((err) => console.error("Omnisend sync failed:", err));
         }
 
         toast.success("Account created! Check your email to verify.");
