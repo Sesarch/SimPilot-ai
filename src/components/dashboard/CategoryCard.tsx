@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Props {
   icon: LucideIcon;
@@ -6,12 +7,14 @@ interface Props {
   score: number; // 0-100
   trend?: number; // optional delta
   accent?: "cyan" | "amber";
+  href?: string;
 }
 
-const CategoryCard = ({ icon: Icon, label, score, trend, accent = "cyan" }: Props) => {
+const CategoryCard = ({ icon: Icon, label, score, trend, accent = "cyan", href }: Props) => {
   const color = accent === "amber" ? "hsl(var(--amber-instrument))" : "hsl(var(--cyan-glow))";
-  return (
-    <div className="g3000-bezel rounded-lg p-4 relative overflow-hidden group">
+
+  const inner = (
+    <>
       {/* corner ticks */}
       <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/40" />
       <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-primary/40" />
@@ -63,7 +66,26 @@ const CategoryCard = ({ icon: Icon, label, score, trend, accent = "cyan" }: Prop
           }}
         />
       </div>
-    </div>
+    </>
+  );
+
+  const interactiveCls = href
+    ? "cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-[0_0_24px_hsl(var(--cyan-glow)/0.25)] focus:outline-none focus:ring-2 focus:ring-primary/60"
+    : "";
+
+  if (href) {
+    return (
+      <Link
+        to={href}
+        aria-label={`${label} — open Ground School`}
+        className={`g3000-bezel rounded-lg p-4 relative overflow-hidden group block ${interactiveCls}`}
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <div className="g3000-bezel rounded-lg p-4 relative overflow-hidden group">{inner}</div>
   );
 };
 
