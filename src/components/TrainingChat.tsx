@@ -355,9 +355,41 @@ export const TrainingChat = ({
 
       {/* Input area */}
       <div className="border-t border-border p-4">
+        {timerActive && secondsLeft !== null && (
+          <div className="mb-3">
+            <div className={`flex items-center justify-between mb-1.5 text-[11px] font-display font-bold uppercase tracking-wider ${
+              secondsLeft <= 10 ? "text-destructive animate-pulse" : secondsLeft <= 20 ? "text-accent" : "text-muted-foreground"
+            }`}>
+              <span className="flex items-center gap-1.5">
+                <Timer className="w-3.5 h-3.5" />
+                {secondsLeft <= 10 ? "Hurry — DPE is waiting" : "Answer Window"}
+              </span>
+              <span className="tabular-nums">{secondsLeft}s</span>
+            </div>
+            <div className="h-1 rounded-full bg-secondary overflow-hidden">
+              <div
+                className={`h-full transition-[width] duration-1000 ease-linear ${
+                  secondsLeft <= 10 ? "bg-destructive" : secondsLeft <= 20 ? "bg-accent" : "bg-primary"
+                }`}
+                style={{ width: `${(secondsLeft / STRESS_TIMER_SECONDS) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+        {mode === "oral_exam" && stressMode && timeoutCount > 0 && !report && (
+          <p className="text-[11px] text-destructive/80 mb-2 text-center font-display uppercase tracking-wider">
+            ⚠ {timeoutCount} timeout{timeoutCount > 1 ? "s" : ""} recorded this session
+          </p>
+        )}
         {mode === "oral_exam" && messages.length >= 6 && !isLoading && !report && (
           <button
-            onClick={() => send("End the exam now. Generate my full Checkride Readiness Report including the structured checkride-report JSON block.")}
+            onClick={() => send(
+              `End the exam now. Generate my full Checkride Readiness Report including the structured checkride-report JSON block.${
+                stressMode && timeoutCount > 0
+                  ? ` Note: the student timed out (failed to answer within 60s) on ${timeoutCount} question${timeoutCount > 1 ? "s" : ""} during Stress Mode — reflect this in the examiner_notes and weak_areas.`
+                  : ""
+              }`
+            )}
             className="w-full mb-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent/10 border border-accent/30 text-accent rounded-lg text-xs font-display font-semibold tracking-wider uppercase hover:bg-accent/20 transition-all"
           >
             <ClipboardCheck className="w-4 h-4" />
