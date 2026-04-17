@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Download } from "lucide-react";
+import { Menu, X, Download, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { usePilotContext } from "@/hooks/usePilotContext";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
@@ -14,9 +15,36 @@ const navItems = [
   { label: "Pricing", href: "/#pricing" },
 ];
 
+/** Map any profile certificate_type string to a short Study Track label. */
+function toTrackLabel(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const v = value.toLowerCase();
+  if (v.includes("atp") || v.includes("airline transport")) return "ATP";
+  if (v.includes("instrument") || v === "ir") return "IR";
+  if (v.includes("commercial") || v === "cpl") return "CPL";
+  if (v.includes("private") || v === "ppl" || v.includes("student") || v.includes("sport") || v.includes("recreational")) return "PPL";
+  return null;
+}
+
+const StudyTrackBadge = ({ track, onClick }: { track: string; onClick?: () => void }) => (
+  <Link
+    to="/ground-school"
+    onClick={onClick}
+    title={`Active Study Track: ${track} — your CFI-AI is using ${track} ACS depth. Click to change.`}
+    aria-label={`Active Study Track: ${track}. Click to change.`}
+    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-[0_0_12px_hsl(var(--cyan-glow)/0.3)] transition-all"
+  >
+    <GraduationCap size={12} />
+    <span className="font-display text-[10px] font-bold tracking-widest uppercase">{track}</span>
+  </Link>
+);
+
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+  const { context: pilotCtx } = usePilotContext();
+  const studyTrack = toTrackLabel(pilotCtx.certificate_type);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
@@ -77,6 +105,7 @@ const Navbar = () => {
             </button>
           )}
           <ThemeToggle />
+          {studyTrack && <StudyTrackBadge track={studyTrack} />}
           {user ? (
             <Link
               to="/dashboard"
@@ -143,8 +172,11 @@ const Navbar = () => {
                   Install App
                 </button>
               )}
-              <div className="flex items-center justify-between">
-                <ThemeToggle />
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <ThemeToggle />
+                  {studyTrack && <StudyTrackBadge track={studyTrack} onClick={() => setIsOpen(false)} />}
+                </div>
                 <Link
                   to={user ? "/dashboard" : "/auth"}
                   onClick={() => setIsOpen(false)}
