@@ -49,6 +49,15 @@ const GroundSchoolPage = () => {
   const pilotCtx = usePilotContext();
   const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
   const [onlyRelevant, setOnlyRelevant] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category") as ReadinessCategoryKey | null;
+  const activeCategory: ReadinessCategoryKey | null =
+    categoryParam && CATEGORY_LABELS[categoryParam] ? categoryParam : null;
+  const clearCategory = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("category");
+    setSearchParams(next, { replace: true });
+  };
 
   // Derive the active toggle value from the synced pilot context (profile + localStorage).
   // Defaults to PPL until the user picks one.
