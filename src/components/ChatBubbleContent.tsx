@@ -1,5 +1,6 @@
 import { getTextContent, type MessageContent } from "@/hooks/useChat";
 import ChatMessageContent from "@/components/ChatMessageContent";
+import { stripReportFence } from "@/lib/checkrideReport";
 
 /** Renders a user or assistant message, handling both plain text and multimodal content */
 export function ChatBubbleContent({
@@ -10,7 +11,7 @@ export function ChatBubbleContent({
   role: "user" | "assistant";
 }) {
   if (role === "assistant") {
-    return <ChatMessageContent content={getTextContent(content)} />;
+    return <ChatMessageContent content={stripReportFence(getTextContent(content))} />;
   }
 
   // User message — may contain images

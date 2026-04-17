@@ -189,32 +189,41 @@ export type Database = {
       }
       exam_scores: {
         Row: {
+          acs_codes: Json | null
           created_at: string
           exam_type: string
           id: string
+          report: Json | null
           result: string
           score: number
           session_id: string | null
+          stress_mode: boolean
           total_questions: number
           user_id: string
         }
         Insert: {
+          acs_codes?: Json | null
           created_at?: string
           exam_type: string
           id?: string
+          report?: Json | null
           result?: string
           score: number
           session_id?: string | null
+          stress_mode?: boolean
           total_questions: number
           user_id: string
         }
         Update: {
+          acs_codes?: Json | null
           created_at?: string
           exam_type?: string
           id?: string
+          report?: Json | null
           result?: string
           score?: number
           session_id?: string | null
+          stress_mode?: boolean
           total_questions?: number
           user_id?: string
         }

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, KeyboardEvent } from "react";
-import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus } from "lucide-react";
+import { Send, RotateCcw, Loader2, ClipboardCheck, ImagePlus, Flame } from "lucide-react";
 import { ChatBubbleContent } from "@/components/ChatBubbleContent";
 import { useChat, ChatMode, Msg, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import ChatGateModal from "@/components/ChatGateModal";
 import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextChips";
 import ExamPassCelebration from "@/components/ExamPassCelebration";
+import CheckrideReadinessReport from "@/components/CheckrideReadinessReport";
+import { extractCheckrideReport, type CheckrideReport } from "@/lib/checkrideReport";
 
 interface TrainingChatProps {
   mode: ChatMode;
@@ -20,6 +22,8 @@ interface TrainingChatProps {
   topicId?: string;
   /** Overrides the certificate level in the pilot context sent to the AI (e.g. "PPL", "IR", "CPL") */
   certificateOverride?: string;
+  /** Enables aggressive 'Why?' DPE follow-ups for oral exam mode */
+  stressMode?: boolean;
 }
 
 export const TrainingChat = ({
@@ -29,6 +33,7 @@ export const TrainingChat = ({
   initialPrompt,
   topicId,
   certificateOverride,
+  stressMode = false,
 }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -64,9 +69,11 @@ export const TrainingChat = ({
     onAfterSend: () => recordUsage(),
     pilotContext: augmentedPilotContext,
     pohFilePath: pohFilePath ?? undefined,
+    stressMode: mode === "oral_exam" ? stressMode : false,
   });
   const [started, setStarted] = useState(false);
   const [celebration, setCelebration] = useState<{ score: number; total: number } | null>(null);
+  const [report, setReport] = useState<CheckrideReport | null>(null);
 
   // Save messages to DB as they complete
   const prevLenRef = useRef(0);
@@ -84,26 +91,34 @@ export const TrainingChat = ({
     prevLenRef.current = messages.length;
   }, [messages.length, saveMessage]);
 
-  // Parse debrief score from assistant message
+  // Parse debrief score / structured Checkride Readiness Report from assistant message
   const scoresSavedRef = useRef(false);
   const parseAndSaveScore = useCallback(
     async (content: string) => {
-      if (mode !== "oral_exam" || !user || scoresSavedRef.current) return;
-      const scoreMatch = content.match(/(\d+)\s*(?:\/|out of)\s*(\d+)/i);
-      const resultMatch = content.match(/\b(PASS|FAIL|INCOMPLETE)\b/i);
-      if (!scoreMatch) return;
+      if (mode !== "oral_exam" || scoresSavedRef.current) return;
 
-      const score = parseInt(scoreMatch[1], 10);
-      const total = parseInt(scoreMatch[2], 10);
-      if (isNaN(score) || isNaN(total) || total === 0) return;
-
-      scoresSavedRef.current = true;
-      const result = resultMatch ? resultMatch[1].toUpperCase() : (score / total >= 0.7 ? "PASS" : "FAIL");
-
-      if (result === "PASS") {
-        setCelebration({ score, total });
+      // Prefer structured report block
+      const structured = extractCheckrideReport(content);
+      let score: number, total: number, result: string;
+      if (structured) {
+        score = structured.score;
+        total = structured.total;
+        result = structured.result;
+        setReport(structured);
+      } else {
+        const scoreMatch = content.match(/(\d+)\s*(?:\/|out of)\s*(\d+)/i);
+        const resultMatch = content.match(/\b(PASS|FAIL|INCOMPLETE)\b/i);
+        if (!scoreMatch) return;
+        score = parseInt(scoreMatch[1], 10);
+        total = parseInt(scoreMatch[2], 10);
+        if (isNaN(score) || isNaN(total) || total === 0) return;
+        result = resultMatch ? resultMatch[1].toUpperCase() : (score / total >= 0.7 ? "PASS" : "FAIL");
       }
 
+      scoresSavedRef.current = true;
+      if (result === "PASS") setCelebration({ score, total });
+
+      if (!user) return;
       const { error } = await supabase.from("exam_scores").insert({
         user_id: user.id,
         exam_type: "oral_exam",
@@ -111,10 +126,13 @@ export const TrainingChat = ({
         total_questions: total,
         result,
         session_id: sessionId.current,
-      });
+        stress_mode: stressMode,
+        acs_codes: structured ? structured.weak_areas.map((w) => w.acs_code) : null,
+        report: structured ? (structured as any) : null,
+      } as any);
       if (error) console.error("Failed to save exam score:", error);
     },
-    [mode, user, sessionId]
+    [mode, user, sessionId, stressMode]
   );
 
   // Save assistant message when streaming completes
@@ -185,6 +203,7 @@ export const TrainingChat = ({
     prevLenRef.current = 0;
     setStarted(false);
     setPendingImage(null);
+    setReport(null);
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -259,6 +278,14 @@ export const TrainingChat = ({
           </div>
         ))}
 
+        {report && mode === "oral_exam" && (
+          <CheckrideReadinessReport
+            report={report}
+            onClose={() => setReport(null)}
+            onRetry={handleReset}
+          />
+        )}
+
         {isLoading && messages[messages.length - 1]?.role === "user" && (
           <div className="flex justify-start">
             <div className="bg-secondary border border-border rounded-xl px-4 py-3">
@@ -289,13 +316,13 @@ export const TrainingChat = ({
 
       {/* Input area */}
       <div className="border-t border-border p-4">
-        {mode === "oral_exam" && messages.length >= 6 && !isLoading && (
+        {mode === "oral_exam" && messages.length >= 6 && !isLoading && !report && (
           <button
-            onClick={() => send("Give me my debrief. How did I do?")}
+            onClick={() => send("End the exam now. Generate my full Checkride Readiness Report including the structured checkride-report JSON block.")}
             className="w-full mb-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent/10 border border-accent/30 text-accent rounded-lg text-xs font-display font-semibold tracking-wider uppercase hover:bg-accent/20 transition-all"
           >
             <ClipboardCheck className="w-4 h-4" />
-            Request Debrief & Score
+            End Exam &amp; Generate Report
           </button>
         )}
         <div className="flex items-end gap-2">

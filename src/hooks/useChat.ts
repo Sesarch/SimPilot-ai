@@ -22,6 +22,7 @@ async function streamChat({
   mode,
   pilotContext,
   pohFilePath,
+  stressMode,
   onDelta,
   onDone,
   onError,
@@ -30,6 +31,7 @@ async function streamChat({
   mode: ChatMode;
   pilotContext?: string;
   pohFilePath?: string;
+  stressMode?: boolean;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
@@ -40,7 +42,7 @@ async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, mode, pilotContext, pohFilePath }),
+    body: JSON.stringify({ messages, mode, pilotContext, pohFilePath, stressMode }),
   });
 
   if (!resp.ok) {
@@ -114,6 +116,7 @@ export function useChat(options?: {
   mode?: ChatMode;
   pilotContext?: string;
   pohFilePath?: string;
+  stressMode?: boolean;
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -172,6 +175,7 @@ export function useChat(options?: {
         mode: modeRef.current,
         pilotContext: options?.pilotContext,
         pohFilePath: options?.pohFilePath,
+        stressMode: options?.stressMode,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
           setIsLoading(false);
