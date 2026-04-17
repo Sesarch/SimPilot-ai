@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield, ArrowLeft, ChevronRight } from "lucide-react";
+import { Shield, ArrowLeft, ChevronRight, Flame } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
@@ -56,6 +56,7 @@ const OralExamPage = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [selectedExam, setSelectedExam] = useState<typeof EXAM_TYPES[0] | null>(null);
+  const [stressMode, setStressMode] = useState(false);
 
   if (loading) {
     return (
