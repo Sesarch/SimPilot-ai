@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { GraduationCap, ClipboardCheck, Activity } from "lucide-react";
+import { Link } from "react-router-dom";
+import { GraduationCap, ClipboardCheck, Activity, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LESSON_AREAS } from "@/data/groundSchoolLessons";
