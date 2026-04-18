@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { PercentileSparkline } from "@/components/PercentileSparkline";
 
 interface ATCMessage {
   id: string;
@@ -664,6 +665,15 @@ ${transcript}`;
               <div className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
                 Saved · Logbook
               </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <PercentileSparkline
+                examType="atc_phraseology"
+                score={phraseologyScore.score}
+                total={phraseologyScore.total}
+                minSample={5}
+                showTopTier
+              />
             </div>
             {phraseologyScore.summary && (
               <p className="text-xs text-muted-foreground italic">"{phraseologyScore.summary}"</p>
