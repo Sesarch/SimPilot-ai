@@ -25,12 +25,12 @@ type PhraseologyScore = {
 };
 
 const scenarios = [
-  { id: "departure", label: "Departure Clearance", description: "IFR/VFR clearance delivery & ground" },
-  { id: "approach", label: "Approach & Landing", description: "Approach, tower, landing clearance" },
-  { id: "enroute", label: "En Route", description: "Center handoffs, altitude, position reports" },
-  { id: "emergency", label: "Emergency Procedures", description: "Mayday, Pan-Pan, vectors to nearest" },
-  { id: "ground", label: "Ground Operations", description: "Taxi, hold short, runway crossings" },
-  { id: "vfr-flight-following", label: "VFR Flight Following", description: "Approach control advisories" },
+  { id: "departure", label: "Departure Clearance", description: "IFR/VFR clearance delivery & ground", facility: "CLNC DEL", frequency: "121.65" },
+  { id: "approach", label: "Approach & Landing", description: "Approach, tower, landing clearance", facility: "TWR", frequency: "118.30" },
+  { id: "enroute", label: "En Route", description: "Center handoffs, altitude, position reports", facility: "CTR", frequency: "133.45" },
+  { id: "emergency", label: "Emergency Procedures", description: "Mayday, Pan-Pan, vectors to nearest", facility: "GUARD", frequency: "121.50" },
+  { id: "ground", label: "Ground Operations", description: "Taxi, hold short, runway crossings", facility: "GND", frequency: "121.90" },
+  { id: "vfr-flight-following", label: "VFR Flight Following", description: "Approach control advisories", facility: "APP", frequency: "124.35" },
 ] as const;
 
 const FAA_PROMPT = (scenarioLabel: string) => `You are a FAA-certified Air Traffic Controller running a live radio drill.
