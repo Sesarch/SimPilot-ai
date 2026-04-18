@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Award, Trophy, Radio, Gem, Flame, Plane, MapPin, Clock, Share2, ArrowLeft, User, Lock } from "lucide-react";
+import { Award, Trophy, Radio, Gem, Flame, Plane, MapPin, Clock, Share2, ArrowLeft, User, Lock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
