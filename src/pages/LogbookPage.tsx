@@ -405,13 +405,13 @@ const LogbookPage = () => {
       <div className="g3000-bezel rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
-            Passenger Carrying Currency · FAR 61.57
+            Currency · FAR 61.57
           </span>
           <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
-            Last 30 / 90 Days
+            VFR 30/90d · IFR 6mo
           </span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
             {
               label: "Day Currency",
