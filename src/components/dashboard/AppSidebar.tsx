@@ -1,4 +1,4 @@
-import { Gauge, BookOpen, Mic, Radio, ClipboardList, LogOut, Plane } from "lucide-react";
+import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Plane } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
