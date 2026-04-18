@@ -3,7 +3,17 @@ import { Award, Trophy, Radio, Gem, Flame, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { onDashboardRefresh } from "@/lib/dashboardEvents";
+
+const EXAM_LABELS: Record<string, string> = {
+  atc_phraseology: "ATC Phraseology",
+  oral_exam: "Oral Exam",
+  written_exam: "Written Exam",
+};
+
+const formatExamType = (t: string | null) =>
+  t ? EXAM_LABELS[t] ?? t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "General";
 
 type Achievement = {
   id: string;
