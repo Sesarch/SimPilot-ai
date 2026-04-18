@@ -141,7 +141,7 @@ const ProgressPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-full bg-background">
       <SEOHead
         title="Training Progress — SimPilot.AI"
         description="Track your pilot training progress with SimPilot.AI. View ground school completion, oral exam scores, and readiness metrics for your FAA checkride."
@@ -150,16 +150,14 @@ const ProgressPage = () => {
         ogImage="/og-progress.jpg"
         noIndex
       />
-      <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <button onClick={() => navigate("/dashboard")} title="Return to dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <Link to="/" title="SimPilot.AI — AI-Powered Pilot Training Home" className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
-            SIM<span className="text-accent">PILOT</span>.AI
-          </Link>
+      <div className="container mx-auto px-6 pt-4 max-w-3xl">
+        <div className="flex items-center gap-2">
+          <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+            Logbook & Analytics
+          </span>
+          <div className="h-px flex-1 bg-border" />
         </div>
-      </nav>
+      </div>
 
       <div className="container mx-auto px-6 py-12 max-w-3xl space-y-10">
         {/* Header */}

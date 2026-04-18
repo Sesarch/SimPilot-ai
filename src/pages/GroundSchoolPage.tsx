@@ -118,10 +118,8 @@ const GroundSchoolPage = () => {
           ]
         }}
       />
-      <Navbar />
-
       {/* Content */}
-      <div className="pt-20 flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col">
       {selectedLesson ? (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="border-b border-border bg-secondary/30 px-6 py-3 shrink-0">
