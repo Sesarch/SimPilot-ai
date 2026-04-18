@@ -81,7 +81,12 @@ const AuthPage = () => {
           }).catch((err) => console.error("Omnisend sync failed:", err));
         }
 
-        toast.success("Account created! Check your email to verify.");
+        toast.success("Account created! Check your email to verify, then sign in.");
+        // Switch to login view so the user has a clear next step
+        setIsLogin(true);
+        setAgreedToTerms(false);
+        setPassword("");
+        setFullName("");
       }
     } catch (err: any) {
       toast.error(err.message || "Authentication failed");
