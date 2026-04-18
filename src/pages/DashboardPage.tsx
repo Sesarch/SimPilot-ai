@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SEOHead from "@/components/SEOHead";
 import AccountSettings from "@/components/AccountSettings";
+import AchievementBadges from "@/components/dashboard/AchievementBadges";
 
 type Profile = {
   display_name: string | null;
