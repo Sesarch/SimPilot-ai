@@ -364,7 +364,7 @@ const ATCTrainer = () => {
         </div>
 
         {!sttSupported && (
-          <div className="flex items-center gap-2 justify-center text-xs text-amber-500">
+          <div className="flex items-center gap-2 justify-center text-xs text-accent">
             <AlertCircle className="h-3.5 w-3.5" />
             Speech recognition not supported in this browser. Use Chrome or Edge for PTT.
           </div>
