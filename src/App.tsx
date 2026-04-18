@@ -15,6 +15,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import FlightDeckPage from "./pages/FlightDeckPage.tsx";
+import BridgeSetupPage from "./pages/BridgeSetupPage.tsx";
 import DashboardLayout from "./components/dashboard/DashboardLayout.tsx";
 import GroundSchoolPage from "./pages/GroundSchoolPage.tsx";
 import OralExamPage from "./pages/OralExamPage.tsx";
@@ -68,6 +69,7 @@ const App = () => (
               {/* Authenticated dashboard area — persistent sidebar + G3000 theme */}
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<FlightDeckPage />} />
+                <Route path="/flight-deck/bridge" element={<BridgeSetupPage />} />
                 <Route path="/account" element={<DashboardPage />} />
                 <Route path="/ground-school" element={<GroundSchoolPage />} />
                 <Route path="/oral-exam" element={<OralExamPage />} />
