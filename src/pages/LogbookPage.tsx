@@ -137,6 +137,50 @@ const LogbookPage = () => {
     };
   }, [logs]);
 
+  // FAR 61.57 currency: 3 takeoffs/landings within preceding 90 days.
+  // Night requires full-stop landings at night. Day allows day OR night landings.
+  const currency = useMemo(() => {
+    const finals = (logs ?? []).filter((l) => l.status === "final");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const cutoff = (days: number) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - days);
+      return d;
+    };
+    const c30 = cutoff(30);
+    const c90 = cutoff(90);
+    let day30 = 0, day90 = 0, night30 = 0, night90 = 0;
+    let lastDay: Date | null = null;
+    let lastNight: Date | null = null;
+    for (const l of finals) {
+      const d = new Date(l.flight_date + "T00:00:00");
+      const day = num(l.day_landings);
+      const night = num(l.night_landings);
+      const total = day + night;
+      if (d >= c30) { day30 += total; night30 += night; }
+      if (d >= c90) { day90 += total; night90 += night; }
+      if (total > 0 && (!lastDay || d > lastDay)) lastDay = d;
+      if (night > 0 && (!lastNight || d > lastNight)) lastNight = d;
+    }
+    // Currency expires 90 days after the 3rd-most-recent qualifying landing.
+    // Simpler heuristic: current if 3+ landings in last 90 days.
+    const dayCurrent = day90 >= 3;
+    const nightCurrent = night90 >= 3;
+    // Days remaining = 90 - (today - oldest of the most recent 3 qualifying flights).
+    // Approximation: if current, show 90 - days since most recent qualifying flight.
+    const daysSince = (d: Date | null) => d ? Math.floor((today.getTime() - d.getTime()) / 86400000) : null;
+    const dayExpiresIn = dayCurrent && lastDay ? Math.max(0, 90 - (daysSince(lastDay) ?? 90)) : 0;
+    const nightExpiresIn = nightCurrent && lastNight ? Math.max(0, 90 - (daysSince(lastNight) ?? 90)) : 0;
+    return {
+      day30, day90, night30, night90,
+      dayCurrent, nightCurrent,
+      dayShortBy: Math.max(0, 3 - day90),
+      nightShortBy: Math.max(0, 3 - night90),
+      dayExpiresIn, nightExpiresIn,
+    };
+  }, [logs]);
+
   const handleSave = async () => {
     if (!user || !editing) return;
     setSaving(true);
@@ -322,6 +366,105 @@ const LogbookPage = () => {
       </div>
 
       {/* Totals breakdown */}
+      {/* Currency tracking — FAR 61.57 */}
+      <div className="g3000-bezel rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+            Passenger Carrying Currency · FAR 61.57
+          </span>
+          <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
+            Last 30 / 90 Days
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            {
+              label: "Day Currency",
+              sublabel: "3 takeoffs & landings · 90d",
+              current: currency.dayCurrent,
+              count90: currency.day90,
+              count30: currency.day30,
+              shortBy: currency.dayShortBy,
+              expiresIn: currency.dayExpiresIn,
+            },
+            {
+              label: "Night Currency",
+              sublabel: "3 full-stop ldg at night · 90d",
+              current: currency.nightCurrent,
+              count90: currency.night90,
+              count30: currency.night30,
+              shortBy: currency.nightShortBy,
+              expiresIn: currency.nightExpiresIn,
+            },
+          ].map((c) => {
+            const accent = c.current ? "hsl(var(--hud-green))" : "hsl(var(--destructive))";
+            return (
+              <div
+                key={c.label}
+                className="rounded-md border px-4 py-3 relative overflow-hidden"
+                style={{
+                  borderColor: `${accent}55`,
+                  background: `linear-gradient(135deg, ${accent}15 0%, hsl(var(--background) / 0.6) 60%, ${accent}08 100%)`,
+                  boxShadow: `inset 0 1px 0 ${accent}30, 0 0 10px -4px ${accent}66`,
+                }}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div>
+                    <div className="font-display text-[11px] tracking-[0.2em] uppercase font-bold" style={{ color: accent }}>
+                      {c.label}
+                    </div>
+                    <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground mt-0.5">
+                      {c.sublabel}
+                    </div>
+                  </div>
+                  <span
+                    className="font-display text-[10px] tracking-[0.2em] uppercase font-bold px-2 py-0.5 rounded-sm border"
+                    style={{
+                      color: accent,
+                      borderColor: `${accent}66`,
+                      background: `${accent}15`,
+                      textShadow: `0 0 6px ${accent}88`,
+                    }}
+                  >
+                    {c.current ? "Current" : "Expired"}
+                  </span>
+                </div>
+                <div className="flex items-end gap-4 mt-2">
+                  <div>
+                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">90 Day</div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-display text-2xl font-bold tabular-nums" style={{ color: accent }}>
+                        {c.count90}
+                      </span>
+                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">/ 3</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">30 Day</div>
+                    <span className="font-display text-2xl font-bold tabular-nums text-foreground">{c.count30}</span>
+                  </div>
+                  <div className="ml-auto text-right">
+                    {c.current ? (
+                      <>
+                        <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">Expires In</div>
+                        <span className="font-display text-base font-bold tabular-nums text-foreground">~{c.expiresIn}d</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">Need</div>
+                        <span className="font-display text-base font-bold tabular-nums" style={{ color: accent }}>
+                          {c.shortBy} more
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="g3000-bezel rounded-lg p-4">
         <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-3">
           Career Totals
