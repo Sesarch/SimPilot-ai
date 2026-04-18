@@ -83,7 +83,8 @@ const AuthPage = () => {
         }
 
         toast.success("Account created! Check your email to verify, then sign in.");
-        // Switch to login view so the user has a clear next step
+        // Switch to login view with a clear next-step banner
+        setPendingVerificationEmail(email);
         setIsLogin(true);
         setAgreedToTerms(false);
         setPassword("");
