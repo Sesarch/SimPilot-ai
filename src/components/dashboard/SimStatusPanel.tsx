@@ -24,9 +24,9 @@ const SimStatusPanel = () => {
 
   const com1 = telemetry?.com1 ?? "---.---";
 
-  // Status pill — pulsing green when LIVE
+  // Status pill — pulsing cyan-glow when LIVE
   const statusDot = isConnected
-    ? "bg-emerald-400 shadow-[0_0_8px_hsl(var(--cyan-glow))] animate-pulse"
+    ? "bg-[hsl(var(--cyan-glow))] shadow-[0_0_8px_hsl(var(--cyan-glow))] animate-pulse"
     : isConnecting
       ? "bg-[hsl(var(--amber-instrument))] animate-pulse"
       : "bg-destructive/70";
@@ -39,7 +39,7 @@ const SimStatusPanel = () => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           {isConnected ? (
-            <PlugZap className="w-4 h-4 text-emerald-400" />
+            <PlugZap className="w-4 h-4 text-[hsl(var(--cyan-glow))]" />
           ) : (
             <Plug className="w-4 h-4 text-muted-foreground" />
           )}
@@ -53,7 +53,7 @@ const SimStatusPanel = () => {
             className={cn(
               "font-display text-[10px] tracking-[0.25em] uppercase",
               isConnected
-                ? "text-emerald-400"
+                ? "text-[hsl(var(--cyan-glow))]"
                 : isConnecting
                   ? "text-[hsl(var(--amber-instrument))]"
                   : "text-muted-foreground",
