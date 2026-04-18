@@ -9,6 +9,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import SEOHead from "@/components/SEOHead";
 import { AcsCodeChip } from "@/components/AcsCodeChip";
 import { PercentileSparkline } from "@/components/PercentileSparkline";
+import AchievementBadges from "@/components/dashboard/AchievementBadges";
 
 const GROUND_SCHOOL_TOPICS = [
   { id: "regulations", title: "Regulations & Pilot Qualifications", acs: "PA.I.A", icon: "📋" },
@@ -188,6 +189,9 @@ const ProgressPage = () => {
           )}
         </div>
 
+        {/* Earned achievement badges - flex your tier alongside flight hours. */}
+        <AchievementBadges />
+
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="bg-gradient-card rounded-xl border border-border p-4 text-center">
@@ -297,8 +301,6 @@ const ProgressPage = () => {
             </div>
           )}
         </div>
-
-
         {/* Checkride Readiness History */}
         {(() => {
           const checkrides = examScores.filter((e) => e.exam_type === "oral_exam");
