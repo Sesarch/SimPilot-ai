@@ -6,6 +6,7 @@ import { useReadiness, type ReadinessCategoryKey } from "@/hooks/useReadiness";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecentActivityPanel from "@/components/dashboard/RecentActivityPanel";
 import AchievementBadges from "@/components/dashboard/AchievementBadges";
+import SimStatusPanel from "@/components/dashboard/SimStatusPanel";
 
 const CATEGORY_META: Array<{
   key: ReadinessCategoryKey;
@@ -121,6 +122,11 @@ const FlightDeckPage = () => {
               trend={loading ? undefined : categories[c.key].trend || undefined}
             />
           ))}
+        </div>
+
+        {/* Sim Telemetry */}
+        <div className="mt-4">
+          <SimStatusPanel />
         </div>
 
         {/* Achievements */}
