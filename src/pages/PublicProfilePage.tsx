@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Award, Trophy, Radio, Gem, Flame, Plane, MapPin, Clock, Share2, ArrowLeft, User } from "lucide-react";
+import { Award, Trophy, Radio, Gem, Flame, Plane, MapPin, Clock, Share2, ArrowLeft, User, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ type PublicProfile = {
   flight_hours: number | null;
   bio: string | null;
   created_at: string;
+  profile_public: boolean | null;
 };
 
 type Achievement = {
@@ -82,6 +83,7 @@ const PublicProfilePage = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -103,6 +105,9 @@ const PublicProfilePage = () => {
       if (cancelled) return;
       if (!p) {
         setNotFound(true);
+      } else if ((p as any).profile_public === false) {
+        setProfile(p as unknown as PublicProfile);
+        setIsPrivate(true);
       } else {
         setProfile(p as unknown as PublicProfile);
         setAchievements((a ?? []) as Achievement[]);
@@ -177,7 +182,7 @@ const PublicProfilePage = () => {
             <ArrowLeft className="w-3.5 h-3.5" />
             SimPilot.AI
           </Link>
-          {profile && (
+          {profile && !isPrivate && (
             <Button
               size="sm"
               variant="outline"
@@ -211,7 +216,33 @@ const PublicProfilePage = () => {
           </div>
         )}
 
-        {!loading && profile && (
+        {!loading && isPrivate && (
+          <div className="g3000-bezel rounded-lg p-10 text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/40" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-primary/40" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-primary/40" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/40" />
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full border border-primary/40 bg-primary/10 flex items-center justify-center">
+              <Lock className="w-6 h-6 text-primary" />
+            </div>
+            <div className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-2">
+              Profile Locked
+            </div>
+            <h1 className="font-display text-lg tracking-[0.25em] uppercase text-foreground mb-2">
+              Private Profile
+            </h1>
+            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+              This pilot has set their profile to private. Their training stats and badges aren't publicly visible.
+            </p>
+            <Button asChild>
+              <Link to="/" className="font-display text-[11px] tracking-[0.25em] uppercase">
+                Start Your Training
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        {!loading && profile && !isPrivate && (
           <>
             {/* Identity header */}
             <div className="g3000-bezel rounded-lg p-6 sm:p-8 relative overflow-hidden mb-6">

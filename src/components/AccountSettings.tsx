@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap } from "lucide-react";
+import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink } from "lucide-react";
 import { usePilotContext } from "@/hooks/usePilotContext";
 
 const TRACK_OPTIONS = [
@@ -45,6 +46,47 @@ const AccountSettings = () => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [profilePublic, setProfilePublic] = useState<boolean | null>(null);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    supabase
+      .from("profiles")
+      .select("profile_public")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setProfilePublic((data as any)?.profile_public ?? true);
+      });
+    return () => { cancelled = true; };
+  }, [user]);
+
+  const handleTogglePrivacy = async (next: boolean) => {
+    if (!user) return;
+    setSavingPrivacy(true);
+    setProfilePublic(next); // optimistic
+    const { error } = await supabase
+      .from("profiles")
+      .update({ profile_public: next } as any)
+      .eq("user_id", user.id);
+    setSavingPrivacy(false);
+    if (error) {
+      setProfilePublic(!next);
+      toast.error("Couldn't update privacy. Try again.");
+    } else {
+      toast.success(next ? "Profile is now public" : "Profile is now private");
+    }
+  };
+
+  const publicProfileUrl = user ? `${window.location.origin}/pilot/${user.id}` : "";
+
+  const copyProfileUrl = async () => {
+    if (!publicProfileUrl) return;
+    await navigator.clipboard.writeText(publicProfileUrl);
+    toast.success("Public profile link copied");
+  };
 
   const handleChangeEmail = async () => {
     if (!newEmail.trim()) return;
@@ -112,6 +154,40 @@ const AccountSettings = () => {
           <p><span className="font-semibold text-foreground">CPL</span> — Commercial maneuvers, complex aircraft, Part 119</p>
           <p><span className="font-semibold text-foreground">ATP</span> — High-altitude, multi-crew CRM, Part 121/135</p>
         </div>
+      </div>
+
+      {/* Public Profile Privacy */}
+      <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <div className="flex items-start justify-between gap-4 mb-1">
+          <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+            <Globe className="w-4 h-4 text-primary" /> Public Profile
+          </h3>
+          <Switch
+            checked={profilePublic ?? true}
+            onCheckedChange={handleTogglePrivacy}
+            disabled={savingPrivacy || profilePublic === null}
+            aria-label="Toggle public profile visibility"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          When on, anyone with your link can see your callsign, certificate, flight hours, and earned badges.
+          When off, your <code className="text-foreground">/pilot/{user?.id?.slice(0, 8)}…</code> page shows a "Private Profile" message.
+        </p>
+        {profilePublic && publicProfileUrl && (
+          <div className="flex items-center gap-2 rounded-md border border-border bg-background/40 px-3 py-2">
+            <span className="font-mono text-[11px] text-muted-foreground truncate flex-1">
+              {publicProfileUrl}
+            </span>
+            <Button size="sm" variant="ghost" onClick={copyProfileUrl} className="h-7 px-2">
+              <Copy className="w-3.5 h-3.5" />
+            </Button>
+            <Button size="sm" variant="ghost" asChild className="h-7 px-2">
+              <a href={publicProfileUrl} target="_blank" rel="noreferrer noopener">
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Change Email */}

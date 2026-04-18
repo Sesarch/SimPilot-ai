@@ -337,6 +337,7 @@ export type Database = {
           display_name: string | null
           flight_hours: number | null
           id: string
+          profile_public: boolean
           rating_focus: string | null
           region: string | null
           terms_agreed_at: string | null
@@ -352,6 +353,7 @@ export type Database = {
           display_name?: string | null
           flight_hours?: number | null
           id?: string
+          profile_public?: boolean
           rating_focus?: string | null
           region?: string | null
           terms_agreed_at?: string | null
@@ -367,6 +369,7 @@ export type Database = {
           display_name?: string | null
           flight_hours?: number | null
           id?: string
+          profile_public?: boolean
           rating_focus?: string | null
           region?: string | null
           terms_agreed_at?: string | null
@@ -591,6 +594,7 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           flight_hours: number | null
+          profile_public: boolean | null
           rating_focus: string | null
           region: string | null
           user_id: string | null
@@ -603,6 +607,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           flight_hours?: number | null
+          profile_public?: boolean | null
           rating_focus?: string | null
           region?: string | null
           user_id?: string | null
@@ -615,6 +620,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           flight_hours?: number | null
+          profile_public?: boolean | null
           rating_focus?: string | null
           region?: string | null
           user_id?: string | null
