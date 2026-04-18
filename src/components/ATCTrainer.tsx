@@ -689,8 +689,18 @@ ${transcript}`;
                   </div>
                 </div>
               </div>
-              <div className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-                Saved · Logbook
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={downloadDebrief}
+                  className="h-7 text-[10px] tracking-[0.15em] uppercase font-display"
+                >
+                  <Download className="h-3 w-3 mr-1" /> Debrief PDF
+                </Button>
+                <div className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                  Saved · Logbook
+                </div>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
