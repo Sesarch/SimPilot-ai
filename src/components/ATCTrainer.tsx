@@ -48,14 +48,48 @@ class RadioFX {
   private ctx: AudioContext | null = null;
   private noiseBuffer: AudioBuffer | null = null;
   private hissNode: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+  /** Shared analyser for VU meter — sums voice + hiss bed. */
+  public analyser: AnalyserNode | null = null;
+  private analyserMix: GainNode | null = null;
+  private elementSources = new WeakMap<HTMLMediaElement, MediaElementAudioSourceNode>();
 
-  private getCtx() {
+  getCtx() {
     if (!this.ctx) {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
       this.ctx = new AC();
     }
     if (this.ctx.state === "suspended") this.ctx.resume();
     return this.ctx;
+  }
+
+  /** Lazy-init analyser bus. Everything taps into analyserMix → analyser → destination. */
+  private getAnalyserBus() {
+    const ctx = this.getCtx();
+    if (!this.analyser || !this.analyserMix) {
+      const mix = ctx.createGain();
+      mix.gain.value = 1;
+      const an = ctx.createAnalyser();
+      an.fftSize = 256;
+      an.smoothingTimeConstant = 0.75;
+      mix.connect(an).connect(ctx.destination);
+      this.analyserMix = mix;
+      this.analyser = an;
+    }
+    return this.analyserMix;
+  }
+
+  /** Route an <audio> element through the analyser bus. Idempotent per element. */
+  attachMediaElement(el: HTMLMediaElement) {
+    const ctx = this.getCtx();
+    const bus = this.getAnalyserBus();
+    if (this.elementSources.has(el)) return;
+    try {
+      const src = ctx.createMediaElementSource(el);
+      src.connect(bus);
+      this.elementSources.set(el, src);
+    } catch {
+      /* element already wired or cross-origin; ignore */
+    }
   }
 
   private getNoise() {
@@ -71,6 +105,7 @@ class RadioFX {
   /** Short squelch click (key-up or key-down). */
   squelch(kind: "up" | "down" = "up") {
     const ctx = this.getCtx();
+    const bus = this.getAnalyserBus();
     const src = ctx.createBufferSource();
     src.buffer = this.getNoise();
     const gain = ctx.createGain();
@@ -78,7 +113,7 @@ class RadioFX {
     bp.type = "bandpass";
     bp.frequency.value = kind === "up" ? 2200 : 1600;
     bp.Q.value = 0.8;
-    src.connect(bp).connect(gain).connect(ctx.destination);
+    src.connect(bp).connect(gain).connect(bus);
     const now = ctx.currentTime;
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(0.18, now + 0.005);
@@ -91,6 +126,7 @@ class RadioFX {
   startHiss() {
     if (this.hissNode) return;
     const ctx = this.getCtx();
+    const bus = this.getAnalyserBus();
     const src = ctx.createBufferSource();
     src.buffer = this.getNoise();
     src.loop = true;
@@ -102,7 +138,7 @@ class RadioFX {
     lp.frequency.value = 3800;
     const gain = ctx.createGain();
     gain.gain.value = 0;
-    src.connect(hp).connect(lp).connect(gain).connect(ctx.destination);
+    src.connect(hp).connect(lp).connect(gain).connect(bus);
     src.start();
     gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.08);
     this.hissNode = { src, gain };
@@ -216,6 +252,7 @@ const ATCTrainer = () => {
       const audio = new Audio(audioUrl);
       audioElRef.current?.pause();
       audioElRef.current = audio;
+      fxRef.current?.attachMediaElement(audio);
       // small delay so the squelch click is audible before voice
       await new Promise((r) => setTimeout(r, 90));
       fxRef.current?.startHiss();
@@ -506,6 +543,9 @@ const ATCTrainer = () => {
           </span>
         </button>
 
+        {/* VU meter — pulses with AI voice + hiss bed */}
+        <VUMeter getAnalyser={() => fxRef.current?.analyser ?? null} active={speaking} />
+
         <div className="text-center text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
           Voice: <span className="text-foreground">{voice}</span>
         </div>
@@ -547,6 +587,101 @@ const SpaceHoldPTT = ({ onDown, onUp, disabled }: { onDown: () => void; onUp: ()
     };
   }, [onDown, onUp, disabled]);
   return null;
+};
+
+// VU meter: 16 vertical bars driven by an AnalyserNode (frequency-domain).
+const VUMeter = ({
+  getAnalyser,
+  active,
+}: {
+  getAnalyser: () => AnalyserNode | null;
+  active: boolean;
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number | null>(null);
+  const peaksRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx2d = canvas.getContext("2d");
+    if (!ctx2d) return;
+
+    const BARS = 16;
+    const PEAK_DECAY = 0.015;
+    if (peaksRef.current.length !== BARS) peaksRef.current = new Array(BARS).fill(0);
+
+    const draw = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth;
+      const cssH = canvas.clientHeight;
+      if (canvas.width !== cssW * dpr || canvas.height !== cssH * dpr) {
+        canvas.width = cssW * dpr;
+        canvas.height = cssH * dpr;
+      }
+      ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx2d.clearRect(0, 0, cssW, cssH);
+
+      const analyser = getAnalyser();
+      const bins = new Uint8Array(analyser?.frequencyBinCount ?? BARS);
+      if (analyser) analyser.getByteFrequencyData(bins);
+
+      // Map FFT bins → BARS by averaging slices (skip very low rumble bins).
+      const start = 2;
+      const usable = bins.length - start;
+      const slice = Math.max(1, Math.floor(usable / BARS));
+      const gap = 3;
+      const barW = (cssW - gap * (BARS - 1)) / BARS;
+      const styles = getComputedStyle(canvas);
+      const accent = styles.getPropertyValue("--accent").trim() || "180 70% 50%";
+      const muted = styles.getPropertyValue("--muted-foreground").trim() || "0 0% 50%";
+
+      for (let i = 0; i < BARS; i++) {
+        let sum = 0;
+        const from = start + i * slice;
+        const to = Math.min(bins.length, from + slice);
+        for (let j = from; j < to; j++) sum += bins[j];
+        const avg = (to - from) > 0 ? sum / (to - from) / 255 : 0;
+        const level = active ? avg : 0;
+        // peak hold
+        const prev = peaksRef.current[i] ?? 0;
+        const next = level > prev ? level : Math.max(0, prev - PEAK_DECAY);
+        peaksRef.current[i] = next;
+
+        const h = Math.max(2, next * cssH);
+        const x = i * (barW + gap);
+        const y = cssH - h;
+        ctx2d.fillStyle = active ? `hsl(${accent})` : `hsl(${muted} / 0.35)`;
+        ctx2d.fillRect(x, y, barW, h);
+        // peak cap
+        const capY = cssH - Math.max(h, 2) - 1;
+        ctx2d.fillStyle = active ? `hsl(${accent} / 0.9)` : `hsl(${muted} / 0.5)`;
+        ctx2d.fillRect(x, capY, barW, 1);
+      }
+
+      rafRef.current = requestAnimationFrame(draw);
+    };
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [getAnalyser, active]);
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-1">
+        <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">VU</span>
+        <span className={cn(
+          "font-display text-[9px] tracking-[0.25em] uppercase",
+          active ? "text-accent" : "text-muted-foreground/60",
+        )}>
+          {active ? "● RX" : "○ IDLE"}
+        </span>
+      </div>
+      <canvas ref={canvasRef} className="w-full h-10 rounded-sm bg-background/60 border border-border/60" />
+    </div>
+  );
 };
 
 export default ATCTrainer;
