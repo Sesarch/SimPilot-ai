@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { PercentileSparkline } from "@/components/PercentileSparkline";
+import { useExamPercentile } from "@/hooks/useExamPercentile";
+import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 
 interface ATCMessage {
   id: string;
