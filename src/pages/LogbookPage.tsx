@@ -137,6 +137,50 @@ const LogbookPage = () => {
     };
   }, [logs]);
 
+  // FAR 61.57 currency: 3 takeoffs/landings within preceding 90 days.
+  // Night requires full-stop landings at night. Day allows day OR night landings.
+  const currency = useMemo(() => {
+    const finals = (logs ?? []).filter((l) => l.status === "final");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const cutoff = (days: number) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - days);
+      return d;
+    };
+    const c30 = cutoff(30);
+    const c90 = cutoff(90);
+    let day30 = 0, day90 = 0, night30 = 0, night90 = 0;
+    let lastDay: Date | null = null;
+    let lastNight: Date | null = null;
+    for (const l of finals) {
+      const d = new Date(l.flight_date + "T00:00:00");
+      const day = num(l.day_landings);
+      const night = num(l.night_landings);
+      const total = day + night;
+      if (d >= c30) { day30 += total; night30 += night; }
+      if (d >= c90) { day90 += total; night90 += night; }
+      if (total > 0 && (!lastDay || d > lastDay)) lastDay = d;
+      if (night > 0 && (!lastNight || d > lastNight)) lastNight = d;
+    }
+    // Currency expires 90 days after the 3rd-most-recent qualifying landing.
+    // Simpler heuristic: current if 3+ landings in last 90 days.
+    const dayCurrent = day90 >= 3;
+    const nightCurrent = night90 >= 3;
+    // Days remaining = 90 - (today - oldest of the most recent 3 qualifying flights).
+    // Approximation: if current, show 90 - days since most recent qualifying flight.
+    const daysSince = (d: Date | null) => d ? Math.floor((today.getTime() - d.getTime()) / 86400000) : null;
+    const dayExpiresIn = dayCurrent && lastDay ? Math.max(0, 90 - (daysSince(lastDay) ?? 90)) : 0;
+    const nightExpiresIn = nightCurrent && lastNight ? Math.max(0, 90 - (daysSince(lastNight) ?? 90)) : 0;
+    return {
+      day30, day90, night30, night90,
+      dayCurrent, nightCurrent,
+      dayShortBy: Math.max(0, 3 - day90),
+      nightShortBy: Math.max(0, 3 - night90),
+      dayExpiresIn, nightExpiresIn,
+    };
+  }, [logs]);
+
   const handleSave = async () => {
     if (!user || !editing) return;
     setSaving(true);
