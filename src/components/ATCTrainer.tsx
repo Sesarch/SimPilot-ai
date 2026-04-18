@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -671,20 +671,42 @@ ${transcript}`;
             <span className="text-xs text-muted-foreground">• N123AB</span>
             {user && streak > 0 && (() => {
               const nextTier = streak < 3 ? 3 : streak < 10 ? 10 : null;
-              const accent = streak >= 10 ? "hsl(45 95% 58%)" : streak >= 3 ? "hsl(18 90% 60%)" : "hsl(var(--muted-foreground))";
+              const accent = streak >= 10 ? "hsl(45 95% 58%)" : streak >= 3 ? "hsl(18 90% 60%)" : "hsl(var(--hud-green))";
+              const tierLabel = streak >= 10 ? "Iron Mic" : streak >= 3 ? "On a Roll" : "Building";
               return (
-                <span
-                  className="ml-1 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-display text-[10px] tracking-[0.2em] uppercase"
-                  style={{ borderColor: `${accent}55`, background: `${accent}15`, color: accent }}
+                <div
+                  className="ml-2 relative flex items-center gap-2.5 rounded-md border pl-2 pr-3 py-1 overflow-hidden"
+                  style={{
+                    borderColor: `${accent}88`,
+                    background: `linear-gradient(135deg, ${accent}25 0%, hsl(var(--background) / 0.6) 60%, ${accent}15 100%)`,
+                    boxShadow: `inset 0 1px 0 ${accent}55, 0 0 14px -4px ${accent}aa`,
+                  }}
                   title={nextTier ? `${nextTier - streak} more PASS to reach the next tier` : "Iron Mic — elite consistency"}
                 >
-                  🔥 Streak {streak}
-                  {nextTier && (
-                    <span className="text-muted-foreground/80 normal-case tracking-normal">
-                      → {nextTier}
+                  <Flame
+                    className="h-4 w-4 shrink-0"
+                    style={{ color: accent, filter: `drop-shadow(0 0 4px ${accent})` }}
+                  />
+                  <div className="flex items-baseline gap-1.5 leading-none">
+                    <span
+                      className="font-display text-2xl font-bold tabular-nums"
+                      style={{ color: accent, textShadow: `0 0 10px ${accent}cc, 0 0 2px ${accent}` }}
+                    >
+                      {streak}
                     </span>
-                  )}
-                </span>
+                    <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                      Streak
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end leading-none gap-0.5 border-l pl-2" style={{ borderColor: `${accent}33` }}>
+                    <span className="font-display text-[9px] tracking-[0.2em] uppercase font-semibold" style={{ color: accent }}>
+                      {tierLabel}
+                    </span>
+                    <span className="font-display text-[8px] tracking-[0.2em] uppercase text-muted-foreground/80">
+                      {nextTier ? `Next ${nextTier}` : "Max Tier"}
+                    </span>
+                  </div>
+                </div>
               );
             })()}
           </div>
