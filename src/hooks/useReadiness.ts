@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LESSON_AREAS } from "@/data/groundSchoolLessons";
+import { onDashboardRefresh } from "@/lib/dashboardEvents";
 
 export type ReadinessCategoryKey = "regulations" | "weather" | "navigation" | "aerodynamics";
 
