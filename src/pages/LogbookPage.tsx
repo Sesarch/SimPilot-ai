@@ -180,12 +180,17 @@ const LogbookPage = () => {
     const daysSince = (d: Date | null) => d ? Math.floor((today.getTime() - d.getTime()) / 86400000) : null;
     const dayExpiresIn = dayCurrent && lastDay ? Math.max(0, 90 - (daysSince(lastDay) ?? 90)) : 0;
     const nightExpiresIn = nightCurrent && lastNight ? Math.max(0, 90 - (daysSince(lastNight) ?? 90)) : 0;
+    const ifrCurrent = approaches180 >= 6;
+    const ifrExpiresIn = ifrCurrent && lastApproach ? Math.max(0, 180 - (daysSince(lastApproach) ?? 180)) : 0;
     return {
       day30, day90, night30, night90,
       dayCurrent, nightCurrent,
       dayShortBy: Math.max(0, 3 - day90),
       nightShortBy: Math.max(0, 3 - night90),
       dayExpiresIn, nightExpiresIn,
+      approaches180, instrument180,
+      ifrCurrent, ifrExpiresIn,
+      ifrShortBy: Math.max(0, 6 - approaches180),
     };
   }, [logs]);
 
