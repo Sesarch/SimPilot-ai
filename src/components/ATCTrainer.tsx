@@ -25,12 +25,12 @@ type PhraseologyScore = {
 };
 
 const scenarios = [
-  { id: "departure", label: "Departure Clearance", description: "IFR/VFR clearance delivery & ground" },
-  { id: "approach", label: "Approach & Landing", description: "Approach, tower, landing clearance" },
-  { id: "enroute", label: "En Route", description: "Center handoffs, altitude, position reports" },
-  { id: "emergency", label: "Emergency Procedures", description: "Mayday, Pan-Pan, vectors to nearest" },
-  { id: "ground", label: "Ground Operations", description: "Taxi, hold short, runway crossings" },
-  { id: "vfr-flight-following", label: "VFR Flight Following", description: "Approach control advisories" },
+  { id: "departure", label: "Departure Clearance", description: "IFR/VFR clearance delivery & ground", facility: "CLNC DEL", frequency: "121.65" },
+  { id: "approach", label: "Approach & Landing", description: "Approach, tower, landing clearance", facility: "TWR", frequency: "118.30" },
+  { id: "enroute", label: "En Route", description: "Center handoffs, altitude, position reports", facility: "CTR", frequency: "133.45" },
+  { id: "emergency", label: "Emergency Procedures", description: "Mayday, Pan-Pan, vectors to nearest", facility: "GUARD", frequency: "121.50" },
+  { id: "ground", label: "Ground Operations", description: "Taxi, hold short, runway crossings", facility: "GND", frequency: "121.90" },
+  { id: "vfr-flight-following", label: "VFR Flight Following", description: "Approach control advisories", facility: "APP", frequency: "124.35" },
 ] as const;
 
 const FAA_PROMPT = (scenarioLabel: string) => `You are a FAA-certified Air Traffic Controller running a live radio drill.
@@ -741,6 +741,30 @@ ${transcript}`;
 
       {/* PTT panel */}
       <div className="border border-border rounded-lg bg-card p-4 flex flex-col items-center justify-between gap-4">
+        {(() => {
+          const active = scenarios.find((s) => s.id === selectedScenario);
+          const facility = active?.facility ?? "TWR";
+          const freq = active?.frequency ?? "118.30";
+          return (
+            <div
+              className="w-full rounded-md border border-[hsl(var(--amber-instrument)/0.4)] bg-black/60 px-3 py-2 flex items-center justify-between shadow-[inset_0_0_12px_hsl(var(--amber-instrument)/0.15)]"
+              aria-label={`Tuned frequency ${facility} ${freq}`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--hud-green))] shadow-[0_0_6px_hsl(var(--hud-green))] animate-pulse" />
+                <span className="font-display text-[9px] tracking-[0.3em] uppercase text-[hsl(var(--amber-instrument))/80]">
+                  COM1 · {facility}
+                </span>
+              </div>
+              <span
+                className="font-mono text-lg font-bold tabular-nums tracking-wider text-[hsl(var(--amber-instrument))]"
+                style={{ textShadow: "0 0 8px hsl(var(--amber-instrument) / 0.7)" }}
+              >
+                {freq}
+              </span>
+            </div>
+          );
+        })()}
         <div className="text-center">
           <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-1">
             Push To Talk
