@@ -325,7 +325,112 @@ const ATCTrainer = () => {
     }
   }, [messages, selectedScenario, voice]);
 
-  // ---- PTT handlers ------------------------------------------------------
+  // ---- Scoring & save to Logbook -----------------------------------------
+  const scoreAndSaveScenario = useCallback(async () => {
+    if (!selectedScenario || scoring) return;
+    const pilotTurns = messages.filter((m) => m.role === "pilot");
+    if (pilotTurns.length === 0) {
+      toast.error("Make at least one transmission before scoring.");
+      return;
+    }
+    if (!user) {
+      toast.error("Sign in to save your phraseology score to your Logbook.");
+      return;
+    }
+
+    const scenario = scenarios.find((s) => s.id === selectedScenario)!;
+    setScoring(true);
+    setError(null);
+
+    // Build transcript for the grader
+    const transcript = messages
+      .filter((m) => m.role !== "system")
+      .map((m) => `${m.role === "atc" ? "ATC" : "PILOT"}: ${m.content.split(/\n?\[FEEDBACK\]/i)[0].trim()}`)
+      .join("\n");
+
+    const SCORE_PROMPT = `You are a FAA Designated Pilot Examiner grading a pilot's RADIO PHRASEOLOGY only (not airmanship).
+Scenario: ${scenario.label}. Callsign: N123AB.
+
+Grade STRICTLY against FAA AIM 4-2 / Pilot-Controller Glossary. Evaluate ONLY the lines starting with "PILOT:".
+Score every distinct pilot transmission as 1 point. A transmission is correct (1 point) only if ALL of these hold:
+  • Proper sequence (who you're calling, who you are, where, what)
+  • Correct number/altitude/heading/frequency phraseology (digits individually, "niner", "thousand", "point")
+  • Correct use of standard words (roger, wilco, affirmative, negative, cleared, etc.) — no "okay/yeah/alright"
+  • Required readbacks present (runway assignment, hold short, altitudes, headings, frequencies, clearances)
+  • Callsign used correctly
+
+Otherwise it is 0 points. Half-credit is NOT allowed.
+
+Output ONLY a single JSON object, no markdown, no prose, matching this schema:
+{
+  "score": <int, total correct transmissions>,
+  "total": <int, total pilot transmissions evaluated>,
+  "result": "PASS" | "FAIL",   // PASS if score/total >= 0.7
+  "summary": "<one-sentence overall verdict>",
+  "weak_areas": [
+    { "category": "<short label e.g. Readback / Numbers / Sequence / Callsign / Standard Words>",
+      "issue": "<specific problem in plain English>",
+      "example": "<exact pilot phrase that was wrong, optional>" }
+  ]
+}
+
+TRANSCRIPT:
+${transcript}`;
+
+    try {
+      const { data, error: invokeErr } = await supabase.functions.invoke("pilot-chat", {
+        body: { messages: [{ role: "system", content: SCORE_PROMPT }, { role: "user", content: "Grade now. Return only JSON." }] },
+      });
+      if (invokeErr) throw invokeErr;
+      const raw: string = data?.choices?.[0]?.message?.content || data?.reply || "";
+      // Pull first {...} block
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("No JSON in grader reply");
+      const parsed = JSON.parse(match[0]);
+
+      const score = Math.max(0, parseInt(String(parsed.score), 10) || 0);
+      const total = Math.max(1, parseInt(String(parsed.total), 10) || pilotTurns.length);
+      const result: "PASS" | "FAIL" = (parsed.result === "PASS" || score / total >= 0.7) ? "PASS" : "FAIL";
+      const weak_areas = Array.isArray(parsed.weak_areas) ? parsed.weak_areas.slice(0, 8) : [];
+      const summary = typeof parsed.summary === "string" ? parsed.summary : "";
+
+      // Persist to exam_scores so the Logbook picks it up.
+      const acsCodes = ["PA.I.K"]; // ATC Communications
+      const { data: inserted, error: dbErr } = await supabase
+        .from("exam_scores")
+        .insert({
+          user_id: user.id,
+          exam_type: "atc_phraseology",
+          score,
+          total_questions: total,
+          result,
+          stress_mode: false,
+          acs_codes: acsCodes,
+          report: {
+            scenario_id: selectedScenario,
+            scenario_label: scenario.label,
+            voice,
+            summary,
+            weak_areas,
+          } as any,
+        } as any)
+        .select("id")
+        .single();
+
+      if (dbErr) throw dbErr;
+
+      const final: PhraseologyScore = { score, total, result, summary, weak_areas, saved_id: inserted?.id };
+      setPhraseologyScore(final);
+      toast.success(`Phraseology ${result} · ${score}/${total} · saved to Logbook`);
+    } catch (e) {
+      console.error("Phraseology scoring failed", e);
+      toast.error("Couldn't score this scenario. Try again.");
+      setError("Phraseology grading failed. Please try again.");
+    } finally {
+      setScoring(false);
+    }
+  }, [messages, selectedScenario, scoring, user, voice]);
+
   const startPTT = () => {
     if (speaking || loading) return;
     if (!sttSupported) {
