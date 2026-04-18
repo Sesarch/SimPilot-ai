@@ -189,6 +189,9 @@ const ATCTrainer = () => {
   const [voice, setVoice] = useState<"male" | "female">("male");
   const [sttSupported, setSttSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [scoring, setScoring] = useState(false);
+  const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
+  const { user } = useAuth();
 
   const recognizerRef = useRef<any>(null);
   const finalBufferRef = useRef<string>("");
