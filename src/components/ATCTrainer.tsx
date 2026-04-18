@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PercentileSparkline } from "@/components/PercentileSparkline";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
+import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 
 interface ATCMessage {
   id: string;
