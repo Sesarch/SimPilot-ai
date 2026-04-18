@@ -636,6 +636,60 @@ ${transcript}`;
             {error}
           </div>
         )}
+
+        {phraseologyScore && (
+          <div className="border-t border-border bg-muted/20 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {phraseologyScore.result === "PASS" ? (
+                  <CheckCircle2 className="h-5 w-5 text-[hsl(var(--hud-green))]" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-destructive" />
+                )}
+                <div>
+                  <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                    Phraseology Score
+                  </div>
+                  <div className={cn(
+                    "font-display text-base font-bold tracking-wider",
+                    phraseologyScore.result === "PASS" ? "text-[hsl(var(--hud-green))]" : "text-destructive",
+                  )}>
+                    {phraseologyScore.score}/{phraseologyScore.total} · {phraseologyScore.result}
+                    <span className="ml-2 text-foreground/80 text-sm font-normal">
+                      ({Math.round((phraseologyScore.score / phraseologyScore.total) * 100)}%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                Saved · Logbook
+              </div>
+            </div>
+            {phraseologyScore.summary && (
+              <p className="text-xs text-muted-foreground italic">"{phraseologyScore.summary}"</p>
+            )}
+            {phraseologyScore.weak_areas.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                  Areas to Review
+                </div>
+                <ul className="space-y-1">
+                  {phraseologyScore.weak_areas.map((w, i) => (
+                    <li key={i} className="text-xs text-foreground/90">
+                      <span className="font-semibold text-accent">{w.category}:</span>{" "}
+                      <span>{w.issue}</span>
+                      {w.example && (
+                        <span className="block text-[11px] text-muted-foreground font-mono mt-0.5">
+                          → "{w.example}"
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* PTT panel */}
