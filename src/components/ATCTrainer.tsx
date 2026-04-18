@@ -1,14 +1,25 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ATCMessage {
   id: string;
   role: "atc" | "pilot" | "system";
   content: string;
 }
+
+type PhraseologyScore = {
+  score: number;
+  total: number;
+  result: "PASS" | "FAIL";
+  summary: string;
+  weak_areas: { category: string; issue: string; example?: string }[];
+  saved_id?: string;
+};
 
 const scenarios = [
   { id: "departure", label: "Departure Clearance", description: "IFR/VFR clearance delivery & ground" },
