@@ -195,6 +195,8 @@ const ATCTrainer = () => {
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
+  // Live streak count: consecutive ATC PASSes from most-recent backwards.
+  const [streak, setStreak] = useState<number>(0);
   // Swappable COM1 active/standby frequencies (Garmin-style). Reset on scenario change.
   const [activeFreq, setActiveFreq] = useState("118.300");
   const [standbyFreq, setStandbyFreq] = useState("121.500");
@@ -253,6 +255,28 @@ const ATCTrainer = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, interim]);
+
+  // Compute the live ATC PASS streak (consecutive PASSes from most recent backwards).
+  const refreshStreak = useCallback(async () => {
+    if (!user) { setStreak(0); return; }
+    const { data } = await supabase
+      .from("exam_scores")
+      .select("result")
+      .eq("user_id", user.id)
+      .eq("exam_type", "atc_phraseology")
+      .order("created_at", { ascending: false })
+      .limit(15);
+    let count = 0;
+    for (const row of data ?? []) {
+      if (row.result === "PASS") count += 1;
+      else break;
+    }
+    setStreak(count);
+  }, [user]);
+
+  useEffect(() => { void refreshStreak(); }, [refreshStreak]);
+  // Refresh after each scored attempt.
+  useEffect(() => { if (phraseologyScore) void refreshStreak(); }, [phraseologyScore, refreshStreak]);
 
   // Reset COM1 active/standby when the scenario changes.
   useEffect(() => {
@@ -645,6 +669,24 @@ ${transcript}`;
             <Radio className="h-4 w-4 text-primary" />
             <span className="font-display text-xs tracking-[0.2em] uppercase">{scenarioLabel}</span>
             <span className="text-xs text-muted-foreground">• N123AB</span>
+            {user && streak > 0 && (() => {
+              const nextTier = streak < 3 ? 3 : streak < 10 ? 10 : null;
+              const accent = streak >= 10 ? "hsl(45 95% 58%)" : streak >= 3 ? "hsl(18 90% 60%)" : "hsl(var(--muted-foreground))";
+              return (
+                <span
+                  className="ml-1 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-display text-[10px] tracking-[0.2em] uppercase"
+                  style={{ borderColor: `${accent}55`, background: `${accent}15`, color: accent }}
+                  title={nextTier ? `${nextTier - streak} more PASS to reach the next tier` : "Iron Mic — elite consistency"}
+                >
+                  🔥 Streak {streak}
+                  {nextTier && (
+                    <span className="text-muted-foreground/80 normal-case tracking-normal">
+                      → {nextTier}
+                    </span>
+                  )}
+                </span>
+              );
+            })()}
           </div>
           <div className="flex items-center gap-1">
             <Button
