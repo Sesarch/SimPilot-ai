@@ -139,6 +139,11 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        {/* Earned achievement badges */}
+        <div className="mb-6">
+          <AchievementBadges />
+        </div>
+
         {/* Training Modules Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
           {trainingModules.map((m) => (
