@@ -123,6 +123,11 @@ const FlightDeckPage = () => {
           ))}
         </div>
 
+        {/* Achievements */}
+        <div className="mt-4">
+          <AchievementBadges />
+        </div>
+
         {/* Recent Activity */}
         <div className="mt-4">
           <RecentActivityPanel />
