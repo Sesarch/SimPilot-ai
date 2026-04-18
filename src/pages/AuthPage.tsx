@@ -108,6 +108,31 @@ const AuthPage = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!pendingVerificationEmail || resending || resendCooldown > 0) return;
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: pendingVerificationEmail,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) throw error;
+      toast.success("Verification email sent. Check your inbox.");
+      setResendCooldown(60);
+      const interval = setInterval(() => {
+        setResendCooldown((s) => {
+          if (s <= 1) { clearInterval(interval); return 0; }
+          return s - 1;
+        });
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend verification email.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <SEOHead
