@@ -499,6 +499,25 @@ ${transcript}`;
       setPhraseologyScore(final);
       const pct = total > 0 ? Math.round((score / total) * 100) : 0;
       toast.success(`Phraseology ${result} · ${score}/${total} · saved to Logbook`);
+
+      // Auto-create a Draft flight log entry when the radio session passes.
+      if (result === "PASS") {
+        try {
+          await supabase.from("flight_logs").insert({
+            user_id: user.id,
+            status: "draft",
+            flight_date: new Date().toISOString().slice(0, 10),
+            aircraft_type: "C172",
+            tail_number: "N123AB",
+            remarks: `ATC Radio Session — ${scenario.label}\nScore: ${score}/${total} (${pct}%)\n${summary}`.slice(0, 2000),
+            source: "atc_session",
+            source_session_id: inserted?.id ?? null,
+          } as any);
+          toast.message("Draft logbook entry created", { description: "Open Logbook to finalize times and landings." });
+        } catch (logErr) {
+          console.warn("Auto-log creation failed", logErr);
+        }
+      }
       // Achievement tiers — persisted server-side so each toast only fires once per user.
       // Lower-tier (90+) earns Top Tier; a flawless 100 also earns the rare Perfect Score badge.
       const tiersEarned: Array<{ tier: string; title: string; description: string }> = [];
