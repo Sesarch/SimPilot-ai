@@ -237,6 +237,87 @@ export type Database = {
           },
         ]
       }
+      flight_logs: {
+        Row: {
+          aircraft_type: string | null
+          approaches: number
+          created_at: string
+          cross_country_time: number
+          day_landings: number
+          departure: string | null
+          destination: string | null
+          flight_date: string
+          id: string
+          instrument_time: number
+          night_landings: number
+          night_time: number
+          pic_time: number
+          remarks: string | null
+          route: string | null
+          sic_time: number
+          simulated_instrument_time: number
+          source: string
+          source_session_id: string | null
+          status: string
+          tail_number: string | null
+          total_time: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aircraft_type?: string | null
+          approaches?: number
+          created_at?: string
+          cross_country_time?: number
+          day_landings?: number
+          departure?: string | null
+          destination?: string | null
+          flight_date?: string
+          id?: string
+          instrument_time?: number
+          night_landings?: number
+          night_time?: number
+          pic_time?: number
+          remarks?: string | null
+          route?: string | null
+          sic_time?: number
+          simulated_instrument_time?: number
+          source?: string
+          source_session_id?: string | null
+          status?: string
+          tail_number?: string | null
+          total_time?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aircraft_type?: string | null
+          approaches?: number
+          created_at?: string
+          cross_country_time?: number
+          day_landings?: number
+          departure?: string | null
+          destination?: string | null
+          flight_date?: string
+          id?: string
+          instrument_time?: number
+          night_landings?: number
+          night_time?: number
+          pic_time?: number
+          remarks?: string | null
+          route?: string | null
+          sic_time?: number
+          simulated_instrument_time?: number
+          source?: string
+          source_session_id?: string | null
+          status?: string
+          tail_number?: string | null
+          total_time?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lead_emails: {
         Row: {
           created_at: string

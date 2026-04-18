@@ -1,4 +1,4 @@
-import { Gauge, BookOpen, Mic, Radio, ClipboardList, LogOut, Plane } from "lucide-react";
+import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Plane } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -22,7 +22,8 @@ const navItems = [
   { title: "Ground School", url: "/ground-school", icon: BookOpen },
   { title: "Oral Exam Sim", url: "/oral-exam", icon: Mic },
   { title: "ATC Radio", url: "/live-tools", icon: Radio },
-  { title: "Logbook & Analytics", url: "/progress", icon: ClipboardList },
+  { title: "Logbook", url: "/logbook", icon: ClipboardList },
+  { title: "Analytics", url: "/progress", icon: LineChart },
 ];
 
 export function AppSidebar() {

@@ -20,6 +20,7 @@ import GroundSchoolPage from "./pages/GroundSchoolPage.tsx";
 import OralExamPage from "./pages/OralExamPage.tsx";
 import SessionHistoryPage from "./pages/SessionHistoryPage.tsx";
 import ProgressPage from "./pages/ProgressPage.tsx";
+import LogbookPage from "./pages/LogbookPage.tsx";
 import TermsPage from "./pages/TermsPage.tsx";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.tsx";
 import CookiePreferencesPage from "./pages/CookiePreferencesPage.tsx";
@@ -74,6 +75,7 @@ const App = () => (
                 <Route path="/live-tools" element={<LiveToolsPage />} />
                 <Route path="/session-history" element={<SessionHistoryPage />} />
                 <Route path="/progress" element={<ProgressPage />} />
+                <Route path="/logbook" element={<LogbookPage />} />
               </Route>
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
