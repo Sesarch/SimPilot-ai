@@ -105,6 +105,7 @@ class RadioFX {
   /** Short squelch click (key-up or key-down). */
   squelch(kind: "up" | "down" = "up") {
     const ctx = this.getCtx();
+    const bus = this.getAnalyserBus();
     const src = ctx.createBufferSource();
     src.buffer = this.getNoise();
     const gain = ctx.createGain();
@@ -112,7 +113,7 @@ class RadioFX {
     bp.type = "bandpass";
     bp.frequency.value = kind === "up" ? 2200 : 1600;
     bp.Q.value = 0.8;
-    src.connect(bp).connect(gain).connect(ctx.destination);
+    src.connect(bp).connect(gain).connect(bus);
     const now = ctx.currentTime;
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(0.18, now + 0.005);
@@ -125,6 +126,7 @@ class RadioFX {
   startHiss() {
     if (this.hissNode) return;
     const ctx = this.getCtx();
+    const bus = this.getAnalyserBus();
     const src = ctx.createBufferSource();
     src.buffer = this.getNoise();
     src.loop = true;
@@ -136,7 +138,7 @@ class RadioFX {
     lp.frequency.value = 3800;
     const gain = ctx.createGain();
     gain.gain.value = 0;
-    src.connect(hp).connect(lp).connect(gain).connect(ctx.destination);
+    src.connect(hp).connect(lp).connect(gain).connect(bus);
     src.start();
     gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.08);
     this.hissNode = { src, gain };
