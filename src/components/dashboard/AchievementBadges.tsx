@@ -3,7 +3,17 @@ import { Award, Trophy, Radio, Gem, Flame, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { onDashboardRefresh } from "@/lib/dashboardEvents";
+
+const EXAM_LABELS: Record<string, string> = {
+  atc_phraseology: "ATC Phraseology",
+  oral_exam: "Oral Exam",
+  written_exam: "Written Exam",
+};
+
+const formatExamType = (t: string | null) =>
+  t ? EXAM_LABELS[t] ?? t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "General";
 
 type Achievement = {
   id: string;
@@ -133,58 +143,118 @@ const AchievementBadges = () => {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-        {items.map((a) => {
-          const meta = TIER_META[a.tier] ?? fallbackMeta(a.tier);
-          const Icon = meta.icon;
-          return (
-            <div
-              key={a.id}
-              className="group relative flex items-center gap-3 rounded-md border px-3 py-2.5 overflow-hidden transition-all hover:scale-[1.02]"
-              style={{
-                borderColor: `${meta.accent}66`,
-                background: `linear-gradient(135deg, ${meta.accent}22 0%, hsl(var(--background) / 0.6) 45%, ${meta.accent}10 100%)`,
-                boxShadow: `inset 0 1px 0 0 ${meta.accent}40, inset 0 -1px 0 0 hsl(var(--background) / 0.6), 0 0 12px -4px ${meta.accent}55`,
-              }}
-              title={`Earned ${new Date(a.earned_at).toLocaleDateString()}`}
-              aria-label={`${meta.label} achievement`}
-            >
-              {/* metallic sheen */}
-              <div
-                className="pointer-events-none absolute inset-0 opacity-40"
-                style={{
-                  background: `linear-gradient(115deg, transparent 30%, ${meta.accent}30 48%, transparent 65%)`,
-                }}
-              />
-              {/* corner ticks */}
-              <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l" style={{ borderColor: `${meta.accent}aa` }} />
-              <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r" style={{ borderColor: `${meta.accent}aa` }} />
+      <TooltipProvider delayDuration={150}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          {items.map((a) => {
+            const meta = TIER_META[a.tier] ?? fallbackMeta(a.tier);
+            const Icon = meta.icon;
+            const earnedDate = new Date(a.earned_at);
+            const earnedFull = earnedDate.toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            });
+            const earnedTime = earnedDate.toLocaleTimeString(undefined, {
+              hour: "numeric",
+              minute: "2-digit",
+            });
+            return (
+              <Tooltip key={a.id}>
+                <TooltipTrigger asChild>
+                  <div
+                    className="group relative flex items-center gap-3 rounded-md border px-3 py-2.5 overflow-hidden transition-all hover:scale-[1.02] cursor-default"
+                    style={{
+                      borderColor: `${meta.accent}66`,
+                      background: `linear-gradient(135deg, ${meta.accent}22 0%, hsl(var(--background) / 0.6) 45%, ${meta.accent}10 100%)`,
+                      boxShadow: `inset 0 1px 0 0 ${meta.accent}40, inset 0 -1px 0 0 hsl(var(--background) / 0.6), 0 0 12px -4px ${meta.accent}55`,
+                    }}
+                    aria-label={`${meta.label} achievement`}
+                  >
+                    {/* metallic sheen */}
+                    <div
+                      className="pointer-events-none absolute inset-0 opacity-40"
+                      style={{
+                        background: `linear-gradient(115deg, transparent 30%, ${meta.accent}30 48%, transparent 65%)`,
+                      }}
+                    />
+                    {/* corner ticks */}
+                    <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l" style={{ borderColor: `${meta.accent}aa` }} />
+                    <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r" style={{ borderColor: `${meta.accent}aa` }} />
 
-              <div
-                className="relative w-9 h-9 rounded-md flex items-center justify-center border shrink-0"
-                style={{
-                  borderColor: `${meta.accent}88`,
-                  background: `radial-gradient(circle at 30% 25%, ${meta.accent}55, ${meta.accent}10 70%)`,
-                  boxShadow: `inset 0 1px 0 ${meta.accent}99, 0 0 8px -2px ${meta.accent}88`,
-                }}
-              >
-                <Icon className="w-4 h-4 drop-shadow" style={{ color: meta.accent, filter: `drop-shadow(0 0 3px ${meta.accent}aa)` }} />
-              </div>
-              <div className="min-w-0 relative">
-                <div
-                  className="font-display text-[11px] uppercase tracking-wider font-bold leading-tight truncate"
-                  style={{ color: meta.accent, textShadow: `0 0 8px ${meta.accent}55` }}
+                    <div
+                      className="relative w-9 h-9 rounded-md flex items-center justify-center border shrink-0"
+                      style={{
+                        borderColor: `${meta.accent}88`,
+                        background: `radial-gradient(circle at 30% 25%, ${meta.accent}55, ${meta.accent}10 70%)`,
+                        boxShadow: `inset 0 1px 0 ${meta.accent}99, 0 0 8px -2px ${meta.accent}88`,
+                      }}
+                    >
+                      <Icon className="w-4 h-4 drop-shadow" style={{ color: meta.accent, filter: `drop-shadow(0 0 3px ${meta.accent}aa)` }} />
+                    </div>
+                    <div className="min-w-0 relative">
+                      <div
+                        className="font-display text-[11px] uppercase tracking-wider font-bold leading-tight truncate"
+                        style={{ color: meta.accent, textShadow: `0 0 8px ${meta.accent}55` }}
+                      >
+                        {meta.label}
+                      </div>
+                      <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground leading-tight mt-0.5 truncate">
+                        {meta.sublabel}
+                      </div>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className="max-w-[240px] p-0 overflow-hidden border"
+                  style={{
+                    borderColor: `${meta.accent}66`,
+                    boxShadow: `0 0 16px -4px ${meta.accent}88`,
+                  }}
                 >
-                  {meta.label}
-                </div>
-                <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground leading-tight mt-0.5 truncate">
-                  {meta.sublabel}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                  <div
+                    className="px-3 py-2 border-b"
+                    style={{
+                      borderColor: `${meta.accent}33`,
+                      background: `linear-gradient(135deg, ${meta.accent}25, transparent 80%)`,
+                    }}
+                  >
+                    <div
+                      className="font-display text-[11px] uppercase tracking-wider font-bold"
+                      style={{ color: meta.accent }}
+                    >
+                      {meta.label}
+                    </div>
+                    <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground mt-0.5">
+                      {meta.sublabel}
+                    </div>
+                  </div>
+                  <div className="px-3 py-2 space-y-1">
+                    <div className="flex items-center justify-between gap-3 text-[10px] font-display uppercase tracking-wider">
+                      <span className="text-muted-foreground">Discipline</span>
+                      <span className="text-foreground font-semibold">{formatExamType(a.exam_type)}</span>
+                    </div>
+                    {a.percentile !== null && (
+                      <div className="flex items-center justify-between gap-3 text-[10px] font-display uppercase tracking-wider">
+                        <span className="text-muted-foreground">Percentile</span>
+                        <span className="text-foreground font-semibold">{a.percentile}%</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-3 text-[10px] font-display uppercase tracking-wider">
+                      <span className="text-muted-foreground">Earned</span>
+                      <span className="text-foreground font-semibold">{earnedFull}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 text-[10px] font-display uppercase tracking-wider">
+                      <span className="text-muted-foreground">Time</span>
+                      <span className="text-foreground font-semibold">{earnedTime}</span>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </div>
+      </TooltipProvider>
     </div>
   );
 };
