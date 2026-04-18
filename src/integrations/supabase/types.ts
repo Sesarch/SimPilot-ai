@@ -582,7 +582,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          aircraft_type: string | null
+          avatar_url: string | null
+          bio: string | null
+          certificate_type: string | null
+          created_at: string | null
+          display_name: string | null
+          flight_hours: number | null
+          rating_focus: string | null
+          region: string | null
+          user_id: string | null
+        }
+        Insert: {
+          aircraft_type?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          certificate_type?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          flight_hours?: number | null
+          rating_focus?: string | null
+          region?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          aircraft_type?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          certificate_type?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          flight_hours?: number | null
+          rating_focus?: string | null
+          region?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       delete_email: {
