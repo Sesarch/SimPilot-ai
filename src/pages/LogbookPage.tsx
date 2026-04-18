@@ -417,8 +417,11 @@ const LogbookPage = () => {
               label: "Day Currency",
               sublabel: "3 takeoffs & landings · 90d",
               current: currency.dayCurrent,
-              count90: currency.day90,
-              count30: currency.day30,
+              countMain: currency.day90,
+              mainLabel: "90 Day",
+              mainTarget: 3,
+              countAlt: currency.day30,
+              altLabel: "30 Day",
               shortBy: currency.dayShortBy,
               expiresIn: currency.dayExpiresIn,
             },
@@ -426,10 +429,25 @@ const LogbookPage = () => {
               label: "Night Currency",
               sublabel: "3 full-stop ldg at night · 90d",
               current: currency.nightCurrent,
-              count90: currency.night90,
-              count30: currency.night30,
+              countMain: currency.night90,
+              mainLabel: "90 Day",
+              mainTarget: 3,
+              countAlt: currency.night30,
+              altLabel: "30 Day",
               shortBy: currency.nightShortBy,
               expiresIn: currency.nightExpiresIn,
+            },
+            {
+              label: "IFR Currency",
+              sublabel: "6 approaches + hold · 6mo · 61.57(c)",
+              current: currency.ifrCurrent,
+              countMain: currency.approaches180,
+              mainLabel: "6 Months",
+              mainTarget: 6,
+              countAlt: +currency.instrument180.toFixed(1),
+              altLabel: "Instr Hrs",
+              shortBy: currency.ifrShortBy,
+              expiresIn: currency.ifrExpiresIn,
             },
           ].map((c) => {
             const accent = c.current ? "hsl(var(--hud-green))" : "hsl(var(--destructive))";
@@ -466,17 +484,17 @@ const LogbookPage = () => {
                 </div>
                 <div className="flex items-end gap-4 mt-2">
                   <div>
-                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">90 Day</div>
+                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">{c.mainLabel}</div>
                     <div className="flex items-baseline gap-1">
                       <span className="font-display text-2xl font-bold tabular-nums" style={{ color: accent }}>
-                        {c.count90}
+                        {c.countMain}
                       </span>
-                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">/ 3</span>
+                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">/ {c.mainTarget}</span>
                     </div>
                   </div>
                   <div>
-                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">30 Day</div>
-                    <span className="font-display text-2xl font-bold tabular-nums text-foreground">{c.count30}</span>
+                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">{c.altLabel}</div>
+                    <span className="font-display text-2xl font-bold tabular-nums text-foreground">{c.countAlt}</span>
                   </div>
                   <div className="ml-auto text-right">
                     {c.current ? (
