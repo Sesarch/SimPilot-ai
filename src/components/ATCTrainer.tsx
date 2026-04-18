@@ -256,6 +256,28 @@ const ATCTrainer = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, interim]);
 
+  // Compute the live ATC PASS streak (consecutive PASSes from most recent backwards).
+  const refreshStreak = useCallback(async () => {
+    if (!user) { setStreak(0); return; }
+    const { data } = await supabase
+      .from("exam_scores")
+      .select("result")
+      .eq("user_id", user.id)
+      .eq("exam_type", "atc_phraseology")
+      .order("created_at", { ascending: false })
+      .limit(15);
+    let count = 0;
+    for (const row of data ?? []) {
+      if (row.result === "PASS") count += 1;
+      else break;
+    }
+    setStreak(count);
+  }, [user]);
+
+  useEffect(() => { void refreshStreak(); }, [refreshStreak]);
+  // Refresh after each scored attempt.
+  useEffect(() => { if (phraseologyScore) void refreshStreak(); }, [phraseologyScore, refreshStreak]);
+
   // Reset COM1 active/standby when the scenario changes.
   useEffect(() => {
     if (!selectedScenario) return;
