@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * useSimBridge
@@ -166,14 +167,25 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
         const ws = new WebSocket(BRIDGE_URL);
         wsRef.current = ws;
 
-        ws.onopen = () => {
+        ws.onopen = async () => {
           if (cancelled) return;
-          setStatus("connected");
-          // tell the bridge which sim source we want
+          // Bridge requires {type:"auth",token} as the FIRST frame within 2s.
+          // We fetch the current Supabase access token and send it before
+          // anything else; the bridge will reply with auth-ok or close 4401.
           try {
+            const { data } = await supabase.auth.getSession();
+            const token = data.session?.access_token;
+            if (!token) {
+              setStatus("disconnected");
+              try { ws.close(4401, "no session"); } catch {}
+              return;
+            }
+            ws.send(JSON.stringify({ type: "auth", token }));
+            // setSource is queued; bridge ignores it until auth-ok, but it's
+            // safe to send because our message handler holds it in the buffer.
             ws.send(JSON.stringify({ type: "setSource", source: sourceRef.current }));
           } catch {
-            // ignore
+            try { ws.close(); } catch {}
           }
         };
 
@@ -181,6 +193,19 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
           if (cancelled) return;
           try {
             const raw = JSON.parse(event.data);
+
+            // Bridge control frames
+            if (raw && typeof raw.type === "string") {
+              if (raw.type === "auth-ok") {
+                setStatus("connected");
+                return;
+              }
+              if (raw.type === "auth-error") {
+                setStatus("disconnected");
+                return;
+              }
+            }
+
             const t: SimBridgeTelemetry = {
               alt: Number(raw.alt ?? raw.altitude ?? raw.Altitude ?? 0),
               hdg: Number(raw.hdg ?? raw.heading ?? raw.Heading ?? 0),

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
+import { supabase } from "@/integrations/supabase/client";
 
 type TestState = "idle" | "testing" | "success" | "failure";
 
@@ -17,10 +18,20 @@ export default function BridgeSetupPage() {
   const [testMessage, setTestMessage] = useState<string>("");
   const [lastFrame, setLastFrame] = useState<string | null>(null);
 
-  const runTest = () => {
+  const runTest = async () => {
     setTestState("testing");
     setTestMessage("Connecting to ws://localhost:8080…");
     setLastFrame(null);
+
+    // The bridge requires an authenticated session — fetch the access token
+    // before opening the socket so we can complete the handshake.
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      setTestState("failure");
+      setTestMessage("You need to be signed in to test the bridge — it only accepts your authenticated session token.");
+      return;
+    }
 
     let ws: WebSocket | null = null;
     let settled = false;
@@ -37,7 +48,7 @@ export default function BridgeSetupPage() {
       if (settled) return;
       settled = true;
       setTestState("success");
-      setTestMessage("Bridge detected. Telemetry stream is live.");
+      setTestMessage("Bridge detected and authenticated. Telemetry stream is live.");
       if (frame) setLastFrame(frame);
       try { ws?.close(); } catch { /* noop */ }
     };
@@ -49,11 +60,31 @@ export default function BridgeSetupPage() {
     try {
       ws = new WebSocket(BRIDGE_URL);
       ws.onopen = () => {
-        setTestMessage("Connected. Waiting for first telemetry frame…");
+        setTestMessage("Connected. Authenticating…");
+        try {
+          ws?.send(JSON.stringify({ type: "auth", token }));
+        } catch (err) {
+          fail((err as Error).message);
+        }
       };
       ws.onmessage = (evt) => {
+        const text = typeof evt.data === "string" ? evt.data : "";
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed?.type === "auth-error") {
+            window.clearTimeout(timer);
+            fail(`Bridge rejected the session token (${parsed.reason ?? "unknown"}).`);
+            return;
+          }
+          if (parsed?.type === "auth-ok") {
+            setTestMessage("Authenticated. Waiting for first telemetry frame…");
+            return;
+          }
+        } catch {
+          // not a control frame — fall through, treat as telemetry
+        }
         window.clearTimeout(timer);
-        succeed(typeof evt.data === "string" ? evt.data.slice(0, 240) : undefined);
+        succeed(text.slice(0, 240));
       };
       ws.onerror = () => {
         window.clearTimeout(timer);
@@ -62,7 +93,11 @@ export default function BridgeSetupPage() {
       ws.onclose = (evt) => {
         if (!settled) {
           window.clearTimeout(timer);
-          fail(`Connection closed before any data arrived (code ${evt.code}).`);
+          if (evt.code === 4401) {
+            fail("Bridge rejected the session token. Sign out and back in, then retry.");
+          } else {
+            fail(`Connection closed before any data arrived (code ${evt.code}).`);
+          }
         }
       };
     } catch (err) {
