@@ -9,6 +9,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import SEOHead from "@/components/SEOHead";
 import { AcsCodeChip } from "@/components/AcsCodeChip";
 import { PercentileSparkline } from "@/components/PercentileSparkline";
+import AchievementBadges from "@/components/dashboard/AchievementBadges";
 
 const GROUND_SCHOOL_TOPICS = [
   { id: "regulations", title: "Regulations & Pilot Qualifications", acs: "PA.I.A", icon: "📋" },
