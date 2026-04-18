@@ -171,6 +171,18 @@ const AuthPage = () => {
                 <span className="text-foreground font-medium">{pendingVerificationEmail}</span>.
                 Click the link in that email, then sign in below.
               </p>
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resending || resendCooldown > 0}
+                className="mt-3 text-xs font-display tracking-wider uppercase text-primary hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
+              >
+                {resending
+                  ? "Sending..."
+                  : resendCooldown > 0
+                    ? `Resend available in ${resendCooldown}s`
+                    : "Didn't get it? Resend verification email"}
+              </button>
             </div>
           )}
 
