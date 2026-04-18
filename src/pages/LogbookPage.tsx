@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ClipboardList, Plus, Plane, Flame, Radio, X, Save, Pencil } from "lucide-react";
+import { ClipboardList, Plus, Plane, Flame, Radio, X, Save, Pencil, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { onDashboardRefresh, emitDashboardRefresh } from "@/lib/dashboardEvents";
+import { buildForeFlightCsv, downloadCsv } from "@/lib/foreflightLogbookCsv";
 
 type FlightLog = {
   id: string;
