@@ -475,14 +475,32 @@ ${transcript}`;
       setPhraseologyScore(final);
       const pct = total > 0 ? Math.round((score / total) * 100) : 0;
       toast.success(`Phraseology ${result} · ${score}/${total} · saved to Logbook`);
-      // 90+ achievement — subtle but celebratory
+      // 90+ achievement — persisted server-side so the toast only fires once per user.
       if (pct >= 90) {
-        setTimeout(() => {
-          toast.success("🏆 Achievement Unlocked", {
-            description: "Radio Proficiency: Top Tier",
-            duration: 6000,
+        const TIER = "radio_proficiency_top_tier";
+        const { data: existing } = await supabase
+          .from("user_achievements")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("tier", TIER)
+          .maybeSingle();
+        if (!existing) {
+          const { error: achErr } = await supabase.from("user_achievements").insert({
+            user_id: user.id,
+            tier: TIER,
+            exam_type: "atc_phraseology",
+            exam_score_id: inserted?.id ?? null,
+            percentile: pct,
           });
-        }, 600);
+          if (!achErr) {
+            setTimeout(() => {
+              toast.success("🏆 Achievement Unlocked", {
+                description: "Radio Proficiency: Top Tier",
+                duration: 6000,
+              });
+            }, 600);
+          }
+        }
       }
       // Notify Flight Deck / Recent Activity to refresh instantly
       emitDashboardRefresh({ source: "atc" });
