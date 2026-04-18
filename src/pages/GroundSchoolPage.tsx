@@ -3,8 +3,6 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import groundSchoolLight from "@/assets/ground-school-light.jpg";
@@ -299,7 +297,6 @@ const GroundSchoolPage = () => {
         </div>
       )}
       </div>
-      <Footer />
     </div>
   );
 };

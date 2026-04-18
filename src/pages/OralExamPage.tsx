@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Shield, ArrowLeft, ChevronRight, Flame, Target } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import CheckrideReadinessReport from "@/components/CheckrideReadinessReport";
@@ -359,7 +357,6 @@ const OralExamPage = () => {
         </div>
       )}
       </div>
-      <Footer />
     </div>
   );
 };
