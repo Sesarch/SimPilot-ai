@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Plug, PlugZap, Radio, Settings2, Download, Plane } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -128,14 +129,12 @@ const SimStatusPanel = () => {
                 A small Windows app that streams MSFS 2024 / X-Plane 12 telemetry to your Flight Deck.
                 Required to enable live data and auto-logging.
               </p>
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center gap-1.5 rounded border border-primary/50 bg-primary/10 px-3 py-1.5 font-display text-[10px] tracking-[0.2em] uppercase text-primary hover:bg-primary/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                title="Coming soon"
+              <Link
+                to="/flight-deck/bridge"
+                className="inline-flex items-center gap-1.5 rounded border border-primary/50 bg-primary/10 px-3 py-1.5 font-display text-[10px] tracking-[0.2em] uppercase text-primary hover:bg-primary/20 transition-colors"
               >
-                <Download className="w-3 h-3" /> Download Bridge (.exe) — Soon
-              </button>
+                <Download className="w-3 h-3" /> Set Up SimPilot Bridge
+              </Link>
             </div>
           </div>
         </div>
