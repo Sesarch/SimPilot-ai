@@ -30,6 +30,7 @@ const EXAM_TYPE_LABELS: Record<string, string> = {
   cfi: "Flight Instructor",
   "quick-10": "Quick Quiz",
   "weak-areas": "Weak Area Drill",
+  atc_phraseology: "ATC Phraseology",
 };
 
 type TopicProgress = { topic_id: string; completed: boolean };
