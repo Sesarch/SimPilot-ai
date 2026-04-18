@@ -5,6 +5,7 @@ import SEOHead from "@/components/SEOHead";
 import { useReadiness, type ReadinessCategoryKey } from "@/hooks/useReadiness";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecentActivityPanel from "@/components/dashboard/RecentActivityPanel";
+import AchievementBadges from "@/components/dashboard/AchievementBadges";
 
 const CATEGORY_META: Array<{
   key: ReadinessCategoryKey;
@@ -120,6 +121,11 @@ const FlightDeckPage = () => {
               trend={loading ? undefined : categories[c.key].trend || undefined}
             />
           ))}
+        </div>
+
+        {/* Achievements */}
+        <div className="mt-4">
+          <AchievementBadges />
         </div>
 
         {/* Recent Activity */}
