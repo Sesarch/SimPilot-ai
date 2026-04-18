@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Award, Trophy, Radio, Gem, Plane, MapPin, Clock, Share2, ArrowLeft, User } from "lucide-react";
+import { Award, Trophy, Radio, Gem, Flame, Plane, MapPin, Clock, Share2, ArrowLeft, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,12 @@ const TIER_META: Record<string, BadgeMeta> = {
     sublabel: "Top Tier · 90%+",
     accent: "hsl(var(--hud-green))",
     icon: Radio,
+  },
+  radio_streak_3: {
+    label: "On a Roll",
+    sublabel: "3 ATC PASSes in a Row",
+    accent: "hsl(18 90% 60%)",
+    icon: Flame,
   },
   top_5_percent: {
     label: "Top 5%",
