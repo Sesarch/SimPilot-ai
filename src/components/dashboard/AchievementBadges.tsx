@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Award, Trophy, Radio, Gem, Flame } from "lucide-react";
+import { Award, Trophy, Radio, Gem, Flame, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,6 +44,12 @@ const TIER_META: Record<string, BadgeMeta> = {
     sublabel: "10 ATC PASSes in a Row",
     accent: "hsl(45 95% 58%)", // rare gold flame
     icon: Flame,
+  },
+  comeback_kid: {
+    label: "Comeback Kid",
+    sublabel: "PASS After a FAIL",
+    accent: "hsl(195 90% 60%)", // resilient sky blue
+    icon: Sparkles,
   },
   top_5_percent: {
     label: "Top 5%",
