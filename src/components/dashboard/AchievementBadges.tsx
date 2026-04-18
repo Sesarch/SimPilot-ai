@@ -133,38 +133,51 @@ const AchievementBadges = () => {
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         {items.map((a) => {
           const meta = TIER_META[a.tier] ?? fallbackMeta(a.tier);
           const Icon = meta.icon;
           return (
             <div
               key={a.id}
-              className="flex items-center gap-2.5 rounded-md border px-3 py-2 bg-background/40"
+              className="group relative flex items-center gap-3 rounded-md border px-3 py-2.5 overflow-hidden transition-all hover:scale-[1.02]"
               style={{
-                borderColor: `${meta.accent}55`,
-                background: `linear-gradient(135deg, ${meta.accent}15, transparent 70%)`,
+                borderColor: `${meta.accent}66`,
+                background: `linear-gradient(135deg, ${meta.accent}22 0%, hsl(var(--background) / 0.6) 45%, ${meta.accent}10 100%)`,
+                boxShadow: `inset 0 1px 0 0 ${meta.accent}40, inset 0 -1px 0 0 hsl(var(--background) / 0.6), 0 0 12px -4px ${meta.accent}55`,
               }}
               title={`Earned ${new Date(a.earned_at).toLocaleDateString()}`}
               aria-label={`${meta.label} achievement`}
             >
+              {/* metallic sheen */}
               <div
-                className="w-7 h-7 rounded-md flex items-center justify-center border"
+                className="pointer-events-none absolute inset-0 opacity-40"
                 style={{
-                  borderColor: `${meta.accent}66`,
-                  background: `${meta.accent}1f`,
+                  background: `linear-gradient(115deg, transparent 30%, ${meta.accent}30 48%, transparent 65%)`,
+                }}
+              />
+              {/* corner ticks */}
+              <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l" style={{ borderColor: `${meta.accent}aa` }} />
+              <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r" style={{ borderColor: `${meta.accent}aa` }} />
+
+              <div
+                className="relative w-9 h-9 rounded-md flex items-center justify-center border shrink-0"
+                style={{
+                  borderColor: `${meta.accent}88`,
+                  background: `radial-gradient(circle at 30% 25%, ${meta.accent}55, ${meta.accent}10 70%)`,
+                  boxShadow: `inset 0 1px 0 ${meta.accent}99, 0 0 8px -2px ${meta.accent}88`,
                 }}
               >
-                <Icon className="w-3.5 h-3.5" style={{ color: meta.accent }} />
+                <Icon className="w-4 h-4 drop-shadow" style={{ color: meta.accent, filter: `drop-shadow(0 0 3px ${meta.accent}aa)` }} />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 relative">
                 <div
-                  className="font-display text-[11px] uppercase tracking-wider font-semibold leading-tight"
-                  style={{ color: meta.accent }}
+                  className="font-display text-[11px] uppercase tracking-wider font-bold leading-tight truncate"
+                  style={{ color: meta.accent, textShadow: `0 0 8px ${meta.accent}55` }}
                 >
                   {meta.label}
                 </div>
-                <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground leading-tight">
+                <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground leading-tight mt-0.5 truncate">
                   {meta.sublabel}
                 </div>
               </div>
