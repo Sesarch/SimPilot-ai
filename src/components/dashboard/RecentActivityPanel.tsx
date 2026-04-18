@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { GraduationCap, ClipboardCheck, Activity, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LESSON_AREAS } from "@/data/groundSchoolLessons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { onDashboardRefresh } from "@/lib/dashboardEvents";
 
 type ActivityItem = {
   id: string;
