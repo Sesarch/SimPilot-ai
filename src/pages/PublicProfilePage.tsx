@@ -56,6 +56,12 @@ const TIER_META: Record<string, BadgeMeta> = {
     accent: "hsl(18 90% 60%)",
     icon: Flame,
   },
+  radio_streak_10: {
+    label: "Iron Mic",
+    sublabel: "10 ATC PASSes in a Row",
+    accent: "hsl(45 95% 58%)",
+    icon: Flame,
+  },
   top_5_percent: {
     label: "Top 5%",
     sublabel: "Checkride Cohort",

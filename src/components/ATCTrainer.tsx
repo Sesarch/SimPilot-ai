@@ -492,8 +492,8 @@ ${transcript}`;
           description: "Flawless phraseology — every transmission nailed.",
         });
       }
-      // Streak achievement: 3 PASSes in a row on ATC scenarios.
-      // Check the 3 most recent ATC exams (including the one we just inserted).
+      // Streak achievements: 3 and 10 PASSes in a row on ATC scenarios.
+      // Pull the most recent 10 ATC results (including the one we just inserted).
       if (result === "PASS") {
         const { data: recent } = await supabase
           .from("exam_scores")
@@ -501,12 +501,20 @@ ${transcript}`;
           .eq("user_id", user.id)
           .eq("exam_type", "atc_phraseology")
           .order("created_at", { ascending: false })
-          .limit(3);
-        if (recent && recent.length === 3 && recent.every((r) => r.result === "PASS")) {
+          .limit(10);
+        const results = recent ?? [];
+        if (results.length >= 3 && results.slice(0, 3).every((r) => r.result === "PASS")) {
           tiersEarned.push({
             tier: "radio_streak_3",
             title: "🔥 On a Roll",
             description: "3 ATC scenarios passed back-to-back.",
+          });
+        }
+        if (results.length >= 10 && results.slice(0, 10).every((r) => r.result === "PASS")) {
+          tiersEarned.push({
+            tier: "radio_streak_10",
+            title: "🥇 Iron Mic",
+            description: "10 ATC scenarios passed in a row — elite consistency.",
           });
         }
       }
