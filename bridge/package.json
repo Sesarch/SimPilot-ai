@@ -1,0 +1,32 @@
+{
+  "name": "simpilot-bridge",
+  "version": "0.1.0",
+  "description": "Local sidecar that streams MSFS 2024 (SimConnect) and X-Plane 12 (UDP) telemetry to the SimPilot.AI Flight Deck over WebSocket.",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "simpilot-bridge": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "build:win": "pkg . --targets node18-win-x64 --output dist/SimPilotBridge.exe"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "msfs-simconnect-api-wrapper": "^5.0.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "assets": ["node_modules/node-simconnect/build/**/*"],
+    "targets": ["node18-win-x64"],
+    "outputPath": "dist"
+  },
+  "author": "SimPilot.AI",
+  "license": "MIT"
+}
