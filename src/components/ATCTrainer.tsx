@@ -552,9 +552,25 @@ ${transcript}`;
             <span className="font-display text-xs tracking-[0.2em] uppercase">{scenarioLabel}</span>
             <span className="text-xs text-muted-foreground">• N123AB</span>
           </div>
-          <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setMessages([]); }}>
-            <RotateCcw className="h-3 w-3 mr-1" /> New Scenario
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={scoreAndSaveScenario}
+              disabled={scoring || loading || speaking || messages.filter(m => m.role === "pilot").length === 0}
+              title={user ? "Grade this session and save to your Logbook" : "Sign in to save"}
+            >
+              {scoring ? (
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              ) : (
+                <ClipboardCheck className="h-3 w-3 mr-1" />
+              )}
+              {scoring ? "Grading…" : "End & Score"}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setMessages([]); setPhraseologyScore(null); }}>
+              <RotateCcw className="h-3 w-3 mr-1" /> New Scenario
+            </Button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[13px] leading-relaxed">
