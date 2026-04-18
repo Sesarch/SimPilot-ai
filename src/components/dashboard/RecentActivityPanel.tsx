@@ -69,11 +69,12 @@ const RecentActivityPanel = () => {
       for (const e of exams ?? []) {
         const pct = e.total_questions ? Math.round((e.score / e.total_questions) * 100) : 0;
         const passed = (e.result || "").toUpperCase() === "PASS" || pct >= 70;
+        const isATC = e.exam_type === "atc_phraseology";
         merged.push({
           id: `exam-${e.id}`,
           kind: "exam",
-          title: e.exam_type.replace(/[-_]/g, " "),
-          subtitle: `Oral Exam · ${e.score}/${e.total_questions}`,
+          title: isATC ? "ATC Phraseology" : e.exam_type.replace(/[-_]/g, " "),
+          subtitle: `${isATC ? "Radio Drill" : "Oral Exam"} · ${e.score}/${e.total_questions}`,
           metric: `${pct}%`,
           metricColor: passed
             ? "hsl(var(--hud-green))"
@@ -81,7 +82,7 @@ const RecentActivityPanel = () => {
             ? "hsl(var(--amber-instrument))"
             : "hsl(var(--destructive))",
           at: e.created_at,
-          href: `/oral-exam?report=${e.id}`,
+          href: isATC ? "/live-tools" : `/oral-exam?report=${e.id}`,
         });
       }
 

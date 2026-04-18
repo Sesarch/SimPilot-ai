@@ -30,6 +30,7 @@ const EXAM_TYPE_LABELS: Record<string, string> = {
   cfi: "Flight Instructor",
   "quick-10": "Quick Quiz",
   "weak-areas": "Weak Area Drill",
+  atc_phraseology: "ATC Phraseology",
 };
 
 type TopicProgress = { topic_id: string; completed: boolean };
@@ -443,7 +444,7 @@ const ProgressPage = () => {
         <div>
           <div className="flex items-center gap-2 mb-4">
             <Award className="w-5 h-5 text-accent" />
-            <h2 className="font-display text-lg font-semibold text-foreground">Oral Exam History</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground">Exam &amp; Drill History</h2>
           </div>
           {examScores.length === 0 ? (
             <div className="bg-gradient-card rounded-xl border border-border p-8 text-center">
