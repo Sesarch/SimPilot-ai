@@ -5,6 +5,7 @@ import SEOHead from "@/components/SEOHead";
 import { useReadiness, type ReadinessCategoryKey } from "@/hooks/useReadiness";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecentActivityPanel from "@/components/dashboard/RecentActivityPanel";
+import AchievementBadges from "@/components/dashboard/AchievementBadges";
 
 const CATEGORY_META: Array<{
   key: ReadinessCategoryKey;
