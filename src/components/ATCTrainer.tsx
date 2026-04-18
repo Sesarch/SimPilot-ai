@@ -492,8 +492,7 @@ ${transcript}`;
           description: "Flawless phraseology — every transmission nailed.",
         });
       }
-      // Streak achievements: 3 and 10 PASSes in a row on ATC scenarios.
-      // Pull the most recent 10 ATC results (including the one we just inserted).
+      // Streak + comeback achievements based on recent ATC results.
       if (result === "PASS") {
         const { data: recent } = await supabase
           .from("exam_scores")
@@ -515,6 +514,14 @@ ${transcript}`;
             tier: "radio_streak_10",
             title: "🥇 Iron Mic",
             description: "10 ATC scenarios passed in a row — elite consistency.",
+          });
+        }
+        // Comeback Kid: latest is PASS and ANY prior ATC attempt was a FAIL.
+        if (results.length >= 2 && results.slice(1).some((r) => r.result === "FAIL")) {
+          tiersEarned.push({
+            tier: "comeback_kid",
+            title: "💪 Comeback Kid",
+            description: "Bounced back with a PASS after a previous FAIL.",
           });
         }
       }
