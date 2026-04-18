@@ -514,6 +514,61 @@ ${transcript}`;
           }, 600 + i * 900); // stagger so both toasts are readable
         }
       }
+      // Notify Flight Deck / Recent Activity to refresh instantly
+      emitDashboardRefresh({ source: "atc" });
+    } catch (e) {
+      console.error("Phraseology scoring failed", e);
+      toast.error("Couldn't score this scenario. Try again.");
+      setError("Phraseology grading failed. Please try again.");
+    } finally {
+      setScoring(false);
+    }
+  }, [messages, selectedScenario, scoring, user, voice]);
+
+  const startPTT = () => {
+    if (speaking || loading) return;
+    if (!sttSupported) {
+      setError("Speech recognition unavailable in this browser. Use Chrome or Edge.");
+      return;
+    }
+    audioElRef.current?.pause();
+    fxRef.current?.stopHiss();
+    fxRef.current?.squelch("down");
+
+    finalBufferRef.current = "";
+    setInterim("");
+    setPttActive(true);
+
+    const r = getRecognizer();
+    recognizerRef.current = r;
+    r.onresult = (ev: any) => {
+      let interimText = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const res = ev.results[i];
+        if (res.isFinal) finalBufferRef.current += res[0].transcript + " ";
+        else interimText += res[0].transcript;
+      }
+      setInterim(interimText);
+    };
+    r.onerror = (ev: any) => {
+      if (ev.error === "not-allowed") setError("Microphone permission denied.");
+      else if (ev.error !== "no-speech" && ev.error !== "aborted") setError(`Mic error: ${ev.error}`);
+    };
+    r.onend = () => {
+      setPttActive(false);
+      setInterim("");
+      fxRef.current?.squelch("up");
+      const transcript = finalBufferRef.current.trim();
+      finalBufferRef.current = "";
+      if (transcript) void sendPilotTransmission(transcript);
+    };
+    try { r.start(); } catch { /* already started */ }
+  };
+
+  const endPTT = () => {
+    if (!pttActive) return;
+    try { recognizerRef.current?.stop(); } catch { /* noop */ }
+  };
 
   const activeScenario = scenarios.find((s) => s.id === selectedScenario);
   const scenarioLabel = activeScenario?.label;
