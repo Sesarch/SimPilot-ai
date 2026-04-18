@@ -434,7 +434,7 @@ const ATCTrainer = () => {
                   </div>
                   <div className="whitespace-pre-wrap">{spoken.trim()}</div>
                   {feedback && (
-                    <div className="mt-2 pt-2 border-t border-border/60 text-[11px] text-amber-500/90 not-italic">
+                    <div className="mt-2 pt-2 border-t border-border/60 text-[11px] text-accent/90 not-italic">
                       <span className="font-display tracking-[0.2em] uppercase text-[9px] mr-1">Coach</span>
                       {feedback}
                     </div>
@@ -511,7 +511,7 @@ const ATCTrainer = () => {
         </div>
 
         {!sttSupported && (
-          <div className="flex items-start gap-2 text-[11px] text-amber-500">
+          <div className="flex items-start gap-2 text-[11px] text-accent">
             <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
             <span>Speech recognition unavailable. Use Chrome or Edge for PTT.</span>
           </div>
