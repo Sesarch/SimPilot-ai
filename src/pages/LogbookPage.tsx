@@ -208,12 +208,33 @@ const LogbookPage = () => {
             Flight History · Totals · Auto-Drafted from Radio Sessions
           </p>
         </div>
-        <Button
-          onClick={() => setEditing(emptyDraft())}
-          className="font-display text-[11px] tracking-[0.2em] uppercase"
-        >
-          <Plus className="w-4 h-4 mr-1.5" /> New Entry
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const exportable = (logs ?? []).filter((l) => l.status === "final");
+              if (exportable.length === 0) {
+                toast.error("No final entries to export", { description: "Mark draft entries as Final first." });
+                return;
+              }
+              const csv = buildForeFlightCsv(exportable);
+              const today = new Date().toISOString().slice(0, 10);
+              downloadCsv(`simpilot-logbook-${today}.csv`, csv);
+              toast.success(`Exported ${exportable.length} ${exportable.length === 1 ? "entry" : "entries"}`, {
+                description: "ForeFlight / IACRA-compatible CSV downloaded.",
+              });
+            }}
+            className="font-display text-[11px] tracking-[0.2em] uppercase"
+          >
+            <Download className="w-4 h-4 mr-1.5" /> Export CSV
+          </Button>
+          <Button
+            onClick={() => setEditing(emptyDraft())}
+            className="font-display text-[11px] tracking-[0.2em] uppercase"
+          >
+            <Plus className="w-4 h-4 mr-1.5" /> New Entry
+          </Button>
+        </div>
       </div>
 
       {/* Summary strip: Iron Mic + Streak + Totals */}
