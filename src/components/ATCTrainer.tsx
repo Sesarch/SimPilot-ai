@@ -195,6 +195,18 @@ const ATCTrainer = () => {
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
+  // Swappable COM1 active/standby frequencies (Garmin-style). Reset on scenario change.
+  const [activeFreq, setActiveFreq] = useState("118.300");
+  const [standbyFreq, setStandbyFreq] = useState("121.500");
+  const [swapAnim, setSwapAnim] = useState(false);
+  const swapFreqs = useCallback(() => {
+    setActiveFreq((prevA) => {
+      setStandbyFreq(prevA);
+      return standbyFreq;
+    });
+    setSwapAnim(true);
+    window.setTimeout(() => setSwapAnim(false), 350);
+  }, [standbyFreq]);
   const { user } = useAuth();
 
   // Anonymized cohort percentile for the current scored attempt — included in the PDF.
