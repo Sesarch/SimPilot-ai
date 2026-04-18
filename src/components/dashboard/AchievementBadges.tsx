@@ -45,6 +45,12 @@ const TIER_META: Record<string, BadgeMeta> = {
     accent: "hsl(45 95% 58%)", // rare gold flame
     icon: Flame,
   },
+  comeback_kid: {
+    label: "Comeback Kid",
+    sublabel: "PASS After a FAIL",
+    accent: "hsl(195 90% 60%)", // resilient sky blue
+    icon: Sparkles,
+  },
   top_5_percent: {
     label: "Top 5%",
     sublabel: "Checkride Cohort",
