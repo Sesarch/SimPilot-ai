@@ -582,24 +582,6 @@ ${transcript}`;
   };
   const freqDisplay = normalizeFreq(frequency);
 
-  // Swappable COM1 active/standby. Resets when the scenario changes.
-  const [activeFreq, setActiveFreq] = useState(freqDisplay);
-  const [standbyFreq, setStandbyFreq] = useState("121.500");
-  const [swapAnim, setSwapAnim] = useState(false);
-  useEffect(() => {
-    setActiveFreq(freqDisplay);
-    setStandbyFreq(facility === "GND" ? "118.300" : "121.500");
-  }, [freqDisplay, facility]);
-
-  const swapFreqs = () => {
-    setActiveFreq((prevA) => {
-      setStandbyFreq(prevA);
-      return standbyFreq;
-    });
-    setSwapAnim(true);
-    window.setTimeout(() => setSwapAnim(false), 350);
-  };
-
   return (
     <div className="space-y-4">
       {/* Garmin G3000-style COM1 radio strip */}
