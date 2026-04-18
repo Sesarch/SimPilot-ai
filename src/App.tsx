@@ -20,6 +20,7 @@ import GroundSchoolPage from "./pages/GroundSchoolPage.tsx";
 import OralExamPage from "./pages/OralExamPage.tsx";
 import SessionHistoryPage from "./pages/SessionHistoryPage.tsx";
 import ProgressPage from "./pages/ProgressPage.tsx";
+import LogbookPage from "./pages/LogbookPage.tsx";
 import TermsPage from "./pages/TermsPage.tsx";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.tsx";
 import CookiePreferencesPage from "./pages/CookiePreferencesPage.tsx";
