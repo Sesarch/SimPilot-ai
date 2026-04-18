@@ -493,6 +493,7 @@ const LogbookPage = () => {
         total_time: num(l.total_time),
         night_time: num(l.night_time),
         status: l.status,
+        source: l.source,
       }))} />
 
       {/* Logs list */}
