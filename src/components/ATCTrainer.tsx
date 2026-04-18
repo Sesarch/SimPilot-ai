@@ -492,6 +492,24 @@ ${transcript}`;
           description: "Flawless phraseology — every transmission nailed.",
         });
       }
+      // Streak achievement: 3 PASSes in a row on ATC scenarios.
+      // Check the 3 most recent ATC exams (including the one we just inserted).
+      if (result === "PASS") {
+        const { data: recent } = await supabase
+          .from("exam_scores")
+          .select("result")
+          .eq("user_id", user.id)
+          .eq("exam_type", "atc_phraseology")
+          .order("created_at", { ascending: false })
+          .limit(3);
+        if (recent && recent.length === 3 && recent.every((r) => r.result === "PASS")) {
+          tiersEarned.push({
+            tier: "radio_streak_3",
+            title: "🔥 On a Roll",
+            description: "3 ATC scenarios passed back-to-back.",
+          });
+        }
+      }
       for (let i = 0; i < tiersEarned.length; i++) {
         const t = tiersEarned[i];
         const { data: existing } = await supabase
