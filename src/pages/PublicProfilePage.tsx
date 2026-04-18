@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Award, Trophy, Radio, Gem, Flame, Plane, MapPin, Clock, Share2, ArrowLeft, User } from "lucide-react";
+import { Award, Trophy, Radio, Gem, Flame, Plane, MapPin, Clock, Share2, ArrowLeft, User, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ type PublicProfile = {
   flight_hours: number | null;
   bio: string | null;
   created_at: string;
+  profile_public: boolean | null;
 };
 
 type Achievement = {
@@ -82,6 +83,7 @@ const PublicProfilePage = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -103,6 +105,9 @@ const PublicProfilePage = () => {
       if (cancelled) return;
       if (!p) {
         setNotFound(true);
+      } else if ((p as any).profile_public === false) {
+        setProfile(p as unknown as PublicProfile);
+        setIsPrivate(true);
       } else {
         setProfile(p as unknown as PublicProfile);
         setAchievements((a ?? []) as Achievement[]);
