@@ -156,6 +156,40 @@ const AccountSettings = () => {
         </div>
       </div>
 
+      {/* Public Profile Privacy */}
+      <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <div className="flex items-start justify-between gap-4 mb-1">
+          <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+            <Globe className="w-4 h-4 text-primary" /> Public Profile
+          </h3>
+          <Switch
+            checked={profilePublic ?? true}
+            onCheckedChange={handleTogglePrivacy}
+            disabled={savingPrivacy || profilePublic === null}
+            aria-label="Toggle public profile visibility"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          When on, anyone with your link can see your callsign, certificate, flight hours, and earned badges.
+          When off, your <code className="text-foreground">/pilot/{user?.id?.slice(0, 8)}…</code> page shows a "Private Profile" message.
+        </p>
+        {profilePublic && publicProfileUrl && (
+          <div className="flex items-center gap-2 rounded-md border border-border bg-background/40 px-3 py-2">
+            <span className="font-mono text-[11px] text-muted-foreground truncate flex-1">
+              {publicProfileUrl}
+            </span>
+            <Button size="sm" variant="ghost" onClick={copyProfileUrl} className="h-7 px-2">
+              <Copy className="w-3.5 h-3.5" />
+            </Button>
+            <Button size="sm" variant="ghost" asChild className="h-7 px-2">
+              <a href={publicProfileUrl} target="_blank" rel="noreferrer noopener">
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </Button>
+          </div>
+        )}
+      </div>
+
       {/* Change Email */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
