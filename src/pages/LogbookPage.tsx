@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { onDashboardRefresh, emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { buildForeFlightCsv, downloadCsv } from "@/lib/foreflightLogbookCsv";
+import MonthlyHoursChart from "@/components/logbook/MonthlyHoursChart";
 
 type FlightLog = {
   id: string;
@@ -485,6 +486,14 @@ const LogbookPage = () => {
           ))}
         </div>
       </div>
+
+      {/* Monthly hours chart */}
+      <MonthlyHoursChart logs={(logs ?? []).map((l) => ({
+        flight_date: l.flight_date,
+        total_time: num(l.total_time),
+        night_time: num(l.night_time),
+        status: l.status,
+      }))} />
 
       {/* Logs list */}
       <div className="g3000-bezel rounded-lg overflow-hidden">
