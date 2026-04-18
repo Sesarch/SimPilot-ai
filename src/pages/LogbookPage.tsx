@@ -151,18 +151,25 @@ const LogbookPage = () => {
     };
     const c30 = cutoff(30);
     const c90 = cutoff(90);
+    const c180 = cutoff(180);
     let day30 = 0, day90 = 0, night30 = 0, night90 = 0;
+    let approaches180 = 0, instrument180 = 0;
     let lastDay: Date | null = null;
     let lastNight: Date | null = null;
+    let lastApproach: Date | null = null;
     for (const l of finals) {
       const d = new Date(l.flight_date + "T00:00:00");
       const day = num(l.day_landings);
       const night = num(l.night_landings);
       const total = day + night;
+      const appr = num(l.approaches);
+      const instr = num(l.instrument_time) + num(l.simulated_instrument_time);
       if (d >= c30) { day30 += total; night30 += night; }
       if (d >= c90) { day90 += total; night90 += night; }
+      if (d >= c180) { approaches180 += appr; instrument180 += instr; }
       if (total > 0 && (!lastDay || d > lastDay)) lastDay = d;
       if (night > 0 && (!lastNight || d > lastNight)) lastNight = d;
+      if (appr > 0 && (!lastApproach || d > lastApproach)) lastApproach = d;
     }
     // Currency expires 90 days after the 3rd-most-recent qualifying landing.
     // Simpler heuristic: current if 3+ landings in last 90 days.
