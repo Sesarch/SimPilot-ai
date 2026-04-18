@@ -252,6 +252,7 @@ const ATCTrainer = () => {
       const audio = new Audio(audioUrl);
       audioElRef.current?.pause();
       audioElRef.current = audio;
+      fxRef.current?.attachMediaElement(audio);
       // small delay so the squelch click is audible before voice
       await new Promise((r) => setTimeout(r, 90));
       fxRef.current?.startHiss();
