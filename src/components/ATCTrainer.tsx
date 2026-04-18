@@ -571,9 +571,27 @@ ${transcript}`;
     );
   }
 
-  const scenarioLabel = scenarios.find((s) => s.id === selectedScenario)?.label;
+  const activeScenario = scenarios.find((s) => s.id === selectedScenario);
+  const scenarioLabel = activeScenario?.label;
+  const facility = activeScenario?.facility ?? "TWR";
+  const frequency = activeScenario?.frequency ?? "118.300";
+  // Normalize to a 6-char "118.700" style display.
+  const freqDisplay = (() => {
+    const [intp, dec = ""] = String(frequency).split(".");
+    return `${intp}.${(dec + "000").slice(0, 3)}`;
+  })();
 
   return (
+    <div className="space-y-4">
+      {/* Garmin G3000-style COM1 radio strip */}
+      <G3000ComRadio
+        facility={facility}
+        active={freqDisplay}
+        standby="121.500"
+        speaking={speaking}
+        ptt={pttActive}
+      />
+
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
       {/* Transcript */}
       <div className="flex flex-col h-[560px] border border-border rounded-lg bg-card overflow-hidden">
