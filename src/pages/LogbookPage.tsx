@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ClipboardList, Plus, Plane, Flame, Radio, X, Save, Pencil, Download } from "lucide-react";
+import { ClipboardList, Plus, Plane, Flame, Radio, X, Save, Pencil, Download, CheckCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -256,6 +256,28 @@ const LogbookPage = () => {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
+            disabled={(logs ?? []).filter((l) => l.status === "draft").length === 0}
+            onClick={async () => {
+              if (!user) return;
+              const drafts = (logs ?? []).filter((l) => l.status === "draft");
+              if (drafts.length === 0) return;
+              if (!confirm(`Finalize ${drafts.length} draft ${drafts.length === 1 ? "entry" : "entries"}? This officially logs them.`)) return;
+              const { error } = await supabase
+                .from("flight_logs")
+                .update({ status: "final" })
+                .eq("user_id", user.id)
+                .eq("status", "draft");
+              if (error) { toast.error("Bulk finalize failed"); return; }
+              toast.success(`Finalized ${drafts.length} ${drafts.length === 1 ? "entry" : "entries"}`);
+              await fetchLogs();
+              emitDashboardRefresh({ source: "other" });
+            }}
+            className="font-display text-[11px] tracking-[0.2em] uppercase"
+          >
+            <CheckCheck className="w-4 h-4 mr-1.5" /> Finalize Drafts
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => {
               const exportable = (logs ?? []).filter((l) => l.status === "final");
               if (exportable.length === 0) {
@@ -493,6 +515,7 @@ const LogbookPage = () => {
         total_time: num(l.total_time),
         night_time: num(l.night_time),
         status: l.status,
+        source: l.source,
       }))} />
 
       {/* Logs list */}
