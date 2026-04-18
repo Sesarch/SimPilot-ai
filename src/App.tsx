@@ -75,6 +75,7 @@ const App = () => (
                 <Route path="/live-tools" element={<LiveToolsPage />} />
                 <Route path="/session-history" element={<SessionHistoryPage />} />
                 <Route path="/progress" element={<ProgressPage />} />
+                <Route path="/logbook" element={<LogbookPage />} />
               </Route>
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
