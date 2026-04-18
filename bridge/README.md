@@ -63,4 +63,22 @@ Every frame the bridge sends matches the contract consumed by `useSimBridge`:
 ## Security
 
 - Binds to `127.0.0.1` only — never exposed on the network.
-- Origin allowlist: `https://simpilot.ai`, `https://*.lovable.app`, and `http://localhost:*` for development.
+- Origin allowlist: `https://simpilot.ai`, `https://*.lovable.app`,
+  `https://*.lovableproject.com`, and `http://localhost:*` for development.
+- **JWT auth required.** Every connection must send
+  `{"type":"auth","token":"<supabase-access-token>"}` as its first frame
+  within 2 seconds. The bridge verifies the token signature against the
+  Supabase JWKS (issuer + audience + expiry) before streaming any telemetry.
+  Unauthenticated sockets are closed with code `4401`.
+
+### Configuration
+
+Override the Supabase project the bridge trusts via env vars:
+
+```bash
+SIMPILOT_SUPABASE_URL=https://your-project.supabase.co npm start
+# or just the project ref:
+SIMPILOT_PROJECT_REF=your-project-ref npm start
+```
+
+Defaults to the production SimPilot.AI project.
