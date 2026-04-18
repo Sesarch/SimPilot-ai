@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { PercentileSparkline } from "@/components/PercentileSparkline";
+import { useExamPercentile } from "@/hooks/useExamPercentile";
+import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 
 interface ATCMessage {
   id: string;
@@ -193,6 +195,31 @@ const ATCTrainer = () => {
   const [scoring, setScoring] = useState(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
   const { user } = useAuth();
+
+  // Anonymized cohort percentile for the current scored attempt — included in the PDF.
+  const { data: percentile } = useExamPercentile(
+    phraseologyScore ? "atc_phraseology" : undefined,
+    phraseologyScore?.score ?? 0,
+    phraseologyScore?.total ?? 0,
+  );
+
+  const downloadDebrief = useCallback(() => {
+    if (!phraseologyScore) return;
+    const scenario = scenarios.find((s) => s.id === selectedScenario);
+    generateATCDebriefPDF({
+      scenarioLabel: scenario?.label ?? "ATC Scenario",
+      callsign: "N123AB",
+      voice: voice === "male" ? "Male" : "Female",
+      score: phraseologyScore.score,
+      total: phraseologyScore.total,
+      result: phraseologyScore.result,
+      summary: phraseologyScore.summary,
+      weak_areas: phraseologyScore.weak_areas,
+      transcript: messages.map((m) => ({ role: m.role, content: m.content })),
+      percentile: percentile ?? null,
+    });
+    toast.success("Debrief PDF downloaded");
+  }, [phraseologyScore, selectedScenario, voice, messages, percentile]);
 
   const recognizerRef = useRef<any>(null);
   const finalBufferRef = useRef<string>("");
@@ -662,8 +689,18 @@ ${transcript}`;
                   </div>
                 </div>
               </div>
-              <div className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-                Saved · Logbook
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={downloadDebrief}
+                  className="h-7 text-[10px] tracking-[0.15em] uppercase font-display"
+                >
+                  <Download className="h-3 w-3 mr-1" /> Debrief PDF
+                </Button>
+                <div className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                  Saved · Logbook
+                </div>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
