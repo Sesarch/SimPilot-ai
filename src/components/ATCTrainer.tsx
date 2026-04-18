@@ -576,20 +576,41 @@ ${transcript}`;
   const facility = activeScenario?.facility ?? "TWR";
   const frequency = activeScenario?.frequency ?? "118.300";
   // Normalize to a 6-char "118.700" style display.
-  const freqDisplay = (() => {
-    const [intp, dec = ""] = String(frequency).split(".");
+  const normalizeFreq = (f: string) => {
+    const [intp, dec = ""] = String(f).split(".");
     return `${intp}.${(dec + "000").slice(0, 3)}`;
-  })();
+  };
+  const freqDisplay = normalizeFreq(frequency);
+
+  // Swappable COM1 active/standby. Resets when the scenario changes.
+  const [activeFreq, setActiveFreq] = useState(freqDisplay);
+  const [standbyFreq, setStandbyFreq] = useState("121.500");
+  const [swapAnim, setSwapAnim] = useState(false);
+  useEffect(() => {
+    setActiveFreq(freqDisplay);
+    setStandbyFreq(facility === "GND" ? "118.300" : "121.500");
+  }, [freqDisplay, facility]);
+
+  const swapFreqs = () => {
+    setActiveFreq((prevA) => {
+      setStandbyFreq(prevA);
+      return standbyFreq;
+    });
+    setSwapAnim(true);
+    window.setTimeout(() => setSwapAnim(false), 350);
+  };
 
   return (
     <div className="space-y-4">
       {/* Garmin G3000-style COM1 radio strip */}
       <G3000ComRadio
         facility={facility}
-        active={freqDisplay}
-        standby="121.500"
+        active={activeFreq}
+        standby={standbyFreq}
         speaking={speaking}
         ptt={pttActive}
+        onSwap={swapFreqs}
+        swapping={swapAnim}
       />
 
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
