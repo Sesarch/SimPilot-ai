@@ -513,35 +513,43 @@ const ATCTrainer = () => {
           </div>
         </div>
 
-        <button
-          onMouseDown={startPTT}
-          onMouseUp={endPTT}
-          onMouseLeave={endPTT}
-          onTouchStart={(e) => { e.preventDefault(); startPTT(); }}
-          onTouchEnd={(e) => { e.preventDefault(); endPTT(); }}
-          disabled={speaking || loading}
-          className={cn(
-            "relative h-40 w-40 rounded-full border-4 transition-all select-none",
-            "flex flex-col items-center justify-center gap-1",
-            pttActive
-              ? "bg-[hsl(var(--hud-green))]/20 border-[hsl(var(--hud-green))] shadow-[0_0_30px_hsl(var(--hud-green)/0.6)]"
-              : speaking
-              ? "bg-accent/10 border-accent/60 cursor-not-allowed"
-              : "bg-primary/5 border-primary/60 hover:bg-primary/10 hover:shadow-[0_0_20px_hsl(var(--primary)/0.4)] active:scale-95",
-            (speaking || loading) && "opacity-60",
-          )}
-        >
-          {pttActive ? (
-            <Mic className="h-10 w-10 text-[hsl(var(--hud-green))]" />
-          ) : speaking ? (
-            <Volume2 className="h-10 w-10 text-accent animate-pulse" />
-          ) : (
-            <MicOff className="h-10 w-10 text-primary" />
-          )}
-          <span className="font-display text-[10px] tracking-[0.25em] uppercase mt-1">
-            {pttActive ? "Live" : speaking ? "ATC" : "PTT"}
-          </span>
-        </button>
+        <div className="relative h-48 w-48 flex items-center justify-center">
+          {/* Cockpit-style segmented ring around the PTT — reacts to AI voice */}
+          <PTTRing
+            getAnalyser={() => fxRef.current?.analyser ?? null}
+            speaking={speaking}
+            pttActive={pttActive}
+          />
+          <button
+            onMouseDown={startPTT}
+            onMouseUp={endPTT}
+            onMouseLeave={endPTT}
+            onTouchStart={(e) => { e.preventDefault(); startPTT(); }}
+            onTouchEnd={(e) => { e.preventDefault(); endPTT(); }}
+            disabled={speaking || loading}
+            className={cn(
+              "relative h-40 w-40 rounded-full border-4 transition-all select-none z-10",
+              "flex flex-col items-center justify-center gap-1",
+              pttActive
+                ? "bg-[hsl(var(--hud-green))]/20 border-[hsl(var(--hud-green))] shadow-[0_0_30px_hsl(var(--hud-green)/0.6)]"
+                : speaking
+                ? "bg-accent/10 border-accent/60 cursor-not-allowed"
+                : "bg-primary/5 border-primary/60 hover:bg-primary/10 hover:shadow-[0_0_20px_hsl(var(--primary)/0.4)] active:scale-95",
+              (speaking || loading) && "opacity-60",
+            )}
+          >
+            {pttActive ? (
+              <Mic className="h-10 w-10 text-[hsl(var(--hud-green))]" />
+            ) : speaking ? (
+              <Volume2 className="h-10 w-10 text-accent animate-pulse" />
+            ) : (
+              <MicOff className="h-10 w-10 text-primary" />
+            )}
+            <span className="font-display text-[10px] tracking-[0.25em] uppercase mt-1">
+              {pttActive ? "Live" : speaking ? "ATC" : "PTT"}
+            </span>
+          </button>
+        </div>
 
         {/* VU meter — pulses with AI voice + hiss bed */}
         <VUMeter getAnalyser={() => fxRef.current?.analyser ?? null} active={speaking} />
