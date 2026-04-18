@@ -1176,13 +1176,37 @@ const G3000ComRadio = ({
           </span>
         </div>
 
+        {/* Swap button */}
+        {onSwap && (
+          <button
+            type="button"
+            onClick={onSwap}
+            aria-label="Swap COM1 active and standby frequencies"
+            title="Swap active ⇄ standby"
+            className="group flex flex-col items-center justify-center px-2 py-1 rounded border border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/60"
+          >
+            <ArrowLeftRight
+              className={cn(
+                "h-4 w-4 text-primary transition-transform",
+                swapping && "rotate-180",
+              )}
+            />
+            <span className="font-display text-[8px] tracking-[0.25em] uppercase text-primary/70 mt-0.5">
+              Swap
+            </span>
+          </button>
+        )}
+
         {/* Standby */}
         <div className="text-right">
           <div className="font-display text-[9px] tracking-[0.3em] uppercase text-muted-foreground/80 mb-0.5">
             Standby
           </div>
           <div
-            className="font-mono font-bold tabular-nums leading-none text-foreground/90 text-xl sm:text-2xl tracking-wider"
+            className={cn(
+              "font-mono font-bold tabular-nums leading-none text-foreground/90 text-xl sm:text-2xl tracking-wider transition-opacity",
+              swapping && "opacity-40",
+            )}
             style={{ textShadow: "0 0 6px rgba(255,255,255,0.15)" }}
           >
             {standby}
