@@ -48,14 +48,48 @@ class RadioFX {
   private ctx: AudioContext | null = null;
   private noiseBuffer: AudioBuffer | null = null;
   private hissNode: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+  /** Shared analyser for VU meter — sums voice + hiss bed. */
+  public analyser: AnalyserNode | null = null;
+  private analyserMix: GainNode | null = null;
+  private elementSources = new WeakMap<HTMLMediaElement, MediaElementAudioSourceNode>();
 
-  private getCtx() {
+  getCtx() {
     if (!this.ctx) {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
       this.ctx = new AC();
     }
     if (this.ctx.state === "suspended") this.ctx.resume();
     return this.ctx;
+  }
+
+  /** Lazy-init analyser bus. Everything taps into analyserMix → analyser → destination. */
+  private getAnalyserBus() {
+    const ctx = this.getCtx();
+    if (!this.analyser || !this.analyserMix) {
+      const mix = ctx.createGain();
+      mix.gain.value = 1;
+      const an = ctx.createAnalyser();
+      an.fftSize = 256;
+      an.smoothingTimeConstant = 0.75;
+      mix.connect(an).connect(ctx.destination);
+      this.analyserMix = mix;
+      this.analyser = an;
+    }
+    return this.analyserMix;
+  }
+
+  /** Route an <audio> element through the analyser bus. Idempotent per element. */
+  attachMediaElement(el: HTMLMediaElement) {
+    const ctx = this.getCtx();
+    const bus = this.getAnalyserBus();
+    if (this.elementSources.has(el)) return;
+    try {
+      const src = ctx.createMediaElementSource(el);
+      src.connect(bus);
+      this.elementSources.set(el, src);
+    } catch {
+      /* element already wired or cross-origin; ignore */
+    }
   }
 
   private getNoise() {
