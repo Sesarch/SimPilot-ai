@@ -1,35 +1,37 @@
 import { useState } from "react";
-import { Plug, PlugZap, Radio, Settings2 } from "lucide-react";
+import { Plug, PlugZap, Radio, Settings2, Download, Plane } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { useSimTelemetry, type SimMode } from "@/hooks/useSimTelemetry";
+import { useSimBridge, type SimSource } from "@/hooks/useSimBridge";
 
-const MODE_LABEL: Record<SimMode, string> = {
+const SOURCE_LABEL: Record<SimSource, string> = {
   msfs2024: "MSFS 2024",
   xplane12: "X-Plane 12",
 };
 
 const SimStatusPanel = () => {
   const [enabled, setEnabled] = useState(false);
-  const { mode, setMode, status, telemetry, lastUpdate } = useSimTelemetry({ enabled });
+  const [source, setSource] = useState<SimSource>("msfs2024");
+  const { status, telemetry, lastUpdate, isFlightActive, isConnected } = useSimBridge({
+    enabled,
+    source,
+  });
 
-  const isConnected = status === "connected";
   const isConnecting = status === "connecting";
-
-  const statusColor =
-    status === "connected"
-      ? "bg-[hsl(var(--cyan-glow))]"
-      : status === "connecting"
-        ? "bg-[hsl(var(--amber-instrument))] animate-pulse"
-        : "bg-destructive/70";
-
-  const statusLabel =
-    status === "connected" ? "CONNECTED" : status === "connecting" ? "LINKING" : "DISCONNECTED";
 
   const fmt = (n: number | undefined, digits = 0) =>
     n == null || Number.isNaN(n) ? "---" : n.toFixed(digits);
 
-  const com1 = telemetry?.com1_freq ?? "---.---";
+  const com1 = telemetry?.com1 ?? "---.---";
+
+  // Status pill — pulsing green when LIVE
+  const statusDot = isConnected
+    ? "bg-emerald-400 shadow-[0_0_8px_hsl(var(--cyan-glow))] animate-pulse"
+    : isConnecting
+      ? "bg-[hsl(var(--amber-instrument))] animate-pulse"
+      : "bg-destructive/70";
+
+  const statusLabel = isConnected ? "LIVE" : isConnecting ? "LINKING" : "OFFLINE";
 
   return (
     <div className="g3000-bezel rounded-xl p-4 sm:p-5 relative overflow-hidden">
@@ -37,33 +39,42 @@ const SimStatusPanel = () => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           {isConnected ? (
-            <PlugZap className="w-4 h-4 text-[hsl(var(--cyan-glow))]" />
+            <PlugZap className="w-4 h-4 text-emerald-400" />
           ) : (
             <Plug className="w-4 h-4 text-muted-foreground" />
           )}
           <span className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
-            Sim Telemetry Link
+            SimPilot Bridge · Telemetry Link
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={cn("w-1.5 h-1.5 rounded-full", statusColor)} />
+          <span className={cn("w-1.5 h-1.5 rounded-full", statusDot)} />
           <span
             className={cn(
               "font-display text-[10px] tracking-[0.25em] uppercase",
-              isConnected ? "text-[hsl(var(--cyan-glow))]" : "text-muted-foreground",
+              isConnected
+                ? "text-emerald-400"
+                : isConnecting
+                  ? "text-[hsl(var(--amber-instrument))]"
+                  : "text-muted-foreground",
             )}
           >
             {statusLabel}
           </span>
+          {isFlightActive && (
+            <span className="ml-1 inline-flex items-center gap-1 rounded-sm border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-display text-[9px] tracking-[0.2em] uppercase text-primary">
+              <Plane className="w-2.5 h-2.5" /> In Flight
+            </span>
+          )}
         </div>
       </div>
 
       {/* Telemetry readouts */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         {[
-          { label: "ALT (FT)", value: fmt(telemetry?.altitude) },
-          { label: "HDG", value: fmt(telemetry?.heading).padStart(3, "0") + "°" },
-          { label: "IAS (KT)", value: fmt(telemetry?.speed) },
+          { label: "ALT (FT)", value: fmt(telemetry?.alt) },
+          { label: "HDG", value: fmt(telemetry?.hdg).padStart(3, "0") + "°" },
+          { label: "IAS (KT)", value: fmt(telemetry?.spd) },
         ].map((item) => (
           <div
             key={item.label}
@@ -95,7 +106,7 @@ const SimStatusPanel = () => {
         <span
           className={cn(
             "font-display text-sm font-bold tabular-nums",
-            isConnected && telemetry?.com1_freq
+            isConnected && telemetry?.com1
               ? "text-[hsl(var(--amber-instrument))]"
               : "text-muted-foreground/60",
           )}
@@ -103,6 +114,32 @@ const SimStatusPanel = () => {
           {isConnected ? com1 : "---.---"}
         </span>
       </div>
+
+      {/* Bridge download CTA — shown when not connected */}
+      {!isConnected && enabled && (
+        <div className="mb-4 rounded-md border border-primary/40 bg-primary/5 p-3">
+          <div className="flex items-start gap-3">
+            <Download className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="font-display text-[10px] tracking-[0.25em] uppercase text-primary mb-1">
+                Install SimPilot Bridge
+              </div>
+              <p className="font-sans text-xs text-muted-foreground leading-relaxed mb-2">
+                A small Windows app that streams MSFS 2024 / X-Plane 12 telemetry to your Flight Deck.
+                Required to enable live data and auto-logging.
+              </p>
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center gap-1.5 rounded border border-primary/50 bg-primary/10 px-3 py-1.5 font-display text-[10px] tracking-[0.2em] uppercase text-primary hover:bg-primary/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                title="Coming soon"
+              >
+                <Download className="w-3 h-3" /> Download Bridge (.exe) — Soon
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="space-y-3 pt-3 border-t border-border">
@@ -121,13 +158,13 @@ const SimStatusPanel = () => {
             Sim Source
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {(Object.keys(MODE_LABEL) as SimMode[]).map((m) => {
-              const active = mode === m;
+            {(Object.keys(SOURCE_LABEL) as SimSource[]).map((m) => {
+              const active = source === m;
               return (
                 <button
                   key={m}
                   type="button"
-                  onClick={() => setMode(m)}
+                  onClick={() => setSource(m)}
                   className={cn(
                     "rounded-md border px-3 py-2 font-display text-[10px] tracking-[0.2em] uppercase transition-colors",
                     active
@@ -136,7 +173,7 @@ const SimStatusPanel = () => {
                   )}
                   aria-pressed={active}
                 >
-                  {MODE_LABEL[m]}
+                  {SOURCE_LABEL[m]}
                 </button>
               );
             })}
@@ -148,7 +185,9 @@ const SimStatusPanel = () => {
             ? `Linking ws://localhost:8080…`
             : isConnected && lastUpdate
               ? `Last frame · ${new Date(lastUpdate).toLocaleTimeString()}`
-              : `Awaiting bridge on ws://localhost:8080`}
+              : enabled
+                ? `Awaiting bridge on ws://localhost:8080`
+                : `Listener off — toggle on once the bridge is installed`}
         </div>
       </div>
     </div>
