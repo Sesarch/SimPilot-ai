@@ -298,10 +298,6 @@ const ProgressPage = () => {
             </div>
           )}
         </div>
-
-        {/* Earned achievement badges — flex your tier alongside flight hours. */}
-        <AchievementBadges />
-
         {/* Checkride Readiness History */}
         {(() => {
           const checkrides = examScores.filter((e) => e.exam_type === "oral_exam");
