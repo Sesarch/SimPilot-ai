@@ -475,142 +475,45 @@ ${transcript}`;
       setPhraseologyScore(final);
       const pct = total > 0 ? Math.round((score / total) * 100) : 0;
       toast.success(`Phraseology ${result} · ${score}/${total} · saved to Logbook`);
-      // 90+ achievement — persisted server-side so the toast only fires once per user.
+      // Achievement tiers — persisted server-side so each toast only fires once per user.
+      // Lower-tier (90+) earns Top Tier; a flawless 100 also earns the rare Perfect Score badge.
+      const tiersEarned: Array<{ tier: string; title: string; description: string }> = [];
       if (pct >= 90) {
-        const TIER = "radio_proficiency_top_tier";
+        tiersEarned.push({
+          tier: "radio_proficiency_top_tier",
+          title: "🏆 Achievement Unlocked",
+          description: "Radio Proficiency: Top Tier",
+        });
+      }
+      if (pct >= 100) {
+        tiersEarned.push({
+          tier: "radio_proficiency_perfect",
+          title: "💎 Perfect Score",
+          description: "Flawless phraseology — every transmission nailed.",
+        });
+      }
+      for (let i = 0; i < tiersEarned.length; i++) {
+        const t = tiersEarned[i];
         const { data: existing } = await supabase
           .from("user_achievements")
           .select("id")
           .eq("user_id", user.id)
-          .eq("tier", TIER)
+          .eq("tier", t.tier)
           .maybeSingle();
-        if (!existing) {
-          const { error: achErr } = await supabase.from("user_achievements").insert({
-            user_id: user.id,
-            tier: TIER,
-            exam_type: "atc_phraseology",
-            exam_score_id: inserted?.id ?? null,
-            percentile: pct,
-          });
-          if (!achErr) {
-            setTimeout(() => {
-              toast.success("🏆 Achievement Unlocked", {
-                description: "Radio Proficiency: Top Tier",
-                duration: 6000,
-              });
-            }, 600);
-          }
+        if (existing) continue;
+        const { error: achErr } = await supabase.from("user_achievements").insert({
+          user_id: user.id,
+          tier: t.tier,
+          exam_type: "atc_phraseology",
+          exam_score_id: inserted?.id ?? null,
+          percentile: pct,
+        });
+        if (!achErr) {
+          setTimeout(() => {
+            toast.success(t.title, { description: t.description, duration: 6500 });
+          }, 600 + i * 900); // stagger so both toasts are readable
         }
       }
-      // Notify Flight Deck / Recent Activity to refresh instantly
-      emitDashboardRefresh({ source: "atc" });
-    } catch (e) {
-      console.error("Phraseology scoring failed", e);
-      toast.error("Couldn't score this scenario. Try again.");
-      setError("Phraseology grading failed. Please try again.");
-    } finally {
-      setScoring(false);
-    }
-  }, [messages, selectedScenario, scoring, user, voice]);
-
-  const startPTT = () => {
-    if (speaking || loading) return;
-    if (!sttSupported) {
-      setError("Speech recognition unavailable in this browser. Use Chrome or Edge.");
-      return;
-    }
-    audioElRef.current?.pause();
-    fxRef.current?.stopHiss();
-    fxRef.current?.squelch("down"); // mic key-down click
-
-    finalBufferRef.current = "";
-    setInterim("");
-    setPttActive(true);
-
-    const r = getRecognizer();
-    recognizerRef.current = r;
-    r.onresult = (ev: any) => {
-      let interimText = "";
-      for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        const res = ev.results[i];
-        if (res.isFinal) finalBufferRef.current += res[0].transcript + " ";
-        else interimText += res[0].transcript;
-      }
-      setInterim(interimText);
-    };
-    r.onerror = (ev: any) => {
-      if (ev.error === "not-allowed") setError("Microphone permission denied.");
-      else if (ev.error !== "no-speech" && ev.error !== "aborted") setError(`Mic error: ${ev.error}`);
-    };
-    r.onend = () => {
-      setPttActive(false);
-      setInterim("");
-      fxRef.current?.squelch("up"); // mic key-up click
-      const transcript = finalBufferRef.current.trim();
-      finalBufferRef.current = "";
-      if (transcript) void sendPilotTransmission(transcript);
-    };
-    try { r.start(); } catch { /* already started */ }
-  };
-
-  const endPTT = () => {
-    if (!pttActive) return;
-    try { recognizerRef.current?.stop(); } catch { /* noop */ }
-  };
-
-  // ---- Render ------------------------------------------------------------
-  if (!selectedScenario) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <Radio className="h-10 w-10 text-primary mx-auto" />
-          <h3 className="text-xl font-bold text-foreground">ATC Radio</h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Live duplex radio drill. Push to talk, release to transmit. Strict FAA phraseology.
-          </p>
-        </div>
-
-        {/* Voice picker */}
-        <div className="flex items-center justify-center gap-3 text-xs">
-          <span className="font-display tracking-[0.2em] uppercase text-muted-foreground">Controller voice</span>
-          <div className="inline-flex rounded-md border border-border overflow-hidden">
-            {(["male", "female"] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => setVoice(v)}
-                className={cn(
-                  "px-3 py-1 text-xs uppercase tracking-wider font-display transition-colors",
-                  voice === v ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {scenarios.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => startScenario(s.id)}
-              className="p-4 rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all text-left space-y-1"
-            >
-              <div className="font-semibold text-sm text-foreground">{s.label}</div>
-              <div className="text-xs text-muted-foreground">{s.description}</div>
-            </button>
-          ))}
-        </div>
-
-        {!sttSupported && (
-          <div className="flex items-center gap-2 justify-center text-xs text-accent">
-            <AlertCircle className="h-3.5 w-3.5" />
-            Speech recognition not supported in this browser. Use Chrome or Edge for PTT.
-          </div>
-        )}
-      </div>
-    );
-  }
 
   const activeScenario = scenarios.find((s) => s.id === selectedScenario);
   const scenarioLabel = activeScenario?.label;
