@@ -88,93 +88,95 @@ export const useReadiness = (): ReadinessData => {
     hasData: false,
   });
 
-  useEffect(() => {
+  const fetchReadiness = useCallback(async () => {
     if (!user) {
       setData((d) => ({ ...d, loading: false }));
       return;
     }
+    const [{ data: progress }, { data: exams }] = await Promise.all([
+      supabase
+        .from("topic_progress")
+        .select("topic_id, completed")
+        .eq("user_id", user.id),
+      supabase
+        .from("exam_scores")
+        .select("exam_type, score, total_questions, result, created_at")
+        .eq("user_id", user.id)
+        .neq("result", "INCOMPLETE")
+        .order("created_at", { ascending: false })
+        .limit(40),
+    ]);
 
+    const totals = buildCategoryTotals();
+    const completedByCat: Record<ReadinessCategoryKey, number> = {
+      regulations: 0,
+      weather: 0,
+      navigation: 0,
+      aerodynamics: 0,
+    };
+    for (const row of progress ?? []) {
+      if (!row.completed) continue;
+      const cat = TOPIC_TO_CATEGORY[row.topic_id];
+      if (cat) completedByCat[cat] += 1;
+    }
+
+    const examsByCat: Record<ReadinessCategoryKey, number[]> = {
+      regulations: [],
+      weather: [],
+      navigation: [],
+      aerodynamics: [],
+    };
+    for (const e of exams ?? []) {
+      if (!e.total_questions) continue;
+      const pct = Math.round((e.score / e.total_questions) * 100);
+      examsByCat[EXAM_TYPE_TO_CATEGORY(e.exam_type)].push(pct);
+    }
+
+    const cats: Record<ReadinessCategoryKey, CategoryData> = {} as never;
+    const keys: ReadinessCategoryKey[] = ["regulations", "weather", "navigation", "aerodynamics"];
+    for (const key of keys) {
+      const topicTotal = totals[key];
+      const topicCompleted = completedByCat[key];
+      const topicPct = topicTotal > 0 ? (topicCompleted / topicTotal) * 100 : 0;
+
+      const recent = examsByCat[key].slice(0, 5);
+      const baseline = examsByCat[key].slice(5, 10);
+      const examAvg = recent.length ? recent.reduce((a, b) => a + b, 0) / recent.length : 0;
+      const baseAvg = baseline.length ? baseline.reduce((a, b) => a + b, 0) / baseline.length : 0;
+
+      const score = recent.length
+        ? Math.round(examAvg * 0.6 + topicPct * 0.4)
+        : Math.round(topicPct);
+
+      const trend = recent.length && baseline.length ? Math.round(examAvg - baseAvg) : 0;
+
+      cats[key] = {
+        score,
+        trend,
+        topicTotal,
+        topicCompleted,
+        examCount: examsByCat[key].length,
+      };
+    }
+
+    const overall = Math.round((cats.regulations.score + cats.weather.score + cats.navigation.score + cats.aerodynamics.score) / 4);
+    const hasData = (progress?.length ?? 0) > 0 || (exams?.length ?? 0) > 0;
+
+    setData({ loading: false, overall, categories: cats, hasData });
+  }, [user]);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [{ data: progress }, { data: exams }] = await Promise.all([
-        supabase
-          .from("topic_progress")
-          .select("topic_id, completed")
-          .eq("user_id", user.id),
-        supabase
-          .from("exam_scores")
-          .select("exam_type, score, total_questions, result, created_at")
-          .eq("user_id", user.id)
-          .neq("result", "INCOMPLETE")
-          .order("created_at", { ascending: false })
-          .limit(40),
-      ]);
+      await fetchReadiness();
       if (cancelled) return;
-
-      const totals = buildCategoryTotals();
-      const completedByCat: Record<ReadinessCategoryKey, number> = {
-        regulations: 0,
-        weather: 0,
-        navigation: 0,
-        aerodynamics: 0,
-      };
-      for (const row of progress ?? []) {
-        if (!row.completed) continue;
-        const cat = TOPIC_TO_CATEGORY[row.topic_id];
-        if (cat) completedByCat[cat] += 1;
-      }
-
-      // Group recent exams (last 5 per category for current avg, 5 before that for trend baseline)
-      const examsByCat: Record<ReadinessCategoryKey, number[]> = {
-        regulations: [],
-        weather: [],
-        navigation: [],
-        aerodynamics: [],
-      };
-      for (const e of exams ?? []) {
-        if (!e.total_questions) continue;
-        const pct = Math.round((e.score / e.total_questions) * 100);
-        examsByCat[EXAM_TYPE_TO_CATEGORY(e.exam_type)].push(pct);
-      }
-
-      const cats: Record<ReadinessCategoryKey, CategoryData> = {} as never;
-      const keys: ReadinessCategoryKey[] = ["regulations", "weather", "navigation", "aerodynamics"];
-      for (const key of keys) {
-        const topicTotal = totals[key];
-        const topicCompleted = completedByCat[key];
-        const topicPct = topicTotal > 0 ? (topicCompleted / topicTotal) * 100 : 0;
-
-        const recent = examsByCat[key].slice(0, 5);
-        const baseline = examsByCat[key].slice(5, 10);
-        const examAvg = recent.length ? recent.reduce((a, b) => a + b, 0) / recent.length : 0;
-        const baseAvg = baseline.length ? baseline.reduce((a, b) => a + b, 0) / baseline.length : 0;
-
-        // Blend: if exams exist, 60% exams + 40% topics; otherwise topics only.
-        const score = recent.length
-          ? Math.round(examAvg * 0.6 + topicPct * 0.4)
-          : Math.round(topicPct);
-
-        const trend = recent.length && baseline.length ? Math.round(examAvg - baseAvg) : 0;
-
-        cats[key] = {
-          score,
-          trend,
-          topicTotal,
-          topicCompleted,
-          examCount: examsByCat[key].length,
-        };
-      }
-
-      const overall = Math.round((cats.regulations.score + cats.weather.score + cats.navigation.score + cats.aerodynamics.score) / 4);
-      const hasData = (progress?.length ?? 0) > 0 || (exams?.length ?? 0) > 0;
-
-      setData({ loading: false, overall, categories: cats, hasData });
     })();
-
+    const off = onDashboardRefresh(() => { void fetchReadiness(); });
     return () => {
       cancelled = true;
+      off();
     };
-  }, [user]);
+  }, [fetchReadiness]);
 
   return data;
 };
