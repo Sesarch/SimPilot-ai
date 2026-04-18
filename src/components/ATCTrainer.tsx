@@ -772,30 +772,6 @@ ${transcript}`;
 
       {/* PTT panel */}
       <div className="border border-border rounded-lg bg-card p-4 flex flex-col items-center justify-between gap-4">
-        {(() => {
-          const active = scenarios.find((s) => s.id === selectedScenario);
-          const facility = active?.facility ?? "TWR";
-          const freq = active?.frequency ?? "118.30";
-          return (
-            <div
-              className="w-full rounded-md border border-[hsl(var(--amber-instrument)/0.4)] bg-black/60 px-3 py-2 flex items-center justify-between shadow-[inset_0_0_12px_hsl(var(--amber-instrument)/0.15)]"
-              aria-label={`Tuned frequency ${facility} ${freq}`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--hud-green))] shadow-[0_0_6px_hsl(var(--hud-green))] animate-pulse" />
-                <span className="font-display text-[9px] tracking-[0.3em] uppercase text-[hsl(var(--amber-instrument))/80]">
-                  COM1 · {facility}
-                </span>
-              </div>
-              <span
-                className="font-mono text-lg font-bold tabular-nums tracking-wider text-[hsl(var(--amber-instrument))]"
-                style={{ textShadow: "0 0 8px hsl(var(--amber-instrument) / 0.7)" }}
-              >
-                {freq}
-              </span>
-            </div>
-          );
-        })()}
         <div className="text-center">
           <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-1">
             Push To Talk
