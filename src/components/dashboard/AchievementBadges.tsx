@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Award, Trophy, Radio, Gem } from "lucide-react";
+import { Award, Trophy, Radio, Gem, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,6 +32,12 @@ const TIER_META: Record<string, BadgeMeta> = {
     sublabel: "Top Tier · 90%+",
     accent: "hsl(var(--hud-green))",
     icon: Radio,
+  },
+  radio_streak_3: {
+    label: "On a Roll",
+    sublabel: "3 ATC PASSes in a Row",
+    accent: "hsl(18 90% 60%)", // warm orange/flame
+    icon: Flame,
   },
   top_5_percent: {
     label: "Top 5%",
