@@ -1103,12 +1103,16 @@ const G3000ComRadio = ({
   standby,
   speaking,
   ptt,
+  onSwap,
+  swapping,
 }: {
   facility: string;
   active: string;
   standby: string;
   speaking: boolean;
   ptt: boolean;
+  onSwap?: () => void;
+  swapping?: boolean;
 }) => {
   const status = ptt ? "TX" : speaking ? "RX" : "STBY";
   const statusColor = ptt
