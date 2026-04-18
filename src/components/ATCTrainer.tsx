@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -195,6 +195,18 @@ const ATCTrainer = () => {
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
+  // Swappable COM1 active/standby frequencies (Garmin-style). Reset on scenario change.
+  const [activeFreq, setActiveFreq] = useState("118.300");
+  const [standbyFreq, setStandbyFreq] = useState("121.500");
+  const [swapAnim, setSwapAnim] = useState(false);
+  const swapFreqs = useCallback(() => {
+    setActiveFreq((prevA) => {
+      setStandbyFreq(prevA);
+      return standbyFreq;
+    });
+    setSwapAnim(true);
+    window.setTimeout(() => setSwapAnim(false), 350);
+  }, [standbyFreq]);
   const { user } = useAuth();
 
   // Anonymized cohort percentile for the current scored attempt — included in the PDF.
@@ -241,6 +253,17 @@ const ATCTrainer = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, interim]);
+
+  // Reset COM1 active/standby when the scenario changes.
+  useEffect(() => {
+    if (!selectedScenario) return;
+    const sc = scenarios.find((s) => s.id === selectedScenario);
+    const fac = sc?.facility ?? "TWR";
+    const freq = sc?.frequency ?? "118.300";
+    const [intp, dec = ""] = String(freq).split(".");
+    setActiveFreq(`${intp}.${(dec + "000").slice(0, 3)}`);
+    setStandbyFreq(fac === "GND" ? "118.300" : "121.500");
+  }, [selectedScenario]);
 
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
@@ -576,20 +599,23 @@ ${transcript}`;
   const facility = activeScenario?.facility ?? "TWR";
   const frequency = activeScenario?.frequency ?? "118.300";
   // Normalize to a 6-char "118.700" style display.
-  const freqDisplay = (() => {
-    const [intp, dec = ""] = String(frequency).split(".");
+  const normalizeFreq = (f: string) => {
+    const [intp, dec = ""] = String(f).split(".");
     return `${intp}.${(dec + "000").slice(0, 3)}`;
-  })();
+  };
+  const freqDisplay = normalizeFreq(frequency);
 
   return (
     <div className="space-y-4">
       {/* Garmin G3000-style COM1 radio strip */}
       <G3000ComRadio
         facility={facility}
-        active={freqDisplay}
-        standby="121.500"
+        active={activeFreq}
+        standby={standbyFreq}
         speaking={speaking}
         ptt={pttActive}
+        onSwap={swapFreqs}
+        swapping={swapAnim}
       />
 
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
@@ -1077,12 +1103,16 @@ const G3000ComRadio = ({
   standby,
   speaking,
   ptt,
+  onSwap,
+  swapping,
 }: {
   facility: string;
   active: string;
   standby: string;
   speaking: boolean;
   ptt: boolean;
+  onSwap?: () => void;
+  swapping?: boolean;
 }) => {
   const status = ptt ? "TX" : speaking ? "RX" : "STBY";
   const statusColor = ptt
@@ -1146,13 +1176,37 @@ const G3000ComRadio = ({
           </span>
         </div>
 
+        {/* Swap button */}
+        {onSwap && (
+          <button
+            type="button"
+            onClick={onSwap}
+            aria-label="Swap COM1 active and standby frequencies"
+            title="Swap active ⇄ standby"
+            className="group flex flex-col items-center justify-center px-2 py-1 rounded border border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/60"
+          >
+            <ArrowLeftRight
+              className={cn(
+                "h-4 w-4 text-primary transition-transform",
+                swapping && "rotate-180",
+              )}
+            />
+            <span className="font-display text-[8px] tracking-[0.25em] uppercase text-primary/70 mt-0.5">
+              Swap
+            </span>
+          </button>
+        )}
+
         {/* Standby */}
         <div className="text-right">
           <div className="font-display text-[9px] tracking-[0.3em] uppercase text-muted-foreground/80 mb-0.5">
             Standby
           </div>
           <div
-            className="font-mono font-bold tabular-nums leading-none text-foreground/90 text-xl sm:text-2xl tracking-wider"
+            className={cn(
+              "font-mono font-bold tabular-nums leading-none text-foreground/90 text-xl sm:text-2xl tracking-wider transition-opacity",
+              swapping && "opacity-40",
+            )}
             style={{ textShadow: "0 0 6px rgba(255,255,255,0.15)" }}
           >
             {standby}
