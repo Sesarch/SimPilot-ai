@@ -195,6 +195,8 @@ const ATCTrainer = () => {
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
+  // Live streak count: consecutive ATC PASSes from most-recent backwards.
+  const [streak, setStreak] = useState<number>(0);
   // Swappable COM1 active/standby frequencies (Garmin-style). Reset on scenario change.
   const [activeFreq, setActiveFreq] = useState("118.300");
   const [standbyFreq, setStandbyFreq] = useState("121.500");
