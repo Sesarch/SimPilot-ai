@@ -30,6 +30,7 @@ import CompetitorsPage from "./pages/CompetitorsPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
 import UnsubscribePage from "./pages/UnsubscribePage.tsx";
 import MobileChatPage from "./pages/MobileChatPage.tsx";
+import PublicProfilePage from "./pages/PublicProfilePage.tsx";
 import WeatherBriefingPage from "./pages/WeatherBriefingPage.tsx";
 import LiveToolsPage from "./pages/LiveToolsPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
@@ -82,6 +83,7 @@ const App = () => (
               <Route path="/competitors" element={<CompetitorsPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
+              <Route path="/pilot/:userId" element={<PublicProfilePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />
