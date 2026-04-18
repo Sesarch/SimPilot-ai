@@ -17,6 +17,7 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = useMemo(() => {
@@ -81,7 +82,13 @@ const AuthPage = () => {
           }).catch((err) => console.error("Omnisend sync failed:", err));
         }
 
-        toast.success("Account created! Check your email to verify.");
+        toast.success("Account created! Check your email to verify, then sign in.");
+        // Switch to login view with a clear next-step banner
+        setPendingVerificationEmail(email);
+        setIsLogin(true);
+        setAgreedToTerms(false);
+        setPassword("");
+        setFullName("");
       }
     } catch (err: any) {
       toast.error(err.message || "Authentication failed");
@@ -126,6 +133,19 @@ const AuthPage = () => {
           <p className="text-sm text-muted-foreground text-center mb-6">
             {isLogin ? "Sign in to your training account" : "Create your pilot training account"}
           </p>
+
+          {isLogin && pendingVerificationEmail && (
+            <div className="mb-6 rounded-lg border border-primary/40 bg-primary/10 p-4 text-sm text-foreground">
+              <p className="font-display font-semibold tracking-wide text-primary mb-1">
+                ✉ Check your email
+              </p>
+              <p className="text-muted-foreground">
+                We sent a verification link to{" "}
+                <span className="text-foreground font-medium">{pendingVerificationEmail}</span>.
+                Click the link in that email, then sign in below.
+              </p>
+            </div>
+          )}
 
           {/* OAuth buttons */}
           <div className="flex gap-3 mb-6">
