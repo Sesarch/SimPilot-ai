@@ -837,6 +837,7 @@ ${transcript}`;
       {/* Spacebar hold for PTT */}
       <SpaceHoldPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading} />
     </div>
+    </div>
   );
 };
 
