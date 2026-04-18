@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { User, LogOut, Settings, ChevronDown, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -113,6 +114,21 @@ const PilotIdentityChip = () => {
             <Settings className="w-3.5 h-3.5 mr-2" />
             Account
           </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={async () => {
+            const url = `${window.location.origin}/pilot/${user.id}`;
+            if (navigator.share) {
+              try { await navigator.share({ title: "My Pilot Profile", url }); } catch { /* cancelled */ }
+            } else {
+              await navigator.clipboard.writeText(url);
+              toast.success("Public profile link copied");
+            }
+          }}
+          className="font-display text-[11px] tracking-wider uppercase cursor-pointer"
+        >
+          <Share2 className="w-3.5 h-3.5 mr-2" />
+          Share Profile
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={handleSignOut}
