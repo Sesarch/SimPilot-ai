@@ -450,7 +450,19 @@ ${transcript}`;
 
       const final: PhraseologyScore = { score, total, result, summary, weak_areas, saved_id: inserted?.id };
       setPhraseologyScore(final);
+      const pct = total > 0 ? Math.round((score / total) * 100) : 0;
       toast.success(`Phraseology ${result} · ${score}/${total} · saved to Logbook`);
+      // 90+ achievement — subtle but celebratory
+      if (pct >= 90) {
+        setTimeout(() => {
+          toast.success("🏆 Achievement Unlocked", {
+            description: "Radio Proficiency: Top Tier",
+            duration: 6000,
+          });
+        }, 600);
+      }
+      // Notify Flight Deck / Recent Activity to refresh instantly
+      emitDashboardRefresh({ source: "atc" });
     } catch (e) {
       console.error("Phraseology scoring failed", e);
       toast.error("Couldn't score this scenario. Try again.");
