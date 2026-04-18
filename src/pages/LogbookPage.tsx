@@ -151,18 +151,25 @@ const LogbookPage = () => {
     };
     const c30 = cutoff(30);
     const c90 = cutoff(90);
+    const c180 = cutoff(180);
     let day30 = 0, day90 = 0, night30 = 0, night90 = 0;
+    let approaches180 = 0, instrument180 = 0;
     let lastDay: Date | null = null;
     let lastNight: Date | null = null;
+    let lastApproach: Date | null = null;
     for (const l of finals) {
       const d = new Date(l.flight_date + "T00:00:00");
       const day = num(l.day_landings);
       const night = num(l.night_landings);
       const total = day + night;
+      const appr = num(l.approaches);
+      const instr = num(l.instrument_time) + num(l.simulated_instrument_time);
       if (d >= c30) { day30 += total; night30 += night; }
       if (d >= c90) { day90 += total; night90 += night; }
+      if (d >= c180) { approaches180 += appr; instrument180 += instr; }
       if (total > 0 && (!lastDay || d > lastDay)) lastDay = d;
       if (night > 0 && (!lastNight || d > lastNight)) lastNight = d;
+      if (appr > 0 && (!lastApproach || d > lastApproach)) lastApproach = d;
     }
     // Currency expires 90 days after the 3rd-most-recent qualifying landing.
     // Simpler heuristic: current if 3+ landings in last 90 days.
@@ -173,12 +180,17 @@ const LogbookPage = () => {
     const daysSince = (d: Date | null) => d ? Math.floor((today.getTime() - d.getTime()) / 86400000) : null;
     const dayExpiresIn = dayCurrent && lastDay ? Math.max(0, 90 - (daysSince(lastDay) ?? 90)) : 0;
     const nightExpiresIn = nightCurrent && lastNight ? Math.max(0, 90 - (daysSince(lastNight) ?? 90)) : 0;
+    const ifrCurrent = approaches180 >= 6;
+    const ifrExpiresIn = ifrCurrent && lastApproach ? Math.max(0, 180 - (daysSince(lastApproach) ?? 180)) : 0;
     return {
       day30, day90, night30, night90,
       dayCurrent, nightCurrent,
       dayShortBy: Math.max(0, 3 - day90),
       nightShortBy: Math.max(0, 3 - night90),
       dayExpiresIn, nightExpiresIn,
+      approaches180, instrument180,
+      ifrCurrent, ifrExpiresIn,
+      ifrShortBy: Math.max(0, 6 - approaches180),
     };
   }, [logs]);
 
@@ -393,20 +405,23 @@ const LogbookPage = () => {
       <div className="g3000-bezel rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
-            Passenger Carrying Currency · FAR 61.57
+            Currency · FAR 61.57
           </span>
           <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
-            Last 30 / 90 Days
+            VFR 30/90d · IFR 6mo
           </span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
             {
               label: "Day Currency",
               sublabel: "3 takeoffs & landings · 90d",
               current: currency.dayCurrent,
-              count90: currency.day90,
-              count30: currency.day30,
+              countMain: currency.day90,
+              mainLabel: "90 Day",
+              mainTarget: 3,
+              countAlt: currency.day30,
+              altLabel: "30 Day",
               shortBy: currency.dayShortBy,
               expiresIn: currency.dayExpiresIn,
             },
@@ -414,10 +429,25 @@ const LogbookPage = () => {
               label: "Night Currency",
               sublabel: "3 full-stop ldg at night · 90d",
               current: currency.nightCurrent,
-              count90: currency.night90,
-              count30: currency.night30,
+              countMain: currency.night90,
+              mainLabel: "90 Day",
+              mainTarget: 3,
+              countAlt: currency.night30,
+              altLabel: "30 Day",
               shortBy: currency.nightShortBy,
               expiresIn: currency.nightExpiresIn,
+            },
+            {
+              label: "IFR Currency",
+              sublabel: "6 approaches + hold · 6mo · 61.57(c)",
+              current: currency.ifrCurrent,
+              countMain: currency.approaches180,
+              mainLabel: "6 Months",
+              mainTarget: 6,
+              countAlt: +currency.instrument180.toFixed(1),
+              altLabel: "Instr Hrs",
+              shortBy: currency.ifrShortBy,
+              expiresIn: currency.ifrExpiresIn,
             },
           ].map((c) => {
             const accent = c.current ? "hsl(var(--hud-green))" : "hsl(var(--destructive))";
@@ -454,17 +484,17 @@ const LogbookPage = () => {
                 </div>
                 <div className="flex items-end gap-4 mt-2">
                   <div>
-                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">90 Day</div>
+                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">{c.mainLabel}</div>
                     <div className="flex items-baseline gap-1">
                       <span className="font-display text-2xl font-bold tabular-nums" style={{ color: accent }}>
-                        {c.count90}
+                        {c.countMain}
                       </span>
-                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">/ 3</span>
+                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">/ {c.mainTarget}</span>
                     </div>
                   </div>
                   <div>
-                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">30 Day</div>
-                    <span className="font-display text-2xl font-bold tabular-nums text-foreground">{c.count30}</span>
+                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">{c.altLabel}</div>
+                    <span className="font-display text-2xl font-bold tabular-nums text-foreground">{c.countAlt}</span>
                   </div>
                   <div className="ml-auto text-right">
                     {c.current ? (
