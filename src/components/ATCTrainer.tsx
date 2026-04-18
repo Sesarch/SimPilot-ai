@@ -666,6 +666,15 @@ ${transcript}`;
                 Saved · Logbook
               </div>
             </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <PercentileSparkline
+                examType="atc_phraseology"
+                score={phraseologyScore.score}
+                total={phraseologyScore.total}
+                minSample={5}
+                showTopTier
+              />
+            </div>
             {phraseologyScore.summary && (
               <p className="text-xs text-muted-foreground italic">"{phraseologyScore.summary}"</p>
             )}
