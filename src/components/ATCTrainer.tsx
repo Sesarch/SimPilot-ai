@@ -196,6 +196,31 @@ const ATCTrainer = () => {
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
   const { user } = useAuth();
 
+  // Anonymized cohort percentile for the current scored attempt — included in the PDF.
+  const { data: percentile } = useExamPercentile(
+    phraseologyScore ? "atc_phraseology" : undefined,
+    phraseologyScore?.score ?? 0,
+    phraseologyScore?.total ?? 0,
+  );
+
+  const downloadDebrief = useCallback(() => {
+    if (!phraseologyScore) return;
+    const scenario = scenarios.find((s) => s.id === selectedScenario);
+    generateATCDebriefPDF({
+      scenarioLabel: scenario?.label ?? "ATC Scenario",
+      callsign: "N123AB",
+      voice: voice === "male" ? "Male" : "Female",
+      score: phraseologyScore.score,
+      total: phraseologyScore.total,
+      result: phraseologyScore.result,
+      summary: phraseologyScore.summary,
+      weak_areas: phraseologyScore.weak_areas,
+      transcript: messages.map((m) => ({ role: m.role, content: m.content })),
+      percentile: percentile ?? null,
+    });
+    toast.success("Debrief PDF downloaded");
+  }, [phraseologyScore, selectedScenario, voice, messages, percentile]);
+
   const recognizerRef = useRef<any>(null);
   const finalBufferRef = useRef<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
