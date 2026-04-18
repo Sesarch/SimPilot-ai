@@ -21,6 +21,12 @@ type BadgeMeta = {
 };
 
 const TIER_META: Record<string, BadgeMeta> = {
+  radio_proficiency_perfect: {
+    label: "Perfect Score",
+    sublabel: "Flawless Phraseology · 100%",
+    accent: "hsl(280 90% 70%)", // distinct violet — rarest tier
+    icon: Gem,
+  },
   radio_proficiency_top_tier: {
     label: "Radio Proficiency",
     sublabel: "Top Tier · 90%+",
