@@ -3,8 +3,6 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import groundSchoolLight from "@/assets/ground-school-light.jpg";
@@ -120,10 +118,8 @@ const GroundSchoolPage = () => {
           ]
         }}
       />
-      <Navbar />
-
       {/* Content */}
-      <div className="pt-20 flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col">
       {selectedLesson ? (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="border-b border-border bg-secondary/30 px-6 py-3 shrink-0">
@@ -299,7 +295,6 @@ const GroundSchoolPage = () => {
         </div>
       )}
       </div>
-      <Footer />
     </div>
   );
 };

@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Shield, ArrowLeft, ChevronRight, Flame, Target } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import CheckrideReadinessReport from "@/components/CheckrideReadinessReport";
@@ -197,10 +195,8 @@ const OralExamPage = () => {
           ]
         }}
       />
-      <Navbar />
-
       {/* Content */}
-      <div className="pt-20 flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col">
       {reportId ? (
         <div className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-4 sm:px-6 py-6 max-w-3xl">
@@ -359,7 +355,6 @@ const OralExamPage = () => {
         </div>
       )}
       </div>
-      <Footer />
     </div>
   );
 };

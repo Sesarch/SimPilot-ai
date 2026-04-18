@@ -1,6 +1,4 @@
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import FlightTrackerMap from "@/components/FlightTrackerMap";
 import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary";
 import ATCTrainer from "@/components/ATCTrainer";
@@ -50,48 +48,61 @@ const LiveToolsPage = () => {
         ogImage="/og-live-sky.jpg"
         jsonLd={liveToolsJsonLd}
       />
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="pt-20 sm:pt-24 pb-8 sm:pb-16">
+      <div className="min-h-full bg-background">
+        <main className="pb-8 sm:pb-16 pt-4 sm:pt-6">
           <div className="container mx-auto px-3 sm:px-6">
             {/* Header */}
-            <div className="text-center mb-4 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground mb-1 sm:mb-2">
-                Live <span className="text-primary">Sky</span>
+            <div className="mb-4 sm:mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                  ATC Suite
+                </span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-wider">
+                LIVE <span className="text-accent">SKY</span>
               </h1>
-              <p className="text-muted-foreground max-w-xl mx-auto text-xs sm:text-sm">
-                Watch the skies in real time — track flights worldwide and sharpen your ATC radio skills with AI.
+              <p className="text-muted-foreground text-xs sm:text-sm mt-1">
+                Real-time global traffic and AI ATC radio drills.
               </p>
             </div>
 
             {/* Tabs */}
-            <div className="flex justify-center gap-2 mb-4 sm:mb-6">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                    activeTab === tab.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-green-400/40 animate-pulse" />
-                    <span className={`relative inline-flex rounded-full h-3 w-3 shadow-[0_0_8px_2px_rgba(34,197,94,0.6)] ${activeTab === tab.id ? "bg-green-300" : "bg-green-500"}`} />
-                  </span>
-                  <tab.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.id === "tracker" ? "Tracker" : "ATC"}</span>
-                </button>
-              ))}
+            <div className="flex gap-2 mb-4 sm:mb-6 border-b border-border">
+              {tabs.map(tab => {
+                const active = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center gap-2 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-display tracking-wider uppercase transition-all ${
+                      active
+                        ? "text-accent"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--hud-green))] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--hud-green))]" />
+                    </span>
+                    <tab.icon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.id === "tracker" ? "Tracker" : "ATC"}</span>
+                    {active && (
+                      <span
+                        className="absolute -bottom-px left-0 right-0 h-0.5 bg-accent"
+                        style={{ boxShadow: "0 0 8px hsl(var(--amber-instrument))" }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Content */}
             {activeTab === "tracker" ? (
               <FlightTrackerErrorBoundary>
-                <div className="h-[calc(100vh-200px)] sm:h-[600px] md:h-[700px]">
+                <div className="h-[calc(100vh-220px)] sm:h-[600px] md:h-[700px] rounded-lg overflow-hidden border border-border">
                   <FlightTrackerMap />
                 </div>
               </FlightTrackerErrorBoundary>
@@ -100,7 +111,6 @@ const LiveToolsPage = () => {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </>
   );
