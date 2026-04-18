@@ -299,6 +299,8 @@ const ProgressPage = () => {
           )}
         </div>
 
+        {/* Earned achievement badges — flex your tier alongside flight hours. */}
+        <AchievementBadges />
 
         {/* Checkride Readiness History */}
         {(() => {
