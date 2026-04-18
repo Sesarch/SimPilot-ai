@@ -366,6 +366,105 @@ const LogbookPage = () => {
       </div>
 
       {/* Totals breakdown */}
+      {/* Currency tracking — FAR 61.57 */}
+      <div className="g3000-bezel rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+            Passenger Carrying Currency · FAR 61.57
+          </span>
+          <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
+            Last 30 / 90 Days
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            {
+              label: "Day Currency",
+              sublabel: "3 takeoffs & landings · 90d",
+              current: currency.dayCurrent,
+              count90: currency.day90,
+              count30: currency.day30,
+              shortBy: currency.dayShortBy,
+              expiresIn: currency.dayExpiresIn,
+            },
+            {
+              label: "Night Currency",
+              sublabel: "3 full-stop ldg at night · 90d",
+              current: currency.nightCurrent,
+              count90: currency.night90,
+              count30: currency.night30,
+              shortBy: currency.nightShortBy,
+              expiresIn: currency.nightExpiresIn,
+            },
+          ].map((c) => {
+            const accent = c.current ? "hsl(var(--hud-green))" : "hsl(var(--destructive))";
+            return (
+              <div
+                key={c.label}
+                className="rounded-md border px-4 py-3 relative overflow-hidden"
+                style={{
+                  borderColor: `${accent}55`,
+                  background: `linear-gradient(135deg, ${accent}15 0%, hsl(var(--background) / 0.6) 60%, ${accent}08 100%)`,
+                  boxShadow: `inset 0 1px 0 ${accent}30, 0 0 10px -4px ${accent}66`,
+                }}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div>
+                    <div className="font-display text-[11px] tracking-[0.2em] uppercase font-bold" style={{ color: accent }}>
+                      {c.label}
+                    </div>
+                    <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground mt-0.5">
+                      {c.sublabel}
+                    </div>
+                  </div>
+                  <span
+                    className="font-display text-[10px] tracking-[0.2em] uppercase font-bold px-2 py-0.5 rounded-sm border"
+                    style={{
+                      color: accent,
+                      borderColor: `${accent}66`,
+                      background: `${accent}15`,
+                      textShadow: `0 0 6px ${accent}88`,
+                    }}
+                  >
+                    {c.current ? "Current" : "Expired"}
+                  </span>
+                </div>
+                <div className="flex items-end gap-4 mt-2">
+                  <div>
+                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">90 Day</div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-display text-2xl font-bold tabular-nums" style={{ color: accent }}>
+                        {c.count90}
+                      </span>
+                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">/ 3</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">30 Day</div>
+                    <span className="font-display text-2xl font-bold tabular-nums text-foreground">{c.count30}</span>
+                  </div>
+                  <div className="ml-auto text-right">
+                    {c.current ? (
+                      <>
+                        <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">Expires In</div>
+                        <span className="font-display text-base font-bold tabular-nums text-foreground">~{c.expiresIn}d</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">Need</div>
+                        <span className="font-display text-base font-bold tabular-nums" style={{ color: accent }}>
+                          {c.shortBy} more
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="g3000-bezel rounded-lg p-4">
         <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-3">
           Career Totals
