@@ -254,6 +254,17 @@ const ATCTrainer = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, interim]);
 
+  // Reset COM1 active/standby when the scenario changes.
+  useEffect(() => {
+    if (!selectedScenario) return;
+    const sc = scenarios.find((s) => s.id === selectedScenario);
+    const fac = sc?.facility ?? "TWR";
+    const freq = sc?.frequency ?? "118.300";
+    const [intp, dec = ""] = String(freq).split(".");
+    setActiveFreq(`${intp}.${(dec + "000").slice(0, 3)}`);
+    setStandbyFreq(fac === "GND" ? "118.300" : "121.500");
+  }, [selectedScenario]);
+
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
     setMessages([]);
