@@ -543,6 +543,9 @@ const ATCTrainer = () => {
           </span>
         </button>
 
+        {/* VU meter — pulses with AI voice + hiss bed */}
+        <VUMeter getAnalyser={() => fxRef.current?.analyser ?? null} active={speaking} />
+
         <div className="text-center text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
           Voice: <span className="text-foreground">{voice}</span>
         </div>
