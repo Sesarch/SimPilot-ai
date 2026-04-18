@@ -18,6 +18,8 @@ const AuthPage = () => {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = useMemo(() => {
@@ -106,6 +108,31 @@ const AuthPage = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!pendingVerificationEmail || resending || resendCooldown > 0) return;
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: pendingVerificationEmail,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) throw error;
+      toast.success("Verification email sent. Check your inbox.");
+      setResendCooldown(60);
+      const interval = setInterval(() => {
+        setResendCooldown((s) => {
+          if (s <= 1) { clearInterval(interval); return 0; }
+          return s - 1;
+        });
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend verification email.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <SEOHead
@@ -144,6 +171,18 @@ const AuthPage = () => {
                 <span className="text-foreground font-medium">{pendingVerificationEmail}</span>.
                 Click the link in that email, then sign in below.
               </p>
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resending || resendCooldown > 0}
+                className="mt-3 text-xs font-display tracking-wider uppercase text-primary hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
+              >
+                {resending
+                  ? "Sending..."
+                  : resendCooldown > 0
+                    ? `Resend available in ${resendCooldown}s`
+                    : "Didn't get it? Resend verification email"}
+              </button>
             </div>
           )}
 
