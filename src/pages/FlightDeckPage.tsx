@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RecentActivityPanel from "@/components/dashboard/RecentActivityPanel";
 import AchievementBadges from "@/components/dashboard/AchievementBadges";
 import SimStatusPanel from "@/components/dashboard/SimStatusPanel";
+import { useAutoLogbook } from "@/hooks/useAutoLogbook";
 
 const CATEGORY_META: Array<{
   key: ReadinessCategoryKey;
@@ -23,6 +24,8 @@ const CATEGORY_META: Array<{
 
 const FlightDeckPage = () => {
   const { loading, overall, categories, hasData } = useReadiness();
+  // Listen for SimPilot Bridge flight phase events and auto-draft logbook rows.
+  useAutoLogbook();
 
   return (
     <div className="g3000-grid min-h-full">
