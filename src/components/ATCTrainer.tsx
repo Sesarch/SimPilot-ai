@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PercentileSparkline } from "@/components/PercentileSparkline";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
+import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 
 interface ATCMessage {
   id: string;
@@ -449,7 +450,19 @@ ${transcript}`;
 
       const final: PhraseologyScore = { score, total, result, summary, weak_areas, saved_id: inserted?.id };
       setPhraseologyScore(final);
+      const pct = total > 0 ? Math.round((score / total) * 100) : 0;
       toast.success(`Phraseology ${result} · ${score}/${total} · saved to Logbook`);
+      // 90+ achievement — subtle but celebratory
+      if (pct >= 90) {
+        setTimeout(() => {
+          toast.success("🏆 Achievement Unlocked", {
+            description: "Radio Proficiency: Top Tier",
+            duration: 6000,
+          });
+        }, 600);
+      }
+      // Notify Flight Deck / Recent Activity to refresh instantly
+      emitDashboardRefresh({ source: "atc" });
     } catch (e) {
       console.error("Phraseology scoring failed", e);
       toast.error("Couldn't score this scenario. Try again.");
@@ -558,9 +571,27 @@ ${transcript}`;
     );
   }
 
-  const scenarioLabel = scenarios.find((s) => s.id === selectedScenario)?.label;
+  const activeScenario = scenarios.find((s) => s.id === selectedScenario);
+  const scenarioLabel = activeScenario?.label;
+  const facility = activeScenario?.facility ?? "TWR";
+  const frequency = activeScenario?.frequency ?? "118.300";
+  // Normalize to a 6-char "118.700" style display.
+  const freqDisplay = (() => {
+    const [intp, dec = ""] = String(frequency).split(".");
+    return `${intp}.${(dec + "000").slice(0, 3)}`;
+  })();
 
   return (
+    <div className="space-y-4">
+      {/* Garmin G3000-style COM1 radio strip */}
+      <G3000ComRadio
+        facility={facility}
+        active={freqDisplay}
+        standby="121.500"
+        speaking={speaking}
+        ptt={pttActive}
+      />
+
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
       {/* Transcript */}
       <div className="flex flex-col h-[560px] border border-border rounded-lg bg-card overflow-hidden">
@@ -741,30 +772,6 @@ ${transcript}`;
 
       {/* PTT panel */}
       <div className="border border-border rounded-lg bg-card p-4 flex flex-col items-center justify-between gap-4">
-        {(() => {
-          const active = scenarios.find((s) => s.id === selectedScenario);
-          const facility = active?.facility ?? "TWR";
-          const freq = active?.frequency ?? "118.30";
-          return (
-            <div
-              className="w-full rounded-md border border-[hsl(var(--amber-instrument)/0.4)] bg-black/60 px-3 py-2 flex items-center justify-between shadow-[inset_0_0_12px_hsl(var(--amber-instrument)/0.15)]"
-              aria-label={`Tuned frequency ${facility} ${freq}`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--hud-green))] shadow-[0_0_6px_hsl(var(--hud-green))] animate-pulse" />
-                <span className="font-display text-[9px] tracking-[0.3em] uppercase text-[hsl(var(--amber-instrument))/80]">
-                  COM1 · {facility}
-                </span>
-              </div>
-              <span
-                className="font-mono text-lg font-bold tabular-nums tracking-wider text-[hsl(var(--amber-instrument))]"
-                style={{ textShadow: "0 0 8px hsl(var(--amber-instrument) / 0.7)" }}
-              >
-                {freq}
-              </span>
-            </div>
-          );
-        })()}
         <div className="text-center">
           <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-1">
             Push To Talk
@@ -829,6 +836,7 @@ ${transcript}`;
 
       {/* Spacebar hold for PTT */}
       <SpaceHoldPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading} />
+    </div>
     </div>
   );
 };
@@ -1056,6 +1064,111 @@ const PTTRing = ({
         );
       })}
     </svg>
+  );
+};
+
+/**
+ * Garmin G3000-style COM1 radio strip. Active frequency on the left in
+ * cyan, standby on the right in white, with a small TX/RX status lamp.
+ */
+const G3000ComRadio = ({
+  facility,
+  active,
+  standby,
+  speaking,
+  ptt,
+}: {
+  facility: string;
+  active: string;
+  standby: string;
+  speaking: boolean;
+  ptt: boolean;
+}) => {
+  const status = ptt ? "TX" : speaking ? "RX" : "STBY";
+  const statusColor = ptt
+    ? "hsl(var(--hud-green))"
+    : speaking
+    ? "hsl(var(--amber-instrument))"
+    : "hsl(var(--muted-foreground))";
+
+  return (
+    <div
+      className="rounded-lg border border-border bg-black/85 px-4 py-3 shadow-[inset_0_0_24px_rgba(0,0,0,0.7),0_0_0_1px_hsl(var(--primary)/0.15)] relative overflow-hidden"
+      role="group"
+      aria-label={`COM1 radio tuned to ${facility} ${active}`}
+    >
+      {/* corner ticks */}
+      <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/40" />
+      <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-primary/40" />
+      <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-primary/40" />
+      <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/40" />
+
+      <div className="flex items-center justify-between gap-4">
+        {/* Active (TX) frequency */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{
+                background: statusColor,
+                boxShadow: ptt || speaking ? `0 0 8px ${statusColor}` : "none",
+                animation: ptt || speaking ? "pulse 1.5s ease-in-out infinite" : undefined,
+              }}
+            />
+            <span className="font-display text-[9px] tracking-[0.3em] uppercase text-primary/80">
+              COM1 · ACTIVE
+            </span>
+            <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+              · {facility}
+            </span>
+          </div>
+          <div
+            className="font-mono font-bold tabular-nums leading-none text-[hsl(var(--cyan-glow))] text-3xl sm:text-4xl tracking-wider"
+            style={{ textShadow: "0 0 12px hsl(var(--cyan-glow) / 0.55)" }}
+          >
+            {active}
+          </div>
+        </div>
+
+        {/* Status lamp */}
+        <div className="flex flex-col items-center px-2 sm:px-4 border-x border-border/60 self-stretch justify-center">
+          <span className="font-display text-[8px] tracking-[0.3em] uppercase text-muted-foreground mb-1">
+            Status
+          </span>
+          <span
+            className="font-display text-xs tracking-[0.25em] uppercase font-bold"
+            style={{
+              color: statusColor,
+              textShadow: ptt || speaking ? `0 0 8px ${statusColor}` : "none",
+            }}
+          >
+            {status}
+          </span>
+        </div>
+
+        {/* Standby */}
+        <div className="text-right">
+          <div className="font-display text-[9px] tracking-[0.3em] uppercase text-muted-foreground/80 mb-0.5">
+            Standby
+          </div>
+          <div
+            className="font-mono font-bold tabular-nums leading-none text-foreground/90 text-xl sm:text-2xl tracking-wider"
+            style={{ textShadow: "0 0 6px rgba(255,255,255,0.15)" }}
+          >
+            {standby}
+          </div>
+        </div>
+      </div>
+
+      {/* subtle scanline */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0px, rgba(255,255,255,0.6) 1px, transparent 1px, transparent 3px)",
+        }}
+      />
+    </div>
   );
 };
 

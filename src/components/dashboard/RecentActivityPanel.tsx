@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { GraduationCap, ClipboardCheck, Activity, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LESSON_AREAS } from "@/data/groundSchoolLessons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { onDashboardRefresh } from "@/lib/dashboardEvents";
 
 type ActivityItem = {
   id: string;
@@ -38,74 +39,73 @@ const RecentActivityPanel = () => {
   const { user } = useAuth();
   const [items, setItems] = useState<ActivityItem[] | null>(null);
 
-  useEffect(() => {
+  const fetchActivity = useCallback(async () => {
     if (!user) {
       setItems([]);
       return;
     }
-    let cancelled = false;
-    (async () => {
-      const [{ data: exams }, { data: topics }] = await Promise.all([
-        supabase
-          .from("exam_scores")
-          .select("id, exam_type, score, total_questions, result, created_at")
-          .eq("user_id", user.id)
-          .neq("result", "INCOMPLETE")
-          .order("created_at", { ascending: false })
-          .limit(5),
-        supabase
-          .from("topic_progress")
-          .select("id, topic_id, completed_at")
-          .eq("user_id", user.id)
-          .eq("completed", true)
-          .not("completed_at", "is", null)
-          .order("completed_at", { ascending: false })
-          .limit(5),
-      ]);
-      if (cancelled) return;
+    const [{ data: exams }, { data: topics }] = await Promise.all([
+      supabase
+        .from("exam_scores")
+        .select("id, exam_type, score, total_questions, result, created_at")
+        .eq("user_id", user.id)
+        .neq("result", "INCOMPLETE")
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("topic_progress")
+        .select("id, topic_id, completed_at")
+        .eq("user_id", user.id)
+        .eq("completed", true)
+        .not("completed_at", "is", null)
+        .order("completed_at", { ascending: false })
+        .limit(5),
+    ]);
 
-      const merged: ActivityItem[] = [];
+    const merged: ActivityItem[] = [];
 
-      for (const e of exams ?? []) {
-        const pct = e.total_questions ? Math.round((e.score / e.total_questions) * 100) : 0;
-        const passed = (e.result || "").toUpperCase() === "PASS" || pct >= 70;
-        const isATC = e.exam_type === "atc_phraseology";
-        merged.push({
-          id: `exam-${e.id}`,
-          kind: "exam",
-          title: isATC ? "ATC Phraseology" : e.exam_type.replace(/[-_]/g, " "),
-          subtitle: `${isATC ? "Radio Drill" : "Oral Exam"} · ${e.score}/${e.total_questions}`,
-          metric: `${pct}%`,
-          metricColor: passed
-            ? "hsl(var(--hud-green))"
-            : pct >= 50
-            ? "hsl(var(--amber-instrument))"
-            : "hsl(var(--destructive))",
-          at: e.created_at,
-          href: isATC ? "/live-tools" : `/oral-exam?report=${e.id}`,
-        });
-      }
+    for (const e of exams ?? []) {
+      const pct = e.total_questions ? Math.round((e.score / e.total_questions) * 100) : 0;
+      const passed = (e.result || "").toUpperCase() === "PASS" || pct >= 70;
+      const isATC = e.exam_type === "atc_phraseology";
+      merged.push({
+        id: `exam-${e.id}`,
+        kind: "exam",
+        title: isATC ? "ATC Phraseology" : e.exam_type.replace(/[-_]/g, " "),
+        subtitle: `${isATC ? "Radio Drill" : "Oral Exam"} · ${e.score}/${e.total_questions}`,
+        metric: `${pct}%`,
+        metricColor: passed
+          ? "hsl(var(--hud-green))"
+          : pct >= 50
+          ? "hsl(var(--amber-instrument))"
+          : "hsl(var(--destructive))",
+        at: e.created_at,
+        href: isATC ? "/live-tools" : `/oral-exam?report=${e.id}`,
+      });
+    }
 
-      for (const t of topics ?? []) {
-        merged.push({
-          id: `topic-${t.id}`,
-          kind: "topic",
-          title: TOPIC_TITLES[t.topic_id] ?? t.topic_id,
-          subtitle: "Ground School · Topic Complete",
-          metric: "✓",
-          metricColor: "hsl(var(--cyan-glow))",
-          at: t.completed_at!,
-          href: `/ground-school?topic=${encodeURIComponent(t.topic_id)}`,
-        });
-      }
+    for (const t of topics ?? []) {
+      merged.push({
+        id: `topic-${t.id}`,
+        kind: "topic",
+        title: TOPIC_TITLES[t.topic_id] ?? t.topic_id,
+        subtitle: "Ground School · Topic Complete",
+        metric: "✓",
+        metricColor: "hsl(var(--cyan-glow))",
+        at: t.completed_at!,
+        href: `/ground-school?topic=${encodeURIComponent(t.topic_id)}`,
+      });
+    }
 
-      merged.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
-      setItems(merged.slice(0, 5));
-    })();
-    return () => {
-      cancelled = true;
-    };
+    merged.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+    setItems(merged.slice(0, 5));
   }, [user]);
+
+  useEffect(() => {
+    void fetchActivity();
+    const off = onDashboardRefresh(() => { void fetchActivity(); });
+    return () => { off(); };
+  }, [fetchActivity]);
 
   return (
     <div className="g3000-bezel rounded-lg p-4 sm:p-5 relative overflow-hidden">
