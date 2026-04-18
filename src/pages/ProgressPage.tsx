@@ -189,6 +189,9 @@ const ProgressPage = () => {
           )}
         </div>
 
+        {/* Earned achievement badges - flex your tier alongside flight hours. */}
+        <AchievementBadges />
+
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="bg-gradient-card rounded-xl border border-border p-4 text-center">
