@@ -193,6 +193,19 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
           if (cancelled) return;
           try {
             const raw = JSON.parse(event.data);
+
+            // Bridge control frames
+            if (raw && typeof raw.type === "string") {
+              if (raw.type === "auth-ok") {
+                setStatus("connected");
+                return;
+              }
+              if (raw.type === "auth-error") {
+                setStatus("disconnected");
+                return;
+              }
+            }
+
             const t: SimBridgeTelemetry = {
               alt: Number(raw.alt ?? raw.altitude ?? raw.Altitude ?? 0),
               hdg: Number(raw.hdg ?? raw.heading ?? raw.Heading ?? 0),
