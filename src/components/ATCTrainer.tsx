@@ -1,101 +1,256 @@
-import { useState, useRef, useEffect } from "react";
-import { Send, Radio, RotateCcw, Volume2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface ATCMessage {
   id: string;
   role: "atc" | "pilot" | "system";
   content: string;
-  feedback?: string;
 }
 
 const scenarios = [
-  { id: "departure", label: "Departure Clearance", description: "Practice requesting and reading back departure clearances" },
-  { id: "approach", label: "Approach & Landing", description: "Practice approach and landing communications" },
-  { id: "enroute", label: "En Route", description: "Practice altitude changes, frequency handoffs, and position reports" },
-  { id: "emergency", label: "Emergency Procedures", description: "Practice declaring emergencies and communicating with ATC" },
-  { id: "ground", label: "Ground Operations", description: "Practice taxi clearances and ground communications" },
-  { id: "vfr-flight-following", label: "VFR Flight Following", description: "Practice requesting and using VFR flight following services" },
-];
+  { id: "departure", label: "Departure Clearance", description: "IFR/VFR clearance delivery & ground" },
+  { id: "approach", label: "Approach & Landing", description: "Approach, tower, landing clearance" },
+  { id: "enroute", label: "En Route", description: "Center handoffs, altitude, position reports" },
+  { id: "emergency", label: "Emergency Procedures", description: "Mayday, Pan-Pan, vectors to nearest" },
+  { id: "ground", label: "Ground Operations", description: "Taxi, hold short, runway crossings" },
+  { id: "vfr-flight-following", label: "VFR Flight Following", description: "Approach control advisories" },
+] as const;
+
+const FAA_PROMPT = (scenarioLabel: string) => `You are a FAA-certified Air Traffic Controller running a live radio drill.
+
+CALLSIGN: Pilot is "November One Two Three Alpha Bravo" (N123AB). Use full callsign on first contact, then "One Two Three Alpha Bravo" or "Three Alpha Bravo".
+
+SCENARIO: ${scenarioLabel}
+
+STRICT RADIO PHRASEOLOGY RULES (FAA AIM 4-2 / Pilot-Controller Glossary):
+- Use ONLY standard FAA phraseology. No conversational filler.
+- Numbers: pronounce digits individually ("one two three", not "one twenty-three"). Altitudes in thousands say "thousand" ("five thousand five hundred"). Flight levels: "flight level two one zero".
+- Headings: three digits ("heading zero niner zero"). Use "niner" for 9.
+- Frequencies: decimal as "point" ("one two one point niner").
+- Use proper sequence: WHO you're calling, WHO you are, WHERE, WHAT.
+- Use "roger", "wilco", "affirmative", "negative", "say again", "stand by", "unable", "cleared", "contact", "monitor", "squawk", "ident", "verify".
+- No "okay", "yeah", "alright", "sure", "no problem".
+- Keep transmissions short and crisp — one breath each.
+
+OUTPUT FORMAT (CRITICAL):
+- Respond ONLY with the spoken radio transmission. No labels, no markdown, no prose.
+- ONE transmission per turn.
+- After your transmission, on a NEW LINE, append a feedback block in this exact format if (and only if) the pilot's previous call had errors:
+  [FEEDBACK] short, specific correction (e.g. "Read back runway and hold-short instruction.")
+- If the pilot's call was correct, omit the [FEEDBACK] line entirely.
+- Never break character. You are the controller, not a teacher.`;
+
+// ---- Static / squelch sound design (WebAudio, no asset files) -----------
+class RadioFX {
+  private ctx: AudioContext | null = null;
+  private noiseBuffer: AudioBuffer | null = null;
+  private hissNode: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+
+  private getCtx() {
+    if (!this.ctx) {
+      const AC = window.AudioContext || (window as any).webkitAudioContext;
+      this.ctx = new AC();
+    }
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    return this.ctx;
+  }
+
+  private getNoise() {
+    const ctx = this.getCtx();
+    if (this.noiseBuffer) return this.noiseBuffer;
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.6;
+    this.noiseBuffer = buf;
+    return buf;
+  }
+
+  /** Short squelch click (key-up or key-down). */
+  squelch(kind: "up" | "down" = "up") {
+    const ctx = this.getCtx();
+    const src = ctx.createBufferSource();
+    src.buffer = this.getNoise();
+    const gain = ctx.createGain();
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = kind === "up" ? 2200 : 1600;
+    bp.Q.value = 0.8;
+    src.connect(bp).connect(gain).connect(ctx.destination);
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.18, now + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+    src.start(now);
+    src.stop(now + 0.12);
+  }
+
+  /** Start a low-level filtered hiss bed (loops until stopHiss). */
+  startHiss() {
+    if (this.hissNode) return;
+    const ctx = this.getCtx();
+    const src = ctx.createBufferSource();
+    src.buffer = this.getNoise();
+    src.loop = true;
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 1200;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 3800;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(hp).connect(lp).connect(gain).connect(ctx.destination);
+    src.start();
+    gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.08);
+    this.hissNode = { src, gain };
+  }
+
+  stopHiss() {
+    if (!this.hissNode) return;
+    const ctx = this.getCtx();
+    const { src, gain } = this.hissNode;
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.1);
+    setTimeout(() => {
+      try { src.stop(); } catch { /* noop */ }
+    }, 150);
+    this.hissNode = null;
+  }
+}
+
+// ---- Browser STT (PTT) ---------------------------------------------------
+function getRecognizer(): any {
+  const SR =
+    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  if (!SR) return null;
+  const r = new SR();
+  r.continuous = true;
+  r.interimResults = true;
+  r.lang = "en-US";
+  return r;
+}
 
 const ATCTrainer = () => {
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
   const [messages, setMessages] = useState<ATCMessage[]>([]);
-  const [input, setInput] = useState("");
+  const [interim, setInterim] = useState("");
+  const [pttActive, setPttActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [voice, setVoice] = useState<"male" | "female">("male");
+  const [sttSupported, setSttSupported] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const recognizerRef = useRef<any>(null);
+  const finalBufferRef = useRef<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fxRef = useRef<RadioFX | null>(null);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    fxRef.current = new RadioFX();
+    setSttSupported(!!getRecognizer());
+    return () => {
+      try { recognizerRef.current?.stop?.(); } catch { /* noop */ }
+      fxRef.current?.stopHiss();
+      audioElRef.current?.pause();
+    };
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, interim]);
 
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
     setMessages([]);
+    setError(null);
     setLoading(true);
 
-    const scenario = scenarios.find(s => s.id === scenarioId);
-    const systemPrompt = `You are an ATC Communication Trainer for pilots. You play the role of an Air Traffic Controller.
-    
-Scenario: ${scenario?.label} - ${scenario?.description}
-
-Rules:
-1. Use realistic ATC phraseology and callsigns
-2. After each pilot transmission, provide brief feedback on their radio technique
-3. Use proper aviation terminology
-4. Include realistic details (runway numbers, frequencies, altitudes, headings)
-5. Format your response as:
-   **ATC:** [your ATC transmission]
-   **Feedback:** [brief feedback on the pilot's last transmission, or "Begin by making your initial call" for the first message]
-6. Keep transmissions concise and realistic
-7. Assign the pilot callsign "November 1-2-3 Alpha Bravo" (N123AB)
-8. Use a realistic airport (e.g., KJFK, KLAX, KORD)`;
-
+    const scenario = scenarios.find((s) => s.id === scenarioId)!;
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
           messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Start the ${scenario?.label} scenario. Give the initial ATC instruction or set the scene. The pilot's callsign is N123AB.` },
+            { role: "system", content: FAA_PROMPT(scenario.label) },
+            { role: "user", content: `Begin scenario. Make your initial transmission to N123AB.` },
           ],
         },
       });
-
       if (error) throw error;
-
-      const reply = data?.choices?.[0]?.message?.content || data?.reply || "Unable to start scenario.";
-      setMessages([
-        { id: "1", role: "system", content: `📡 Scenario: ${scenario?.label}` },
-        { id: "2", role: "atc", content: reply },
-      ]);
-    } catch (err) {
-      setMessages([{ id: "1", role: "system", content: "Failed to start scenario. Please try again." }]);
+      const reply = data?.choices?.[0]?.message?.content || data?.reply || "";
+      const intro: ATCMessage = { id: crypto.randomUUID(), role: "system", content: `📡 ${scenario.label} — N123AB` };
+      const atcMsg: ATCMessage = { id: crypto.randomUUID(), role: "atc", content: reply };
+      setMessages([intro, atcMsg]);
+      void speakATC(reply);
+    } catch (e) {
+      setError("Failed to start scenario.");
     } finally {
       setLoading(false);
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+  const speakATC = async (text: string) => {
+    // Strip [FEEDBACK] line from spoken audio (only spoken radio call).
+    const spoken = text.split(/\n?\[FEEDBACK\]/i)[0].trim();
+    if (!spoken) return;
 
-    const userMsg: ATCMessage = { id: Date.now().toString(), role: "pilot", content: input.trim() };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
-    setInput("");
+    try {
+      setSpeaking(true);
+      fxRef.current?.squelch("up");
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/atc-tts`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ text: spoken, voice }),
+      });
+      if (!resp.ok) throw new Error(`TTS ${resp.status}`);
+      const blob = await resp.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      audioElRef.current?.pause();
+      audioElRef.current = audio;
+      // small delay so the squelch click is audible before voice
+      await new Promise((r) => setTimeout(r, 90));
+      fxRef.current?.startHiss();
+      await audio.play();
+      audio.onended = () => {
+        fxRef.current?.stopHiss();
+        fxRef.current?.squelch("down");
+        URL.revokeObjectURL(audioUrl);
+        setSpeaking(false);
+      };
+      audio.onerror = () => {
+        fxRef.current?.stopHiss();
+        URL.revokeObjectURL(audioUrl);
+        setSpeaking(false);
+      };
+    } catch (e) {
+      console.error("ATC speak failed", e);
+      fxRef.current?.stopHiss();
+      setSpeaking(false);
+    }
+  };
+
+  const sendPilotTransmission = useCallback(async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || !selectedScenario) return;
+    const scenario = scenarios.find((s) => s.id === selectedScenario)!;
+    const userMsg: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
+    const updated = [...messages, userMsg];
+    setMessages(updated);
     setLoading(true);
+    setError(null);
 
-    const scenario = scenarios.find(s => s.id === selectedScenario);
-    const systemPrompt = `You are an ATC Communication Trainer. You play the role of Air Traffic Controller.
-Scenario: ${scenario?.label}. Pilot callsign: N123AB.
-After each pilot transmission, respond with:
-**ATC:** [realistic ATC response]
-**Feedback:** [brief feedback on pilot's phraseology, timing, and correctness]
-Use proper aviation phraseology. Be realistic and educational.`;
-
-    const chatHistory = newMessages
-      .filter(m => m.role !== "system")
-      .map(m => ({
+    const history = updated
+      .filter((m) => m.role !== "system")
+      .map((m) => ({
         role: m.role === "atc" ? "assistant" : "user",
         content: m.content,
       }));
@@ -103,32 +258,100 @@ Use proper aviation phraseology. Be realistic and educational.`;
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
-          messages: [{ role: "system", content: systemPrompt }, ...chatHistory],
+          messages: [{ role: "system", content: FAA_PROMPT(scenario.label) }, ...history],
         },
       });
-
       if (error) throw error;
-      const reply = data?.choices?.[0]?.message?.content || data?.reply || "No response.";
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: "atc", content: reply }]);
+      const reply = data?.choices?.[0]?.message?.content || data?.reply || "";
+      const atcMsg: ATCMessage = { id: crypto.randomUUID(), role: "atc", content: reply };
+      setMessages((prev) => [...prev, atcMsg]);
+      void speakATC(reply);
     } catch {
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: "system", content: "Connection lost. Try again." }]);
+      setError("Connection lost. Try again.");
     } finally {
       setLoading(false);
     }
+  }, [messages, selectedScenario, voice]);
+
+  // ---- PTT handlers ------------------------------------------------------
+  const startPTT = () => {
+    if (speaking || loading) return;
+    if (!sttSupported) {
+      setError("Speech recognition unavailable in this browser. Use Chrome or Edge.");
+      return;
+    }
+    audioElRef.current?.pause();
+    fxRef.current?.stopHiss();
+    fxRef.current?.squelch("down"); // mic key-down click
+
+    finalBufferRef.current = "";
+    setInterim("");
+    setPttActive(true);
+
+    const r = getRecognizer();
+    recognizerRef.current = r;
+    r.onresult = (ev: any) => {
+      let interimText = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const res = ev.results[i];
+        if (res.isFinal) finalBufferRef.current += res[0].transcript + " ";
+        else interimText += res[0].transcript;
+      }
+      setInterim(interimText);
+    };
+    r.onerror = (ev: any) => {
+      if (ev.error === "not-allowed") setError("Microphone permission denied.");
+      else if (ev.error !== "no-speech" && ev.error !== "aborted") setError(`Mic error: ${ev.error}`);
+    };
+    r.onend = () => {
+      setPttActive(false);
+      setInterim("");
+      fxRef.current?.squelch("up"); // mic key-up click
+      const transcript = finalBufferRef.current.trim();
+      finalBufferRef.current = "";
+      if (transcript) void sendPilotTransmission(transcript);
+    };
+    try { r.start(); } catch { /* already started */ }
   };
 
+  const endPTT = () => {
+    if (!pttActive) return;
+    try { recognizerRef.current?.stop(); } catch { /* noop */ }
+  };
+
+  // ---- Render ------------------------------------------------------------
   if (!selectedScenario) {
     return (
       <div className="space-y-6">
         <div className="text-center space-y-2">
           <Radio className="h-10 w-10 text-primary mx-auto" />
-          <h3 className="text-xl font-bold text-foreground">ATC Communication Trainer</h3>
+          <h3 className="text-xl font-bold text-foreground">ATC Radio</h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Practice realistic pilot-controller radio communications. Select a scenario to begin.
+            Live duplex radio drill. Push to talk, release to transmit. Strict FAA phraseology.
           </p>
         </div>
+
+        {/* Voice picker */}
+        <div className="flex items-center justify-center gap-3 text-xs">
+          <span className="font-display tracking-[0.2em] uppercase text-muted-foreground">Controller voice</span>
+          <div className="inline-flex rounded-md border border-border overflow-hidden">
+            {(["male", "female"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setVoice(v)}
+                className={cn(
+                  "px-3 py-1 text-xs uppercase tracking-wider font-display transition-colors",
+                  voice === v ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {scenarios.map(s => (
+          {scenarios.map((s) => (
             <button
               key={s.id}
               onClick={() => startScenario(s.id)}
@@ -139,81 +362,191 @@ Use proper aviation phraseology. Be realistic and educational.`;
             </button>
           ))}
         </div>
+
+        {!sttSupported && (
+          <div className="flex items-center gap-2 justify-center text-xs text-amber-500">
+            <AlertCircle className="h-3.5 w-3.5" />
+            Speech recognition not supported in this browser. Use Chrome or Edge for PTT.
+          </div>
+        )}
       </div>
     );
   }
 
-  return (
-    <div className="flex flex-col h-[500px] border border-border rounded-lg bg-card overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
-        <div className="flex items-center gap-2">
-          <Radio className="h-4 w-4 text-primary" />
-          <span className="font-semibold text-sm">{scenarios.find(s => s.id === selectedScenario)?.label}</span>
-          <span className="text-xs text-muted-foreground">• N123AB</span>
-        </div>
-        <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setMessages([]); }}>
-          <RotateCcw className="h-3 w-3 mr-1" /> New Scenario
-        </Button>
-      </div>
+  const scenarioLabel = scenarios.find((s) => s.id === selectedScenario)?.label;
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map(msg => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.role === "pilot" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                msg.role === "pilot"
-                  ? "bg-primary text-primary-foreground"
-                  : msg.role === "system"
-                  ? "bg-muted text-muted-foreground text-center text-xs w-full"
-                  : "bg-muted text-foreground"
-              }`}
-            >
-              {msg.role === "atc" && (
-                <div className="flex items-center gap-1 mb-1">
-                  <Volume2 className="h-3 w-3 text-primary" />
-                  <span className="text-xs font-bold text-primary">ATC</span>
-                </div>
-              )}
-              <div className="whitespace-pre-wrap">{msg.content}</div>
-            </div>
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+      {/* Transcript */}
+      <div className="flex flex-col h-[560px] border border-border rounded-lg bg-card overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className={cn(
+                "absolute inline-flex h-full w-full rounded-full opacity-75",
+                speaking ? "animate-ping bg-accent" : pttActive ? "animate-ping bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/30",
+              )} />
+              <span className={cn(
+                "relative inline-flex rounded-full h-2 w-2",
+                speaking ? "bg-accent" : pttActive ? "bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/40",
+              )} />
+            </span>
+            <Radio className="h-4 w-4 text-primary" />
+            <span className="font-display text-xs tracking-[0.2em] uppercase">{scenarioLabel}</span>
+            <span className="text-xs text-muted-foreground">• N123AB</span>
           </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-muted rounded-lg px-3 py-2 text-sm text-muted-foreground">
-              <span className="animate-pulse">Transmitting...</span>
+          <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setMessages([]); }}>
+            <RotateCcw className="h-3 w-3 mr-1" /> New Scenario
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[13px] leading-relaxed">
+          {messages.map((msg) => {
+            if (msg.role === "system") {
+              return (
+                <div key={msg.id} className="text-center text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                  {msg.content}
+                </div>
+              );
+            }
+            const [spoken, ...feedbackParts] = msg.content.split(/\n?\[FEEDBACK\]/i);
+            const feedback = feedbackParts.join(" ").trim();
+            return (
+              <div key={msg.id} className={cn("flex", msg.role === "pilot" ? "justify-end" : "justify-start")}>
+                <div className={cn(
+                  "max-w-[88%] rounded-md px-3 py-2",
+                  msg.role === "pilot"
+                    ? "bg-primary/10 border border-primary/30 text-foreground"
+                    : "bg-muted/40 border border-border text-foreground",
+                )}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    {msg.role === "atc" ? (
+                      <Volume2 className="h-3 w-3 text-accent" />
+                    ) : (
+                      <Mic className="h-3 w-3 text-primary" />
+                    )}
+                    <span className={cn(
+                      "text-[10px] font-display tracking-[0.25em] uppercase",
+                      msg.role === "atc" ? "text-accent" : "text-primary",
+                    )}>
+                      {msg.role === "atc" ? "ATC" : "N123AB"}
+                    </span>
+                  </div>
+                  <div className="whitespace-pre-wrap">{spoken.trim()}</div>
+                  {feedback && (
+                    <div className="mt-2 pt-2 border-t border-border/60 text-[11px] text-amber-500/90 not-italic">
+                      <span className="font-display tracking-[0.2em] uppercase text-[9px] mr-1">Coach</span>
+                      {feedback}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {pttActive && interim && (
+            <div className="flex justify-end">
+              <div className="max-w-[88%] rounded-md px-3 py-2 bg-primary/5 border border-dashed border-primary/40 text-muted-foreground italic">
+                {interim}…
+              </div>
             </div>
+          )}
+          {loading && (
+            <div className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground animate-pulse">
+              ATC transmitting…
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {error && (
+          <div className="px-3 py-1.5 text-xs text-destructive border-t border-destructive/30 bg-destructive/5">
+            {error}
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="border-t border-border p-3">
-        <form
-          onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-          className="flex gap-2"
+      {/* PTT panel */}
+      <div className="border border-border rounded-lg bg-card p-4 flex flex-col items-center justify-between gap-4">
+        <div className="text-center">
+          <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-1">
+            Push To Talk
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Hold the button (or hold <kbd className="px-1 py-0.5 rounded bg-muted text-foreground text-[10px]">Space</kbd>) and speak. Release to transmit.
+          </div>
+        </div>
+
+        <button
+          onMouseDown={startPTT}
+          onMouseUp={endPTT}
+          onMouseLeave={endPTT}
+          onTouchStart={(e) => { e.preventDefault(); startPTT(); }}
+          onTouchEnd={(e) => { e.preventDefault(); endPTT(); }}
+          disabled={speaking || loading}
+          className={cn(
+            "relative h-40 w-40 rounded-full border-4 transition-all select-none",
+            "flex flex-col items-center justify-center gap-1",
+            pttActive
+              ? "bg-[hsl(var(--hud-green))]/20 border-[hsl(var(--hud-green))] shadow-[0_0_30px_hsl(var(--hud-green)/0.6)]"
+              : speaking
+              ? "bg-accent/10 border-accent/60 cursor-not-allowed"
+              : "bg-primary/5 border-primary/60 hover:bg-primary/10 hover:shadow-[0_0_20px_hsl(var(--primary)/0.4)] active:scale-95",
+            (speaking || loading) && "opacity-60",
+          )}
         >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Key your mic... (type your radio call)"
-            className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-            disabled={loading}
-          />
-          <Button type="submit" size="sm" disabled={loading || !input.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
+          {pttActive ? (
+            <Mic className="h-10 w-10 text-[hsl(var(--hud-green))]" />
+          ) : speaking ? (
+            <Volume2 className="h-10 w-10 text-accent animate-pulse" />
+          ) : (
+            <MicOff className="h-10 w-10 text-primary" />
+          )}
+          <span className="font-display text-[10px] tracking-[0.25em] uppercase mt-1">
+            {pttActive ? "Live" : speaking ? "ATC" : "PTT"}
+          </span>
+        </button>
+
+        <div className="text-center text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+          Voice: <span className="text-foreground">{voice}</span>
+        </div>
+
+        {!sttSupported && (
+          <div className="flex items-start gap-2 text-[11px] text-amber-500">
+            <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <span>Speech recognition unavailable. Use Chrome or Edge for PTT.</span>
+          </div>
+        )}
       </div>
+
+      {/* Spacebar hold for PTT */}
+      <SpaceHoldPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading} />
     </div>
   );
+};
+
+// Hidden component: hold spacebar = PTT.
+const SpaceHoldPTT = ({ onDown, onUp, disabled }: { onDown: () => void; onUp: () => void; disabled: boolean }) => {
+  useEffect(() => {
+    const isTyping = (t: EventTarget | null) =>
+      t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+    const down = (e: KeyboardEvent) => {
+      if (e.code !== "Space" || e.repeat || disabled || isTyping(e.target)) return;
+      e.preventDefault();
+      onDown();
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.code !== "Space" || isTyping(e.target)) return;
+      e.preventDefault();
+      onUp();
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, [onDown, onUp, disabled]);
+  return null;
 };
 
 export default ATCTrainer;
