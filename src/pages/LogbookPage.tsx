@@ -174,7 +174,7 @@ const LogbookPage = () => {
       }
       setEditing(null);
       await fetchLogs();
-      emitDashboardRefresh({ source: "logbook" });
+      emitDashboardRefresh({ source: "other" });
     } catch (e) {
       console.error(e);
       toast.error("Couldn't save entry");
