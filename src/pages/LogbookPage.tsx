@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { onDashboardRefresh, emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { buildForeFlightCsv, downloadCsv } from "@/lib/foreflightLogbookCsv";
 import MonthlyHoursChart from "@/components/logbook/MonthlyHoursChart";
+import DraftsReviewPanel from "@/components/logbook/DraftsReviewPanel";
 
 type FlightLog = {
   id: string;
