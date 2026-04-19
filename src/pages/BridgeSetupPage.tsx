@@ -13,6 +13,14 @@ type TestState = "idle" | "testing" | "success" | "failure";
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
 
+// SimPilot Bridge Windows installer.
+// Set to the GitHub Release asset URL once a build is published, e.g.:
+//   "https://github.com/simpilot-ai/bridge/releases/latest/download/SimPilotBridge.exe"
+// While empty/null the download button stays disabled with a "coming soon" label.
+const BRIDGE_DOWNLOAD_URL: string | null = null;
+const BRIDGE_RELEASES_URL = "https://github.com/simpilot-ai/bridge/releases";
+const BRIDGE_SOURCE_URL = "https://github.com/simpilot-ai/bridge";
+
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
