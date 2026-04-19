@@ -115,14 +115,14 @@ const RecentActivityPanel = () => {
       <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-primary/40" />
       <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/40" />
 
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-primary" />
-          <h2 className="font-display text-[13px] font-semibold tracking-[0.22em] uppercase text-foreground">
+          <Activity className="w-[18px] h-[18px] text-primary" />
+          <h2 className="font-display text-[14px] font-bold tracking-[0.24em] uppercase text-foreground">
             Recent Activity
           </h2>
         </div>
-        <span className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
+        <span className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/70">
           Last 5 Events
         </span>
       </div>
@@ -140,7 +140,7 @@ const RecentActivityPanel = () => {
             </div>
           ))
         ) : items.length === 0 ? (
-          <div className="py-6 text-center font-display text-[12px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
+          <div className="py-8 text-center font-display text-[14px] font-bold tracking-[0.24em] uppercase text-foreground/70">
             No activity logged yet
           </div>
         ) : (
