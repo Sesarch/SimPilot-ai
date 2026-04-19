@@ -24,6 +24,7 @@ const navItems = [
   { title: "ATC Radio", url: "/live-tools", icon: Radio },
   { title: "Logbook", url: "/logbook", icon: ClipboardList },
   { title: "Analytics", url: "/progress", icon: LineChart },
+  { title: "SimConnect Bridge", url: "/flight-deck/bridge", icon: Cable },
 ];
 
 export function AppSidebar() {
