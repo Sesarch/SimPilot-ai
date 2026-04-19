@@ -1,4 +1,4 @@
-import { Plug, PlugZap, Radio, Plane } from "lucide-react";
+import { Plug, PlugZap, Radio, Plane, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSimBridge } from "@/hooks/useSimBridge";
 
@@ -108,6 +108,65 @@ const SimStatusPanel = () => {
           {isConnected ? com1 : "---.---"}
         </span>
       </div>
+
+      {/* PMDG advanced data — only shown when bridge reports a PMDG airframe */}
+      {isConnected && telemetry?.pmdg && (
+        <div className="mb-4 rounded-md border border-primary/30 bg-primary/[0.04] p-3">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <span className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-primary">
+                {telemetry.pmdg.variant} · MCP / FCU
+              </span>
+            </div>
+            <div className="flex items-center gap-2 font-display text-[10px] font-semibold tracking-[0.2em] uppercase">
+              <span
+                className={cn(
+                  "px-1.5 py-0.5 rounded-sm border",
+                  telemetry.pmdg.autopilot_master
+                    ? "border-primary/50 bg-primary/15 text-primary"
+                    : "border-border text-muted-foreground/70",
+                )}
+              >
+                A/P {telemetry.pmdg.autopilot_master ? "ON" : "OFF"}
+              </span>
+              <span
+                className={cn(
+                  "px-1.5 py-0.5 rounded-sm border",
+                  telemetry.pmdg.autothrottle_active
+                    ? "border-primary/50 bg-primary/15 text-primary"
+                    : "border-border text-muted-foreground/70",
+                )}
+              >
+                A/T {telemetry.pmdg.autothrottle_active ? "ON" : "OFF"}
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: "MCP ALT", value: fmt(telemetry.pmdg.mcp_altitude) },
+              { label: "MCP HDG", value: fmt(telemetry.pmdg.mcp_heading).padStart(3, "0") + "°" },
+              { label: "MCP IAS", value: fmt(telemetry.pmdg.mcp_ias) },
+              { label: "FLAPS", value: String(telemetry.pmdg.flaps_handle_index) },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-sm border border-border bg-background/50 px-2 py-2 text-center"
+              >
+                <div className="font-display text-[10px] font-bold tracking-[0.22em] uppercase text-foreground/70">
+                  {item.label}
+                </div>
+                <div
+                  className="font-display text-lg font-extrabold tabular-nums mt-0.5 text-primary"
+                  style={{ textShadow: "0 0 10px hsl(var(--primary) / 0.45)" }}
+                >
+                  {item.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Status footer */}
       <div className="mt-3 pt-3 border-t border-border font-display text-[12px] font-semibold tracking-[0.22em] uppercase text-foreground/70">
