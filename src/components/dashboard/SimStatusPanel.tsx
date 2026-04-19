@@ -1,21 +1,14 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plug, PlugZap, Radio, Settings2, Download, Plane } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Plug, PlugZap, Radio, Download, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSimBridge, type SimSource } from "@/hooks/useSimBridge";
-
-const SOURCE_LABEL: Record<SimSource, string> = {
-  msfs2024: "MSFS 2024",
-  xplane12: "X-Plane 12",
-};
+import { useSimBridge } from "@/hooks/useSimBridge";
 
 const SimStatusPanel = () => {
-  const [enabled, setEnabled] = useState(false);
-  const [source, setSource] = useState<SimSource>("msfs2024");
+  // Telemetry listener is always on; users configure their sim on /flight-deck/bridge.
+  // MSFS 2024 is the default source — the bridge auto-detects MSFS vs X-Plane upstream.
   const { status, telemetry, lastUpdate, isFlightActive, isConnected } = useSimBridge({
-    enabled,
-    source,
+    enabled: true,
+    source: "msfs2024",
   });
 
   const isConnecting = status === "connecting";
