@@ -110,8 +110,8 @@ const SimStatusPanel = () => {
       </div>
 
       {/* Bridge download CTA — shown when not connected */}
-      {!isConnected && enabled && (
-        <div className="mb-4 rounded-md border border-primary/40 bg-primary/5 p-3">
+      {!isConnected && (
+        <div className="rounded-md border border-primary/40 bg-primary/5 p-3">
           <div className="flex items-start gap-3">
             <Download className="w-4 h-4 text-primary mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
@@ -133,54 +133,13 @@ const SimStatusPanel = () => {
         </div>
       )}
 
-      {/* Controls */}
-      <div className="space-y-3 pt-3 border-t border-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Settings2 className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
-              Telemetry Listener
-            </span>
-          </div>
-          <Switch checked={enabled} onCheckedChange={setEnabled} aria-label="Enable telemetry" />
-        </div>
-
-        <div>
-          <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-2">
-            Sim Source
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {(Object.keys(SOURCE_LABEL) as SimSource[]).map((m) => {
-              const active = source === m;
-              return (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setSource(m)}
-                  className={cn(
-                    "rounded-md border px-3 py-2 font-display text-[10px] tracking-[0.2em] uppercase transition-colors",
-                    active
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-background/40 text-muted-foreground hover:text-foreground",
-                  )}
-                  aria-pressed={active}
-                >
-                  {SOURCE_LABEL[m]}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground/70">
-          {isConnecting
-            ? `Linking ws://localhost:8080…`
-            : isConnected && lastUpdate
-              ? `Last frame · ${new Date(lastUpdate).toLocaleTimeString()}`
-              : enabled
-                ? `Awaiting bridge on ws://localhost:8080`
-                : `Listener off — toggle on once the bridge is installed`}
-        </div>
+      {/* Status footer */}
+      <div className="mt-3 pt-3 border-t border-border font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground/70">
+        {isConnecting
+          ? `Linking ws://localhost:8080…`
+          : isConnected && lastUpdate
+            ? `Last frame · ${new Date(lastUpdate).toLocaleTimeString()}`
+            : `Awaiting bridge on ws://localhost:8080 — set up at /flight-deck/bridge`}
       </div>
     </div>
   );
