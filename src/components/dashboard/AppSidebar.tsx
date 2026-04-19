@@ -38,12 +38,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/dashboard" className="flex items-center gap-2 px-2 py-2">
-          <div className="w-8 h-8 rounded-md bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center border border-primary/30">
-            <Plane className="w-4 h-4 text-primary" />
+        <Link to="/dashboard" className="flex min-h-14 items-center gap-2 px-2 py-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-primary/30 bg-gradient-to-br from-primary/30 to-accent/20">
+            <Plane className="h-4 w-4 text-primary" />
           </div>
           {!collapsed && (
-            <span className="font-display text-sm font-bold tracking-[0.18em] text-foreground">
+            <span className="flex items-center font-display text-sm font-bold leading-none tracking-[0.18em] text-foreground">
               SIM<span className="text-accent">PILOT</span>
             </span>
           )}
