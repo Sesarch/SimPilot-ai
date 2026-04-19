@@ -362,7 +362,7 @@ const PmdgDebriefModal = ({
         startY: y,
         body: [[
           debrief.stable_approach.verdict.toUpperCase(),
-          debrief.stable_approach.note ?? "",
+          pdfSafe(debrief.stable_approach.note ?? ""),
         ]],
         theme: "striped",
         styles: { fontSize: 10, cellPadding: 6 },
