@@ -75,6 +75,41 @@ const flapLabel = (n: number): string => {
   return FLAP_DETENT_LABELS[i] ?? String(n);
 };
 
+// jsPDF's built-in helvetica only ships WinAnsi glyphs, so anything outside
+// that range (≥, →, °, smart quotes, em-dashes, …) renders as a stray "e" or
+// drops out. Replace common aviation/AI-emitted unicode with ASCII fallbacks
+// before drawing into the PDF.
+const PDF_UNICODE_MAP: Array<[RegExp, string]> = [
+  [/[\u2192\u279C\u27A1\u2794]/g, "->"],   // → ➜ ➡ ➔
+  [/[\u2190]/g, "<-"],                     // ←
+  [/[\u2194]/g, "<->"],                    // ↔
+  [/[\u2191]/g, "^"],                      // ↑
+  [/[\u2193]/g, "v"],                      // ↓
+  [/\u2265/g, ">="],                       // ≥
+  [/\u2264/g, "<="],                       // ≤
+  [/\u2260/g, "!="],                       // ≠
+  [/\u00B1/g, "+/-"],                      // ±
+  [/\u00D7/g, "x"],                        // ×
+  [/\u00F7/g, "/"],                        // ÷
+  [/\u00B0/g, " deg"],                     // °
+  [/[\u2018\u2019\u02BC]/g, "'"],          // ' ' ʼ
+  [/[\u201C\u201D]/g, '"'],                // " "
+  [/[\u2013\u2014]/g, "-"],                // – —
+  [/\u2026/g, "..."],                      // …
+  [/\u00A0/g, " "],                        // nbsp
+  [/[\u2022\u25CF\u25E6]/g, "*"],          // • ● ◦
+  [/\u00B7/g, "."],                        // ·
+];
+const pdfSafe = (input: unknown): string => {
+  if (input == null) return "";
+  let s = String(input);
+  for (const [re, rep] of PDF_UNICODE_MAP) s = s.replace(re, rep);
+  // Strip anything still outside printable WinAnsi range
+  // eslint-disable-next-line no-control-regex
+  s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, "?");
+  return s;
+};
+
 const verdictBadge = (v?: string) => {
   switch (v) {
     case "ok":
