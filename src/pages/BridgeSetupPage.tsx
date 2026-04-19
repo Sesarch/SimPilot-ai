@@ -298,6 +298,28 @@ export default function BridgeSetupPage() {
                   </ol>
                 </AccordionContent>
               </AccordionItem>
+              <AccordionItem value="pmdg">
+                <AccordionTrigger>PMDG aircraft (737 / 777 / 747) — optional</AccordionTrigger>
+                <AccordionContent className="space-y-2 text-sm text-muted-foreground">
+                  <p>
+                    SimPilot Bridge auto-detects PMDG airframes and unlocks advanced data —
+                    MCP altitude / heading / IAS, autopilot &amp; autothrottle state, and flap handle
+                    position — for richer briefings and post-flight analysis.
+                  </p>
+                  <p>
+                    For the data to actually broadcast, open the aircraft's options <span className="font-mono">.ini</span> file
+                    (e.g. <span className="font-mono text-foreground">…\PMDG\PMDG 737\PMDG_737_options.ini</span>) and add or set:
+                  </p>
+                  <pre className="rounded-md border border-border/60 bg-muted/30 p-3 text-xs font-mono text-foreground">
+{`[SDK]
+EnableDataBroadcast=1`}
+                  </pre>
+                  <p>
+                    Restart MSFS after editing. The bridge will log{" "}
+                    <span className="font-mono text-foreground">PMDG aircraft detected</span> when it sees the airframe load.
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
           </CardContent>
         </Card>
