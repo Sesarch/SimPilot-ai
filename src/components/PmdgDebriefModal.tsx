@@ -104,6 +104,192 @@ const PmdgDebriefModal = ({
     setShow(false);
   }, [open]);
 
+  const handleDownloadPdf = () => {
+    if (!debrief) return;
+    const doc = new jsPDF({ unit: "pt", format: "letter" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 48;
+    let y = margin;
+
+    // Header band
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, pageWidth, 70, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("PMDG POST-FLIGHT DEBRIEF", margin, 32);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const sub = [
+      debrief.variant ?? "PMDG",
+      debrief.departure || debrief.destination
+        ? `${debrief.departure ?? "????"} → ${debrief.destination ?? "????"}`
+        : null,
+      debrief.duration_minutes != null ? `${debrief.duration_minutes.toFixed(1)} min` : null,
+    ]
+      .filter(Boolean)
+      .join("  ·  ");
+    doc.text(sub, margin, 52);
+    doc.setTextColor(20, 20, 20);
+    y = 100;
+
+    // Scores
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("SCORES", margin, y);
+    y += 8;
+    autoTable(doc, {
+      startY: y,
+      head: [["Automation", "Flap Schedule", "Stable Approach"]],
+      body: [[
+        debrief.scores?.automation != null ? String(debrief.scores.automation) : "—",
+        debrief.scores?.flap_schedule != null ? String(debrief.scores.flap_schedule) : "—",
+        debrief.scores?.stable_approach != null ? String(debrief.scores.stable_approach) : "—",
+      ]],
+      theme: "grid",
+      headStyles: { fillColor: [15, 23, 42], textColor: 255, halign: "center" },
+      bodyStyles: { halign: "center", fontSize: 18, fontStyle: "bold", cellPadding: 10 },
+      margin: { left: margin, right: margin },
+    });
+    y = (doc as any).lastAutoTable.finalY + 18;
+
+    // Summary
+    if (debrief.summary) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("SUMMARY", margin, y);
+      y += 12;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const lines = doc.splitTextToSize(debrief.summary, pageWidth - margin * 2);
+      doc.text(lines, margin, y);
+      y += lines.length * 12 + 10;
+    }
+
+    // Automation
+    if (debrief.automation) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("AUTOMATION DISCIPLINE", margin, y);
+      y += 8;
+      const rows: string[][] = [];
+      if (debrief.automation.ap_engagement_call)
+        rows.push(["A/P engagement", debrief.automation.ap_engagement_call]);
+      if (debrief.automation.at_usage_call)
+        rows.push(["A/T usage", debrief.automation.at_usage_call]);
+      if (debrief.automation.engage_disengage_count != null)
+        rows.push(["Engage/Disengage cycles", String(debrief.automation.engage_disengage_count)]);
+      (debrief.automation.issues ?? []).forEach((i) => rows.push(["Issue", i]));
+      if (rows.length) {
+        autoTable(doc, {
+          startY: y,
+          body: rows,
+          theme: "striped",
+          styles: { fontSize: 10, cellPadding: 6 },
+          columnStyles: { 0: { fontStyle: "bold", cellWidth: 130 } },
+          margin: { left: margin, right: margin },
+        });
+        y = (doc as any).lastAutoTable.finalY + 18;
+      }
+    }
+
+    // Flap schedule
+    if (debrief.flap_schedule?.findings?.length) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("FLAP SPEED SCHEDULE", margin, y);
+      y += 8;
+      autoTable(doc, {
+        startY: y,
+        head: [["Time", "Flap", "IAS (kt)", "Placard (kt)", "Verdict", "Note"]],
+        body: debrief.flap_schedule.findings.map((f) => [
+          f.time_mmss ?? "—",
+          String(f.flap_setting),
+          String(f.ias_kt),
+          f.placard_kt ? String(f.placard_kt) : "—",
+          `${f.verdict}${f.exceedance_kt ? ` +${f.exceedance_kt}` : ""}`,
+          f.note ?? "",
+        ]),
+        theme: "grid",
+        headStyles: { fillColor: [15, 23, 42], textColor: 255 },
+        styles: { fontSize: 9, cellPadding: 5 },
+        margin: { left: margin, right: margin },
+      });
+      y = (doc as any).lastAutoTable.finalY + 18;
+    }
+
+    // Stable approach
+    if (debrief.stable_approach?.verdict) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("STABLE APPROACH", margin, y);
+      y += 8;
+      autoTable(doc, {
+        startY: y,
+        body: [[
+          debrief.stable_approach.verdict.toUpperCase(),
+          debrief.stable_approach.note ?? "",
+        ]],
+        theme: "striped",
+        styles: { fontSize: 10, cellPadding: 6 },
+        columnStyles: { 0: { fontStyle: "bold", cellWidth: 90 } },
+        margin: { left: margin, right: margin },
+      });
+      y = (doc as any).lastAutoTable.finalY + 18;
+    }
+
+    // Recommendations
+    if (debrief.recommendations?.length) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("NEXT LEG · ACTION ITEMS", margin, y);
+      y += 8;
+      autoTable(doc, {
+        startY: y,
+        body: debrief.recommendations.map((r, i) => [`${i + 1}.`, r]),
+        theme: "plain",
+        styles: { fontSize: 10, cellPadding: 4 },
+        columnStyles: { 0: { cellWidth: 22, fontStyle: "bold" } },
+        margin: { left: margin, right: margin },
+      });
+      y = (doc as any).lastAutoTable.finalY + 18;
+    }
+
+    // Footer on every page
+    const pageCount = doc.getNumberOfPages();
+    for (let p = 1; p <= pageCount; p++) {
+      doc.setPage(p);
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      const ts = debrief.generated_at
+        ? new Date(debrief.generated_at).toLocaleString()
+        : new Date().toLocaleString();
+      doc.text(
+        `SimPilot · PMDG Debrief · Generated ${ts}`,
+        margin,
+        doc.internal.pageSize.getHeight() - 24,
+      );
+      doc.text(
+        `Page ${p} / ${pageCount}`,
+        pageWidth - margin,
+        doc.internal.pageSize.getHeight() - 24,
+        { align: "right" },
+      );
+    }
+
+    const datePart = (debrief.generated_at
+      ? new Date(debrief.generated_at)
+      : new Date()
+    )
+      .toISOString()
+      .slice(0, 10);
+    const route =
+      debrief.departure && debrief.destination
+        ? `-${debrief.departure}-${debrief.destination}`
+        : "";
+    doc.save(`pmdg-debrief-${datePart}${route}.pdf`);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
@@ -115,6 +301,16 @@ const PmdgDebriefModal = ({
               <Badge variant="outline" className="ml-2 font-mono text-xs">
                 {debrief.variant}
               </Badge>
+            )}
+            {debrief && !loading && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleDownloadPdf}
+                className="ml-auto h-7 font-display text-[10px] tracking-[0.18em] uppercase"
+              >
+                <Download className="h-3.5 w-3.5 mr-1" /> PDF
+              </Button>
             )}
           </DialogTitle>
           <DialogDescription>
