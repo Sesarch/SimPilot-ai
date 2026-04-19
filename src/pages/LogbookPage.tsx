@@ -34,7 +34,7 @@ type FlightLog = {
   night_landings: number;
   approaches: number;
   remarks: string | null;
-  source: "manual" | "atc_session";
+  source: "manual" | "atc_session" | "msfs2024" | "xplane12" | "sim";
   source_session_id: string | null;
   created_at: string;
 };
