@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio } from "lucide-react";
+import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -18,6 +19,10 @@ const TEST_TIMEOUT_MS = 4000;
 //   "https://github.com/simpilot-ai/bridge/releases/latest/download/SimPilotBridge.exe"
 // While empty/null the download button stays disabled with a "coming soon" label.
 const BRIDGE_DOWNLOAD_URL: string | null = null;
+// SHA-256 of the published SimPilotBridge.exe (lowercase hex, 64 chars).
+// Publish this alongside the GitHub Release so users can verify integrity:
+//   Get-FileHash SimPilotBridge.exe -Algorithm SHA256
+const BRIDGE_DOWNLOAD_SHA256: string | null = null;
 const BRIDGE_RELEASES_URL = "https://github.com/simpilot-ai/bridge/releases";
 const BRIDGE_SOURCE_URL = "https://github.com/simpilot-ai/bridge";
 
@@ -182,6 +187,35 @@ export default function BridgeSetupPage() {
                 </a>
               </Button>
             </div>
+            {BRIDGE_DOWNLOAD_SHA256 && (
+              <div className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                  SHA-256 checksum
+                </div>
+                <div className="flex items-start gap-2">
+                  <code className="flex-1 break-all rounded bg-background/60 px-2 py-1.5 font-mono text-[11px] text-foreground">
+                    {BRIDGE_DOWNLOAD_SHA256}
+                  </code>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0 gap-1.5"
+                    onClick={() => {
+                      navigator.clipboard.writeText(BRIDGE_DOWNLOAD_SHA256);
+                      toast({ title: "Checksum copied", description: "Paste it next to your Get-FileHash output to compare." });
+                    }}
+                  >
+                    <Copy className="h-3 w-3" />
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Verify on Windows: <span className="font-mono text-foreground">Get-FileHash SimPilotBridge.exe -Algorithm SHA256</span>
+                </p>
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
             </p>
