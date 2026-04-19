@@ -19,6 +19,7 @@ const path = require("node:path");
 const fs = require("node:fs");
 const { spawn } = require("node:child_process");
 const WebSocket = require("ws");
+const updater = require("./updater.cjs");
 
 // Single instance — clicking the tray on a second launch focuses the window
 // and forwards any deep-link argv (simpilot://...) to the running process.
@@ -343,7 +344,11 @@ app.whenReady().then(() => {
   // Handle deep-link if the app was launched directly via simpilot://...
   const link = extractDeepLink(process.argv);
   if (link) handleDeepLink(link);
+  // Kick off the auto-updater (first check 30s after launch, then every 6h).
+  try { updater.start(mainWindow); } catch (err) { pushLog(`[updater] start failed: ${err.message}`); }
 });
+
+ipcMain.handle("updater:check-now", () => updater.checkForUpdate({ silent: false }));
 
 app.on("window-all-closed", (e) => {
   // Stay alive in tray; do not quit on window close.
