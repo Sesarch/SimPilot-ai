@@ -6,6 +6,7 @@
 const $ = (id) => document.getElementById(id);
 
 const els = {
+  brandVersion: $("brand-version"),
   statusDot: document.querySelector(".status-pill__dot"),
   statusLabel: $("status-label"),
   previewHint: $("preview-hint"),
@@ -22,7 +23,30 @@ const els = {
   log: $("log"),
   btnClearLog: $("btn-clear-log"),
   openHelp: $("open-help"),
+  // Updates tab
+  tabs: document.querySelectorAll(".tab"),
+  panels: document.querySelectorAll(".tab-panel"),
+  tabUpdatesBadge: $("tab-updates-badge"),
+  updStatePill: $("upd-state-pill"),
+  updCurrent: $("upd-current"),
+  updRemote: $("upd-remote"),
+  updMessage: $("upd-message"),
+  updProgress: $("upd-progress"),
+  updProgressFill: $("upd-progress-fill"),
+  updProgressLabel: $("upd-progress-label"),
+  btnCheckUpdates: $("btn-check-updates"),
+  btnOpenReleases: $("btn-open-releases"),
 };
+
+// ---------------- Tab nav ----------------
+function activateTab(name) {
+  els.tabs.forEach((t) => t.classList.toggle("tab--active", t.dataset.tab === name));
+  els.panels.forEach((p) => p.classList.toggle("tab-panel--active", p.dataset.panel === name));
+  if (name === "updates") {
+    els.tabUpdatesBadge.hidden = true;
+  }
+}
+els.tabs.forEach((tab) => tab.addEventListener("click", () => activateTab(tab.dataset.tab)));
 
 // ---------------- Status ----------------
 function setStatus(status, message) {
@@ -60,10 +84,78 @@ function appendLog(line, kind) {
   span.className = "log__line" + (kind ? ` log__line--${kind}` : "");
   span.textContent = line + "\n";
   els.log.appendChild(span);
-  // Cap log size
   while (els.log.childNodes.length > 500) els.log.removeChild(els.log.firstChild);
   els.log.scrollTop = els.log.scrollHeight;
 }
+
+// ---------------- Updater ----------------
+function setUpdState(label, kind) {
+  els.updStatePill.textContent = label.toUpperCase();
+  els.updStatePill.dataset.kind = kind || "";
+}
+
+function setUpdMessage(msg, kind) {
+  els.updMessage.textContent = msg;
+  els.updMessage.classList.toggle("text-error", kind === "error");
+  els.updMessage.classList.toggle("text-ok", kind === "ok");
+}
+
+els.btnCheckUpdates.addEventListener("click", async () => {
+  els.btnCheckUpdates.disabled = true;
+  setUpdState("Checking", "checking");
+  setUpdMessage("Contacting the update server…");
+  try {
+    await window.simpilot.checkForUpdates();
+  } catch (err) {
+    setUpdState("Error", "error");
+    setUpdMessage(err.message || "Update check failed.", "error");
+  } finally {
+    setTimeout(() => { els.btnCheckUpdates.disabled = false; }, 1500);
+  }
+});
+
+els.btnOpenReleases.addEventListener("click", () =>
+  window.simpilot.openExternal("https://github.com/simpilot-ai/bridge/releases")
+);
+
+window.simpilot.onUpdaterStatus((payload) => {
+  if (!payload) return;
+  if (payload.upToDate) {
+    setUpdState("Up to date", "ok");
+    els.updRemote.textContent = payload.remote || "—";
+    setUpdMessage(`You're running the latest version (${payload.current}).`, "ok");
+    els.updProgress.hidden = true;
+    return;
+  }
+  if (payload.updateAvailable) {
+    setUpdState("Update available", "warn");
+    els.updRemote.textContent = payload.remote;
+    setUpdMessage(`Version ${payload.remote} is available — downloading…`);
+    els.updProgress.hidden = false;
+    els.tabUpdatesBadge.hidden = false;
+    return;
+  }
+  if (payload.downloaded) {
+    setUpdState("Ready to install", "ok");
+    setUpdMessage(`Version ${payload.version} downloaded. Confirm the prompt to install and restart.`, "ok");
+    els.updProgress.hidden = true;
+    els.tabUpdatesBadge.hidden = false;
+    return;
+  }
+  if (payload.error) {
+    setUpdState("Error", "error");
+    setUpdMessage(payload.error, "error");
+    els.updProgress.hidden = true;
+  }
+});
+
+window.simpilot.onUpdaterProgress(({ percent }) => {
+  els.updProgress.hidden = false;
+  els.updProgressFill.style.width = `${percent}%`;
+  els.updProgressLabel.textContent = `${percent}%`;
+});
+
+window.simpilot.onNavigate(({ tab }) => { if (tab) activateTab(tab); });
 
 // ---------------- Wire up ----------------
 els.btnStart.addEventListener("click", () => window.simpilot.start());
@@ -105,4 +197,9 @@ window.simpilot.onPreviewAuth(({ ok, reason }) => {
   const s = await window.simpilot.getStatus();
   setStatus(s.status);
   if (!s.hasToken) els.tokenStatus.textContent = "No token saved yet.";
+  try {
+    const v = await window.simpilot.getVersion();
+    els.brandVersion.textContent = v;
+    els.updCurrent.textContent = v;
+  } catch { /* noop */ }
 })();
