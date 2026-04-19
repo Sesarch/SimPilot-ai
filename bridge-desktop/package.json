@@ -1,0 +1,23 @@
+{
+  "name": "simpilot-bridge-desktop",
+  "version": "0.1.0",
+  "description": "Tray-icon Electron wrapper around the SimPilot Bridge sidecar with a modern UI (status, telemetry, pairing token, start/stop).",
+  "main": "electron/main.cjs",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "package:linux": "electron-packager . SimPilotBridge --platform=linux --arch=x64 --out=release --overwrite --prune=true --ignore=^/release",
+    "package:win": "electron-packager . SimPilotBridge --platform=win32 --arch=x64 --out=release --overwrite --prune=true --ignore=^/release",
+    "package:mac": "electron-packager . SimPilotBridge --platform=darwin --arch=x64 --out=release --overwrite --prune=true --ignore=^/release"
+  },
+  "dependencies": {
+    "jose": "^5.9.6",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "@electron/packager": "^18.3.6"
+  },
+  "author": "SimPilot.AI",
+  "license": "MIT"
+}

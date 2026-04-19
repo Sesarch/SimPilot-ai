@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SimPilot Bridge</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand__title">SIM<span>PILOT</span> BRIDGE</h1>
+          <p class="brand__subtitle">Telemetry sidecar · v0.1.0</p>
+        </div>
+      </div>
+      <div class="status-pill" id="status-pill">
+        <span class="status-pill__dot" data-status="stopped"></span>
+        <span class="status-pill__label" id="status-label">STOPPED</span>
+      </div>
+    </header>
+
+    <main class="app-body">
+      <!-- Telemetry preview -->
+      <section class="card">
+        <div class="card__header">
+          <h2>Live telemetry</h2>
+          <span class="card__hint" id="preview-hint">Awaiting frames…</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="readout">
+            <span class="readout__label">ALT (FT)</span>
+            <span class="readout__value" id="t-alt">---</span>
+          </div>
+          <div class="readout">
+            <span class="readout__label">HDG</span>
+            <span class="readout__value" id="t-hdg">---</span>
+          </div>
+          <div class="readout">
+            <span class="readout__label">IAS (KT)</span>
+            <span class="readout__value" id="t-spd">---</span>
+          </div>
+        </div>
+        <div class="readout readout--row">
+          <span class="readout__label">COM1</span>
+          <span class="readout__value readout__value--amber" id="t-com1">---.---</span>
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <section class="card">
+        <div class="card__header">
+          <h2>Controls</h2>
+        </div>
+        <div class="controls">
+          <button id="btn-start" class="btn btn--primary">Start bridge</button>
+          <button id="btn-stop" class="btn btn--ghost" disabled>Stop</button>
+        </div>
+        <div class="control-row">
+          <label class="field">
+            <span class="field__label">Sim source</span>
+            <select id="src-select" class="field__input">
+              <option value="msfs2024">MSFS 2024 (SimConnect)</option>
+              <option value="xplane12">X-Plane 12 (UDP)</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <!-- Pairing token -->
+      <section class="card">
+        <div class="card__header">
+          <h2>Pairing token</h2>
+          <span class="card__hint">Required for telemetry preview</span>
+        </div>
+        <p class="muted small">
+          Paste your SimPilot session token. The desktop app authenticates the
+          local preview the same way your browser does.
+          <a href="#" id="open-help">How do I get this?</a>
+        </p>
+        <label class="field">
+          <span class="field__label">Session JWT</span>
+          <input id="token-input" class="field__input field__input--mono" type="password" placeholder="eyJhbGciOi…" autocomplete="off" spellcheck="false" />
+        </label>
+        <div class="controls">
+          <button id="btn-save-token" class="btn btn--primary btn--sm">Save token</button>
+          <span id="token-status" class="muted small"></span>
+        </div>
+      </section>
+
+      <!-- Logs -->
+      <section class="card card--logs">
+        <div class="card__header">
+          <h2>Logs</h2>
+          <button id="btn-clear-log" class="btn btn--ghost btn--sm">Clear</button>
+        </div>
+        <pre id="log" class="log"></pre>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>© SimPilot.AI · localhost only · 127.0.0.1:8080</span>
+    </footer>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>
