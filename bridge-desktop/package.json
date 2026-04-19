@@ -1,6 +1,6 @@
 {
   "name": "simpilot-bridge-desktop",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Tray-icon Electron wrapper around the SimPilot Bridge sidecar with a modern UI (status, telemetry, pairing token, start/stop).",
   "main": "electron/main.cjs",
   "private": true,

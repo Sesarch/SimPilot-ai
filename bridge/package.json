@@ -1,6 +1,6 @@
 {
   "name": "simpilot-bridge",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Local sidecar that streams MSFS 2024 (SimConnect) and X-Plane 12 (UDP) telemetry to the SimPilot.AI Flight Deck over WebSocket.",
   "main": "src/index.js",
   "type": "module",
