@@ -33,6 +33,8 @@ export interface SimBridgeTelemetry {
   on_ground?: boolean;
   ground_speed?: number; // kt
   isSimRunning?: boolean;
+  lat?: number;          // deg
+  lon?: number;          // deg
 }
 
 export type SimBridgeStatus = "disconnected" | "connecting" | "connected";
@@ -43,12 +45,16 @@ export const SIM_FLIGHT_FINISHED_EVENT = "simpilot:flight-finished";
 export interface SimFlightStartedDetail {
   at: number;
   source: SimSource | "unknown";
+  lat?: number;
+  lon?: number;
 }
 export interface SimFlightFinishedDetail {
   at: number;
   startedAt: number | null;
   durationMs: number | null;
   source: SimSource | "unknown";
+  lat?: number;
+  lon?: number;
 }
 
 const BRIDGE_URL = "ws://localhost:8080";
