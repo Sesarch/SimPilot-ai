@@ -210,15 +210,15 @@ const AdminPage = () => {
       <SEOHead title="Admin Dashboard — SimPilot.AI" description="Admin management" keywords="admin" noIndex />
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b-2 border-primary/40 bg-background shadow-[0_2px_12px_-4px_hsl(var(--primary)/0.3)]">
-        <div className="container mx-auto px-6 py-5 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 border-b-2 border-primary/50 bg-background shadow-[0_4px_20px_-6px_hsl(var(--primary)/0.4)]">
+        <div className="container mx-auto px-6 py-7 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" title="Return to your SimPilot.AI pilot training dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <div className="flex items-center gap-2.5">
-              <Shield className="w-6 h-6 text-primary" />
-              <span className="font-display text-2xl font-extrabold text-foreground tracking-[0.15em]">
+            <div className="flex items-center gap-3">
+              <Shield className="w-7 h-7 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
+              <span className="font-display text-3xl font-black text-foreground tracking-[0.18em] drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">
                 ADMIN<span className="text-primary">PANEL</span>
               </span>
             </div>
