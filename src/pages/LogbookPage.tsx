@@ -13,6 +13,7 @@ import { onDashboardRefresh, emitDashboardRefresh } from "@/lib/dashboardEvents"
 import { buildForeFlightCsv, downloadCsv } from "@/lib/foreflightLogbookCsv";
 import MonthlyHoursChart from "@/components/logbook/MonthlyHoursChart";
 import DraftsReviewPanel from "@/components/logbook/DraftsReviewPanel";
+import PmdgDebriefModal, { type PmdgDebrief } from "@/components/PmdgDebriefModal";
 
 type FlightLog = {
   id: string;
