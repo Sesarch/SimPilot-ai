@@ -82,8 +82,8 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* SimConnect Bridge — visually separated with spacing + light frame */}
-        <SidebarGroup className="mt-4">
+        {/* SimConnect Bridge — framed for visual emphasis */}
+        <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
