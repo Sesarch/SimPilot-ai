@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Scale, Cloud, Compass, Wind } from "lucide-react";
 import ReadinessGauge from "@/components/dashboard/ReadinessGauge";
 import CategoryCard from "@/components/dashboard/CategoryCard";
@@ -7,7 +8,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RecentActivityPanel from "@/components/dashboard/RecentActivityPanel";
 import AchievementBadges from "@/components/dashboard/AchievementBadges";
 import SimStatusPanel from "@/components/dashboard/SimStatusPanel";
-import { useAutoLogbook } from "@/hooks/useAutoLogbook";
+import {
+  useAutoLogbook,
+  PMDG_DEBRIEF_READY_EVENT,
+  PMDG_DEBRIEF_LOADING_EVENT,
+  PMDG_DEBRIEF_ERROR_EVENT,
+  type PmdgDebriefReadyDetail,
+  type PmdgDebriefErrorDetail,
+} from "@/hooks/useAutoLogbook";
+import PmdgDebriefModal, { type PmdgDebrief } from "@/components/PmdgDebriefModal";
 
 const CATEGORY_META: Array<{
   key: ReadinessCategoryKey;
@@ -26,6 +35,43 @@ const FlightDeckPage = () => {
   const { loading, overall, categories, hasData } = useReadiness();
   // Listen for SimPilot Bridge flight phase events and auto-draft logbook rows.
   useAutoLogbook();
+
+  const [debriefOpen, setDebriefOpen] = useState(false);
+  const [debriefLoading, setDebriefLoading] = useState(false);
+  const [debriefError, setDebriefError] = useState<string | null>(null);
+  const [debrief, setDebrief] = useState<PmdgDebrief | null>(null);
+
+  useEffect(() => {
+    const onLoading = () => {
+      setDebriefLoading(true);
+      setDebriefError(null);
+      setDebrief(null);
+      setDebriefOpen(true);
+    };
+    const onReady = (e: Event) => {
+      const detail = (e as CustomEvent<PmdgDebriefReadyDetail>).detail;
+      if (!detail) return;
+      setDebrief(detail.debrief);
+      setDebriefLoading(false);
+      setDebriefError(null);
+      setDebriefOpen(true);
+    };
+    const onError = (e: Event) => {
+      const detail = (e as CustomEvent<PmdgDebriefErrorDetail>).detail;
+      setDebriefError(detail?.message ?? "Failed to generate debrief.");
+      setDebriefLoading(false);
+      setDebriefOpen(true);
+    };
+    window.addEventListener(PMDG_DEBRIEF_LOADING_EVENT, onLoading);
+    window.addEventListener(PMDG_DEBRIEF_READY_EVENT, onReady as EventListener);
+    window.addEventListener(PMDG_DEBRIEF_ERROR_EVENT, onError as EventListener);
+    return () => {
+      window.removeEventListener(PMDG_DEBRIEF_LOADING_EVENT, onLoading);
+      window.removeEventListener(PMDG_DEBRIEF_READY_EVENT, onReady as EventListener);
+      window.removeEventListener(PMDG_DEBRIEF_ERROR_EVENT, onError as EventListener);
+    };
+  }, []);
+
 
   return (
     <div className="g3000-grid min-h-full">
@@ -160,6 +206,14 @@ const FlightDeckPage = () => {
           <span className="text-primary" style={{ textShadow: "0 0 12px hsl(var(--primary) / 0.5)" }}>SIMPILOT G3000 v1.0</span>
         </div>
       </div>
+
+      <PmdgDebriefModal
+        open={debriefOpen}
+        onOpenChange={setDebriefOpen}
+        loading={debriefLoading}
+        error={debriefError}
+        debrief={debrief}
+      />
     </div>
   );
 };

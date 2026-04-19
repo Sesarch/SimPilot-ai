@@ -252,6 +252,7 @@ export type Database = {
           night_landings: number
           night_time: number
           pic_time: number
+          pmdg_debrief: Json | null
           remarks: string | null
           route: string | null
           sic_time: number
@@ -278,6 +279,7 @@ export type Database = {
           night_landings?: number
           night_time?: number
           pic_time?: number
+          pmdg_debrief?: Json | null
           remarks?: string | null
           route?: string | null
           sic_time?: number
@@ -304,6 +306,7 @@ export type Database = {
           night_landings?: number
           night_time?: number
           pic_time?: number
+          pmdg_debrief?: Json | null
           remarks?: string | null
           route?: string | null
           sic_time?: number

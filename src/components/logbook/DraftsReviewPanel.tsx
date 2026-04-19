@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { CheckCircle2, Pencil, X, Plane } from "lucide-react";
+import { CheckCircle2, Pencil, X, Plane, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { PmdgDebrief } from "@/components/PmdgDebriefModal";
 
 export type DraftFlightLog = {
   id: string;
@@ -13,6 +14,7 @@ export type DraftFlightLog = {
   remarks: string | null;
   source: string;
   created_at: string;
+  pmdg_debrief?: PmdgDebrief | null;
 };
 
 interface DraftsReviewPanelProps {
@@ -20,6 +22,7 @@ interface DraftsReviewPanelProps {
   onEdit: (draft: DraftFlightLog) => void;
   onFinalize: (id: string) => void | Promise<void>;
   onDiscard: (id: string) => void | Promise<void>;
+  onViewDebrief?: (debrief: PmdgDebrief) => void;
 }
 
 const sourceLabel = (s: string) =>
@@ -30,6 +33,7 @@ export default function DraftsReviewPanel({
   onEdit,
   onFinalize,
   onDiscard,
+  onViewDebrief,
 }: DraftsReviewPanelProps) {
   const sorted = useMemo(
     () =>
@@ -86,6 +90,17 @@ export default function DraftsReviewPanel({
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
+                {d.pmdg_debrief && onViewDebrief && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onViewDebrief(d.pmdg_debrief!)}
+                    className="font-display text-[10px] tracking-[0.2em] uppercase text-primary hover:text-primary"
+                    aria-label="View AI debrief"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1" /> Debrief
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="ghost"

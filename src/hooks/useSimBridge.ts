@@ -53,11 +53,31 @@ export type SimBridgeStatus = "disconnected" | "connecting" | "connected";
 export const SIM_FLIGHT_STARTED_EVENT = "simpilot:flight-started";
 export const SIM_FLIGHT_FINISHED_EVENT = "simpilot:flight-finished";
 
+export interface PmdgEvent {
+  /** ms since epoch */
+  t: number;
+  /** seconds since flight start (filled in by useAutoLogbook when finalizing) */
+  t_rel?: number;
+  /** human label, e.g. "A/P engaged", "Flaps 5", "MCP ALT → 10000" */
+  label: string;
+  /** machine kind so the AI/UI can group */
+  kind: "ap" | "at" | "flaps" | "mcp_alt" | "mcp_hdg" | "mcp_ias";
+  /** snapshot of flight state at the moment of the event */
+  alt?: number;
+  spd?: number;
+  ground_speed?: number;
+  on_ground?: boolean;
+  /** event-specific value */
+  value?: number | string | boolean;
+}
+
 export interface SimFlightStartedDetail {
   at: number;
   source: SimSource | "unknown";
   lat?: number;
   lon?: number;
+  aircraft_title?: string;
+  pmdg_variant?: string;
 }
 export interface SimFlightFinishedDetail {
   at: number;
@@ -66,6 +86,9 @@ export interface SimFlightFinishedDetail {
   source: SimSource | "unknown";
   lat?: number;
   lon?: number;
+  aircraft_title?: string;
+  pmdg_variant?: string;
+  pmdg_events?: PmdgEvent[];
 }
 
 const BRIDGE_URL = "ws://localhost:8080";
@@ -91,10 +114,76 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
   const startedAtRef = useRef<number | null>(null);
   const sourceRef = useRef<SimSource>(source);
   const lastPosRef = useRef<{ lat?: number; lon?: number }>({});
+  // PMDG event timeline + last-known PMDG snapshot for change detection
+  const pmdgEventsRef = useRef<PmdgEvent[]>([]);
+  const lastPmdgRef = useRef<SimBridgeTelemetry["pmdg"] | null>(null);
+  const aircraftTitleRef = useRef<string | undefined>(undefined);
+  const pmdgVariantRef = useRef<string | undefined>(undefined);
+  const lastTelemetryRef = useRef<SimBridgeTelemetry | null>(null);
 
   useEffect(() => {
     sourceRef.current = source;
   }, [source]);
+
+  const recordPmdgEvent = useCallback(
+    (evt: Omit<PmdgEvent, "t" | "alt" | "spd" | "ground_speed" | "on_ground">) => {
+      if (!flightActiveRef.current) return;
+      const t = lastTelemetryRef.current;
+      pmdgEventsRef.current.push({
+        t: Date.now(),
+        alt: t?.alt,
+        spd: t?.spd,
+        ground_speed: t?.ground_speed,
+        on_ground: t?.on_ground,
+        ...evt,
+      });
+      if (pmdgEventsRef.current.length > 500) {
+        pmdgEventsRef.current.splice(0, pmdgEventsRef.current.length - 500);
+      }
+    },
+    [],
+  );
+
+  const detectPmdgChanges = useCallback(
+    (next: SimBridgeTelemetry["pmdg"] | undefined) => {
+      if (!next) {
+        lastPmdgRef.current = null;
+        return;
+      }
+      const prev = lastPmdgRef.current;
+      lastPmdgRef.current = next;
+      if (!prev) return;
+      if (prev.autopilot_master !== next.autopilot_master) {
+        recordPmdgEvent({
+          kind: "ap",
+          label: `A/P ${next.autopilot_master ? "engaged" : "disengaged"}`,
+          value: next.autopilot_master,
+        });
+      }
+      if (prev.autothrottle_active !== next.autothrottle_active) {
+        recordPmdgEvent({
+          kind: "at",
+          label: `A/T ${next.autothrottle_active ? "engaged" : "disengaged"}`,
+          value: next.autothrottle_active,
+        });
+      }
+      if (prev.flaps_handle_index !== next.flaps_handle_index) {
+        recordPmdgEvent({
+          kind: "flaps",
+          label: `Flaps ${next.flaps_handle_index}`,
+          value: next.flaps_handle_index,
+        });
+      }
+      if (Math.abs((prev.mcp_altitude || 0) - (next.mcp_altitude || 0)) >= 100) {
+        recordPmdgEvent({
+          kind: "mcp_alt",
+          label: `MCP ALT → ${Math.round(next.mcp_altitude)}`,
+          value: Math.round(next.mcp_altitude),
+        });
+      }
+    },
+    [recordPmdgEvent],
+  );
 
   const handleFlightPhase = useCallback((gs: number | undefined) => {
     if (gs == null || Number.isNaN(gs)) return;
@@ -102,6 +191,8 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
     if (!flightActiveRef.current && gs > TAKEOFF_GS_KT) {
       flightActiveRef.current = true;
       startedAtRef.current = Date.now();
+      pmdgEventsRef.current = [];
+      lastPmdgRef.current = null;
       setIsFlightActive(true);
       if (stopTimerRef.current) {
         window.clearTimeout(stopTimerRef.current);
@@ -114,6 +205,8 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
             source: sourceRef.current,
             lat: lastPosRef.current.lat,
             lon: lastPosRef.current.lon,
+            aircraft_title: aircraftTitleRef.current,
+            pmdg_variant: pmdgVariantRef.current,
           },
         }),
       );
@@ -126,6 +219,10 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
           stopTimerRef.current = window.setTimeout(() => {
             const finishedAt = Date.now();
             const startedAt = startedAtRef.current;
+            const eventsWithRel: PmdgEvent[] = pmdgEventsRef.current.map((e) => ({
+              ...e,
+              t_rel: startedAt ? Math.max(0, Math.round((e.t - startedAt) / 1000)) : undefined,
+            }));
             window.dispatchEvent(
               new CustomEvent<SimFlightFinishedDetail>(SIM_FLIGHT_FINISHED_EVENT, {
                 detail: {
@@ -135,12 +232,17 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
                   source: sourceRef.current,
                   lat: lastPosRef.current.lat,
                   lon: lastPosRef.current.lon,
+                  aircraft_title: aircraftTitleRef.current,
+                  pmdg_variant: pmdgVariantRef.current,
+                  pmdg_events: eventsWithRel.length ? eventsWithRel : undefined,
                 },
               }),
             );
             flightActiveRef.current = false;
             startedAtRef.current = null;
             stopTimerRef.current = null;
+            pmdgEventsRef.current = [];
+            lastPmdgRef.current = null;
             setIsFlightActive(false);
           }, STOP_DWELL_MS);
         }
@@ -258,9 +360,13 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
             if (lat != null && !Number.isNaN(lat) && lon != null && !Number.isNaN(lon)) {
               lastPosRef.current = { lat, lon };
             }
+            if (t.aircraft_title) aircraftTitleRef.current = t.aircraft_title;
+            if (t.pmdg?.variant) pmdgVariantRef.current = t.pmdg.variant;
+            lastTelemetryRef.current = t;
             setTelemetry(t);
             setLastUpdate(Date.now());
             handleFlightPhase(t.ground_speed ?? t.spd);
+            detectPmdgChanges(t.pmdg);
           } catch {
             // ignore malformed frame
           }
@@ -287,7 +393,7 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
       cancelled = true;
       cleanup();
     };
-  }, [enabled, cleanup, handleFlightPhase]);
+  }, [enabled, cleanup, handleFlightPhase, detectPmdgChanges]);
 
   // Push source changes to an already-open bridge.
   useEffect(() => {
