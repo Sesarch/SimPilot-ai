@@ -109,30 +109,6 @@ const SimStatusPanel = () => {
         </span>
       </div>
 
-      {/* Bridge download CTA — shown when not connected */}
-      {!isConnected && (
-        <div className="rounded-md border border-primary/40 bg-primary/5 p-3">
-          <div className="flex items-start gap-3">
-            <Download className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="font-display text-[10px] tracking-[0.25em] uppercase text-primary mb-1">
-                Install SimPilot Bridge
-              </div>
-              <p className="font-sans text-xs text-muted-foreground leading-relaxed mb-2">
-                A small Windows app that streams MSFS 2024 / X-Plane 12 telemetry to your Flight Deck.
-                Required to enable live data and auto-logging.
-              </p>
-              <Link
-                to="/flight-deck/bridge"
-                className="inline-flex items-center gap-1.5 rounded border border-primary/50 bg-primary/10 px-3 py-1.5 font-display text-[10px] tracking-[0.2em] uppercase text-primary hover:bg-primary/20 transition-colors"
-              >
-                <Download className="w-3 h-3" /> Set Up SimPilot Bridge
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Status footer */}
       <div className="mt-3 pt-3 border-t border-border font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground/70">
         {isConnecting
