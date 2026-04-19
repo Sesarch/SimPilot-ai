@@ -53,11 +53,31 @@ export type SimBridgeStatus = "disconnected" | "connecting" | "connected";
 export const SIM_FLIGHT_STARTED_EVENT = "simpilot:flight-started";
 export const SIM_FLIGHT_FINISHED_EVENT = "simpilot:flight-finished";
 
+export interface PmdgEvent {
+  /** ms since epoch */
+  t: number;
+  /** seconds since flight start (filled in by useAutoLogbook when finalizing) */
+  t_rel?: number;
+  /** human label, e.g. "A/P engaged", "Flaps 5", "MCP ALT → 10000" */
+  label: string;
+  /** machine kind so the AI/UI can group */
+  kind: "ap" | "at" | "flaps" | "mcp_alt" | "mcp_hdg" | "mcp_ias";
+  /** snapshot of flight state at the moment of the event */
+  alt?: number;
+  spd?: number;
+  ground_speed?: number;
+  on_ground?: boolean;
+  /** event-specific value */
+  value?: number | string | boolean;
+}
+
 export interface SimFlightStartedDetail {
   at: number;
   source: SimSource | "unknown";
   lat?: number;
   lon?: number;
+  aircraft_title?: string;
+  pmdg_variant?: string;
 }
 export interface SimFlightFinishedDetail {
   at: number;
@@ -66,6 +86,9 @@ export interface SimFlightFinishedDetail {
   source: SimSource | "unknown";
   lat?: number;
   lon?: number;
+  aircraft_title?: string;
+  pmdg_variant?: string;
+  pmdg_events?: PmdgEvent[];
 }
 
 const BRIDGE_URL = "ws://localhost:8080";
