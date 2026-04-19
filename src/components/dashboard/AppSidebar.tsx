@@ -1,4 +1,4 @@
-import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Plane } from "lucide-react";
+import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Plane, Cable } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -24,6 +24,7 @@ const navItems = [
   { title: "ATC Radio", url: "/live-tools", icon: Radio },
   { title: "Logbook", url: "/logbook", icon: ClipboardList },
   { title: "Analytics", url: "/progress", icon: LineChart },
+  { title: "SimConnect Bridge", url: "/flight-deck/bridge", icon: Cable },
 ];
 
 export function AppSidebar() {
