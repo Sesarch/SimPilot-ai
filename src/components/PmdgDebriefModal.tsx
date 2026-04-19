@@ -257,9 +257,9 @@ const PmdgDebriefModal = ({
       startY: y,
       head: [["Automation", "Flap Schedule", "Stable Approach"]],
       body: [[
-        debrief.scores?.automation != null ? String(debrief.scores.automation) : "—",
-        debrief.scores?.flap_schedule != null ? String(debrief.scores.flap_schedule) : "—",
-        debrief.scores?.stable_approach != null ? String(debrief.scores.stable_approach) : "—",
+        debrief.scores?.automation != null ? String(debrief.scores.automation) : "-",
+        debrief.scores?.flap_schedule != null ? String(debrief.scores.flap_schedule) : "-",
+        debrief.scores?.stable_approach != null ? String(debrief.scores.stable_approach) : "-",
       ]],
       theme: "grid",
       headStyles: { fillColor: [15, 23, 42], textColor: 255, halign: "center" },
