@@ -289,12 +289,12 @@ const PmdgDebriefModal = ({
       y += 8;
       const rows: string[][] = [];
       if (debrief.automation.ap_engagement_call)
-        rows.push(["A/P engagement", debrief.automation.ap_engagement_call]);
+        rows.push(["A/P engagement", pdfSafe(debrief.automation.ap_engagement_call)]);
       if (debrief.automation.at_usage_call)
-        rows.push(["A/T usage", debrief.automation.at_usage_call]);
+        rows.push(["A/T usage", pdfSafe(debrief.automation.at_usage_call)]);
       if (debrief.automation.engage_disengage_count != null)
         rows.push(["Engage/Disengage cycles", String(debrief.automation.engage_disengage_count)]);
-      (debrief.automation.issues ?? []).forEach((i) => rows.push(["Issue", i]));
+      (debrief.automation.issues ?? []).forEach((i) => rows.push(["Issue", pdfSafe(i)]));
       if (rows.length) {
         autoTable(doc, {
           startY: y,
