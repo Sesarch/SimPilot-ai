@@ -39,21 +39,21 @@ const FlightDeckPage = () => {
 
       <div className="container mx-auto max-w-6xl px-4 sm:px-6 py-6 lg:py-10">
         {/* Header strip */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-7">
           <div>
-            <h1 className="font-display text-xl font-bold tracking-[0.18em] uppercase text-foreground">
+            <h1 className="font-display text-3xl font-extrabold tracking-[0.16em] uppercase text-foreground">
               Flight Deck
             </h1>
-            <p className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mt-1">
+            <p className="font-display text-[12px] font-semibold tracking-[0.25em] uppercase text-muted-foreground mt-2">
               Pilot Readiness Overview
             </p>
           </div>
-          <div className="hidden sm:flex items-center gap-4 font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+          <div className="hidden sm:flex items-center gap-5 font-display text-[12px] font-semibold tracking-[0.18em] uppercase text-foreground/80">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--cyan-glow))]" /> Live Data
+              <span className="w-2 h-2 rounded-full bg-[hsl(var(--cyan-glow))]" /> Live Data
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--amber-instrument))]" /> ACS Linked
+              <span className="w-2 h-2 rounded-full bg-[hsl(var(--amber-instrument))]" /> ACS Linked
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ const FlightDeckPage = () => {
             <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary/60" />
             <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary/60" />
 
-            <div className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-2">
+            <div className="font-display text-[12px] font-semibold tracking-[0.3em] uppercase text-foreground/80 mb-3">
               Primary Flight Display
             </div>
             {loading ? (
@@ -76,35 +76,35 @@ const FlightDeckPage = () => {
               <ReadinessGauge score={overall} />
             )}
             {!loading && !hasData && (
-              <p className="mt-4 font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground/80 text-center max-w-md">
+              <p className="mt-4 font-display text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground text-center max-w-md">
                 Complete ground school topics or take an oral exam to populate your readiness score.
               </p>
             )}
-            <div className="mt-6 grid grid-cols-3 gap-6 text-center">
+            <div className="mt-7 grid grid-cols-3 gap-6 text-center">
               <div>
-                <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                <div className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
                   Topics Done
                 </div>
-                <div className="font-display text-lg font-bold text-foreground tabular-nums">
+                <div className="font-display text-2xl font-bold text-foreground tabular-nums mt-1.5">
                   {Object.values(categories).reduce((a, c) => a + c.topicCompleted, 0)}
-                  <span className="text-muted-foreground text-sm">
+                  <span className="text-muted-foreground text-base">
                     /{Object.values(categories).reduce((a, c) => a + c.topicTotal, 0)}
                   </span>
                 </div>
               </div>
               <div className="border-x border-border">
-                <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                <div className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
                   Exams Logged
                 </div>
-                <div className="font-display text-lg font-bold text-accent tabular-nums">
+                <div className="font-display text-2xl font-bold text-accent tabular-nums mt-1.5">
                   {Object.values(categories).reduce((a, c) => a + c.examCount, 0)}
                 </div>
               </div>
               <div>
-                <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                <div className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
                   Overall
                 </div>
-                <div className="font-display text-lg font-bold text-primary tabular-nums">
+                <div className="font-display text-2xl font-bold text-primary tabular-nums mt-1.5">
                   {loading ? "—" : `${overall}%`}
                 </div>
               </div>
@@ -143,7 +143,7 @@ const FlightDeckPage = () => {
         </div>
 
         {/* Footer status bar */}
-        <div className="mt-6 g3000-bezel rounded-lg px-4 py-2 flex items-center justify-between font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+        <div className="mt-6 g3000-bezel rounded-lg px-4 py-3 flex items-center justify-between font-display text-[12px] font-semibold tracking-[0.2em] uppercase text-foreground/80">
           <span>STATUS · {loading ? "SYNCING" : "OK"}</span>
           <span className="hidden sm:inline">DATA · {hasData ? "LIVE" : "AWAITING INPUT"}</span>
           <span className="text-primary">SIMPILOT G3000 v1.0</span>

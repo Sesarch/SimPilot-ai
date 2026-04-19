@@ -66,28 +66,28 @@ const PilotIdentityChip = () => {
       <DropdownMenuTrigger asChild>
         <button
           aria-label="Pilot identity menu"
-          className="group flex h-9 items-center gap-2 rounded-md border border-border/60 bg-background/40 pl-1 pr-2 transition-colors hover:border-primary/40 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className="group flex h-11 items-center gap-2.5 rounded-md border border-border/60 bg-background/40 pl-1.5 pr-2.5 transition-colors hover:border-primary/40 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/40"
         >
-          <Avatar className="h-6 w-6 border border-primary/30">
+          <Avatar className="h-8 w-8 border border-primary/30">
             {profile?.avatar_url ? (
               <AvatarImage src={profile.avatar_url} alt={callsign} />
             ) : null}
-            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/10 text-[9px] font-display tracking-wider text-primary">
-              {initials || <User className="w-3 h-3" />}
+            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/10 text-[11px] font-display font-bold tracking-wider text-primary">
+              {initials || <User className="w-4 h-4" />}
             </AvatarFallback>
           </Avatar>
-          <div className="hidden min-w-0 flex-col justify-center sm:flex">
-            <span className="max-w-[120px] truncate font-display text-[10px] leading-none tracking-[0.18em] uppercase text-foreground">
+          <div className="hidden min-w-0 flex-col justify-center gap-0.5 sm:flex">
+            <span className="max-w-[160px] truncate font-display text-[12px] font-semibold leading-none tracking-[0.16em] uppercase text-foreground">
               {callsign}
             </span>
             <span
-              className="max-w-[120px] truncate font-display text-[8px] leading-none tracking-[0.2em] uppercase text-muted-foreground"
+              className="max-w-[160px] truncate font-display text-[10px] font-semibold leading-none tracking-[0.18em] uppercase text-muted-foreground"
               style={{ color: "hsl(var(--amber-instrument))" }}
             >
               {cert}
             </span>
           </div>
-          <ChevronDown className="h-3 w-3 shrink-0 self-center text-muted-foreground transition-colors group-hover:text-primary" />
+          <ChevronDown className="h-4 w-4 shrink-0 self-center text-muted-foreground transition-colors group-hover:text-primary" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
