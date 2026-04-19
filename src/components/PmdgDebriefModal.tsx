@@ -287,7 +287,7 @@ const PmdgDebriefModal = ({
       };
       const verdictText: Record<string, [number, number, number]> = {
         ok: [22, 101, 52],           // green-800
-        marginal: [146, 64, 14),     // amber-800
+        marginal: [146, 64, 14],     // amber-800
         exceedance: [153, 27, 27],   // red-800
       };
       autoTable(doc, {
