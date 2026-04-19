@@ -33,6 +33,8 @@ export interface SimBridgeTelemetry {
   on_ground?: boolean;
   ground_speed?: number; // kt
   isSimRunning?: boolean;
+  lat?: number;          // deg
+  lon?: number;          // deg
 }
 
 export type SimBridgeStatus = "disconnected" | "connecting" | "connected";
@@ -43,12 +45,16 @@ export const SIM_FLIGHT_FINISHED_EVENT = "simpilot:flight-finished";
 export interface SimFlightStartedDetail {
   at: number;
   source: SimSource | "unknown";
+  lat?: number;
+  lon?: number;
 }
 export interface SimFlightFinishedDetail {
   at: number;
   startedAt: number | null;
   durationMs: number | null;
   source: SimSource | "unknown";
+  lat?: number;
+  lon?: number;
 }
 
 const BRIDGE_URL = "ws://localhost:8080";
@@ -73,6 +79,7 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
   const stopTimerRef = useRef<number | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const sourceRef = useRef<SimSource>(source);
+  const lastPosRef = useRef<{ lat?: number; lon?: number }>({});
 
   useEffect(() => {
     sourceRef.current = source;
@@ -91,7 +98,12 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
       }
       window.dispatchEvent(
         new CustomEvent<SimFlightStartedDetail>(SIM_FLIGHT_STARTED_EVENT, {
-          detail: { at: startedAtRef.current, source: sourceRef.current },
+          detail: {
+            at: startedAtRef.current,
+            source: sourceRef.current,
+            lat: lastPosRef.current.lat,
+            lon: lastPosRef.current.lon,
+          },
         }),
       );
       return;
@@ -110,6 +122,8 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
                   startedAt,
                   durationMs: startedAt ? finishedAt - startedAt : null,
                   source: sourceRef.current,
+                  lat: lastPosRef.current.lat,
+                  lon: lastPosRef.current.lon,
                 },
               }),
             );
@@ -206,6 +220,10 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
               }
             }
 
+            const lat =
+              raw.lat != null ? Number(raw.lat) : raw.latitude != null ? Number(raw.latitude) : undefined;
+            const lon =
+              raw.lon != null ? Number(raw.lon) : raw.longitude != null ? Number(raw.longitude) : undefined;
             const t: SimBridgeTelemetry = {
               alt: Number(raw.alt ?? raw.altitude ?? raw.Altitude ?? 0),
               hdg: Number(raw.hdg ?? raw.heading ?? raw.Heading ?? 0),
@@ -221,7 +239,12 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
                     ? Number(raw.gs)
                     : undefined,
               isSimRunning: raw.isSimRunning ?? raw.sim_running ?? undefined,
+              lat,
+              lon,
             };
+            if (lat != null && !Number.isNaN(lat) && lon != null && !Number.isNaN(lon)) {
+              lastPosRef.current = { lat, lon };
+            }
             setTelemetry(t);
             setLastUpdate(Date.now());
             handleFlightPhase(t.ground_speed ?? t.spd);

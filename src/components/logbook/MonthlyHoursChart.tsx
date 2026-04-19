@@ -6,7 +6,7 @@ type Entry = {
   total_time: number;
   night_time: number;
   status: string;
-  source: "manual" | "atc_session";
+  source: string;
 };
 
 interface Props {

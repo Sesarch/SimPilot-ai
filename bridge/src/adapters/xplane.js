@@ -34,6 +34,8 @@ export function createXPlaneAdapter({ onTelemetry }) {
   // rolling state assembled from multiple data rows
   const state = {
     alt: 0,
+    lat: 0,
+    lon: 0,
     hdg: 0,
     spd: 0,
     ground_speed: 0,
@@ -75,6 +77,8 @@ export function createXPlaneAdapter({ onTelemetry }) {
           break;
         case ROW_INDEX.POSITION:
           // f(0)=lat, f(1)=lon, f(2)=alt msl ft, f(3)=alt agl ft
+          state.lat = f(0);
+          state.lon = f(1);
           state.alt = f(2);
           state.on_ground = f(3) < 5;
           break;
