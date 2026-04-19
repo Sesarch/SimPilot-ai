@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +32,34 @@ export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
   const [lastFrame, setLastFrame] = useState<string | null>(null);
+  const [pairing, setPairing] = useState(false);
+  const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const handlePairBridge = async () => {
+    setPairing(true);
+    setPairResult(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        setPairResult({ ok: false, message: "Sign in first — pairing requires your SimPilot session." });
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("bridge-pair-token");
+      if (error) throw error;
+      const deepLink = (data as { deep_link?: string })?.deep_link;
+      if (!deepLink) throw new Error("No deep link returned");
+      // Trigger the simpilot:// protocol — Windows hands off to the installed bridge.
+      window.location.href = deepLink;
+      setPairResult({
+        ok: true,
+        message: "Pairing handshake sent. Check the SimPilot Bridge tray app — it should light up green within a few seconds.",
+      });
+    } catch (err) {
+      setPairResult({ ok: false, message: (err as Error).message || "Failed to mint pairing token." });
+    } finally {
+      setPairing(false);
+    }
+  };
 
   const runTest = async () => {
     setTestState("testing");
