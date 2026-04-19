@@ -217,8 +217,8 @@ const AdminPage = () => {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="flex items-center gap-3">
-              <Shield className="w-7 h-7 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
-              <span className="font-display text-3xl font-black text-foreground tracking-[0.18em] drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">
+              <Shield className="w-7 h-7 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)] shrink-0" />
+              <span className="font-display text-3xl font-black leading-none text-foreground tracking-[0.18em] drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">
                 ADMIN<span className="text-primary">PANEL</span>
               </span>
             </div>
