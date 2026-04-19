@@ -13,6 +13,8 @@ const RECONNECT_MS = 5000;
 
 const SIMVARS = [
   "PLANE_ALTITUDE",                    // ft
+  "PLANE_LATITUDE",                    // rad
+  "PLANE_LONGITUDE",                   // rad
   "PLANE_HEADING_DEGREES_MAGNETIC",    // rad
   "AIRSPEED_INDICATED",                // kt
   "GROUND_VELOCITY",                   // kt
@@ -46,8 +48,12 @@ export function createMsfsAdapter({ onTelemetry }) {
   async function poll() {
     try {
       const v = await api.get(...SIMVARS);
+      const lat = (Number(v.PLANE_LATITUDE) || 0) * (180 / Math.PI);
+      const lon = (Number(v.PLANE_LONGITUDE) || 0) * (180 / Math.PI);
       onTelemetry({
         alt: Number(v.PLANE_ALTITUDE) || 0,
+        lat,
+        lon,
         hdg: radToDeg(Number(v.PLANE_HEADING_DEGREES_MAGNETIC) || 0),
         spd: Number(v.AIRSPEED_INDICATED) || 0,
         ground_speed: Number(v.GROUND_VELOCITY) || 0,
