@@ -84,26 +84,27 @@ export function AppSidebar() {
 
         {/* SimConnect Bridge — framed for visual emphasis */}
         <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname.startsWith(bridgeItem.url)}
-                  tooltip={bridgeItem.title}
-                  className="rounded-md border border-sidebar-border/70 bg-sidebar-accent/20 hover:bg-sidebar-accent/40"
-                >
-                  <NavLink
-                    to={bridgeItem.url}
-                    className="flex items-center gap-3 font-display text-[12px] tracking-wider uppercase"
-                    activeClassName="text-accent"
+          <SidebarGroupContent className="px-2">
+            <div className="rounded-md border-2 border-primary/40 bg-sidebar-accent/10 p-1">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname.startsWith(bridgeItem.url)}
+                    tooltip={bridgeItem.title}
                   >
-                    <bridgeItem.icon className="w-4 h-4 shrink-0" />
-                    {!collapsed && <span>{bridgeItem.title}</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+                    <NavLink
+                      to={bridgeItem.url}
+                      className="flex items-center gap-3 font-display text-[12px] tracking-wider uppercase"
+                      activeClassName="text-accent"
+                    >
+                      <bridgeItem.icon className="w-4 h-4 shrink-0" />
+                      {!collapsed && <span>{bridgeItem.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
