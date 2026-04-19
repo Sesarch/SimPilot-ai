@@ -1,0 +1,139 @@
+# ============================================================================
+#  Release Drafter configuration — categorises merged PRs into pretty notes.
+#
+#  Add labels to a PR (or use a Conventional-Commit style title) and Release
+#  Drafter slots it into the matching section. The autolabeler block below
+#  applies sensible labels automatically when the PR title starts with
+#  `feat:`, `fix:`, `docs:`, etc.
+# ============================================================================
+
+name-template: "SimPilot Bridge v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+
+# ---- Categorisation -------------------------------------------------------
+categories:
+  - title: "✨ Features"
+    labels:
+      - "feature"
+      - "enhancement"
+      - "type: feature"
+  - title: "🐛 Bug Fixes"
+    labels:
+      - "bug"
+      - "fix"
+      - "type: bug"
+  - title: "🔒 Security"
+    labels:
+      - "security"
+      - "type: security"
+  - title: "🚀 Performance"
+    labels:
+      - "performance"
+      - "perf"
+  - title: "📚 Documentation"
+    labels:
+      - "documentation"
+      - "docs"
+  - title: "🧰 Maintenance"
+    labels:
+      - "chore"
+      - "refactor"
+      - "ci"
+      - "build"
+      - "dependencies"
+  - title: "⚠️ Breaking Changes"
+    labels:
+      - "breaking"
+      - "breaking-change"
+
+# ---- PR formatting --------------------------------------------------------
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+change-title-escapes: '\<*_&'
+no-changes-template: "- No changes since the last release."
+
+# ---- Semver bump rules (drives $RESOLVED_VERSION) -------------------------
+version-resolver:
+  major:
+    labels:
+      - "breaking"
+      - "breaking-change"
+      - "major"
+  minor:
+    labels:
+      - "feature"
+      - "enhancement"
+      - "minor"
+  patch:
+    labels:
+      - "bug"
+      - "fix"
+      - "security"
+      - "performance"
+      - "documentation"
+      - "chore"
+      - "patch"
+  default: patch
+
+# ---- Autolabeler — infer labels from PR title or branch -------------------
+autolabeler:
+  - label: "feature"
+    title:
+      - '/^feat(\(.+\))?:/i'
+    branch:
+      - '/^feat\/.+/'
+  - label: "bug"
+    title:
+      - '/^fix(\(.+\))?:/i'
+    branch:
+      - '/^fix\/.+/'
+  - label: "security"
+    title:
+      - '/^sec(urity)?(\(.+\))?:/i'
+  - label: "performance"
+    title:
+      - '/^perf(\(.+\))?:/i'
+  - label: "documentation"
+    title:
+      - '/^docs?(\(.+\))?:/i'
+    files:
+      - "**/*.md"
+  - label: "chore"
+    title:
+      - '/^chore(\(.+\))?:/i'
+      - '/^refactor(\(.+\))?:/i'
+  - label: "ci"
+    files:
+      - ".github/**/*"
+  - label: "dependencies"
+    files:
+      - "**/package.json"
+      - "**/package-lock.json"
+      - "**/bun.lockb"
+  - label: "breaking"
+    title:
+      - '/!:/'
+      - '/breaking/i'
+
+# ---- Release body ---------------------------------------------------------
+template: |
+  ## What's new in SimPilot Bridge v$RESOLVED_VERSION
+
+  $CHANGES
+
+  ## 📦 Install / Upgrade
+
+  - **New install:** download `SimPilotBridge-Setup-$RESOLVED_VERSION.exe` below and run it.
+  - **Existing install:** the bridge will auto-update within 6 hours, or open
+    the desktop app → **Updates** tab → **Check for updates now**.
+
+  ## 🔐 Verify the download
+
+  ```powershell
+  Get-FileHash .\SimPilotBridge-Setup-$RESOLVED_VERSION.exe -Algorithm SHA256
+  ```
+
+  Expected SHA-512 is published in `latest.yml` alongside this release.
+
+  ---
+
+  **Full changelog:** https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
