@@ -276,7 +276,7 @@ const PmdgDebriefModal = ({
       y += 12;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      const lines = doc.splitTextToSize(debrief.summary, pageWidth - margin * 2);
+      const lines = doc.splitTextToSize(pdfSafe(debrief.summary), pageWidth - margin * 2);
       doc.text(lines, margin, y);
       y += lines.length * 12 + 10;
     }
