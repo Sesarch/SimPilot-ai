@@ -81,6 +81,31 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* SimConnect Bridge — visually separated with spacing + light frame */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={location.pathname.startsWith(bridgeItem.url)}
+                  tooltip={bridgeItem.title}
+                  className="rounded-md border border-sidebar-border/70 bg-sidebar-accent/20 hover:bg-sidebar-accent/40"
+                >
+                  <NavLink
+                    to={bridgeItem.url}
+                    className="flex items-center gap-3 font-display text-[12px] tracking-wider uppercase"
+                    activeClassName="text-accent"
+                  >
+                    <bridgeItem.icon className="w-4 h-4 shrink-0" />
+                    {!collapsed && <span>{bridgeItem.title}</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
