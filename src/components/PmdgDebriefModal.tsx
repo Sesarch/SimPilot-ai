@@ -75,6 +75,41 @@ const flapLabel = (n: number): string => {
   return FLAP_DETENT_LABELS[i] ?? String(n);
 };
 
+// jsPDF's built-in helvetica only ships WinAnsi glyphs, so anything outside
+// that range (≥, →, °, smart quotes, em-dashes, …) renders as a stray "e" or
+// drops out. Replace common aviation/AI-emitted unicode with ASCII fallbacks
+// before drawing into the PDF.
+const PDF_UNICODE_MAP: Array<[RegExp, string]> = [
+  [/[\u2192\u279C\u27A1\u2794]/g, "->"],   // → ➜ ➡ ➔
+  [/[\u2190]/g, "<-"],                     // ←
+  [/[\u2194]/g, "<->"],                    // ↔
+  [/[\u2191]/g, "^"],                      // ↑
+  [/[\u2193]/g, "v"],                      // ↓
+  [/\u2265/g, ">="],                       // ≥
+  [/\u2264/g, "<="],                       // ≤
+  [/\u2260/g, "!="],                       // ≠
+  [/\u00B1/g, "+/-"],                      // ±
+  [/\u00D7/g, "x"],                        // ×
+  [/\u00F7/g, "/"],                        // ÷
+  [/\u00B0/g, " deg"],                     // °
+  [/[\u2018\u2019\u02BC]/g, "'"],          // ' ' ʼ
+  [/[\u201C\u201D]/g, '"'],                // " "
+  [/[\u2013\u2014]/g, "-"],                // – —
+  [/\u2026/g, "..."],                      // …
+  [/\u00A0/g, " "],                        // nbsp
+  [/[\u2022\u25CF\u25E6]/g, "*"],          // • ● ◦
+  [/\u00B7/g, "."],                        // ·
+];
+const pdfSafe = (input: unknown): string => {
+  if (input == null) return "";
+  let s = String(input);
+  for (const [re, rep] of PDF_UNICODE_MAP) s = s.replace(re, rep);
+  // Strip anything still outside printable WinAnsi range
+  // eslint-disable-next-line no-control-regex
+  s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, "?");
+  return s;
+};
+
 const verdictBadge = (v?: string) => {
   switch (v) {
     case "ok":
@@ -169,7 +204,7 @@ const PmdgDebriefModal = ({
     doc.setTextColor(0, 200, 210);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.text("SIMPILOT  ·  FLIGHT OPERATIONS", textLeft, 26, { charSpace: 1.2 });
+    doc.text("SIMPILOT  -  FLIGHT OPERATIONS", textLeft, 26, { charSpace: 1.2 });
 
     // Title
     doc.setTextColor(255, 255, 255);
@@ -182,9 +217,9 @@ const PmdgDebriefModal = ({
     doc.setFontSize(9);
     doc.setTextColor(180, 195, 215);
     const sub = [
-      debrief.variant ?? "PMDG",
+      pdfSafe(debrief.variant ?? "PMDG"),
       debrief.departure || debrief.destination
-        ? `${debrief.departure ?? "????"}  >  ${debrief.destination ?? "????"}`
+        ? `${pdfSafe(debrief.departure ?? "????")}  >  ${pdfSafe(debrief.destination ?? "????")}`
         : null,
       debrief.duration_minutes != null ? `${debrief.duration_minutes.toFixed(1)} MIN` : null,
     ]
@@ -222,9 +257,9 @@ const PmdgDebriefModal = ({
       startY: y,
       head: [["Automation", "Flap Schedule", "Stable Approach"]],
       body: [[
-        debrief.scores?.automation != null ? String(debrief.scores.automation) : "—",
-        debrief.scores?.flap_schedule != null ? String(debrief.scores.flap_schedule) : "—",
-        debrief.scores?.stable_approach != null ? String(debrief.scores.stable_approach) : "—",
+        debrief.scores?.automation != null ? String(debrief.scores.automation) : "-",
+        debrief.scores?.flap_schedule != null ? String(debrief.scores.flap_schedule) : "-",
+        debrief.scores?.stable_approach != null ? String(debrief.scores.stable_approach) : "-",
       ]],
       theme: "grid",
       headStyles: { fillColor: [15, 23, 42], textColor: 255, halign: "center" },
@@ -241,7 +276,7 @@ const PmdgDebriefModal = ({
       y += 12;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      const lines = doc.splitTextToSize(debrief.summary, pageWidth - margin * 2);
+      const lines = doc.splitTextToSize(pdfSafe(debrief.summary), pageWidth - margin * 2);
       doc.text(lines, margin, y);
       y += lines.length * 12 + 10;
     }
@@ -254,12 +289,12 @@ const PmdgDebriefModal = ({
       y += 8;
       const rows: string[][] = [];
       if (debrief.automation.ap_engagement_call)
-        rows.push(["A/P engagement", debrief.automation.ap_engagement_call]);
+        rows.push(["A/P engagement", pdfSafe(debrief.automation.ap_engagement_call)]);
       if (debrief.automation.at_usage_call)
-        rows.push(["A/T usage", debrief.automation.at_usage_call]);
+        rows.push(["A/T usage", pdfSafe(debrief.automation.at_usage_call)]);
       if (debrief.automation.engage_disengage_count != null)
         rows.push(["Engage/Disengage cycles", String(debrief.automation.engage_disengage_count)]);
-      (debrief.automation.issues ?? []).forEach((i) => rows.push(["Issue", i]));
+      (debrief.automation.issues ?? []).forEach((i) => rows.push(["Issue", pdfSafe(i)]));
       if (rows.length) {
         autoTable(doc, {
           startY: y,
@@ -294,10 +329,10 @@ const PmdgDebriefModal = ({
         startY: y,
         head: [["Time", "Flap", "IAS (kt)", "Placard (kt)", "Verdict", "Note"]],
         body: debrief.flap_schedule.findings.map((f) => [
-          f.time_mmss ?? "—",
+          f.time_mmss ?? "-",
           flapLabel(f.flap_setting),
           String(f.ias_kt),
-          f.placard_kt ? String(f.placard_kt) : "—",
+          f.placard_kt ? String(f.placard_kt) : "-",
           {
             content: `${f.verdict.toUpperCase()}${f.exceedance_kt ? ` +${f.exceedance_kt}` : ""}`,
             styles: {
@@ -307,7 +342,7 @@ const PmdgDebriefModal = ({
               halign: "center",
             },
           },
-          f.note ?? "",
+          pdfSafe(f.note ?? ""),
         ]),
         theme: "grid",
         headStyles: { fillColor: [15, 23, 42], textColor: 255 },
@@ -327,7 +362,7 @@ const PmdgDebriefModal = ({
         startY: y,
         body: [[
           debrief.stable_approach.verdict.toUpperCase(),
-          debrief.stable_approach.note ?? "",
+          pdfSafe(debrief.stable_approach.note ?? ""),
         ]],
         theme: "striped",
         styles: { fontSize: 10, cellPadding: 6 },
@@ -341,11 +376,11 @@ const PmdgDebriefModal = ({
     if (debrief.recommendations?.length) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text("NEXT LEG · ACTION ITEMS", margin, y);
+      doc.text("NEXT LEG - ACTION ITEMS", margin, y);
       y += 8;
       autoTable(doc, {
         startY: y,
-        body: debrief.recommendations.map((r, i) => [`${i + 1}.`, r]),
+        body: debrief.recommendations.map((r, i) => [`${i + 1}.`, pdfSafe(r)]),
         theme: "plain",
         styles: { fontSize: 10, cellPadding: 4 },
         columnStyles: { 0: { cellWidth: 22, fontStyle: "bold" } },
@@ -364,7 +399,7 @@ const PmdgDebriefModal = ({
         ? new Date(debrief.generated_at).toLocaleString()
         : new Date().toLocaleString();
       doc.text(
-        `SimPilot · PMDG Debrief · Generated ${ts}`,
+        `SimPilot - PMDG Debrief - Generated ${ts}`,
         margin,
         doc.internal.pageSize.getHeight() - 24,
       );
