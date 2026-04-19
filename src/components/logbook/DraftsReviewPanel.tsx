@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { CheckCircle2, Pencil, X, Plane } from "lucide-react";
+import { CheckCircle2, Pencil, X, Plane, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { PmdgDebrief } from "@/components/PmdgDebriefModal";
 
 export type DraftFlightLog = {
   id: string;
@@ -13,6 +14,7 @@ export type DraftFlightLog = {
   remarks: string | null;
   source: string;
   created_at: string;
+  pmdg_debrief?: PmdgDebrief | null;
 };
 
 interface DraftsReviewPanelProps {
@@ -20,6 +22,7 @@ interface DraftsReviewPanelProps {
   onEdit: (draft: DraftFlightLog) => void;
   onFinalize: (id: string) => void | Promise<void>;
   onDiscard: (id: string) => void | Promise<void>;
+  onViewDebrief?: (debrief: PmdgDebrief) => void;
 }
 
 const sourceLabel = (s: string) =>
