@@ -35,6 +35,17 @@ export interface SimBridgeTelemetry {
   isSimRunning?: boolean;
   lat?: number;          // deg
   lon?: number;          // deg
+  aircraft_title?: string;
+  pmdg?: {
+    variant: string;
+    mcp_altitude: number;
+    mcp_heading: number;
+    mcp_ias: number;
+    flaps_handle_index: number;
+    flaps_handle_percent: number;
+    autopilot_master: boolean;
+    autothrottle_active: boolean;
+  };
 }
 
 export type SimBridgeStatus = "disconnected" | "connecting" | "connected";
