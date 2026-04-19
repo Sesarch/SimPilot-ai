@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { Plug, PlugZap, Radio, Download, Plane } from "lucide-react";
+import { Plug, PlugZap, Radio, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSimBridge } from "@/hooks/useSimBridge";
 
