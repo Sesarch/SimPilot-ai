@@ -158,16 +158,26 @@ export default function BridgeSetupPage() {
               leave it open while you fly. macOS / Linux builds are coming soon — for now you can run it from source.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button disabled className="gap-2">
-                <Download className="h-4 w-4" />
-                Download for Windows (coming soon)
+              {BRIDGE_DOWNLOAD_URL ? (
+                <Button asChild className="gap-2">
+                  <a href={BRIDGE_DOWNLOAD_URL} download>
+                    <Download className="h-4 w-4" />
+                    Download SimPilotBridge.exe
+                  </a>
+                </Button>
+              ) : (
+                <Button disabled className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Download for Windows (coming soon)
+                </Button>
+              )}
+              <Button asChild variant="outline" className="gap-2">
+                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener">
+                  All releases
+                </a>
               </Button>
               <Button asChild variant="outline" className="gap-2">
-                <a
-                  href="https://github.com/simpilot-ai/bridge"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
+                <a href={BRIDGE_SOURCE_URL} target="_blank" rel="noreferrer noopener">
                   View source
                 </a>
               </Button>
