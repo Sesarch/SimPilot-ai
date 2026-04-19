@@ -15,10 +15,12 @@ const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
 
 // SimPilot Bridge Windows installer.
-// Set to the GitHub Release asset URL once a build is published, e.g.:
-//   "https://github.com/simpilot-ai/bridge/releases/latest/download/SimPilotBridge.exe"
-// While empty/null the download button stays disabled with a "coming soon" label.
-const BRIDGE_DOWNLOAD_URL: string | null = null;
+// Points at the GitHub Releases "latest" alias so the URL never goes stale —
+// publish a new release tagged on the simpilot-ai/bridge repo and this button
+// instantly serves the new build. Override per-version if you ever need to pin
+// (e.g. ".../releases/download/v0.2.0/SimPilotBridge.exe").
+const BRIDGE_DOWNLOAD_URL: string | null =
+  "https://github.com/simpilot-ai/bridge/releases/latest/download/SimPilotBridge.exe";
 // SHA-256 of the published SimPilotBridge.exe (lowercase hex, 64 chars).
 // Publish this alongside the GitHub Release so users can verify integrity:
 //   Get-FileHash SimPilotBridge.exe -Algorithm SHA256
