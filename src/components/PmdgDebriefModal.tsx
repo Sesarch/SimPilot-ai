@@ -516,7 +516,7 @@ const PmdgDebriefModal = ({
                             <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
                               {f.time_mmss ?? "—"}
                             </td>
-                            <td className="px-3 py-2 tabular-nums">{f.flap_setting}</td>
+                            <td className="px-3 py-2 tabular-nums font-mono">{flapLabel(f.flap_setting)}</td>
                             <td className="px-3 py-2 tabular-nums">{f.ias_kt} kt</td>
                             <td className="px-3 py-2 tabular-nums text-muted-foreground">
                               {f.placard_kt ? `${f.placard_kt} kt` : "—"}
