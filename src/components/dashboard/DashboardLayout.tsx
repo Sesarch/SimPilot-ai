@@ -28,20 +28,20 @@ const DashboardLayout = () => {
         <div className="min-h-screen flex w-full bg-background">
           <AppSidebar />
           <div className="flex-1 flex flex-col min-w-0">
-            <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background/90 px-3">
+            <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-background/90 px-4">
               <SidebarTrigger className="self-center text-muted-foreground hover:text-primary" />
-              <div className="h-5 w-px self-center bg-border" />
-              <span className="flex items-center self-center font-display text-[10px] leading-none tracking-[0.25em] uppercase text-muted-foreground">
+              <div className="h-6 w-px self-center bg-border" />
+              <span className="flex items-center self-center font-display text-[13px] font-semibold leading-none tracking-[0.22em] uppercase text-foreground">
                 SimPilot Avionics Suite
               </span>
-              <div className="ml-auto flex h-full items-center gap-3 self-center">
+              <div className="ml-auto flex h-full items-center gap-4 self-center">
                 <div className="hidden items-center gap-2 md:flex">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
-                  <span className="flex items-center font-display text-[10px] leading-none tracking-[0.2em] uppercase text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
+                  <span className="flex items-center font-display text-[12px] font-semibold leading-none tracking-[0.2em] uppercase text-foreground/80">
                     System Nominal
                   </span>
                 </div>
-                <div className="hidden h-5 w-px self-center bg-border md:block" />
+                <div className="hidden h-6 w-px self-center bg-border md:block" />
                 <PilotIdentityChip />
               </div>
             </header>

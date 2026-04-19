@@ -38,12 +38,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/dashboard" className="flex min-h-14 items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md border border-primary/30 bg-gradient-to-br from-primary/30 to-accent/20">
-            <Plane className="h-4 w-4 text-primary" />
+        <Link to="/dashboard" className="flex min-h-14 items-center gap-2.5 px-2 py-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md border border-primary/30 bg-gradient-to-br from-primary/30 to-accent/20">
+            <Plane className="h-5 w-5 text-primary" />
           </div>
           {!collapsed && (
-            <span className="flex items-center font-display text-sm font-bold leading-none tracking-[0.18em] text-foreground">
+            <span className="flex items-center font-display text-base font-bold leading-none tracking-[0.18em] text-foreground">
               SIM<span className="text-accent">PILOT</span>
             </span>
           )}
@@ -52,7 +52,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="font-display text-[10px] tracking-[0.2em] text-muted-foreground/70 uppercase">
+          <SidebarGroupLabel className="font-display text-[11px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
             {!collapsed && "Avionics"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -64,14 +64,14 @@ export function AppSidebar() {
                     : location.pathname.startsWith(item.url);
                 return (
                   <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+                    <SidebarMenuButton asChild isActive={active} tooltip={item.title} className="h-10">
                       <NavLink
                         to={item.url}
                         end={item.url === "/dashboard"}
-                        className="flex items-center gap-3 font-display text-[12px] tracking-wider uppercase"
+                        className="flex items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase"
                         activeClassName="text-accent"
                       >
-                        <item.icon className="w-4 h-4 shrink-0" />
+                        <item.icon className="w-[18px] h-[18px] shrink-0" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -92,13 +92,14 @@ export function AppSidebar() {
                     asChild
                     isActive={location.pathname.startsWith(bridgeItem.url)}
                     tooltip={bridgeItem.title}
+                    className="h-10"
                   >
                     <NavLink
                       to={bridgeItem.url}
-                      className="flex items-center gap-3 font-display text-[12px] tracking-wider uppercase"
+                      className="flex items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase"
                       activeClassName="text-accent"
                     >
-                      <bridgeItem.icon className="w-4 h-4 shrink-0" />
+                      <bridgeItem.icon className="w-[18px] h-[18px] shrink-0" />
                       {!collapsed && <span>{bridgeItem.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -118,9 +119,9 @@ export function AppSidebar() {
                 navigate("/");
               }}
               tooltip="Sign Out"
-              className="font-display text-[12px] tracking-wider uppercase text-muted-foreground hover:text-destructive"
+              className="h-10 font-display text-[13px] font-semibold tracking-[0.1em] uppercase text-muted-foreground hover:text-destructive"
             >
-              <LogOut className="w-4 h-4 shrink-0" />
+              <LogOut className="w-[18px] h-[18px] shrink-0" />
               {!collapsed && <span>Sign Out</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
