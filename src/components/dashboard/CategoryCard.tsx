@@ -41,18 +41,18 @@ const CategoryCard = ({ icon: Icon, label, score, trend, accent = "cyan", href }
         )}
       </div>
 
-      <div className="font-display text-xs font-semibold tracking-[0.22em] uppercase text-muted-foreground">
+      <div className="font-display text-[13px] font-bold tracking-[0.22em] uppercase text-foreground/90">
         {label}
       </div>
 
-      <div className="flex items-baseline gap-1 mt-1.5">
+      <div className="flex items-baseline gap-1.5 mt-2">
         <span
-          className="font-display text-4xl font-bold tabular-nums"
-          style={{ color, textShadow: `0 0 14px ${color}40` }}
+          className="font-display text-[44px] leading-none font-extrabold tabular-nums"
+          style={{ color, textShadow: `0 0 14px ${color}55` }}
         >
           {score}
         </span>
-        <span className="font-display text-sm font-semibold text-muted-foreground">/100</span>
+        <span className="font-display text-base font-semibold text-muted-foreground">/100</span>
       </div>
 
       {/* progress bar */}
