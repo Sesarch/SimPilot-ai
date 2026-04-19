@@ -220,6 +220,10 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
               }
             }
 
+            const lat =
+              raw.lat != null ? Number(raw.lat) : raw.latitude != null ? Number(raw.latitude) : undefined;
+            const lon =
+              raw.lon != null ? Number(raw.lon) : raw.longitude != null ? Number(raw.longitude) : undefined;
             const t: SimBridgeTelemetry = {
               alt: Number(raw.alt ?? raw.altitude ?? raw.Altitude ?? 0),
               hdg: Number(raw.hdg ?? raw.heading ?? raw.Heading ?? 0),
@@ -235,7 +239,12 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
                     ? Number(raw.gs)
                     : undefined,
               isSimRunning: raw.isSimRunning ?? raw.sim_running ?? undefined,
+              lat,
+              lon,
             };
+            if (lat != null && !Number.isNaN(lat) && lon != null && !Number.isNaN(lon)) {
+              lastPosRef.current = { lat, lon };
+            }
             setTelemetry(t);
             setLastUpdate(Date.now());
             handleFlightPhase(t.ground_speed ?? t.spd);
