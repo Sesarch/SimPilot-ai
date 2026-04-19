@@ -28,20 +28,20 @@ const DashboardLayout = () => {
         <div className="min-h-screen flex w-full bg-background">
           <AppSidebar />
           <div className="flex-1 flex flex-col min-w-0">
-            <header className="h-12 border-b border-border bg-background/80 backdrop-blur-xl flex items-center px-3 gap-3 sticky top-0 z-40">
-              <SidebarTrigger className="text-muted-foreground hover:text-primary" />
-              <div className="h-4 w-px bg-border" />
-              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+            <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background/90 px-3">
+              <SidebarTrigger className="self-center text-muted-foreground hover:text-primary" />
+              <div className="h-5 w-px self-center bg-border" />
+              <span className="flex items-center self-center font-display text-[10px] leading-none tracking-[0.25em] uppercase text-muted-foreground">
                 SimPilot Avionics Suite
               </span>
-              <div className="ml-auto flex items-center gap-3">
-                <div className="hidden md:flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
-                  <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+              <div className="ml-auto flex h-full items-center gap-3 self-center">
+                <div className="hidden items-center gap-2 md:flex">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
+                  <span className="flex items-center font-display text-[10px] leading-none tracking-[0.2em] uppercase text-muted-foreground">
                     System Nominal
                   </span>
                 </div>
-                <div className="h-4 w-px bg-border hidden md:block" />
+                <div className="hidden h-5 w-px self-center bg-border md:block" />
                 <PilotIdentityChip />
               </div>
             </header>
