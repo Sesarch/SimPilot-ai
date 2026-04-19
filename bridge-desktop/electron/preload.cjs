@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld("simpilot", {
   setSource: (source) => ipcRenderer.invoke("bridge:set-source", source),
   openExternal: (url) => ipcRenderer.invoke("bridge:open-external", url),
   getStatus: () => ipcRenderer.invoke("bridge:get-status"),
+  getVersion: () => ipcRenderer.invoke("app:get-version"),
+  checkForUpdates: () => ipcRenderer.invoke("updater:check-now"),
 
   onStatus: (fn) => {
     const h = (_e, payload) => fn(payload);
@@ -31,5 +33,20 @@ contextBridge.exposeInMainWorld("simpilot", {
     const h = (_e, payload) => fn(payload);
     ipcRenderer.on("bridge:preview-auth", h);
     return () => ipcRenderer.removeListener("bridge:preview-auth", h);
+  },
+  onUpdaterStatus: (fn) => {
+    const h = (_e, payload) => fn(payload);
+    ipcRenderer.on("updater:status", h);
+    return () => ipcRenderer.removeListener("updater:status", h);
+  },
+  onUpdaterProgress: (fn) => {
+    const h = (_e, payload) => fn(payload);
+    ipcRenderer.on("updater:progress", h);
+    return () => ipcRenderer.removeListener("updater:progress", h);
+  },
+  onNavigate: (fn) => {
+    const h = (_e, payload) => fn(payload);
+    ipcRenderer.on("ui:navigate", h);
+    return () => ipcRenderer.removeListener("ui:navigate", h);
   },
 });

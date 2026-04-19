@@ -16,7 +16,7 @@
         </div>
         <div>
           <h1 class="brand__title">SIM<span>PILOT</span> BRIDGE</h1>
-          <p class="brand__subtitle">Telemetry sidecar · v0.1.0</p>
+          <p class="brand__subtitle">Telemetry sidecar · v<span id="brand-version">0.0.0</span></p>
         </div>
       </div>
       <div class="status-pill" id="status-pill">
@@ -25,82 +25,140 @@
       </div>
     </header>
 
+    <nav class="tabs" role="tablist">
+      <button class="tab tab--active" role="tab" data-tab="dashboard">Dashboard</button>
+      <button class="tab" role="tab" data-tab="updates">
+        Updates
+        <span class="tab__badge" id="tab-updates-badge" hidden>1</span>
+      </button>
+    </nav>
+
     <main class="app-body">
-      <!-- Telemetry preview -->
-      <section class="card">
-        <div class="card__header">
-          <h2>Live telemetry</h2>
-          <span class="card__hint" id="preview-hint">Awaiting frames…</span>
-        </div>
-        <div class="telemetry-grid">
-          <div class="readout">
-            <span class="readout__label">ALT (FT)</span>
-            <span class="readout__value" id="t-alt">---</span>
+      <!-- ============== DASHBOARD TAB ============== -->
+      <div class="tab-panel tab-panel--active" data-panel="dashboard">
+        <!-- Telemetry preview -->
+        <section class="card">
+          <div class="card__header">
+            <h2>Live telemetry</h2>
+            <span class="card__hint" id="preview-hint">Awaiting frames…</span>
           </div>
-          <div class="readout">
-            <span class="readout__label">HDG</span>
-            <span class="readout__value" id="t-hdg">---</span>
+          <div class="telemetry-grid">
+            <div class="readout">
+              <span class="readout__label">ALT (FT)</span>
+              <span class="readout__value" id="t-alt">---</span>
+            </div>
+            <div class="readout">
+              <span class="readout__label">HDG</span>
+              <span class="readout__value" id="t-hdg">---</span>
+            </div>
+            <div class="readout">
+              <span class="readout__label">IAS (KT)</span>
+              <span class="readout__value" id="t-spd">---</span>
+            </div>
           </div>
-          <div class="readout">
-            <span class="readout__label">IAS (KT)</span>
-            <span class="readout__value" id="t-spd">---</span>
+          <div class="readout readout--row">
+            <span class="readout__label">COM1</span>
+            <span class="readout__value readout__value--amber" id="t-com1">---.---</span>
           </div>
-        </div>
-        <div class="readout readout--row">
-          <span class="readout__label">COM1</span>
-          <span class="readout__value readout__value--amber" id="t-com1">---.---</span>
-        </div>
-      </section>
+        </section>
 
-      <!-- Controls -->
-      <section class="card">
-        <div class="card__header">
-          <h2>Controls</h2>
-        </div>
-        <div class="controls">
-          <button id="btn-start" class="btn btn--primary">Start bridge</button>
-          <button id="btn-stop" class="btn btn--ghost" disabled>Stop</button>
-        </div>
-        <div class="control-row">
+        <!-- Controls -->
+        <section class="card">
+          <div class="card__header">
+            <h2>Controls</h2>
+          </div>
+          <div class="controls">
+            <button id="btn-start" class="btn btn--primary">Start bridge</button>
+            <button id="btn-stop" class="btn btn--ghost" disabled>Stop</button>
+          </div>
+          <div class="control-row">
+            <label class="field">
+              <span class="field__label">Sim source</span>
+              <select id="src-select" class="field__input">
+                <option value="msfs2024">MSFS 2024 (SimConnect)</option>
+                <option value="xplane12">X-Plane 12 (UDP)</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <!-- Pairing token -->
+        <section class="card">
+          <div class="card__header">
+            <h2>Pairing token</h2>
+            <span class="card__hint">Required for telemetry preview</span>
+          </div>
+          <p class="muted small">
+            Paste your SimPilot session token. The desktop app authenticates the
+            local preview the same way your browser does.
+            <a href="#" id="open-help">How do I get this?</a>
+          </p>
           <label class="field">
-            <span class="field__label">Sim source</span>
-            <select id="src-select" class="field__input">
-              <option value="msfs2024">MSFS 2024 (SimConnect)</option>
-              <option value="xplane12">X-Plane 12 (UDP)</option>
-            </select>
+            <span class="field__label">Session JWT</span>
+            <input id="token-input" class="field__input field__input--mono" type="password" placeholder="eyJhbGciOi…" autocomplete="off" spellcheck="false" />
           </label>
-        </div>
-      </section>
+          <div class="controls">
+            <button id="btn-save-token" class="btn btn--primary btn--sm">Save token</button>
+            <span id="token-status" class="muted small"></span>
+          </div>
+        </section>
 
-      <!-- Pairing token -->
-      <section class="card">
-        <div class="card__header">
-          <h2>Pairing token</h2>
-          <span class="card__hint">Required for telemetry preview</span>
-        </div>
-        <p class="muted small">
-          Paste your SimPilot session token. The desktop app authenticates the
-          local preview the same way your browser does.
-          <a href="#" id="open-help">How do I get this?</a>
-        </p>
-        <label class="field">
-          <span class="field__label">Session JWT</span>
-          <input id="token-input" class="field__input field__input--mono" type="password" placeholder="eyJhbGciOi…" autocomplete="off" spellcheck="false" />
-        </label>
-        <div class="controls">
-          <button id="btn-save-token" class="btn btn--primary btn--sm">Save token</button>
-          <span id="token-status" class="muted small"></span>
-        </div>
-      </section>
+        <!-- Logs -->
+        <section class="card card--logs">
+          <div class="card__header">
+            <h2>Logs</h2>
+            <button id="btn-clear-log" class="btn btn--ghost btn--sm">Clear</button>
+          </div>
+          <pre id="log" class="log"></pre>
+        </section>
+      </div>
 
-      <!-- Logs -->
-      <section class="card card--logs">
-        <div class="card__header">
-          <h2>Logs</h2>
-          <button id="btn-clear-log" class="btn btn--ghost btn--sm">Clear</button>
-        </div>
-        <pre id="log" class="log"></pre>
-      </section>
+      <!-- ============== UPDATES TAB ============== -->
+      <div class="tab-panel" data-panel="updates">
+        <section class="card">
+          <div class="card__header">
+            <h2>Software updates</h2>
+            <span class="card__hint" id="upd-state-pill">IDLE</span>
+          </div>
+
+          <div class="version-grid">
+            <div class="version-cell">
+              <span class="version-cell__label">Installed</span>
+              <span class="version-cell__value" id="upd-current">---</span>
+            </div>
+            <div class="version-cell">
+              <span class="version-cell__label">Available</span>
+              <span class="version-cell__value version-cell__value--accent" id="upd-remote">—</span>
+            </div>
+          </div>
+
+          <div class="upd-progress" id="upd-progress" hidden>
+            <div class="upd-progress__bar"><div class="upd-progress__fill" id="upd-progress-fill"></div></div>
+            <span class="upd-progress__label" id="upd-progress-label">0%</span>
+          </div>
+
+          <p class="muted small" id="upd-message">
+            SimPilot Bridge checks for updates automatically every 6 hours. You can also check manually below.
+          </p>
+
+          <div class="controls">
+            <button id="btn-check-updates" class="btn btn--primary btn--sm">Check for updates now</button>
+            <button id="btn-open-releases" class="btn btn--ghost btn--sm">View all releases</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h2>How updates work</h2>
+          </div>
+          <ul class="info-list">
+            <li>The bridge polls the GitHub Releases <code>latest.yml</code> feed every 6 hours.</li>
+            <li>New installers are downloaded to your temp folder and verified with SHA‑512.</li>
+            <li>You'll be prompted before anything is installed — nothing happens silently.</li>
+            <li>The installer runs in <code>/SILENT</code> mode and the app restarts on the new version.</li>
+          </ul>
+        </section>
+      </div>
     </main>
 
     <footer class="app-footer">

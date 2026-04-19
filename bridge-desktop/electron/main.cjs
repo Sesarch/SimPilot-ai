@@ -141,6 +141,15 @@ function refreshTrayMenu() {
       click: () => (bridgeProc ? stopBridge() : startBridge()),
     },
     { type: "separator" },
+    {
+      label: "Check for updates…",
+      click: () => {
+        showWindow();
+        mainWindow?.webContents.send("ui:navigate", { tab: "updates" });
+        try { updater.checkForUpdate({ silent: false }); } catch (err) { pushLog(`[updater] ${err.message}`); }
+      },
+    },
+    { type: "separator" },
     { label: "Quit SimPilot Bridge", click: () => quitApp() },
   ]);
   tray.setContextMenu(menu);
@@ -322,6 +331,7 @@ ipcMain.handle("bridge:open-external", (_evt, url) => {
   return true;
 });
 ipcMain.handle("bridge:get-status", () => ({ status: lastStatus, hasToken: !!pairingToken }));
+ipcMain.handle("app:get-version", () => app.getVersion());
 
 // ---------------------------------------------------------------------------
 // Lifecycle
