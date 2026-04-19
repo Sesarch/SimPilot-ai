@@ -1,0 +1,39 @@
+SimPilot Bridge — End User License Agreement
+============================================
+
+Copyright © 2025 SimPilot.AI. All rights reserved.
+
+By installing or using SimPilot Bridge ("the Software"), you agree to the
+following terms:
+
+1. LICENSE GRANT
+   SimPilot.AI grants you a non-exclusive, non-transferable license to install
+   and use the Software on devices you own or control, solely for connecting
+   your flight simulator to your SimPilot.AI account.
+
+2. NOT FOR REAL-WORLD FLIGHT OPERATIONS
+   The Software and the SimPilot.AI service are training aids only. They are
+   NOT FAA-approved and MUST NOT be used as the sole basis for any real-world
+   flight planning, navigation, or aeronautical decision-making.
+
+3. DATA & TELEMETRY
+   The Software transmits flight simulator telemetry to your SimPilot.AI
+   account over an authenticated, encrypted connection. No data is shared with
+   third parties. See https://simpilot.ai/privacy for details.
+
+4. NO WARRANTY
+   The Software is provided "AS IS" without warranty of any kind, express or
+   implied, including but not limited to warranties of merchantability or
+   fitness for a particular purpose.
+
+5. LIMITATION OF LIABILITY
+   In no event shall SimPilot.AI be liable for any damages arising from the
+   use or inability to use the Software.
+
+6. TERMINATION
+   This license terminates automatically if you fail to comply with any of
+   its terms. Upon termination you must uninstall and destroy all copies of
+   the Software.
+
+By clicking "I accept" you confirm that you have read and agree to be bound
+by these terms.
