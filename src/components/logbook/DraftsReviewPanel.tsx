@@ -33,6 +33,7 @@ export default function DraftsReviewPanel({
   onEdit,
   onFinalize,
   onDiscard,
+  onViewDebrief,
 }: DraftsReviewPanelProps) {
   const sorted = useMemo(
     () =>
