@@ -52,7 +52,7 @@ const CategoryCard = ({ icon: Icon, label, score, trend, accent = "cyan", href }
         >
           {score}
         </span>
-        <span className="font-display text-base font-semibold text-muted-foreground">/100</span>
+        <span className="font-display text-lg font-bold text-foreground/60">/100</span>
       </div>
 
       {/* progress bar */}

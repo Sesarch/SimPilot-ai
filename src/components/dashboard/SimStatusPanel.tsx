@@ -71,16 +71,17 @@ const SimStatusPanel = () => {
         ].map((item) => (
           <div
             key={item.label}
-            className="rounded-md border border-border bg-background/40 px-3 py-2.5 text-center"
+            className="rounded-md border border-border bg-background/40 px-3 py-3 text-center"
           >
-            <div className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
+            <div className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/80">
               {item.label}
             </div>
             <div
               className={cn(
-                "font-display text-2xl font-bold tabular-nums mt-1",
-                isConnected ? "text-[hsl(var(--cyan-glow))]" : "text-muted-foreground/60",
+                "font-display text-3xl font-extrabold tabular-nums mt-1.5",
+                isConnected ? "text-[hsl(var(--cyan-glow))]" : "text-muted-foreground/70",
               )}
+              style={isConnected ? { textShadow: "0 0 12px hsl(var(--cyan-glow) / 0.5)" } : undefined}
             >
               {isConnected ? item.value : "---"}
             </div>
@@ -109,7 +110,7 @@ const SimStatusPanel = () => {
       </div>
 
       {/* Status footer */}
-      <div className="mt-3 pt-3 border-t border-border font-display text-[11px] font-medium tracking-[0.18em] uppercase text-muted-foreground">
+      <div className="mt-3 pt-3 border-t border-border font-display text-[12px] font-semibold tracking-[0.22em] uppercase text-foreground/70">
         {isConnecting
           ? `Linking ws://localhost:8080…`
           : isConnected && lastUpdate

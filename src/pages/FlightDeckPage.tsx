@@ -82,29 +82,35 @@ const FlightDeckPage = () => {
             )}
             <div className="mt-7 grid grid-cols-3 gap-6 text-center">
               <div>
-                <div className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
+                <div className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/80">
                   Topics Done
                 </div>
-                <div className="font-display text-2xl font-bold text-foreground tabular-nums mt-1.5">
+                <div className="font-display text-3xl font-extrabold text-foreground tabular-nums mt-2">
                   {Object.values(categories).reduce((a, c) => a + c.topicCompleted, 0)}
-                  <span className="text-muted-foreground text-base">
+                  <span className="text-muted-foreground text-xl font-bold">
                     /{Object.values(categories).reduce((a, c) => a + c.topicTotal, 0)}
                   </span>
                 </div>
               </div>
               <div className="border-x border-border">
-                <div className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
+                <div className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/80">
                   Exams Logged
                 </div>
-                <div className="font-display text-2xl font-bold text-accent tabular-nums mt-1.5">
+                <div
+                  className="font-display text-3xl font-extrabold text-accent tabular-nums mt-2"
+                  style={{ textShadow: "0 0 12px hsl(var(--amber-instrument) / 0.5)" }}
+                >
                   {Object.values(categories).reduce((a, c) => a + c.examCount, 0)}
                 </div>
               </div>
               <div>
-                <div className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
+                <div className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/80">
                   Overall
                 </div>
-                <div className="font-display text-2xl font-bold text-primary tabular-nums mt-1.5">
+                <div
+                  className="font-display text-3xl font-extrabold text-primary tabular-nums mt-2"
+                  style={{ textShadow: "0 0 12px hsl(var(--cyan-glow) / 0.5)" }}
+                >
                   {loading ? "—" : `${overall}%`}
                 </div>
               </div>
