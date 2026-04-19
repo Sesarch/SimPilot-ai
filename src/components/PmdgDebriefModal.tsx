@@ -376,11 +376,11 @@ const PmdgDebriefModal = ({
     if (debrief.recommendations?.length) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text("NEXT LEG · ACTION ITEMS", margin, y);
+      doc.text("NEXT LEG - ACTION ITEMS", margin, y);
       y += 8;
       autoTable(doc, {
         startY: y,
-        body: debrief.recommendations.map((r, i) => [`${i + 1}.`, r]),
+        body: debrief.recommendations.map((r, i) => [`${i + 1}.`, pdfSafe(r)]),
         theme: "plain",
         styles: { fontSize: 10, cellPadding: 4 },
         columnStyles: { 0: { cellWidth: 22, fontStyle: "bold" } },
