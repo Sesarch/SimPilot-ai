@@ -38,7 +38,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/dashboard" className="flex min-h-14 items-center gap-2.5 px-2 py-2.5">
+        <Link to="/dashboard" className="flex min-h-14 items-center gap-2.5 px-2 pt-1 pb-2.5 -mt-1">
           <div className="flex h-9 w-9 items-center justify-center rounded-md border border-primary/30 bg-gradient-to-br from-primary/30 to-accent/20">
             <Plane className="h-5 w-5 text-primary" />
           </div>
