@@ -329,10 +329,10 @@ const PmdgDebriefModal = ({
         startY: y,
         head: [["Time", "Flap", "IAS (kt)", "Placard (kt)", "Verdict", "Note"]],
         body: debrief.flap_schedule.findings.map((f) => [
-          f.time_mmss ?? "—",
+          f.time_mmss ?? "-",
           flapLabel(f.flap_setting),
           String(f.ias_kt),
-          f.placard_kt ? String(f.placard_kt) : "—",
+          f.placard_kt ? String(f.placard_kt) : "-",
           {
             content: `${f.verdict.toUpperCase()}${f.exceedance_kt ? ` +${f.exceedance_kt}` : ""}`,
             styles: {
@@ -342,7 +342,7 @@ const PmdgDebriefModal = ({
               halign: "center",
             },
           },
-          f.note ?? "",
+          pdfSafe(f.note ?? ""),
         ]),
         theme: "grid",
         headStyles: { fillColor: [15, 23, 42], textColor: 255 },
