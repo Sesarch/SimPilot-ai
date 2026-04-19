@@ -1,4 +1,4 @@
-import { Plug, PlugZap, Radio, Plane } from "lucide-react";
+import { Plug, PlugZap, Radio, Plane, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSimBridge } from "@/hooks/useSimBridge";
 
