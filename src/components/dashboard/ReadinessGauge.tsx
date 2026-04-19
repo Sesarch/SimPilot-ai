@@ -90,19 +90,22 @@ const ReadinessGauge = ({ score, label = "Overall Readiness" }: Props) => {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+        <span className="font-display text-[12px] font-semibold tracking-[0.3em] uppercase text-foreground/80">
           {label}
         </span>
-        <div className="flex items-baseline gap-1 mt-1">
+        <div className="flex items-baseline gap-1 mt-2">
           <span
-            className="font-display text-6xl font-bold tabular-nums"
+            className="font-display text-7xl font-extrabold tabular-nums"
             style={{ color, textShadow: `0 0 24px ${color}` }}
           >
             {Math.round(animated)}
           </span>
-          <span className="font-display text-lg text-muted-foreground">/100</span>
+          <span className="font-display text-xl font-semibold text-muted-foreground">/100</span>
         </div>
-        <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground/70 mt-2">
+        <span
+          className="font-display text-[12px] font-bold tracking-[0.28em] uppercase mt-2"
+          style={{ color, textShadow: `0 0 12px ${color}80` }}
+        >
           {score >= 85 ? "Checkride Ready" : score >= 60 ? "Building Proficiency" : "Needs Focus"}
         </span>
       </div>
