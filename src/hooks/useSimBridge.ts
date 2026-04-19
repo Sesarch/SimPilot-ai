@@ -360,9 +360,13 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
             if (lat != null && !Number.isNaN(lat) && lon != null && !Number.isNaN(lon)) {
               lastPosRef.current = { lat, lon };
             }
+            if (t.aircraft_title) aircraftTitleRef.current = t.aircraft_title;
+            if (t.pmdg?.variant) pmdgVariantRef.current = t.pmdg.variant;
+            lastTelemetryRef.current = t;
             setTelemetry(t);
             setLastUpdate(Date.now());
             handleFlightPhase(t.ground_speed ?? t.spd);
+            detectPmdgChanges(t.pmdg);
           } catch {
             // ignore malformed frame
           }
