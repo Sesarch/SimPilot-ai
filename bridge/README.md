@@ -66,9 +66,15 @@ Every frame the bridge sends matches the contract consumed by `useSimBridge`:
 - Origin allowlist: `https://simpilot.ai`, `https://*.lovable.app`,
   `https://*.lovableproject.com`, and `http://localhost:*` for development.
 - **JWT auth required.** Every connection must send
-  `{"type":"auth","token":"<supabase-access-token>"}` as its first frame
-  within 2 seconds. The bridge verifies the token signature against the
-  Supabase JWKS (issuer + audience + expiry) before streaming any telemetry.
+  `{"type":"auth","token":"<jwt>"}` as its first frame within 2 seconds.
+  The bridge accepts two token formats:
+  1. **Supabase access tokens** — verified against the Supabase JWKS
+     (issuer + `aud=authenticated` + `exp`). Used by browser tabs.
+  2. **Pairing JWTs** — short-lived HS256 tokens with `scope: "bridge:pair"`
+     signed by `BRIDGE_PAIRING_SECRET`. Minted by the `bridge-pair-token`
+     edge function and delivered via the `simpilot://pair?token=...`
+     deep link. Used by the desktop tray app.
+
   Unauthenticated sockets are closed with code `4401`.
 
 ### Configuration
@@ -80,5 +86,15 @@ SIMPILOT_SUPABASE_URL=https://your-project.supabase.co npm start
 # or just the project ref:
 SIMPILOT_PROJECT_REF=your-project-ref npm start
 ```
+
+Enable one-click pairing by setting the same secret on the bridge that the
+edge function uses to sign pairing tokens:
+
+```bash
+BRIDGE_PAIRING_SECRET=<long-random-string> npm start
+```
+
+If `BRIDGE_PAIRING_SECRET` is unset, the bridge still works — only the
+Supabase-token path is enabled and pairing tokens are rejected.
 
 Defaults to the production SimPilot.AI project.
