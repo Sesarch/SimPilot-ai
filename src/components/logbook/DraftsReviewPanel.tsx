@@ -90,6 +90,17 @@ export default function DraftsReviewPanel({
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
+                {d.pmdg_debrief && onViewDebrief && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onViewDebrief(d.pmdg_debrief!)}
+                    className="font-display text-[10px] tracking-[0.2em] uppercase text-primary hover:text-primary"
+                    aria-label="View AI debrief"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1" /> Debrief
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="ghost"
