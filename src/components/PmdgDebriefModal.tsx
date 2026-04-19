@@ -104,34 +104,105 @@ const PmdgDebriefModal = ({
     setShow(false);
   }, [open]);
 
-  const handleDownloadPdf = () => {
+  const loadLogoDataUrl = async (): Promise<string | null> => {
+    try {
+      const res = await fetch("/favicon.png");
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      return await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  const handleDownloadPdf = async () => {
     if (!debrief) return;
+    const logoDataUrl = await loadLogoDataUrl();
+
     const doc = new jsPDF({ unit: "pt", format: "letter" });
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 48;
     let y = margin;
 
-    // Header band
-    doc.setFillColor(15, 23, 42);
-    doc.rect(0, 0, pageWidth, 70, "F");
+    // === Cockpit-style header band ===
+    const bandHeight = 88;
+    // Deep navy base
+    doc.setFillColor(8, 15, 30);
+    doc.rect(0, 0, pageWidth, bandHeight, "F");
+    // Subtle inner panel band (slightly lighter navy) for depth
+    doc.setFillColor(15, 25, 46);
+    doc.rect(0, 18, pageWidth, bandHeight - 18, "F");
+    // Teal cockpit accent stripe (SimPilot primary ~ #009199)
+    doc.setFillColor(0, 145, 153);
+    doc.rect(0, bandHeight, pageWidth, 3, "F");
+    // Amber instrument tick line above stripe
+    doc.setFillColor(245, 158, 11);
+    doc.rect(margin, bandHeight - 4, 36, 2, "F");
+
+    // Logo (left)
+    let textLeft = margin;
+    if (logoDataUrl) {
+      try {
+        const logoSize = 44;
+        doc.addImage(logoDataUrl, "PNG", margin, (bandHeight - logoSize) / 2, logoSize, logoSize);
+        textLeft = margin + logoSize + 14;
+      } catch {
+        // fall through, no logo
+      }
+    }
+
+    // Brand label
+    doc.setTextColor(0, 200, 210);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text("SIMPILOT  ·  FLIGHT OPERATIONS", textLeft, 26, { charSpace: 1.2 });
+
+    // Title
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("PMDG POST-FLIGHT DEBRIEF", margin, 32);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    doc.setFontSize(17);
+    doc.text("PMDG POST-FLIGHT DEBRIEF", textLeft, 48);
+
+    // Sub-line (route / variant / duration) in mono-ish style
+    doc.setFont("courier", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(180, 195, 215);
     const sub = [
       debrief.variant ?? "PMDG",
       debrief.departure || debrief.destination
-        ? `${debrief.departure ?? "????"} → ${debrief.destination ?? "????"}`
+        ? `${debrief.departure ?? "????"}  >  ${debrief.destination ?? "????"}`
         : null,
-      debrief.duration_minutes != null ? `${debrief.duration_minutes.toFixed(1)} min` : null,
+      debrief.duration_minutes != null ? `${debrief.duration_minutes.toFixed(1)} MIN` : null,
     ]
       .filter(Boolean)
-      .join("  ·  ");
-    doc.text(sub, margin, 52);
+      .join("   |   ");
+    doc.text(sub.toUpperCase(), textLeft, 66);
+
+    // Right-side timestamp block (cockpit clock feel)
+    const ts = debrief.generated_at ? new Date(debrief.generated_at) : new Date();
+    const dateStr = ts.toISOString().slice(0, 10).replace(/-/g, ".");
+    const timeStr = ts.toISOString().slice(11, 16) + "Z";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(0, 200, 210);
+    doc.text("REPORT GENERATED", pageWidth - margin, 26, { align: "right", charSpace: 1.2 });
+    doc.setFont("courier", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.text(dateStr, pageWidth - margin, 44, { align: "right" });
+    doc.setFontSize(9);
+    doc.setTextColor(180, 195, 215);
+    doc.text(timeStr, pageWidth - margin, 60, { align: "right" });
+
+    // Reset for body
     doc.setTextColor(20, 20, 20);
-    y = 100;
+    doc.setFont("helvetica", "normal");
+    y = bandHeight + 24;
 
     // Scores
     doc.setFont("helvetica", "bold");
