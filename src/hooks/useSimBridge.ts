@@ -79,6 +79,7 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
   const stopTimerRef = useRef<number | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const sourceRef = useRef<SimSource>(source);
+  const lastPosRef = useRef<{ lat?: number; lon?: number }>({});
 
   useEffect(() => {
     sourceRef.current = source;
@@ -97,7 +98,12 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
       }
       window.dispatchEvent(
         new CustomEvent<SimFlightStartedDetail>(SIM_FLIGHT_STARTED_EVENT, {
-          detail: { at: startedAtRef.current, source: sourceRef.current },
+          detail: {
+            at: startedAtRef.current,
+            source: sourceRef.current,
+            lat: lastPosRef.current.lat,
+            lon: lastPosRef.current.lon,
+          },
         }),
       );
       return;
@@ -116,6 +122,8 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
                   startedAt,
                   durationMs: startedAt ? finishedAt - startedAt : null,
                   source: sourceRef.current,
+                  lat: lastPosRef.current.lat,
+                  lon: lastPosRef.current.lon,
                 },
               }),
             );
