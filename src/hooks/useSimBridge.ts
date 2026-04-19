@@ -393,7 +393,7 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
       cancelled = true;
       cleanup();
     };
-  }, [enabled, cleanup, handleFlightPhase]);
+  }, [enabled, cleanup, handleFlightPhase, detectPmdgChanges]);
 
   // Push source changes to an already-open bridge.
   useEffect(() => {
