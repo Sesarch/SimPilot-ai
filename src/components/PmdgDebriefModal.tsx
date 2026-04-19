@@ -204,7 +204,7 @@ const PmdgDebriefModal = ({
     doc.setTextColor(0, 200, 210);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.text("SIMPILOT  ·  FLIGHT OPERATIONS", textLeft, 26, { charSpace: 1.2 });
+    doc.text("SIMPILOT  -  FLIGHT OPERATIONS", textLeft, 26, { charSpace: 1.2 });
 
     // Title
     doc.setTextColor(255, 255, 255);
@@ -217,9 +217,9 @@ const PmdgDebriefModal = ({
     doc.setFontSize(9);
     doc.setTextColor(180, 195, 215);
     const sub = [
-      debrief.variant ?? "PMDG",
+      pdfSafe(debrief.variant ?? "PMDG"),
       debrief.departure || debrief.destination
-        ? `${debrief.departure ?? "????"}  >  ${debrief.destination ?? "????"}`
+        ? `${pdfSafe(debrief.departure ?? "????")}  >  ${pdfSafe(debrief.destination ?? "????")}`
         : null,
       debrief.duration_minutes != null ? `${debrief.duration_minutes.toFixed(1)} MIN` : null,
     ]
