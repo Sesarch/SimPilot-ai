@@ -66,6 +66,15 @@ const scoreColor = (n?: number) => {
   return "text-destructive";
 };
 
+// PMDG 737 flaps_handle_index → physical detent label
+// Index: 0=UP, 1=1, 2=2, 3=5, 4=10, 5=15, 6=25, 7=30, 8=40
+const FLAP_DETENT_LABELS = ["UP", "1", "2", "5", "10", "15", "25", "30", "40"] as const;
+const flapLabel = (n: number): string => {
+  if (!Number.isFinite(n)) return "—";
+  const i = Math.round(n);
+  return FLAP_DETENT_LABELS[i] ?? String(n);
+};
+
 const verdictBadge = (v?: string) => {
   switch (v) {
     case "ok":
@@ -275,7 +284,7 @@ const PmdgDebriefModal = ({
         head: [["Time", "Flap", "IAS (kt)", "Placard (kt)", "Verdict", "Note"]],
         body: debrief.flap_schedule.findings.map((f) => [
           f.time_mmss ?? "—",
-          String(f.flap_setting),
+          flapLabel(f.flap_setting),
           String(f.ias_kt),
           f.placard_kt ? String(f.placard_kt) : "—",
           `${f.verdict}${f.exceedance_kt ? ` +${f.exceedance_kt}` : ""}`,
@@ -507,7 +516,7 @@ const PmdgDebriefModal = ({
                             <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
                               {f.time_mmss ?? "—"}
                             </td>
-                            <td className="px-3 py-2 tabular-nums">{f.flap_setting}</td>
+                            <td className="px-3 py-2 tabular-nums font-mono">{flapLabel(f.flap_setting)}</td>
                             <td className="px-3 py-2 tabular-nums">{f.ias_kt} kt</td>
                             <td className="px-3 py-2 tabular-nums text-muted-foreground">
                               {f.placard_kt ? `${f.placard_kt} kt` : "—"}
