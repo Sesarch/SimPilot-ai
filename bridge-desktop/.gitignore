@@ -1,0 +1,5 @@
+node_modules/
+release/
+bridge-core/
+*.log
+.DS_Store
