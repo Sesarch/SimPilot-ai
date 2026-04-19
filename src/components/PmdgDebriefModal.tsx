@@ -66,6 +66,15 @@ const scoreColor = (n?: number) => {
   return "text-destructive";
 };
 
+// PMDG 737 flaps_handle_index → physical detent label
+// Index: 0=UP, 1=1, 2=2, 3=5, 4=10, 5=15, 6=25, 7=30, 8=40
+const FLAP_DETENT_LABELS = ["UP", "1", "2", "5", "10", "15", "25", "30", "40"] as const;
+const flapLabel = (n: number): string => {
+  if (!Number.isFinite(n)) return "—";
+  const i = Math.round(n);
+  return FLAP_DETENT_LABELS[i] ?? String(n);
+};
+
 const verdictBadge = (v?: string) => {
   switch (v) {
     case "ok":
