@@ -1,0 +1,63 @@
+name: Build SimPilot Bridge (Windows)
+
+# Builds SimPilotBridge.exe on a Windows runner and attaches it to a GitHub
+# Release. Trigger by pushing a tag like `bridge-v0.2.0`, or manually from the
+# Actions tab via "Run workflow".
+on:
+  push:
+    tags:
+      - "bridge-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write # required to create the release
+
+jobs:
+  build-windows:
+    name: Build Windows .exe
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: bridge
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: bridge/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build SimPilotBridge.exe
+        run: npm run build:win
+
+      - name: Verify build output
+        shell: pwsh
+        run: |
+          if (!(Test-Path "dist/SimPilotBridge.exe")) {
+            Write-Error "Build failed — dist/SimPilotBridge.exe not found"
+            exit 1
+          }
+          Get-Item dist/SimPilotBridge.exe | Format-List Name, Length, LastWriteTime
+
+      - name: Upload artifact (always)
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimPilotBridge-windows
+          path: bridge/dist/SimPilotBridge.exe
+          if-no-files-found: error
+
+      - name: Create / update GitHub Release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/bridge-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SimPilot Bridge ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: bridge/dist/SimPilotBridge.exe
