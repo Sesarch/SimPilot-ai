@@ -1,0 +1,40 @@
+# ============================================================================
+#  Release Drafter — auto-generates release notes from merged PRs.
+#
+#  How it works:
+#   • Every push to main triggers the workflow.
+#   • It reads .github/release-drafter.yml for categorization rules.
+#   • Maintains a single DRAFT release on GitHub, continuously updated
+#     with every merged PR grouped by label (feature / bug / security / etc.).
+#   • When you push a tag (v1.0.0), the build-installer workflow publishes
+#     the release and Release Drafter auto-promotes the draft to that tag.
+# ============================================================================
+
+name: Release Drafter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled]
+  workflow_dispatch:
+
+permissions:
+  contents: write       # create / update draft releases
+  pull-requests: write  # auto-label PRs based on title
+
+jobs:
+  update_release_draft:
+    name: Update release draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Draft release notes
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter.yml
+          # Auto-label PRs by title keywords (feat:, fix:, docs:, etc.)
+          # so contributors don't have to add labels manually.
+          disable-autolabeler: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
