@@ -211,9 +211,14 @@ export default function BridgeSetupPage() {
                     Copy
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Verify on Windows: <span className="font-mono text-foreground">Get-FileHash SimPilotBridge.exe -Algorithm SHA256</span>
-                </p>
+                <div className="space-y-1 text-xs text-muted-foreground">
+                  <p>
+                    Verify on Windows: <span className="font-mono text-foreground">Get-FileHash SimPilotBridge.exe -Algorithm SHA256</span>
+                  </p>
+                  <p>
+                    Verify on macOS / Linux: <span className="font-mono text-foreground">shasum -a 256 SimPilotBridge.exe</span>
+                  </p>
+                </div>
               </div>
             )}
             <p className="text-xs text-muted-foreground">
