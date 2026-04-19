@@ -399,7 +399,7 @@ const PmdgDebriefModal = ({
         ? new Date(debrief.generated_at).toLocaleString()
         : new Date().toLocaleString();
       doc.text(
-        `SimPilot · PMDG Debrief · Generated ${ts}`,
+        `SimPilot - PMDG Debrief - Generated ${ts}`,
         margin,
         doc.internal.pageSize.getHeight() - 24,
       );
