@@ -206,6 +206,14 @@ const FlightDeckPage = () => {
           <span className="text-primary" style={{ textShadow: "0 0 12px hsl(var(--primary) / 0.5)" }}>SIMPILOT G3000 v1.0</span>
         </div>
       </div>
+
+      <PmdgDebriefModal
+        open={debriefOpen}
+        onOpenChange={setDebriefOpen}
+        loading={debriefLoading}
+        error={debriefError}
+        debrief={debrief}
+      />
     </div>
   );
 };
