@@ -20,12 +20,24 @@ const fs = require("node:fs");
 const { spawn } = require("node:child_process");
 const WebSocket = require("ws");
 
-// Single instance — clicking the tray on a second launch focuses the window.
+// Single instance — clicking the tray on a second launch focuses the window
+// and forwards any deep-link argv (simpilot://...) to the running process.
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
   process.exit(0);
 }
+
+// Register simpilot:// protocol so the web app can hand off pairing tokens.
+// On Windows/Linux this only takes effect for the running session unless the
+// installer also writes the HKCR keys (it does — see SimPilotBridge.iss).
+if (!app.isDefaultProtocolClient("simpilot")) {
+  try { app.setAsDefaultProtocolClient("simpilot"); } catch { /* noop */ }
+}
+
+// CLI flags from the installer / shortcuts.
+//   --hidden      → start minimized to tray (used by the autostart entry)
+const startHidden = process.argv.includes("--hidden");
 
 let mainWindow = null;
 let tray = null;
@@ -34,6 +46,7 @@ let previewWs = null;
 let isQuitting = false;
 let lastStatus = "stopped"; // stopped | starting | running | error
 let pairingToken = "";
+
 
 // ---------------------------------------------------------------------------
 // Window
@@ -58,7 +71,10 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
 
-  mainWindow.once("ready-to-show", () => mainWindow.show());
+  mainWindow.once("ready-to-show", () => {
+    // Honor --hidden from the installer's autostart entry.
+    if (!startHidden) mainWindow.show();
+  });
 
   // Close → minimize to tray instead of quitting.
   mainWindow.on("close", (e) => {
@@ -68,6 +84,33 @@ function createWindow() {
     }
   });
 }
+
+// ---------------------------------------------------------------------------
+// Deep-link handling — simpilot://pair?token=...
+// ---------------------------------------------------------------------------
+function handleDeepLink(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== "string") return;
+  if (!rawUrl.toLowerCase().startsWith("simpilot:")) return;
+  let url;
+  try { url = new URL(rawUrl); } catch { return; }
+  if (url.host === "pair" || url.pathname.replace(/^\/+/, "") === "pair") {
+    const token = url.searchParams.get("token");
+    if (token) {
+      pairingToken = token.trim();
+      pushLog("[desktop] pairing token received via deep-link.");
+      mainWindow?.webContents.send("bridge:token-set", { ok: true, source: "deep-link" });
+      if (bridgeProc) connectPreview();
+      else startBridge();
+      showWindow();
+    }
+  }
+}
+
+// argv on second-instance / first launch may contain the simpilot:// URL.
+function extractDeepLink(argv) {
+  return argv.find((a) => typeof a === "string" && a.toLowerCase().startsWith("simpilot:"));
+}
+
 
 // ---------------------------------------------------------------------------
 // Tray
@@ -282,11 +325,24 @@ ipcMain.handle("bridge:get-status", () => ({ status: lastStatus, hasToken: !!pai
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
-app.on("second-instance", () => showWindow());
+app.on("second-instance", (_evt, argv) => {
+  const link = extractDeepLink(argv);
+  if (link) handleDeepLink(link);
+  showWindow();
+});
+
+// macOS deep-link delivery
+app.on("open-url", (evt, url) => {
+  evt.preventDefault();
+  handleDeepLink(url);
+});
 
 app.whenReady().then(() => {
   createWindow();
   createTray();
+  // Handle deep-link if the app was launched directly via simpilot://...
+  const link = extractDeepLink(process.argv);
+  if (link) handleDeepLink(link);
 });
 
 app.on("window-all-closed", (e) => {
@@ -298,3 +354,4 @@ app.on("before-quit", () => {
   isQuitting = true;
   stopBridge();
 });
+
