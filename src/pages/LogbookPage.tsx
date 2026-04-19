@@ -38,6 +38,7 @@ type FlightLog = {
   source: "manual" | "atc_session" | "msfs2024" | "xplane12" | "sim";
   source_session_id: string | null;
   created_at: string;
+  pmdg_debrief: PmdgDebrief | null;
 };
 
 const emptyDraft = (): Partial<FlightLog> => ({
@@ -71,6 +72,8 @@ const LogbookPage = () => {
   const [hasIronMic, setHasIronMic] = useState<boolean>(false);
   const [editing, setEditing] = useState<Partial<FlightLog> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [debriefOpen, setDebriefOpen] = useState(false);
+  const [debriefData, setDebriefData] = useState<PmdgDebrief | null>(null);
 
   const fetchLogs = useCallback(async () => {
     if (!user) { setLogs([]); return; }
@@ -556,8 +559,10 @@ const LogbookPage = () => {
             remarks: l.remarks,
             source: l.source,
             created_at: l.created_at,
+            pmdg_debrief: l.pmdg_debrief,
           }))}
         onEdit={(d) => setEditing(logs?.find((l) => l.id === d.id) ?? null)}
+        onViewDebrief={(d) => { setDebriefData(d); setDebriefOpen(true); }}
         onFinalize={async (id) => {
           const { error } = await supabase
             .from("flight_logs")
@@ -575,6 +580,12 @@ const LogbookPage = () => {
           toast.success("Draft discarded");
           await fetchLogs();
         }}
+      />
+
+      <PmdgDebriefModal
+        open={debriefOpen}
+        onOpenChange={setDebriefOpen}
+        debrief={debriefData}
       />
 
       {/* Monthly hours chart */}
