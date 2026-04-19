@@ -7,8 +7,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, AlertTriangle, CheckCircle2, Plane } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sparkles, AlertTriangle, CheckCircle2, Plane, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export interface PmdgDebrief {
   generated_at?: string;
