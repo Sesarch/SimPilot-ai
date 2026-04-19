@@ -284,7 +284,7 @@ const PmdgDebriefModal = ({
         head: [["Time", "Flap", "IAS (kt)", "Placard (kt)", "Verdict", "Note"]],
         body: debrief.flap_schedule.findings.map((f) => [
           f.time_mmss ?? "—",
-          String(f.flap_setting),
+          flapLabel(f.flap_setting),
           String(f.ias_kt),
           f.placard_kt ? String(f.placard_kt) : "—",
           `${f.verdict}${f.exceedance_kt ? ` +${f.exceedance_kt}` : ""}`,
