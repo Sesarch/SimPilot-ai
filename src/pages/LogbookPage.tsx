@@ -540,6 +540,42 @@ const LogbookPage = () => {
         </div>
       </div>
 
+      {/* Drafts awaiting review (auto-drafted from sim/ATC) */}
+      <DraftsReviewPanel
+        drafts={(logs ?? [])
+          .filter((l) => l.status === "draft")
+          .map((l) => ({
+            id: l.id,
+            flight_date: l.flight_date,
+            aircraft_type: l.aircraft_type,
+            tail_number: l.tail_number,
+            departure: l.departure,
+            destination: l.destination,
+            total_time: num(l.total_time),
+            remarks: l.remarks,
+            source: l.source,
+            created_at: l.created_at,
+          }))}
+        onEdit={(d) => setEditing(logs?.find((l) => l.id === d.id) ?? null)}
+        onFinalize={async (id) => {
+          const { error } = await supabase
+            .from("flight_logs")
+            .update({ status: "final" })
+            .eq("id", id);
+          if (error) { toast.error("Couldn't finalize draft"); return; }
+          toast.success("Draft finalized");
+          await fetchLogs();
+          emitDashboardRefresh({ source: "other" });
+        }}
+        onDiscard={async (id) => {
+          if (!confirm("Discard this draft? This cannot be undone.")) return;
+          const { error } = await supabase.from("flight_logs").delete().eq("id", id);
+          if (error) { toast.error("Couldn't discard draft"); return; }
+          toast.success("Draft discarded");
+          await fetchLogs();
+        }}
+      />
+
       {/* Monthly hours chart */}
       <MonthlyHoursChart logs={(logs ?? []).map((l) => ({
         flight_date: l.flight_date,
