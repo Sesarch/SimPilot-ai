@@ -143,10 +143,15 @@ const FlightDeckPage = () => {
         </div>
 
         {/* Footer status bar */}
-        <div className="mt-6 g3000-bezel rounded-lg px-4 py-3 flex items-center justify-between font-display text-[12px] font-semibold tracking-[0.2em] uppercase text-foreground/80">
-          <span>STATUS · {loading ? "SYNCING" : "OK"}</span>
-          <span className="hidden sm:inline">DATA · {hasData ? "LIVE" : "AWAITING INPUT"}</span>
-          <span className="text-primary">SIMPILOT G3000 v1.0</span>
+        <div className="mt-6 g3000-bezel rounded-lg px-5 py-4 flex items-center justify-between font-display text-[14px] font-bold tracking-[0.22em] uppercase text-foreground">
+          <span className="flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full ${loading ? "bg-[hsl(var(--amber-instrument))] animate-pulse" : "bg-[hsl(var(--cyan-glow))] shadow-[0_0_8px_hsl(var(--cyan-glow))]"}`} />
+            STATUS · <span className={loading ? "text-[hsl(var(--amber-instrument))]" : "text-[hsl(var(--cyan-glow))]"}>{loading ? "SYNCING" : "OK"}</span>
+          </span>
+          <span className="hidden sm:inline">
+            DATA · <span className={hasData ? "text-[hsl(var(--cyan-glow))]" : "text-muted-foreground"}>{hasData ? "LIVE" : "AWAITING INPUT"}</span>
+          </span>
+          <span className="text-primary" style={{ textShadow: "0 0 12px hsl(var(--primary) / 0.5)" }}>SIMPILOT G3000 v1.0</span>
         </div>
       </div>
     </div>
