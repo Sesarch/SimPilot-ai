@@ -302,11 +302,49 @@ export default function BridgeSetupPage() {
           </CardContent>
         </Card>
 
-        {/* Step 3 — Test connection */}
-        <Card className="mb-6 border-border/60">
+        {/* Step 3 — One-click pairing */}
+        <Card className="mb-6 border-primary/40 bg-primary/[0.03]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-orbitron">
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm font-bold">3</span>
+              <Sparkles className="h-4 w-4 text-primary" />
+              Pair with one click
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              With the bridge installed and running, click below to mint a 5-minute pairing token and hand it
+              off to the desktop app via the <span className="font-mono text-foreground">simpilot://</span> protocol.
+              Your browser will ask permission the first time.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button onClick={handlePairBridge} disabled={pairing} className="gap-2">
+                {pairing ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" />Pairing…</>
+                ) : (
+                  <><Link2 className="h-4 w-4" />Pair Bridge</>
+                )}
+              </Button>
+              {pairResult && (
+                <span className={`inline-flex items-center gap-2 text-sm ${pairResult.ok ? "text-primary" : "text-destructive"}`}>
+                  {pairResult.ok ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                  {pairResult.ok ? "Handshake sent" : "Pairing failed"}
+                </span>
+              )}
+            </div>
+            {pairResult && (
+              <p className={`text-sm ${pairResult.ok ? "text-muted-foreground" : "text-destructive"}`}>
+                {pairResult.message}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Step 4 — Test connection */}
+        <Card className="mb-6 border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 font-orbitron">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm font-bold">4</span>
               Test connection
             </CardTitle>
           </CardHeader>
