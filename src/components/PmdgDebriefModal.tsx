@@ -279,6 +279,17 @@ const PmdgDebriefModal = ({
       doc.setFontSize(11);
       doc.text("FLAP SPEED SCHEDULE", margin, y);
       y += 8;
+      // Verdict color palette (matches on-screen badges)
+      const verdictFill: Record<string, [number, number, number]> = {
+        ok: [220, 245, 230],         // soft green
+        marginal: [254, 243, 199],   // soft amber
+        exceedance: [254, 226, 226], // soft red
+      };
+      const verdictText: Record<string, [number, number, number]> = {
+        ok: [22, 101, 52],           // green-800
+        marginal: [146, 64, 14),     // amber-800
+        exceedance: [153, 27, 27],   // red-800
+      };
       autoTable(doc, {
         startY: y,
         head: [["Time", "Flap", "IAS (kt)", "Placard (kt)", "Verdict", "Note"]],
@@ -287,7 +298,15 @@ const PmdgDebriefModal = ({
           flapLabel(f.flap_setting),
           String(f.ias_kt),
           f.placard_kt ? String(f.placard_kt) : "—",
-          `${f.verdict}${f.exceedance_kt ? ` +${f.exceedance_kt}` : ""}`,
+          {
+            content: `${f.verdict.toUpperCase()}${f.exceedance_kt ? ` +${f.exceedance_kt}` : ""}`,
+            styles: {
+              fillColor: verdictFill[f.verdict] ?? [243, 244, 246],
+              textColor: verdictText[f.verdict] ?? [55, 65, 81],
+              fontStyle: "bold",
+              halign: "center",
+            },
+          },
           f.note ?? "",
         ]),
         theme: "grid",
