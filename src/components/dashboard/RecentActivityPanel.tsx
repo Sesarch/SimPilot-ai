@@ -117,12 +117,12 @@ const RecentActivityPanel = () => {
 
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Activity className="w-3.5 h-3.5 text-primary" />
-          <h2 className="font-display text-[11px] tracking-[0.3em] uppercase text-foreground">
+          <Activity className="w-4 h-4 text-primary" />
+          <h2 className="font-display text-[13px] font-semibold tracking-[0.22em] uppercase text-foreground">
             Recent Activity
           </h2>
         </div>
-        <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+        <span className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
           Last 5 Events
         </span>
       </div>
@@ -131,7 +131,7 @@ const RecentActivityPanel = () => {
         {items === null ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="py-3 flex items-center gap-3">
-              <Skeleton className="w-8 h-8 rounded-md" />
+              <Skeleton className="w-9 h-9 rounded-md" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-3 w-1/2" />
                 <Skeleton className="h-2 w-1/3" />
@@ -140,7 +140,7 @@ const RecentActivityPanel = () => {
             </div>
           ))
         ) : items.length === 0 ? (
-          <div className="py-6 text-center font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+          <div className="py-6 text-center font-display text-[12px] font-semibold tracking-[0.22em] uppercase text-muted-foreground">
             No activity logged yet
           </div>
         ) : (
@@ -156,34 +156,34 @@ const RecentActivityPanel = () => {
                 className="py-3 flex items-center gap-3 group rounded-md -mx-1 px-1 transition-colors hover:bg-primary/5 focus:outline-none focus:bg-primary/5"
               >
                 <div
-                  className="w-8 h-8 rounded-md flex items-center justify-center border shrink-0"
+                  className="w-9 h-9 rounded-md flex items-center justify-center border shrink-0"
                   style={{
                     borderColor: `${accent}55`,
                     background: `linear-gradient(135deg, ${accent}22, transparent)`,
                   }}
                 >
-                  <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
+                  <Icon className="w-4 h-4" style={{ color: accent }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-display text-xs uppercase tracking-wider text-foreground truncate group-hover:text-primary transition-colors">
+                  <div className="font-display text-sm font-semibold uppercase tracking-[0.12em] text-foreground truncate group-hover:text-primary transition-colors">
                     {it.title}
                   </div>
-                  <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground truncate">
+                  <div className="font-display text-[11px] font-medium tracking-[0.18em] uppercase text-muted-foreground truncate">
                     {it.subtitle}
                   </div>
                 </div>
                 <div className="flex flex-col items-end shrink-0">
                   <span
-                    className="font-display text-sm font-bold tabular-nums"
+                    className="font-display text-base font-bold tabular-nums"
                     style={{ color: it.metricColor, textShadow: `0 0 10px ${it.metricColor}50` }}
                   >
                     {it.metric}
                   </span>
-                  <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
+                  <span className="font-display text-[10px] font-medium tracking-[0.18em] uppercase text-muted-foreground">
                     {formatAgo(it.at)}
                   </span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors shrink-0" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary transition-colors shrink-0" />
               </Link>
             );
           })
