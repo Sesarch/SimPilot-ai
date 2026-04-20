@@ -641,6 +641,41 @@ ${transcript}`;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micTestStreamRef.current = stream;
 
+      // Set up analyser for live level metering
+      const Ctx: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+      const ctx = new Ctx();
+      micTestCtxRef.current = ctx;
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.4;
+      source.connect(analyser);
+      micTestAnalyserRef.current = analyser;
+      const buf = new Uint8Array(analyser.fftSize);
+      const tick = () => {
+        if (!micTestAnalyserRef.current) return;
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const v = (buf[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / buf.length);
+        // Normalize: typical voice RMS ~0.05–0.25, scale to 0..1
+        setMicTestLevel(Math.min(1, rms * 4));
+        micTestRafRef.current = requestAnimationFrame(tick);
+      };
+      micTestRafRef.current = requestAnimationFrame(tick);
+
+      const stopMeter = () => {
+        if (micTestRafRef.current != null) cancelAnimationFrame(micTestRafRef.current);
+        micTestRafRef.current = null;
+        micTestAnalyserRef.current = null;
+        try { ctx.close(); } catch { /* noop */ }
+        micTestCtxRef.current = null;
+        setMicTestLevel(0);
+      };
+
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
         : MediaRecorder.isTypeSupported("audio/mp4")
@@ -651,6 +686,7 @@ ${transcript}`;
       const chunks: BlobPart[] = [];
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
       recorder.onstop = () => {
+        stopMeter();
         // Release mic
         stream.getTracks().forEach((t) => t.stop());
         micTestStreamRef.current = null;
