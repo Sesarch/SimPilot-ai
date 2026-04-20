@@ -200,6 +200,10 @@ const ATCTrainer = () => {
   const micTestRecorderRef = useRef<MediaRecorder | null>(null);
   const micTestStreamRef = useRef<MediaStream | null>(null);
   const micTestAudioRef = useRef<HTMLAudioElement | null>(null);
+  const micTestAnalyserRef = useRef<AnalyserNode | null>(null);
+  const micTestCtxRef = useRef<AudioContext | null>(null);
+  const micTestRafRef = useRef<number | null>(null);
+  const [micTestLevel, setMicTestLevel] = useState(0); // 0..1 RMS
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
@@ -637,6 +641,41 @@ ${transcript}`;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micTestStreamRef.current = stream;
 
+      // Set up analyser for live level metering
+      const Ctx: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+      const ctx = new Ctx();
+      micTestCtxRef.current = ctx;
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.4;
+      source.connect(analyser);
+      micTestAnalyserRef.current = analyser;
+      const buf = new Uint8Array(analyser.fftSize);
+      const tick = () => {
+        if (!micTestAnalyserRef.current) return;
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const v = (buf[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / buf.length);
+        // Normalize: typical voice RMS ~0.05–0.25, scale to 0..1
+        setMicTestLevel(Math.min(1, rms * 4));
+        micTestRafRef.current = requestAnimationFrame(tick);
+      };
+      micTestRafRef.current = requestAnimationFrame(tick);
+
+      const stopMeter = () => {
+        if (micTestRafRef.current != null) cancelAnimationFrame(micTestRafRef.current);
+        micTestRafRef.current = null;
+        micTestAnalyserRef.current = null;
+        try { ctx.close(); } catch { /* noop */ }
+        micTestCtxRef.current = null;
+        setMicTestLevel(0);
+      };
+
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
         : MediaRecorder.isTypeSupported("audio/mp4")
@@ -647,6 +686,7 @@ ${transcript}`;
       const chunks: BlobPart[] = [];
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
       recorder.onstop = () => {
+        stopMeter();
         // Release mic
         stream.getTracks().forEach((t) => t.stop());
         micTestStreamRef.current = null;
@@ -685,6 +725,12 @@ ${transcript}`;
       }, 2000);
     } catch (err: any) {
       setMicTestState("idle");
+      if (micTestRafRef.current != null) cancelAnimationFrame(micTestRafRef.current);
+      micTestRafRef.current = null;
+      micTestAnalyserRef.current = null;
+      try { micTestCtxRef.current?.close(); } catch { /* noop */ }
+      micTestCtxRef.current = null;
+      setMicTestLevel(0);
       micTestStreamRef.current?.getTracks().forEach((t) => t.stop());
       micTestStreamRef.current = null;
       const name = err?.name || "";
@@ -1097,6 +1143,36 @@ ${transcript}`;
               </>
             )}
           </Button>
+          {/* Live input-level meter — visible during mic test */}
+          {micTestState === "recording" && (
+            <div className="mt-2 w-full max-w-[180px] mx-auto" aria-label="Microphone input level">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-display text-[8px] tracking-[0.25em] uppercase text-muted-foreground">Input</span>
+                <span className="font-display text-[8px] tracking-[0.25em] uppercase text-muted-foreground tabular-nums">
+                  {Math.round(micTestLevel * 100)}%
+                </span>
+              </div>
+              <div className="relative h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="absolute inset-y-0 left-0 transition-[width] duration-75"
+                  style={{
+                    width: `${Math.min(100, micTestLevel * 100)}%`,
+                    background: micTestLevel > 0.85
+                      ? "hsl(0 80% 55%)"
+                      : micTestLevel > 0.6
+                      ? "hsl(45 95% 58%)"
+                      : "hsl(var(--hud-green))",
+                    boxShadow: `0 0 8px ${
+                      micTestLevel > 0.85 ? "hsl(0 80% 55%)" : micTestLevel > 0.6 ? "hsl(45 95% 58%)" : "hsl(var(--hud-green))"
+                    }`,
+                  }}
+                />
+              </div>
+              <div className="text-center text-[9px] text-muted-foreground mt-1 font-mono">
+                {micTestLevel < 0.05 ? "Speak now…" : micTestLevel > 0.85 ? "Too loud — back off" : "Good level"}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="relative h-48 w-48 flex items-center justify-center">
