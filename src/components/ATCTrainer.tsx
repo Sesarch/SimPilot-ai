@@ -191,7 +191,20 @@ const ATCTrainer = () => {
   const [pttActive, setPttActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
-  const [voice, setVoice] = useState<"male" | "female">("male");
+  const [voice, setVoice] = useState<"male" | "female">(() => {
+    try {
+      const saved = localStorage.getItem("atc_voice");
+      return saved === "female" || saved === "male" ? saved : "male";
+    } catch { return "male"; }
+  });
+  // Last-used scenario id (for "Resume last scenario" UX). Read once at mount.
+  const initialLastScenarioId = (() => {
+    try {
+      const saved = localStorage.getItem("atc_last_scenario");
+      return saved && scenarios.some((s) => s.id === saved) ? saved : null;
+    } catch { return null; }
+  })();
+  const [lastScenarioId, setLastScenarioId] = useState<string | null>(initialLastScenarioId);
   const [sttSupported, setSttSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
@@ -331,6 +344,18 @@ const ATCTrainer = () => {
   useEffect(() => { void refreshStreak(); }, [refreshStreak]);
   // Refresh after each scored attempt.
   useEffect(() => { if (phraseologyScore) void refreshStreak(); }, [phraseologyScore, refreshStreak]);
+
+  // Persist voice preference across sessions
+  useEffect(() => {
+    try { localStorage.setItem("atc_voice", voice); } catch { /* private mode */ }
+  }, [voice]);
+
+  // Persist last-used scenario id across sessions
+  useEffect(() => {
+    if (!selectedScenario) return;
+    setLastScenarioId(selectedScenario);
+    try { localStorage.setItem("atc_last_scenario", selectedScenario); } catch { /* private mode */ }
+  }, [selectedScenario]);
 
   // Reset COM1 active/standby when the scenario changes.
   useEffect(() => {
