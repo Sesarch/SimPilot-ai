@@ -659,8 +659,11 @@ ${transcript}`;
       setInterim(interimText);
     };
     r.onerror = (ev: any) => {
-      if (ev.error === "not-allowed") setError("Microphone permission denied.");
-      else if (ev.error !== "no-speech" && ev.error !== "aborted") setError(`Mic error: ${ev.error}`);
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
+        setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
+      } else if (ev.error !== "no-speech" && ev.error !== "aborted") {
+        setError(`Mic error: ${ev.error}`);
+      }
     };
     r.onend = () => {
       setPttActive(false);
