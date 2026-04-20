@@ -1143,6 +1143,36 @@ ${transcript}`;
               </>
             )}
           </Button>
+          {/* Live input-level meter — visible during mic test */}
+          {micTestState === "recording" && (
+            <div className="mt-2 w-full max-w-[180px] mx-auto" aria-label="Microphone input level">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-display text-[8px] tracking-[0.25em] uppercase text-muted-foreground">Input</span>
+                <span className="font-display text-[8px] tracking-[0.25em] uppercase text-muted-foreground tabular-nums">
+                  {Math.round(micTestLevel * 100)}%
+                </span>
+              </div>
+              <div className="relative h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="absolute inset-y-0 left-0 transition-[width] duration-75"
+                  style={{
+                    width: `${Math.min(100, micTestLevel * 100)}%`,
+                    background: micTestLevel > 0.85
+                      ? "hsl(0 80% 55%)"
+                      : micTestLevel > 0.6
+                      ? "hsl(45 95% 58%)"
+                      : "hsl(var(--hud-green))",
+                    boxShadow: `0 0 8px ${
+                      micTestLevel > 0.85 ? "hsl(0 80% 55%)" : micTestLevel > 0.6 ? "hsl(45 95% 58%)" : "hsl(var(--hud-green))"
+                    }`,
+                  }}
+                />
+              </div>
+              <div className="text-center text-[9px] text-muted-foreground mt-1 font-mono">
+                {micTestLevel < 0.05 ? "Speak now…" : micTestLevel > 0.85 ? "Too loud — back off" : "Good level"}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="relative h-48 w-48 flex items-center justify-center">
