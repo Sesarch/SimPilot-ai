@@ -1018,6 +1018,34 @@ ${transcript}`;
           <div className="text-xs text-muted-foreground">
             Hold the button (or hold <kbd className="px-1 py-0.5 rounded bg-muted text-foreground text-[10px]">Space</kbd>) and speak. Release to transmit.
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={runMicTest}
+            disabled={micTestState !== "idle" || pttActive || speaking || loading}
+            className="mt-2 h-7 text-[10px] tracking-[0.2em] uppercase font-display"
+            title="Records 2 seconds and plays it back so you can confirm your mic works."
+          >
+            {micTestState === "recording" ? (
+              <>
+                <span className="relative mr-2 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--hud-green))] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--hud-green))]" />
+                </span>
+                Recording…
+              </>
+            ) : micTestState === "playing" ? (
+              <>
+                <Volume2 className="h-3 w-3 mr-1.5" />
+                Playing back…
+              </>
+            ) : (
+              <>
+                <Mic className="h-3 w-3 mr-1.5" />
+                Test Microphone
+              </>
+            )}
+          </Button>
         </div>
 
         <div className="relative h-48 w-48 flex items-center justify-center">
