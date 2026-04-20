@@ -1385,8 +1385,39 @@ ${transcript}`;
         {/* VU meter — pulses with AI voice + hiss bed */}
         <VUMeter getAnalyser={() => fxRef.current?.analyser ?? null} active={speaking} />
 
-        <div className="text-center text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-          Voice: <span className="text-foreground">{voice}</span>
+        <div className="flex flex-col items-center gap-1.5">
+          <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+            ATC Voice
+          </span>
+          <div
+            role="radiogroup"
+            aria-label="ATC voice"
+            className="inline-flex rounded-md border border-border overflow-hidden"
+          >
+            {(["male", "female"] as const).map((v) => {
+              const active = voice === v;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  disabled={speaking || loading}
+                  onClick={() => setVoice(v)}
+                  className={cn(
+                    "px-3 py-1 text-[10px] font-display tracking-[0.25em] uppercase transition-colors",
+                    active
+                      ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.4)]"
+                      : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                    (speaking || loading) && "opacity-60 cursor-not-allowed",
+                  )}
+                  title={`Use ${v} ATC voice`}
+                >
+                  {v}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {!sttSupported && (
