@@ -148,40 +148,52 @@ async function tryADSBExchange(lamin: string, lamax: string, lomin: string, loma
   }
 }
 
-// adsb.lol caps radius at 250 nm per request. To cover a wide bbox we tile it.
+// adsb.lol caps radius at 250 nm per request (~4.17° lat). To cover a bbox we tile it.
 const ADSB_LOL_MAX_RADIUS_NM = 250;
+const MAX_TILES = 60; // Hard cap to avoid timeouts/abuse
 
 function buildAdsbLolTiles(lamin: string, lamax: string, lomin: string, lomax: string) {
   const south = Number(lamin);
   const north = Number(lamax);
   const west = Number(lomin);
   const east = Number(lomax);
+  const latSpan = Math.max(north - south, 0.01);
+  const lonSpan = Math.max(east - west, 0.01);
 
-  // Tile size in degrees: 250 nm ≈ 4.17° latitude. Use 4° spacing so circles overlap slightly.
-  const tileDeg = 4;
+  // Choose a tile spacing that fits within MAX_TILES while keeping coverage uniform.
+  // 250 nm radius ≈ 4.17° lat. Spacing 7° gives slight overlap; for wider areas we widen
+  // the spacing (and rely on the 250 nm circles' natural coverage even with small gaps).
+  // We solve: ceil(latSpan/step) * ceil(lonSpan*cos(midLat)/step) <= MAX_TILES
+  const midLat = (south + north) / 2;
+  const cosMid = Math.max(Math.cos((midLat * Math.PI) / 180), 0.2);
+  const lonSpanAdj = lonSpan * cosMid;
+  // Start at preferred 7° step, increase if too many tiles
+  let step = 7;
+  for (let i = 0; i < 20; i++) {
+    const nLat = Math.ceil(latSpan / step);
+    const nLon = Math.ceil(lonSpanAdj / step);
+    if (nLat * nLon <= MAX_TILES) break;
+    step += 1;
+  }
+
   const tiles: { lat: string; lon: string; radius: string }[] = [];
+  // Center the grid so tiles cover edges symmetrically
+  const nLat = Math.ceil(latSpan / step);
+  const nLon = Math.ceil(lonSpanAdj / step);
+  const latStart = south + (latSpan - (nLat - 1) * step) / 2;
+  const lonStepDeg = step / cosMid;
+  const lonStart = west + (lonSpan - (nLon - 1) * lonStepDeg) / 2;
 
-  for (let lat = south; lat <= north; lat += tileDeg) {
-    // Adjust longitude step by latitude to keep ~250nm coverage
-    const cosLat = Math.max(Math.cos((lat * Math.PI) / 180), 0.2);
-    const lonStep = tileDeg / cosLat;
-    for (let lon = west; lon <= east; lon += lonStep) {
+  for (let i = 0; i < nLat; i++) {
+    const lat = latStart + i * step;
+    for (let j = 0; j < nLon; j++) {
+      const lon = lonStart + j * lonStepDeg;
       tiles.push({
         lat: lat.toFixed(4),
         lon: lon.toFixed(4),
         radius: String(ADSB_LOL_MAX_RADIUS_NM),
       });
     }
-  }
-
-  // Cap total tile count to avoid abuse / timeouts
-  const MAX_TILES = 36;
-  if (tiles.length > MAX_TILES) {
-    // Sample uniformly
-    const step = tiles.length / MAX_TILES;
-    const sampled: typeof tiles = [];
-    for (let i = 0; i < MAX_TILES; i++) sampled.push(tiles[Math.floor(i * step)]);
-    return sampled;
   }
   return tiles;
 }
