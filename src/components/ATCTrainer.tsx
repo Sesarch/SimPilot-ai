@@ -9,6 +9,7 @@ import { PercentileSparkline } from "@/components/PercentileSparkline";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ATCMessage {
   id: string;
@@ -204,6 +205,37 @@ const ATCTrainer = () => {
   const micTestCtxRef = useRef<AudioContext | null>(null);
   const micTestRafRef = useRef<number | null>(null);
   const [micTestLevel, setMicTestLevel] = useState(0); // 0..1 RMS
+  // Input device selection (for users with multiple mics)
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>(() => {
+    try { return localStorage.getItem("atc_mic_device_id") || ""; } catch { return ""; }
+  });
+  const refreshAudioDevices = useCallback(async () => {
+    try {
+      if (!navigator.mediaDevices?.enumerateDevices) return;
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const inputs = all.filter((d) => d.kind === "audioinput");
+      setAudioDevices(inputs);
+      // If saved device is no longer present, clear it
+      if (selectedDeviceId && !inputs.some((d) => d.deviceId === selectedDeviceId)) {
+        setSelectedDeviceId("");
+        try { localStorage.removeItem("atc_mic_device_id"); } catch { /* noop */ }
+      }
+    } catch { /* noop */ }
+  }, [selectedDeviceId]);
+  useEffect(() => {
+    void refreshAudioDevices();
+    const handler = () => { void refreshAudioDevices(); };
+    navigator.mediaDevices?.addEventListener?.("devicechange", handler);
+    return () => { navigator.mediaDevices?.removeEventListener?.("devicechange", handler); };
+  }, [refreshAudioDevices]);
+  const handleSelectDevice = useCallback((id: string) => {
+    setSelectedDeviceId(id);
+    try {
+      if (id) localStorage.setItem("atc_mic_device_id", id);
+      else localStorage.removeItem("atc_mic_device_id");
+    } catch { /* noop */ }
+  }, []);
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
@@ -638,8 +670,13 @@ ${transcript}`;
         }
       } catch { /* Safari */ }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const audioConstraints: MediaTrackConstraints = selectedDeviceId
+        ? { deviceId: { exact: selectedDeviceId } }
+        : {};
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
       micTestStreamRef.current = stream;
+      // After first permission grant, device labels become available — refresh list.
+      void refreshAudioDevices();
 
       // Set up analyser for live level metering
       const Ctx: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -767,9 +804,13 @@ ${transcript}`;
         }
       } catch { /* Safari doesn't support permission query for microphone */ }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const ptAudio: MediaTrackConstraints = selectedDeviceId
+        ? { deviceId: { exact: selectedDeviceId } }
+        : {};
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: ptAudio });
       // We don't need the stream itself — SpeechRecognition opens its own. Release immediately.
       stream.getTracks().forEach((t) => t.stop());
+      void refreshAudioDevices();
     } catch (err: any) {
       const name = err?.name || "";
       if (name === "NotAllowedError" || name === "SecurityError") {
@@ -1115,34 +1156,64 @@ ${transcript}`;
           <div className="text-xs text-muted-foreground">
             Hold the button (or hold <kbd className="px-1 py-0.5 rounded bg-muted text-foreground text-[10px]">Space</kbd>) and speak. Release to transmit.
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={runMicTest}
-            disabled={micTestState !== "idle" || pttActive || speaking || loading}
-            className="mt-2 h-7 text-[10px] tracking-[0.2em] uppercase font-display"
-            title="Records 2 seconds and plays it back so you can confirm your mic works."
-          >
-            {micTestState === "recording" ? (
-              <>
-                <span className="relative mr-2 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--hud-green))] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--hud-green))]" />
-                </span>
-                Recording…
-              </>
-            ) : micTestState === "playing" ? (
-              <>
-                <Volume2 className="h-3 w-3 mr-1.5" />
-                Playing back…
-              </>
-            ) : (
-              <>
-                <Mic className="h-3 w-3 mr-1.5" />
-                Test Microphone
-              </>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={runMicTest}
+              disabled={micTestState !== "idle" || pttActive || speaking || loading}
+              className="h-7 text-[10px] tracking-[0.2em] uppercase font-display"
+              title="Records 2 seconds and plays it back so you can confirm your mic works."
+            >
+              {micTestState === "recording" ? (
+                <>
+                  <span className="relative mr-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--hud-green))] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--hud-green))]" />
+                  </span>
+                  Recording…
+                </>
+              ) : micTestState === "playing" ? (
+                <>
+                  <Volume2 className="h-3 w-3 mr-1.5" />
+                  Playing back…
+                </>
+              ) : (
+                <>
+                  <Mic className="h-3 w-3 mr-1.5" />
+                  Test Microphone
+                </>
+              )}
+            </Button>
+            {audioDevices.length > 1 && (
+              <Select
+                value={selectedDeviceId || "default"}
+                onValueChange={(v) => handleSelectDevice(v === "default" ? "" : v)}
+                disabled={micTestState !== "idle" || pttActive}
+              >
+                <SelectTrigger
+                  className="h-7 w-[180px] text-[10px] tracking-[0.15em] uppercase font-display"
+                  title="Choose which microphone to use"
+                  aria-label="Select microphone input device"
+                >
+                  <SelectValue placeholder="System default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default" className="text-xs">System default</SelectItem>
+                  {audioDevices.map((d, i) => (
+                    <SelectItem key={d.deviceId || `mic-${i}`} value={d.deviceId || `mic-${i}`} className="text-xs">
+                      {d.label || `Microphone ${i + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
-          </Button>
+          </div>
+          {audioDevices.length > 1 && !audioDevices.some((d) => d.label) && (
+            <div className="text-[9px] text-muted-foreground mt-1 font-mono">
+              Tip: run Test Microphone once to reveal device names.
+            </div>
+          )}
           {/* Live input-level meter — visible during mic test */}
           {micTestState === "recording" && (
             <div className="mt-2 w-full max-w-[180px] mx-auto" aria-label="Microphone input level">
