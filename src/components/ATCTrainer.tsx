@@ -803,9 +803,13 @@ ${transcript}`;
         }
       } catch { /* Safari doesn't support permission query for microphone */ }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const ptAudio: MediaTrackConstraints = selectedDeviceId
+        ? { deviceId: { exact: selectedDeviceId } }
+        : {};
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: ptAudio });
       // We don't need the stream itself — SpeechRecognition opens its own. Release immediately.
       stream.getTracks().forEach((t) => t.stop());
+      void refreshAudioDevices();
     } catch (err: any) {
       const name = err?.name || "";
       if (name === "NotAllowedError" || name === "SecurityError") {
