@@ -148,26 +148,42 @@ async function tryADSBExchange(lamin: string, lamax: string, lomin: string, loma
   }
 }
 
-function getCenterAndRadius(lamin: string, lamax: string, lomin: string, lomax: string) {
+// adsb.lol caps radius at 250 nm per request. To cover a wide bbox we tile it.
+const ADSB_LOL_MAX_RADIUS_NM = 250;
+
+function buildAdsbLolTiles(lamin: string, lamax: string, lomin: string, lomax: string) {
   const south = Number(lamin);
   const north = Number(lamax);
   const west = Number(lomin);
   const east = Number(lomax);
 
-  const centerLat = (south + north) / 2;
-  const centerLon = (west + east) / 2;
-  const latSpan = Math.abs(north - south);
-  const lonSpan = Math.abs(east - west);
-  const latNm = latSpan * 60;
-  const lonNm = lonSpan * 60 * Math.max(Math.cos((centerLat * Math.PI) / 180), 0.2);
-  const diagonalNm = Math.sqrt(latNm ** 2 + lonNm ** 2);
-  const radius = Math.min(Math.max(Math.ceil(diagonalNm / 2), 75), 2200);
+  // Tile size in degrees: 250 nm ≈ 4.17° latitude. Use 4° spacing so circles overlap slightly.
+  const tileDeg = 4;
+  const tiles: { lat: string; lon: string; radius: string }[] = [];
 
-  return {
-    centerLat: centerLat.toFixed(4),
-    centerLon: centerLon.toFixed(4),
-    radius: String(radius),
-  };
+  for (let lat = south; lat <= north; lat += tileDeg) {
+    // Adjust longitude step by latitude to keep ~250nm coverage
+    const cosLat = Math.max(Math.cos((lat * Math.PI) / 180), 0.2);
+    const lonStep = tileDeg / cosLat;
+    for (let lon = west; lon <= east; lon += lonStep) {
+      tiles.push({
+        lat: lat.toFixed(4),
+        lon: lon.toFixed(4),
+        radius: String(ADSB_LOL_MAX_RADIUS_NM),
+      });
+    }
+  }
+
+  // Cap total tile count to avoid abuse / timeouts
+  const MAX_TILES = 36;
+  if (tiles.length > MAX_TILES) {
+    // Sample uniformly
+    const step = tiles.length / MAX_TILES;
+    const sampled: typeof tiles = [];
+    for (let i = 0; i < MAX_TILES; i++) sampled.push(tiles[Math.floor(i * step)]);
+    return sampled;
+  }
+  return tiles;
 }
 
 function mapAdsbAircraft(ac: any, now: number) {
@@ -203,50 +219,51 @@ function mapAdsbAircraft(ac: any, now: number) {
   ];
 }
 
-async function tryAdsbLol(lamin: string, lamax: string, lomin: string, lomax: string): Promise<any | null> {
-  const { centerLat, centerLon, radius } = getCenterAndRadius(lamin, lamax, lomin, lomax);
+async function fetchAdsbLolTile(lat: string, lon: string, radius: string): Promise<any[]> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
-
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
   try {
-    const url = `${ADSB_LOL_API}${centerLat}/lon/${centerLon}/dist/${radius}`;
-    console.log(`adsb.lol request: url=${url}`);
+    const url = `${ADSB_LOL_API}${lat}/lon/${lon}/dist/${radius}`;
     const res = await fetch(url, {
-      headers: {
-        "User-Agent": "Lovable-FlightTracker/1.0",
-      },
+      headers: { "User-Agent": "Lovable-FlightTracker/1.0" },
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      console.log(`adsb.lol returned ${res.status}: ${body.slice(0, 200)}`);
-      return null;
-    }
-
+    if (!res.ok) return [];
     const data = await res.json();
-    if (!Array.isArray(data.ac) || data.ac.length === 0) {
-      console.log("adsb.lol returned no aircraft");
-      return null;
-    }
-
-    const now = Math.floor(Date.now() / 1000);
-    const states = data.ac
-      .filter((ac: any) => ac?.lat != null && ac?.lon != null)
-      .slice(0, 300)
-      .map((ac: any) => mapAdsbAircraft(ac, now));
-
-    return {
-      time: now,
-      states,
-      _source: "live",
-    };
-  } catch (err) {
+    return Array.isArray(data?.ac) ? data.ac : [];
+  } catch {
     clearTimeout(timeoutId);
-    console.log(`adsb.lol fetch failed: ${getErrorMessage(err)}`);
+    return [];
+  }
+}
+
+async function tryAdsbLol(lamin: string, lamax: string, lomin: string, lomax: string): Promise<any | null> {
+  const tiles = buildAdsbLolTiles(lamin, lamax, lomin, lomax);
+  console.log(`adsb.lol: querying ${tiles.length} tile(s) for bbox lat ${lamin}..${lamax} lon ${lomin}..${lomax}`);
+
+  const results = await Promise.all(tiles.map(t => fetchAdsbLolTile(t.lat, t.lon, t.radius)));
+
+  const south = Number(lamin), north = Number(lamax), west = Number(lomin), east = Number(lomax);
+  const seen = new Map<string, any>();
+  for (const acList of results) {
+    for (const ac of acList) {
+      if (ac?.lat == null || ac?.lon == null || !ac?.hex) continue;
+      if (ac.lat < south || ac.lat > north) continue;
+      if (ac.lon < west || ac.lon > east) continue;
+      if (!seen.has(ac.hex)) seen.set(ac.hex, ac);
+    }
+  }
+
+  if (seen.size === 0) {
+    console.log("adsb.lol: no aircraft after dedup/filter");
     return null;
   }
+
+  const now = Math.floor(Date.now() / 1000);
+  const states = Array.from(seen.values()).slice(0, 600).map((ac) => mapAdsbAircraft(ac, now));
+  console.log(`adsb.lol: returning ${states.length} aircraft from ${tiles.length} tiles`);
+  return { time: now, states, _source: "live" };
 }
 
 serve(async (req) => {
