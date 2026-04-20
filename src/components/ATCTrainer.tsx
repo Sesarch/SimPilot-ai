@@ -725,6 +725,12 @@ ${transcript}`;
       }, 2000);
     } catch (err: any) {
       setMicTestState("idle");
+      if (micTestRafRef.current != null) cancelAnimationFrame(micTestRafRef.current);
+      micTestRafRef.current = null;
+      micTestAnalyserRef.current = null;
+      try { micTestCtxRef.current?.close(); } catch { /* noop */ }
+      micTestCtxRef.current = null;
+      setMicTestLevel(0);
       micTestStreamRef.current?.getTracks().forEach((t) => t.stop());
       micTestStreamRef.current = null;
       const name = err?.name || "";
