@@ -856,6 +856,7 @@ ${transcript}`;
     // (e.g., the SpeechRecognition engine ends right after start when audio capture
     // wasn't fully ready following the permission prompt).
     pttHoldRef.current = true;
+    setPttHeld(true);
 
     // Proactively request microphone permission within the user gesture.
     // This gives a clear, actionable error instead of a silent SpeechRecognition failure.
@@ -865,6 +866,7 @@ ${transcript}`;
           const status = await navigator.permissions.query({ name: "microphone" as PermissionName });
           if (status.state === "denied") {
             pttHoldRef.current = false;
+            setPttHeld(false);
             setError("Microphone blocked. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload this page.");
             return;
           }
@@ -880,6 +882,7 @@ ${transcript}`;
       void refreshAudioDevices();
     } catch (err: any) {
       pttHoldRef.current = false;
+      setPttHeld(false);
       const name = err?.name || "";
       if (name === "NotAllowedError" || name === "SecurityError") {
         setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
@@ -921,6 +924,7 @@ ${transcript}`;
       r.onerror = (ev: any) => {
         if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
           pttHoldRef.current = false;
+          setPttHeld(false);
           setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
         } else if (ev.error === "no-speech" || ev.error === "aborted") {
           // benign — let onend handle restart if still holding
@@ -967,6 +971,7 @@ ${transcript}`;
         // instance. Drop hold so the UI reflects reality.
         console.warn("[ATC PTT] recognizer.start() failed:", err);
         pttHoldRef.current = false;
+        setPttHeld(false);
         setPttActive(false);
         setError("Could not start microphone. Please try again.");
       }
@@ -977,6 +982,7 @@ ${transcript}`;
 
   const endPTT = () => {
     pttHoldRef.current = false;
+    setPttHeld(false);
     if (!pttActive) return;
     try { recognizerRef.current?.stop(); } catch { /* noop */ }
   };
