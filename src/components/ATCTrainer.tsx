@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -200,6 +200,19 @@ const ATCTrainer = () => {
   const micTestRecorderRef = useRef<MediaRecorder | null>(null);
   const micTestStreamRef = useRef<MediaStream | null>(null);
   const micTestAudioRef = useRef<HTMLAudioElement | null>(null);
+  // One-time onboarding tooltip explaining mic permission.
+  const [showMicOnboarding, setShowMicOnboarding] = useState(false);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("atc_mic_onboarding_dismissed")) {
+        setShowMicOnboarding(true);
+      }
+    } catch { /* private mode */ }
+  }, []);
+  const dismissMicOnboarding = useCallback(() => {
+    setShowMicOnboarding(false);
+    try { localStorage.setItem("atc_mic_onboarding_dismissed", "1"); } catch { /* noop */ }
+  }, []);
   // Live streak count: consecutive ATC PASSes from most-recent backwards.
   const [streak, setStreak] = useState<number>(0);
   // Swappable COM1 active/standby frequencies (Garmin-style). Reset on scenario change.
@@ -1010,7 +1023,45 @@ ${transcript}`;
       </div>
 
       {/* PTT panel */}
-      <div className="border border-border rounded-lg bg-card p-4 flex flex-col items-center justify-between gap-4">
+      <div className="border border-border rounded-lg bg-card p-4 flex flex-col items-center justify-between gap-4 relative">
+        {/* One-time onboarding tooltip — explains mic permission requirement */}
+        {showMicOnboarding && (
+          <div
+            role="dialog"
+            aria-label="Microphone permission required"
+            className="absolute top-2 left-2 right-2 z-20 rounded-md border border-accent/50 bg-card/95 backdrop-blur p-3 shadow-[0_0_24px_-6px_hsl(var(--accent)/0.5)]"
+          >
+            <button
+              onClick={dismissMicOnboarding}
+              aria-label="Dismiss"
+              className="absolute top-1.5 right-1.5 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            <div className="flex items-start gap-2 pr-5">
+              <Lock className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+              <div className="space-y-1.5">
+                <div className="font-display text-[11px] tracking-[0.2em] uppercase text-accent">
+                  Microphone Required
+                </div>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  ATC Trainer needs your mic for push-to-talk. When you press PTT, your browser will ask for permission — click <span className="text-foreground font-medium">Allow</span>.
+                </p>
+                <p className="text-[10px] leading-relaxed text-muted-foreground/80">
+                  If blocked, click the 🔒 icon in your address bar → set Microphone to <span className="text-foreground">Allow</span> → reload.
+                </p>
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" variant="outline" className="h-6 text-[10px] tracking-[0.15em] uppercase font-display" onClick={() => { dismissMicOnboarding(); void runMicTest(); }}>
+                    <Mic className="h-3 w-3 mr-1" /> Test Now
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-6 text-[10px] tracking-[0.15em] uppercase font-display" onClick={dismissMicOnboarding}>
+                    Got it
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="text-center">
           <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-1">
             Push To Talk
