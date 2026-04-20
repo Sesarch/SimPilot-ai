@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  LogOut, User, Save, BookOpen, Mic, Clock, BarChart3,
+  Plane, LogOut, User, Save, BookOpen, Mic, Clock, BarChart3,
   Cloud, Settings, ChevronRight, Shield,
 } from "lucide-react";
 import Logo from "@/components/Logo";

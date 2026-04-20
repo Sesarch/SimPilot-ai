@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { useWeatherBriefing, WeatherData } from "@/hooks/useWeatherBriefing";
-import { Cloud, ArrowLeft, Search, Loader2, MapPin, Plus, X } from "lucide-react";
+import { Cloud, ArrowLeft, Search, Loader2, MapPin, Plus, X, Plane } from "lucide-react";
 import Logo from "@/components/Logo";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
