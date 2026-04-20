@@ -189,6 +189,7 @@ const ATCTrainer = () => {
   const [messages, setMessages] = useState<ATCMessage[]>([]);
   const [interim, setInterim] = useState("");
   const [pttActive, setPttActive] = useState(false);
+  const [pttHeld, setPttHeld] = useState(false);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
@@ -984,6 +985,7 @@ ${transcript}`;
   const scenarioLabel = activeScenario?.label;
   const facility = activeScenario?.facility ?? "TWR";
   const frequency = activeScenario?.frequency ?? "118.300";
+  const micUiActive = pttHeld || pttActive;
   // Normalize to a 6-char "118.700" style display.
   const normalizeFreq = (f: string) => {
     const [intp, dec = ""] = String(f).split(".");
