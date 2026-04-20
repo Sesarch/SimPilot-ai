@@ -200,6 +200,19 @@ const ATCTrainer = () => {
   const micTestRecorderRef = useRef<MediaRecorder | null>(null);
   const micTestStreamRef = useRef<MediaStream | null>(null);
   const micTestAudioRef = useRef<HTMLAudioElement | null>(null);
+  // One-time onboarding tooltip explaining mic permission.
+  const [showMicOnboarding, setShowMicOnboarding] = useState(false);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("atc_mic_onboarding_dismissed")) {
+        setShowMicOnboarding(true);
+      }
+    } catch { /* private mode */ }
+  }, []);
+  const dismissMicOnboarding = useCallback(() => {
+    setShowMicOnboarding(false);
+    try { localStorage.setItem("atc_mic_onboarding_dismissed", "1"); } catch { /* noop */ }
+  }, []);
   // Live streak count: consecutive ATC PASSes from most-recent backwards.
   const [streak, setStreak] = useState<number>(0);
   // Swappable COM1 active/standby frequencies (Garmin-style). Reset on scenario change.
