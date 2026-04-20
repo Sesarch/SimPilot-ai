@@ -1497,6 +1497,34 @@ ${transcript}`;
           </button>
         </div>
 
+        {/* Mic status label — shows live armed state under the PTT button */}
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-1.5 font-display text-[10px] tracking-[0.25em] uppercase"
+        >
+          {micUiActive ? (
+            <>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--hud-green))] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--hud-green))]" />
+              </span>
+              <span className="text-[hsl(var(--hud-green))]">Mic Live — Speak Now</span>
+            </>
+          ) : speaking ? (
+            <span className="text-accent">ATC Transmitting…</span>
+          ) : loading ? (
+            <span className="text-muted-foreground">Processing…</span>
+          ) : !sttSupported ? (
+            <span className="text-muted-foreground/60">Mic Unavailable</span>
+          ) : (
+            <>
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
+              <span className="text-muted-foreground">Mic Ready — Hold PTT</span>
+            </>
+          )}
+        </div>
+
         {/* VU meter — pulses with AI voice + hiss bed */}
         <VUMeter getAnalyser={() => fxRef.current?.analyser ?? null} active={speaking} />
 
