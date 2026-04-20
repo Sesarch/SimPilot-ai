@@ -200,6 +200,10 @@ const ATCTrainer = () => {
   const micTestRecorderRef = useRef<MediaRecorder | null>(null);
   const micTestStreamRef = useRef<MediaStream | null>(null);
   const micTestAudioRef = useRef<HTMLAudioElement | null>(null);
+  const micTestAnalyserRef = useRef<AnalyserNode | null>(null);
+  const micTestCtxRef = useRef<AudioContext | null>(null);
+  const micTestRafRef = useRef<number | null>(null);
+  const [micTestLevel, setMicTestLevel] = useState(0); // 0..1 RMS
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
