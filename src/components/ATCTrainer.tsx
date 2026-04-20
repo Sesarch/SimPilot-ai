@@ -851,14 +851,19 @@ ${transcript}`;
       return;
     }
 
+    // Mark hold state immediately so we can auto-recover from spurious onend events
+    // (e.g., the SpeechRecognition engine ends right after start when audio capture
+    // wasn't fully ready following the permission prompt).
+    pttHoldRef.current = true;
+
     // Proactively request microphone permission within the user gesture.
     // This gives a clear, actionable error instead of a silent SpeechRecognition failure.
     try {
-      // If permission was previously denied, surface a helpful message immediately.
       try {
         if (navigator.permissions) {
           const status = await navigator.permissions.query({ name: "microphone" as PermissionName });
           if (status.state === "denied") {
+            pttHoldRef.current = false;
             setError("Microphone blocked. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload this page.");
             return;
           }
@@ -873,6 +878,7 @@ ${transcript}`;
       stream.getTracks().forEach((t) => t.stop());
       void refreshAudioDevices();
     } catch (err: any) {
+      pttHoldRef.current = false;
       const name = err?.name || "";
       if (name === "NotAllowedError" || name === "SecurityError") {
         setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
@@ -886,6 +892,9 @@ ${transcript}`;
       return;
     }
 
+    // If user already released during the permission prompt, abort.
+    if (!pttHoldRef.current) return;
+
     audioElRef.current?.pause();
     fxRef.current?.stopHiss();
     fxRef.current?.squelch("down");
@@ -894,36 +903,51 @@ ${transcript}`;
     setInterim("");
     setPttActive(true);
 
-    const r = getRecognizer();
-    recognizerRef.current = r;
-    r.onresult = (ev: any) => {
-      let interimText = "";
-      for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        const res = ev.results[i];
-        if (res.isFinal) finalBufferRef.current += res[0].transcript + " ";
-        else interimText += res[0].transcript;
-      }
-      setInterim(interimText);
+    const startRecognizer = () => {
+      const r = getRecognizer();
+      if (!r) return;
+      recognizerRef.current = r;
+      recognizerStartTsRef.current = Date.now();
+      r.onresult = (ev: any) => {
+        let interimText = "";
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const res = ev.results[i];
+          if (res.isFinal) finalBufferRef.current += res[0].transcript + " ";
+          else interimText += res[0].transcript;
+        }
+        setInterim(interimText);
+      };
+      r.onerror = (ev: any) => {
+        if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
+          pttHoldRef.current = false;
+          setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
+        } else if (ev.error === "no-speech" || ev.error === "aborted") {
+          // benign — let onend handle restart if still holding
+        } else {
+          setError(`Mic error: ${ev.error}`);
+        }
+      };
+      r.onend = () => {
+        // Auto-restart if the user is still holding PTT (recovers from spurious ends
+        // that happen right after permission grant or during silence).
+        if (pttHoldRef.current) {
+          try { r.start(); recognizerStartTsRef.current = Date.now(); return; } catch { /* fall through */ }
+        }
+        setPttActive(false);
+        setInterim("");
+        fxRef.current?.squelch("up");
+        const transcript = finalBufferRef.current.trim();
+        finalBufferRef.current = "";
+        if (transcript) void sendPilotTransmission(transcript);
+      };
+      try { r.start(); } catch { /* already started */ }
     };
-    r.onerror = (ev: any) => {
-      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
-        setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
-      } else if (ev.error !== "no-speech" && ev.error !== "aborted") {
-        setError(`Mic error: ${ev.error}`);
-      }
-    };
-    r.onend = () => {
-      setPttActive(false);
-      setInterim("");
-      fxRef.current?.squelch("up");
-      const transcript = finalBufferRef.current.trim();
-      finalBufferRef.current = "";
-      if (transcript) void sendPilotTransmission(transcript);
-    };
-    try { r.start(); } catch { /* already started */ }
+
+    startRecognizer();
   };
 
   const endPTT = () => {
+    pttHoldRef.current = false;
     if (!pttActive) return;
     try { recognizerRef.current?.stop(); } catch { /* noop */ }
   };
