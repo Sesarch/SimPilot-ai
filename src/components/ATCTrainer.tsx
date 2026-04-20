@@ -223,19 +223,37 @@ const ATCTrainer = () => {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>(() => {
     try { return localStorage.getItem("atc_mic_device_id") || ""; } catch { return ""; }
   });
+  // Output device selection (for users with multiple speakers/headphones)
+  const [outputDevices, setOutputDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedOutputId, setSelectedOutputId] = useState<string>(() => {
+    try { return localStorage.getItem("atc_output_device_id") || ""; } catch { return ""; }
+  });
+  // setSinkId is only on Chromium-family browsers
+  const sinkIdSupported = typeof document !== "undefined"
+    && typeof (document.createElement("audio") as any).setSinkId === "function";
+  const applySinkId = useCallback(async (el: HTMLAudioElement | null) => {
+    if (!el || !selectedOutputId || !sinkIdSupported) return;
+    try { await (el as any).setSinkId(selectedOutputId); } catch { /* device gone or not allowed */ }
+  }, [selectedOutputId, sinkIdSupported]);
   const refreshAudioDevices = useCallback(async () => {
     try {
       if (!navigator.mediaDevices?.enumerateDevices) return;
       const all = await navigator.mediaDevices.enumerateDevices();
       const inputs = all.filter((d) => d.kind === "audioinput");
+      const outputs = all.filter((d) => d.kind === "audiooutput");
       setAudioDevices(inputs);
+      setOutputDevices(outputs);
       // If saved device is no longer present, clear it
       if (selectedDeviceId && !inputs.some((d) => d.deviceId === selectedDeviceId)) {
         setSelectedDeviceId("");
         try { localStorage.removeItem("atc_mic_device_id"); } catch { /* noop */ }
       }
+      if (selectedOutputId && !outputs.some((d) => d.deviceId === selectedOutputId)) {
+        setSelectedOutputId("");
+        try { localStorage.removeItem("atc_output_device_id"); } catch { /* noop */ }
+      }
     } catch { /* noop */ }
-  }, [selectedDeviceId]);
+  }, [selectedDeviceId, selectedOutputId]);
   useEffect(() => {
     void refreshAudioDevices();
     const handler = () => { void refreshAudioDevices(); };
@@ -249,6 +267,20 @@ const ATCTrainer = () => {
       else localStorage.removeItem("atc_mic_device_id");
     } catch { /* noop */ }
   }, []);
+  const handleSelectOutput = useCallback((id: string) => {
+    setSelectedOutputId(id);
+    try {
+      if (id) localStorage.setItem("atc_output_device_id", id);
+      else localStorage.removeItem("atc_output_device_id");
+    } catch { /* noop */ }
+    // Re-route any currently playing audio to the new sink immediately.
+    if (audioElRef.current && sinkIdSupported) {
+      try { void (audioElRef.current as any).setSinkId(id || "default"); } catch { /* noop */ }
+    }
+    if (micTestAudioRef.current && sinkIdSupported) {
+      try { void (micTestAudioRef.current as any).setSinkId(id || "default"); } catch { /* noop */ }
+    }
+  }, [sinkIdSupported]);
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
@@ -422,6 +454,7 @@ const ATCTrainer = () => {
       const audio = new Audio(audioUrl);
       audioElRef.current?.pause();
       audioElRef.current = audio;
+      await applySinkId(audio);
       fxRef.current?.attachMediaElement(audio);
       // small delay so the squelch click is audible before voice
       await new Promise((r) => setTimeout(r, 90));
@@ -761,6 +794,7 @@ ${transcript}`;
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         micTestAudioRef.current = audio;
+        void applySinkId(audio);
         setMicTestState("playing");
         audio.onended = () => {
           setMicTestState("idle");
@@ -1249,6 +1283,33 @@ ${transcript}`;
           {audioDevices.length > 1 && !audioDevices.some((d) => d.label) && (
             <div className="text-[9px] text-muted-foreground mt-1 font-mono">
               Tip: run Test Microphone once to reveal device names.
+            </div>
+          )}
+          {/* Output device picker (Chromium only — uses HTMLMediaElement.setSinkId) */}
+          {sinkIdSupported && outputDevices.length > 1 && (
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <Volume2 className="h-3 w-3 text-muted-foreground" aria-hidden />
+              <Select
+                value={selectedOutputId || "default"}
+                onValueChange={(v) => handleSelectOutput(v === "default" ? "" : v)}
+                disabled={speaking}
+              >
+                <SelectTrigger
+                  className="h-7 w-[200px] text-[10px] tracking-[0.15em] uppercase font-display"
+                  title="Choose which speakers/headphones ATC audio plays through"
+                  aria-label="Select audio output device"
+                >
+                  <SelectValue placeholder="System default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default" className="text-xs">System default</SelectItem>
+                  {outputDevices.map((d, i) => (
+                    <SelectItem key={d.deviceId || `out-${i}`} value={d.deviceId || `out-${i}`} className="text-xs">
+                      {d.label || `Speaker ${i + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           {/* Live input-level meter — visible during mic test */}
