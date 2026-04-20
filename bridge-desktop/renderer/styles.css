@@ -72,13 +72,11 @@ a:hover { text-decoration: underline; }
 .app-header button, .app-header a, .app-header .status-pill { -webkit-app-region: no-drag; }
 
 .brand { display: flex; align-items: center; gap: 11px; }
-.brand__mark {
-  width: 36px; height: 36px;
-  display: grid; place-items: center;
-  border-radius: 10px;
-  color: #06121e;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
-  box-shadow: var(--primary-glow), inset 0 1px 0 rgba(255,255,255,0.25);
+.brand__logo {
+  height: 28px;
+  width: auto;
+  display: block;
+  user-select: none;
 }
 .brand__title {
   margin: 0;
