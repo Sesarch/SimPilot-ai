@@ -930,8 +930,26 @@ ${transcript}`;
       r.onend = () => {
         // Auto-restart if the user is still holding PTT (recovers from spurious ends
         // that happen right after permission grant or during silence).
+        // We can't call r.start() synchronously inside onend (throws InvalidStateError
+        // because the recognizer is still in 'stopping' state). Instead, schedule a
+        // brand-new recognizer on the next tick.
         if (pttHoldRef.current) {
-          try { r.start(); recognizerStartTsRef.current = Date.now(); return; } catch { /* fall through */ }
+          // Clear handlers on the old instance so it can't fire again.
+          try { r.onresult = null; r.onerror = null; r.onend = null; } catch { /* noop */ }
+          setTimeout(() => {
+            if (!pttHoldRef.current) {
+              // User released during the gap — finalize.
+              setPttActive(false);
+              setInterim("");
+              fxRef.current?.squelch("up");
+              const transcript = finalBufferRef.current.trim();
+              finalBufferRef.current = "";
+              if (transcript) void sendPilotTransmission(transcript);
+              return;
+            }
+            startRecognizer();
+          }, 50);
+          return;
         }
         setPttActive(false);
         setInterim("");
@@ -940,7 +958,17 @@ ${transcript}`;
         finalBufferRef.current = "";
         if (transcript) void sendPilotTransmission(transcript);
       };
-      try { r.start(); } catch { /* already started */ }
+      try {
+        r.start();
+        recognizerStartTsRef.current = Date.now();
+      } catch (err) {
+        // Recognizer threw on start — most often InvalidStateError from a stale
+        // instance. Drop hold so the UI reflects reality.
+        console.warn("[ATC PTT] recognizer.start() failed:", err);
+        pttHoldRef.current = false;
+        setPttActive(false);
+        setError("Could not start microphone. Please try again.");
+      }
     };
 
     startRecognizer();
