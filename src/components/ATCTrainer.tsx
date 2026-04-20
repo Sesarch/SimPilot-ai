@@ -336,6 +336,8 @@ const ATCTrainer = () => {
   }, [phraseologyScore, selectedScenario, voice, messages, percentile]);
 
   const recognizerRef = useRef<any>(null);
+  const pttHoldRef = useRef<boolean>(false);
+  const recognizerStartTsRef = useRef<number>(0);
   const finalBufferRef = useRef<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fxRef = useRef<RadioFX | null>(null);
