@@ -1285,6 +1285,33 @@ ${transcript}`;
               Tip: run Test Microphone once to reveal device names.
             </div>
           )}
+          {/* Output device picker (Chromium only — uses HTMLMediaElement.setSinkId) */}
+          {sinkIdSupported && outputDevices.length > 1 && (
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <Volume2 className="h-3 w-3 text-muted-foreground" aria-hidden />
+              <Select
+                value={selectedOutputId || "default"}
+                onValueChange={(v) => handleSelectOutput(v === "default" ? "" : v)}
+                disabled={speaking}
+              >
+                <SelectTrigger
+                  className="h-7 w-[200px] text-[10px] tracking-[0.15em] uppercase font-display"
+                  title="Choose which speakers/headphones ATC audio plays through"
+                  aria-label="Select audio output device"
+                >
+                  <SelectValue placeholder="System default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default" className="text-xs">System default</SelectItem>
+                  {outputDevices.map((d, i) => (
+                    <SelectItem key={d.deviceId || `out-${i}`} value={d.deviceId || `out-${i}`} className="text-xs">
+                      {d.label || `Speaker ${i + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           {/* Live input-level meter — visible during mic test */}
           {micTestState === "recording" && (
             <div className="mt-2 w-full max-w-[180px] mx-auto" aria-label="Microphone input level">
