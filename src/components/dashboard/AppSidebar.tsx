@@ -1,4 +1,5 @@
-import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Plane, Cable } from "lucide-react";
+import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable } from "lucide-react";
+import Logo from "@/components/Logo";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -39,13 +40,12 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
         <Link to="/dashboard" className="flex min-h-14 items-center gap-2.5 px-2 pt-1 pb-2.5 -mt-1">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md border border-primary/30 bg-gradient-to-br from-primary/30 to-accent/20">
-            <Plane className="h-5 w-5 text-primary" />
-          </div>
-          {!collapsed && (
-            <span className="flex items-center font-display text-base font-bold leading-none tracking-[0.18em] text-foreground">
-              SIM<span className="text-accent">PILOT</span>
-            </span>
+          {collapsed ? (
+            <div className="flex h-9 w-9 items-center justify-center rounded-md border border-primary/30 bg-gradient-to-br from-primary/30 to-accent/20 overflow-hidden">
+              <Logo height={20} alt="SimPilot" />
+            </div>
+          ) : (
+            <Logo height={28} />
           )}
         </Link>
       </SidebarHeader>
