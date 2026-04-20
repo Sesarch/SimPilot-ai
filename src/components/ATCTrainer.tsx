@@ -267,6 +267,20 @@ const ATCTrainer = () => {
       else localStorage.removeItem("atc_mic_device_id");
     } catch { /* noop */ }
   }, []);
+  const handleSelectOutput = useCallback((id: string) => {
+    setSelectedOutputId(id);
+    try {
+      if (id) localStorage.setItem("atc_output_device_id", id);
+      else localStorage.removeItem("atc_output_device_id");
+    } catch { /* noop */ }
+    // Re-route any currently playing audio to the new sink immediately.
+    if (audioElRef.current && sinkIdSupported) {
+      try { void (audioElRef.current as any).setSinkId(id || "default"); } catch { /* noop */ }
+    }
+    if (micTestAudioRef.current && sinkIdSupported) {
+      try { void (micTestAudioRef.current as any).setSinkId(id || "default"); } catch { /* noop */ }
+    }
+  }, [sinkIdSupported]);
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
