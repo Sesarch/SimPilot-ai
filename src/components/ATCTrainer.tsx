@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -990,6 +990,18 @@ ${transcript}`;
               )}
               {scoring ? "Grading…" : "End & Score"}
             </Button>
+            {lastScenarioId && lastScenarioId !== selectedScenario && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => { void startScenario(lastScenarioId); }}
+                disabled={loading || speaking || scoring}
+                title={`Resume your last scenario: ${scenarios.find((s) => s.id === lastScenarioId)?.label ?? lastScenarioId}`}
+              >
+                <History className="h-3 w-3 mr-1" />
+                Resume Last
+              </Button>
+            )}
             <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setMessages([]); setPhraseologyScore(null); }}>
               <RotateCcw className="h-3 w-3 mr-1" /> New Scenario
             </Button>
