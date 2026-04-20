@@ -606,6 +606,87 @@ ${transcript}`;
     }
   }, [messages, selectedScenario, scoring, user, voice]);
 
+  // Records ~2s of mic audio then plays it back so users can verify their mic works.
+  const runMicTest = async () => {
+    if (micTestState !== "idle") return;
+    setError(null);
+    try {
+      try {
+        if (navigator.permissions) {
+          const status = await navigator.permissions.query({ name: "microphone" as PermissionName });
+          if (status.state === "denied") {
+            setError("Microphone blocked. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload this page.");
+            return;
+          }
+        }
+      } catch { /* Safari */ }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micTestStreamRef.current = stream;
+
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : undefined;
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      micTestRecorderRef.current = recorder;
+      const chunks: BlobPart[] = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        // Release mic
+        stream.getTracks().forEach((t) => t.stop());
+        micTestStreamRef.current = null;
+        const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+        if (blob.size < 200) {
+          setMicTestState("idle");
+          setError("No audio captured. Check that the right input device is selected and not muted.");
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        micTestAudioRef.current = audio;
+        setMicTestState("playing");
+        audio.onended = () => {
+          setMicTestState("idle");
+          URL.revokeObjectURL(url);
+          micTestAudioRef.current = null;
+          toast.success("Mic test complete", { description: "If you heard yourself, you're good to go." });
+        };
+        audio.onerror = () => {
+          setMicTestState("idle");
+          URL.revokeObjectURL(url);
+          setError("Couldn't play back recording.");
+        };
+        void audio.play().catch(() => {
+          setMicTestState("idle");
+          URL.revokeObjectURL(url);
+          setError("Browser blocked playback. Try again after interacting with the page.");
+        });
+      };
+
+      setMicTestState("recording");
+      recorder.start();
+      setTimeout(() => {
+        try { recorder.state === "recording" && recorder.stop(); } catch { /* noop */ }
+      }, 2000);
+    } catch (err: any) {
+      setMicTestState("idle");
+      micTestStreamRef.current?.getTracks().forEach((t) => t.stop());
+      micTestStreamRef.current = null;
+      const name = err?.name || "";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
+      } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+        setError("No microphone detected. Plug in a mic or check your input device.");
+      } else if (name === "NotReadableError") {
+        setError("Microphone is in use by another app. Close other apps using the mic and try again.");
+      } else {
+        setError(`Microphone error: ${err?.message || name || "unknown"}`);
+      }
+    }
+  };
+
   const startPTT = async () => {
     if (speaking || loading) return;
     if (!sttSupported) {
