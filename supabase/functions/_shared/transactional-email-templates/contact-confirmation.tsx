@@ -29,14 +29,7 @@ const ContactConfirmationEmail = ({ name }: ContactConfirmationProps) => (
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
-          <Img
-            src={`${SITE_URL}/icon-512x512.png`}
-            alt={`${SITE_NAME} logo`}
-            width="64"
-            height="64"
-            style={{ borderRadius: '12px', display: 'inline-block' }}
-          />
-          <Text style={tagline}>Your AI Senior CFI</Text>
+          <Img src={`${SITE_URL}/logo.svg`} alt={`${SITE_NAME} logo`} width="220" style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }} />
         </Section>
         <Heading style={h1}>
           {name ? `Thank you, ${name}!` : 'Thank you for reaching out!'}
@@ -76,4 +69,3 @@ const text = {
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
 
-const tagline = { fontSize: '13px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '2px', textTransform: 'uppercase' as const, margin: '14px 0 0', textAlign: 'center' as const }

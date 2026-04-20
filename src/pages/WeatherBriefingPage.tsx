@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { useWeatherBriefing, WeatherData } from "@/hooks/useWeatherBriefing";
 import { Cloud, ArrowLeft, Search, Loader2, MapPin, Plus, X, Plane } from "lucide-react";
+import Logo from "@/components/Logo";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -87,10 +88,8 @@ const WeatherBriefingPage = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <Link to="/" className="flex items-center gap-2">
-              <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
-                SIM<span className="text-accent">PILOT</span>.AI
-              </span>
+            <Link to="/" className="flex items-center">
+              <Logo height={28} />
             </Link>
           </div>
           <div className="flex items-center gap-2">

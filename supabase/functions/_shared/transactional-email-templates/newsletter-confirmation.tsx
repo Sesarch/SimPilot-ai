@@ -18,14 +18,7 @@ const NewsletterConfirmationEmail = ({ email }: NewsletterConfirmationProps) => 
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 20px' }}>
-          <Img
-            src={`${SITE_URL}/icon-512x512.png`}
-            alt={`${SITE_NAME} logo`}
-            width="64"
-            height="64"
-            style={{ borderRadius: '12px', display: 'inline-block' }}
-          />
-          <Text style={tagline}>Your AI Senior CFI</Text>
+          <Img src={`${SITE_URL}/logo.svg`} alt={`${SITE_NAME} logo`} width="220" style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }} />
         </Section>
         <Section style={header}>
           <Text style={brandTag}>SIMPILOT.AI · PILOT BRIEFINGS</Text>
@@ -78,4 +71,3 @@ const hr = { borderColor: '#e2e8f0', margin: '28px 0' }
 const callout = { fontSize: '14px', color: '#009199', fontWeight: 600, margin: '0 0 12px' }
 const footer = { fontSize: '13px', color: '#94a3b8', margin: '20px 0 0' }
 
-const tagline = { fontSize: '13px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '2px', textTransform: 'uppercase' as const, margin: '14px 0 0', textAlign: 'center' as const }

@@ -12,6 +12,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import SEOHead from "@/components/SEOHead";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import FeatureDisabledPage from "@/components/FeatureDisabledPage";
+import Logo from "@/components/Logo";
 
 type ChatTab = {
   id: string;
@@ -96,9 +97,7 @@ const MobileChatPage = () => {
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <span className="font-display text-lg font-bold text-primary tracking-wider">
-            SIM<span className="text-accent">PILOT</span>.AI
-          </span>
+          <Logo height={24} />
         </div>
         <div className="flex items-center gap-1.5">
           {activeTab.icon}

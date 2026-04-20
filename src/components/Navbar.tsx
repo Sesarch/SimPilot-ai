@@ -5,6 +5,7 @@ import { Menu, X, Download, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePilotContext } from "@/hooks/usePilotContext";
 import ThemeToggle from "@/components/ThemeToggle";
+import Logo from "@/components/Logo";
 
 const navItems = [
   { label: "Why SimPilot.AI", href: "/why-simpilot" },
@@ -69,10 +70,8 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2" title="SimPilot.AI — AI-Powered Pilot Training Home" aria-label="Go to SimPilot.AI homepage">
-          <span className="font-display text-xl font-bold text-primary text-glow-cyan tracking-wider">
-            SIM<span className="text-accent">PILOT</span>.AI
-          </span>
+        <Link to="/" className="flex items-center" title="SimPilot.AI — AI-Powered Pilot Training Home" aria-label="Go to SimPilot.AI homepage">
+          <Logo height={32} />
         </Link>
 
         {/* Desktop nav */}
