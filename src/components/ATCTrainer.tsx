@@ -223,19 +223,37 @@ const ATCTrainer = () => {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>(() => {
     try { return localStorage.getItem("atc_mic_device_id") || ""; } catch { return ""; }
   });
+  // Output device selection (for users with multiple speakers/headphones)
+  const [outputDevices, setOutputDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedOutputId, setSelectedOutputId] = useState<string>(() => {
+    try { return localStorage.getItem("atc_output_device_id") || ""; } catch { return ""; }
+  });
+  // setSinkId is only on Chromium-family browsers
+  const sinkIdSupported = typeof document !== "undefined"
+    && typeof (document.createElement("audio") as any).setSinkId === "function";
+  const applySinkId = useCallback(async (el: HTMLAudioElement | null) => {
+    if (!el || !selectedOutputId || !sinkIdSupported) return;
+    try { await (el as any).setSinkId(selectedOutputId); } catch { /* device gone or not allowed */ }
+  }, [selectedOutputId, sinkIdSupported]);
   const refreshAudioDevices = useCallback(async () => {
     try {
       if (!navigator.mediaDevices?.enumerateDevices) return;
       const all = await navigator.mediaDevices.enumerateDevices();
       const inputs = all.filter((d) => d.kind === "audioinput");
+      const outputs = all.filter((d) => d.kind === "audiooutput");
       setAudioDevices(inputs);
+      setOutputDevices(outputs);
       // If saved device is no longer present, clear it
       if (selectedDeviceId && !inputs.some((d) => d.deviceId === selectedDeviceId)) {
         setSelectedDeviceId("");
         try { localStorage.removeItem("atc_mic_device_id"); } catch { /* noop */ }
       }
+      if (selectedOutputId && !outputs.some((d) => d.deviceId === selectedOutputId)) {
+        setSelectedOutputId("");
+        try { localStorage.removeItem("atc_output_device_id"); } catch { /* noop */ }
+      }
     } catch { /* noop */ }
-  }, [selectedDeviceId]);
+  }, [selectedDeviceId, selectedOutputId]);
   useEffect(() => {
     void refreshAudioDevices();
     const handler = () => { void refreshAudioDevices(); };
