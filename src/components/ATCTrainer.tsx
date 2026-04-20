@@ -204,6 +204,37 @@ const ATCTrainer = () => {
   const micTestCtxRef = useRef<AudioContext | null>(null);
   const micTestRafRef = useRef<number | null>(null);
   const [micTestLevel, setMicTestLevel] = useState(0); // 0..1 RMS
+  // Input device selection (for users with multiple mics)
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>(() => {
+    try { return localStorage.getItem("atc_mic_device_id") || ""; } catch { return ""; }
+  });
+  const refreshAudioDevices = useCallback(async () => {
+    try {
+      if (!navigator.mediaDevices?.enumerateDevices) return;
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const inputs = all.filter((d) => d.kind === "audioinput");
+      setAudioDevices(inputs);
+      // If saved device is no longer present, clear it
+      if (selectedDeviceId && !inputs.some((d) => d.deviceId === selectedDeviceId)) {
+        setSelectedDeviceId("");
+        try { localStorage.removeItem("atc_mic_device_id"); } catch { /* noop */ }
+      }
+    } catch { /* noop */ }
+  }, [selectedDeviceId]);
+  useEffect(() => {
+    void refreshAudioDevices();
+    const handler = () => { void refreshAudioDevices(); };
+    navigator.mediaDevices?.addEventListener?.("devicechange", handler);
+    return () => { navigator.mediaDevices?.removeEventListener?.("devicechange", handler); };
+  }, [refreshAudioDevices]);
+  const handleSelectDevice = useCallback((id: string) => {
+    setSelectedDeviceId(id);
+    try {
+      if (id) localStorage.setItem("atc_mic_device_id", id);
+      else localStorage.removeItem("atc_mic_device_id");
+    } catch { /* noop */ }
+  }, []);
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
