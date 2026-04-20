@@ -601,12 +601,44 @@ ${transcript}`;
     }
   }, [messages, selectedScenario, scoring, user, voice]);
 
-  const startPTT = () => {
+  const startPTT = async () => {
     if (speaking || loading) return;
     if (!sttSupported) {
       setError("Speech recognition unavailable in this browser. Use Chrome or Edge.");
       return;
     }
+
+    // Proactively request microphone permission within the user gesture.
+    // This gives a clear, actionable error instead of a silent SpeechRecognition failure.
+    try {
+      // If permission was previously denied, surface a helpful message immediately.
+      try {
+        if (navigator.permissions) {
+          const status = await navigator.permissions.query({ name: "microphone" as PermissionName });
+          if (status.state === "denied") {
+            setError("Microphone blocked. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload this page.");
+            return;
+          }
+        }
+      } catch { /* Safari doesn't support permission query for microphone */ }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // We don't need the stream itself — SpeechRecognition opens its own. Release immediately.
+      stream.getTracks().forEach((t) => t.stop());
+    } catch (err: any) {
+      const name = err?.name || "";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
+      } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+        setError("No microphone detected. Plug in a mic or check your input device.");
+      } else if (name === "NotReadableError") {
+        setError("Microphone is in use by another app. Close other apps using the mic and try again.");
+      } else {
+        setError(`Microphone error: ${err?.message || name || "unknown"}`);
+      }
+      return;
+    }
+
     audioElRef.current?.pause();
     fxRef.current?.stopHiss();
     fxRef.current?.squelch("down");
