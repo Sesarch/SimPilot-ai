@@ -1007,7 +1007,7 @@ ${transcript}`;
         active={activeFreq}
         standby={standbyFreq}
         speaking={speaking}
-        ptt={pttActive}
+        ptt={micUiActive}
         onSwap={swapFreqs}
         swapping={swapAnim}
       />
@@ -1020,11 +1020,11 @@ ${transcript}`;
             <span className="relative flex h-2 w-2">
               <span className={cn(
                 "absolute inline-flex h-full w-full rounded-full opacity-75",
-                speaking ? "animate-ping bg-accent" : pttActive ? "animate-ping bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/30",
+                speaking ? "animate-ping bg-accent" : micUiActive ? "animate-ping bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/30",
               )} />
               <span className={cn(
                 "relative inline-flex rounded-full h-2 w-2",
-                speaking ? "bg-accent" : pttActive ? "bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/40",
+                speaking ? "bg-accent" : micUiActive ? "bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/40",
               )} />
             </span>
             <Radio className="h-4 w-4 text-primary" />
@@ -1200,7 +1200,7 @@ ${transcript}`;
               </div>
             );
           })}
-          {pttActive && interim && (
+          {micUiActive && interim && (
             <div className="flex justify-end">
               <div className="max-w-[88%] rounded-md px-3 py-2 bg-primary/5 border border-dashed border-primary/40 text-muted-foreground italic">
                 {interim}…
