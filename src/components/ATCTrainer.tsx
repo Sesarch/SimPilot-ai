@@ -1043,6 +1043,59 @@ ${transcript}`;
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[13px] leading-relaxed">
+          {!selectedScenario && (
+            <div className="h-full flex flex-col">
+              <div className="text-center mb-4">
+                <div className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+                  Select a Scenario
+                </div>
+                <div className="text-xs text-muted-foreground/80 mt-1">
+                  Pick a drill — ATC will start the call.
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 content-start">
+                {scenarios.map((s) => {
+                  const isLast = lastScenarioId === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => { void startScenario(s.id); }}
+                      disabled={loading}
+                      className={cn(
+                        "group relative text-left rounded-lg border p-3 transition-all",
+                        "bg-muted/20 hover:bg-primary/5 hover:border-primary/50",
+                        "hover:shadow-[0_0_18px_-6px_hsl(var(--primary)/0.6)]",
+                        "active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed",
+                        isLast ? "border-primary/60 bg-primary/5" : "border-border",
+                      )}
+                      title={s.description}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <span className="font-display text-[11px] tracking-[0.2em] uppercase text-foreground">
+                          {s.label}
+                        </span>
+                        {isLast && (
+                          <span className="font-display text-[8px] tracking-[0.2em] uppercase text-primary px-1.5 py-0.5 rounded bg-primary/10 border border-primary/30">
+                            Last
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground leading-snug mb-2 font-sans">
+                        {s.description}
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                        <span className="px-1.5 py-0.5 rounded bg-background/60 border border-border">
+                          {s.facility}
+                        </span>
+                        <span className="tabular-nums">{s.frequency}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {messages.map((msg) => {
             if (msg.role === "system") {
               return (
