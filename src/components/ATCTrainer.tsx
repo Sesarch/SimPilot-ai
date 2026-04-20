@@ -189,6 +189,7 @@ const ATCTrainer = () => {
   const [messages, setMessages] = useState<ATCMessage[]>([]);
   const [interim, setInterim] = useState("");
   const [pttActive, setPttActive] = useState(false);
+  const [pttHeld, setPttHeld] = useState(false);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
@@ -855,6 +856,7 @@ ${transcript}`;
     // (e.g., the SpeechRecognition engine ends right after start when audio capture
     // wasn't fully ready following the permission prompt).
     pttHoldRef.current = true;
+    setPttHeld(true);
 
     // Proactively request microphone permission within the user gesture.
     // This gives a clear, actionable error instead of a silent SpeechRecognition failure.
@@ -864,6 +866,7 @@ ${transcript}`;
           const status = await navigator.permissions.query({ name: "microphone" as PermissionName });
           if (status.state === "denied") {
             pttHoldRef.current = false;
+            setPttHeld(false);
             setError("Microphone blocked. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload this page.");
             return;
           }
@@ -879,6 +882,7 @@ ${transcript}`;
       void refreshAudioDevices();
     } catch (err: any) {
       pttHoldRef.current = false;
+      setPttHeld(false);
       const name = err?.name || "";
       if (name === "NotAllowedError" || name === "SecurityError") {
         setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
@@ -920,6 +924,7 @@ ${transcript}`;
       r.onerror = (ev: any) => {
         if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
           pttHoldRef.current = false;
+          setPttHeld(false);
           setError("Microphone permission denied. Click the 🔒 icon in your browser's address bar → allow Microphone, then reload.");
         } else if (ev.error === "no-speech" || ev.error === "aborted") {
           // benign — let onend handle restart if still holding
@@ -966,6 +971,7 @@ ${transcript}`;
         // instance. Drop hold so the UI reflects reality.
         console.warn("[ATC PTT] recognizer.start() failed:", err);
         pttHoldRef.current = false;
+        setPttHeld(false);
         setPttActive(false);
         setError("Could not start microphone. Please try again.");
       }
@@ -976,6 +982,7 @@ ${transcript}`;
 
   const endPTT = () => {
     pttHoldRef.current = false;
+    setPttHeld(false);
     if (!pttActive) return;
     try { recognizerRef.current?.stop(); } catch { /* noop */ }
   };
@@ -984,6 +991,7 @@ ${transcript}`;
   const scenarioLabel = activeScenario?.label;
   const facility = activeScenario?.facility ?? "TWR";
   const frequency = activeScenario?.frequency ?? "118.300";
+  const micUiActive = pttHeld || pttActive;
   // Normalize to a 6-char "118.700" style display.
   const normalizeFreq = (f: string) => {
     const [intp, dec = ""] = String(f).split(".");
@@ -999,7 +1007,7 @@ ${transcript}`;
         active={activeFreq}
         standby={standbyFreq}
         speaking={speaking}
-        ptt={pttActive}
+        ptt={micUiActive}
         onSwap={swapFreqs}
         swapping={swapAnim}
       />
@@ -1012,11 +1020,11 @@ ${transcript}`;
             <span className="relative flex h-2 w-2">
               <span className={cn(
                 "absolute inline-flex h-full w-full rounded-full opacity-75",
-                speaking ? "animate-ping bg-accent" : pttActive ? "animate-ping bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/30",
+                speaking ? "animate-ping bg-accent" : micUiActive ? "animate-ping bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/30",
               )} />
               <span className={cn(
                 "relative inline-flex rounded-full h-2 w-2",
-                speaking ? "bg-accent" : pttActive ? "bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/40",
+                speaking ? "bg-accent" : micUiActive ? "bg-[hsl(var(--hud-green))]" : "bg-muted-foreground/40",
               )} />
             </span>
             <Radio className="h-4 w-4 text-primary" />
@@ -1192,7 +1200,7 @@ ${transcript}`;
               </div>
             );
           })}
-          {pttActive && interim && (
+          {micUiActive && interim && (
             <div className="flex justify-end">
               <div className="max-w-[88%] rounded-md px-3 py-2 bg-primary/5 border border-dashed border-primary/40 text-muted-foreground italic">
                 {interim}…
@@ -1456,7 +1464,7 @@ ${transcript}`;
           <PTTRing
             getAnalyser={() => fxRef.current?.analyser ?? null}
             speaking={speaking}
-            pttActive={pttActive}
+            pttActive={micUiActive}
           />
           <button
             onMouseDown={startPTT}
@@ -1468,7 +1476,7 @@ ${transcript}`;
             className={cn(
               "relative h-40 w-40 rounded-full border-4 transition-all select-none z-10",
               "flex flex-col items-center justify-center gap-1",
-              pttActive
+              micUiActive
                 ? "bg-[hsl(var(--hud-green))]/20 border-[hsl(var(--hud-green))] shadow-[0_0_30px_hsl(var(--hud-green)/0.6)]"
                 : speaking
                 ? "bg-accent/10 border-accent/60 cursor-not-allowed"
@@ -1476,7 +1484,7 @@ ${transcript}`;
               (speaking || loading) && "opacity-60",
             )}
           >
-            {pttActive ? (
+            {micUiActive ? (
               <Mic className="h-10 w-10 text-[hsl(var(--hud-green))]" />
             ) : speaking ? (
               <Volume2 className="h-10 w-10 text-accent animate-pulse" />
@@ -1484,7 +1492,7 @@ ${transcript}`;
               <MicOff className="h-10 w-10 text-primary" />
             )}
             <span className="font-display text-[10px] tracking-[0.25em] uppercase mt-1">
-              {pttActive ? "Live" : speaking ? "ATC" : "PTT"}
+              {micUiActive ? "Live" : speaking ? "ATC" : "PTT"}
             </span>
           </button>
         </div>
