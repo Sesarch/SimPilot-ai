@@ -15,7 +15,7 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
-const LOGO_URL = 'https://simpilot.ai/icon-512x512.png'
+const LOGO_URL = 'https://simpilot.ai/logo.svg'
 
 interface RecoveryEmailProps {
   siteName: string
@@ -33,7 +33,6 @@ export const RecoveryEmail = ({
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
           <Img src={LOGO_URL} alt={`${siteName} logo`} width="64" height="64" style={{ borderRadius: '12px', display: 'inline-block' }} />
-          <Text style={tagline}>Your AI Senior CFI</Text>
         </Section>
         <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
@@ -79,4 +78,3 @@ const button = {
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
 
-const tagline = { fontSize: '13px', fontWeight: 'bold' as const, color: '#009199', letterSpacing: '2px', textTransform: 'uppercase' as const, margin: '14px 0 0', textAlign: 'center' as const }
