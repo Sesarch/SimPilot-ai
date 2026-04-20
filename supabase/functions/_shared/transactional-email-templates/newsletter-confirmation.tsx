@@ -18,13 +18,7 @@ const NewsletterConfirmationEmail = ({ email }: NewsletterConfirmationProps) => 
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 20px' }}>
-          <Img
-            src={`${SITE_URL}/icon-512x512.png`}
-            alt={`${SITE_NAME} logo`}
-            width="64"
-            height="64"
-            style={{ borderRadius: '12px', display: 'inline-block' }}
-          />
+          <Img src={`${SITE_URL}/logo.svg`} alt={`${SITE_NAME} logo`} width="220" style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }} />
         </Section>
         <Section style={header}>
           <Text style={brandTag}>SIMPILOT.AI · PILOT BRIEFINGS</Text>
