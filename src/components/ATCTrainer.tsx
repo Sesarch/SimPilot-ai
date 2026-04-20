@@ -1464,7 +1464,7 @@ ${transcript}`;
           <PTTRing
             getAnalyser={() => fxRef.current?.analyser ?? null}
             speaking={speaking}
-            pttActive={pttActive}
+            pttActive={micUiActive}
           />
           <button
             onMouseDown={startPTT}
@@ -1476,7 +1476,7 @@ ${transcript}`;
             className={cn(
               "relative h-40 w-40 rounded-full border-4 transition-all select-none z-10",
               "flex flex-col items-center justify-center gap-1",
-              pttActive
+              micUiActive
                 ? "bg-[hsl(var(--hud-green))]/20 border-[hsl(var(--hud-green))] shadow-[0_0_30px_hsl(var(--hud-green)/0.6)]"
                 : speaking
                 ? "bg-accent/10 border-accent/60 cursor-not-allowed"
@@ -1484,7 +1484,7 @@ ${transcript}`;
               (speaking || loading) && "opacity-60",
             )}
           >
-            {pttActive ? (
+            {micUiActive ? (
               <Mic className="h-10 w-10 text-[hsl(var(--hud-green))]" />
             ) : speaking ? (
               <Volume2 className="h-10 w-10 text-accent animate-pulse" />
@@ -1492,7 +1492,7 @@ ${transcript}`;
               <MicOff className="h-10 w-10 text-primary" />
             )}
             <span className="font-display text-[10px] tracking-[0.25em] uppercase mt-1">
-              {pttActive ? "Live" : speaking ? "ATC" : "PTT"}
+              {micUiActive ? "Live" : speaking ? "ATC" : "PTT"}
             </span>
           </button>
         </div>
