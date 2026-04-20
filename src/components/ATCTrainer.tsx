@@ -195,6 +195,11 @@ const ATCTrainer = () => {
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
+  // Mic-test state: idle | recording | playing
+  const [micTestState, setMicTestState] = useState<"idle" | "recording" | "playing">("idle");
+  const micTestRecorderRef = useRef<MediaRecorder | null>(null);
+  const micTestStreamRef = useRef<MediaStream | null>(null);
+  const micTestAudioRef = useRef<HTMLAudioElement | null>(null);
   // Live streak count: consecutive ATC PASSes from most-recent backwards.
   const [streak, setStreak] = useState<number>(0);
   // Swappable COM1 active/standby frequencies (Garmin-style). Reset on scenario change.
