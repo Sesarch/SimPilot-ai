@@ -1155,34 +1155,64 @@ ${transcript}`;
           <div className="text-xs text-muted-foreground">
             Hold the button (or hold <kbd className="px-1 py-0.5 rounded bg-muted text-foreground text-[10px]">Space</kbd>) and speak. Release to transmit.
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={runMicTest}
-            disabled={micTestState !== "idle" || pttActive || speaking || loading}
-            className="mt-2 h-7 text-[10px] tracking-[0.2em] uppercase font-display"
-            title="Records 2 seconds and plays it back so you can confirm your mic works."
-          >
-            {micTestState === "recording" ? (
-              <>
-                <span className="relative mr-2 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--hud-green))] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--hud-green))]" />
-                </span>
-                Recording…
-              </>
-            ) : micTestState === "playing" ? (
-              <>
-                <Volume2 className="h-3 w-3 mr-1.5" />
-                Playing back…
-              </>
-            ) : (
-              <>
-                <Mic className="h-3 w-3 mr-1.5" />
-                Test Microphone
-              </>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={runMicTest}
+              disabled={micTestState !== "idle" || pttActive || speaking || loading}
+              className="h-7 text-[10px] tracking-[0.2em] uppercase font-display"
+              title="Records 2 seconds and plays it back so you can confirm your mic works."
+            >
+              {micTestState === "recording" ? (
+                <>
+                  <span className="relative mr-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--hud-green))] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--hud-green))]" />
+                  </span>
+                  Recording…
+                </>
+              ) : micTestState === "playing" ? (
+                <>
+                  <Volume2 className="h-3 w-3 mr-1.5" />
+                  Playing back…
+                </>
+              ) : (
+                <>
+                  <Mic className="h-3 w-3 mr-1.5" />
+                  Test Microphone
+                </>
+              )}
+            </Button>
+            {audioDevices.length > 1 && (
+              <Select
+                value={selectedDeviceId || "default"}
+                onValueChange={(v) => handleSelectDevice(v === "default" ? "" : v)}
+                disabled={micTestState !== "idle" || pttActive}
+              >
+                <SelectTrigger
+                  className="h-7 w-[180px] text-[10px] tracking-[0.15em] uppercase font-display"
+                  title="Choose which microphone to use"
+                  aria-label="Select microphone input device"
+                >
+                  <SelectValue placeholder="System default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default" className="text-xs">System default</SelectItem>
+                  {audioDevices.map((d, i) => (
+                    <SelectItem key={d.deviceId || `mic-${i}`} value={d.deviceId || `mic-${i}`} className="text-xs">
+                      {d.label || `Microphone ${i + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
-          </Button>
+          </div>
+          {audioDevices.length > 1 && !audioDevices.some((d) => d.label) && (
+            <div className="text-[9px] text-muted-foreground mt-1 font-mono">
+              Tip: run Test Microphone once to reveal device names.
+            </div>
+          )}
           {/* Live input-level meter — visible during mic test */}
           {micTestState === "recording" && (
             <div className="mt-2 w-full max-w-[180px] mx-auto" aria-label="Microphone input level">
