@@ -344,6 +344,18 @@ const ATCTrainer = () => {
   // Refresh after each scored attempt.
   useEffect(() => { if (phraseologyScore) void refreshStreak(); }, [phraseologyScore, refreshStreak]);
 
+  // Persist voice preference across sessions
+  useEffect(() => {
+    try { localStorage.setItem("atc_voice", voice); } catch { /* private mode */ }
+  }, [voice]);
+
+  // Persist last-used scenario id across sessions
+  useEffect(() => {
+    if (!selectedScenario) return;
+    setLastScenarioId(selectedScenario);
+    try { localStorage.setItem("atc_last_scenario", selectedScenario); } catch { /* private mode */ }
+  }, [selectedScenario]);
+
   // Reset COM1 active/standby when the scenario changes.
   useEffect(() => {
     if (!selectedScenario) return;
