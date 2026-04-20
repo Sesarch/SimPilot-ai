@@ -104,7 +104,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
       }
       const mapped: Aircraft[] = data.states
         .filter((s: any[]) => s[5] != null && s[6] != null)
-        .slice(0, 300)
+        .slice(0, 600)
         .map((s: any[]) => ({
           icao24: String(s[0] || ""),
           callsign: String(s[1] || "").trim(),
