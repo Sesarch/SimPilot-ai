@@ -191,7 +191,19 @@ const ATCTrainer = () => {
   const [pttActive, setPttActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
-  const [voice, setVoice] = useState<"male" | "female">("male");
+  const [voice, setVoice] = useState<"male" | "female">(() => {
+    try {
+      const saved = localStorage.getItem("atc_voice");
+      return saved === "female" || saved === "male" ? saved : "male";
+    } catch { return "male"; }
+  });
+  // Last-used scenario id (for "Resume last scenario" UX)
+  const [lastScenarioId, setLastScenarioId] = useState<string | null>(() => {
+    try {
+      const saved = localStorage.getItem("atc_last_scenario");
+      return saved && scenarios.some((s) => s.id === saved) ? saved : null;
+    } catch { return null; }
+  });
   const [sttSupported, setSttSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
