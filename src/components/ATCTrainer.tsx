@@ -794,6 +794,7 @@ ${transcript}`;
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         micTestAudioRef.current = audio;
+        void applySinkId(audio);
         setMicTestState("playing");
         audio.onended = () => {
           setMicTestState("idle");
