@@ -669,8 +669,13 @@ ${transcript}`;
         }
       } catch { /* Safari */ }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const audioConstraints: MediaTrackConstraints = selectedDeviceId
+        ? { deviceId: { exact: selectedDeviceId } }
+        : {};
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
       micTestStreamRef.current = stream;
+      // After first permission grant, device labels become available — refresh list.
+      void refreshAudioDevices();
 
       // Set up analyser for live level metering
       const Ctx: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
