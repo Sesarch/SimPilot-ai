@@ -9,6 +9,7 @@ import { PercentileSparkline } from "@/components/PercentileSparkline";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ATCMessage {
   id: string;
