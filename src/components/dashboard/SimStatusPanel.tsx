@@ -1,14 +1,28 @@
-import { Plug, PlugZap, Radio, Plane, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plug, PlugZap, Radio, Plane, Sparkles, ArrowUpCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSimBridge } from "@/hooks/useSimBridge";
+import { readCachedBridgeRelease, isNewerVersion } from "@/lib/bridgeReleaseCache";
 
 const SimStatusPanel = () => {
   // Telemetry listener is always on; users configure their sim on /flight-deck/bridge.
   // MSFS 2024 is the default source — the bridge auto-detects MSFS vs X-Plane upstream.
-  const { status, telemetry, lastUpdate, isFlightActive, isConnected } = useSimBridge({
+  const { status, telemetry, lastUpdate, isFlightActive, isConnected, bridgeVersion } = useSimBridge({
     enabled: true,
     source: "msfs2024",
   });
+
+  // Latest published bridge tag, sourced from the localStorage cache populated
+  // by /flight-deck/bridge. We re-read on mount and whenever the bridge
+  // reports its version so the badge stays accurate without a network call.
+  const [latestTag, setLatestTag] = useState<string | null>(null);
+  useEffect(() => {
+    const cached = readCachedBridgeRelease();
+    setLatestTag(cached?.tagName ?? null);
+  }, [bridgeVersion]);
+
+  const updateAvailable = isConnected && isNewerVersion(bridgeVersion, latestTag);
 
   const isConnecting = status === "connecting";
 
@@ -58,6 +72,15 @@ const SimStatusPanel = () => {
             <span className="ml-1 inline-flex items-center gap-1 rounded-sm border border-primary/40 bg-primary/10 px-2 py-0.5 font-display text-[11px] font-semibold tracking-[0.2em] uppercase text-primary">
               <Plane className="w-3 h-3" /> In Flight
             </span>
+          )}
+          {updateAvailable && (
+            <Link
+              to="/flight-deck/bridge"
+              title={`Bridge v${bridgeVersion} → ${latestTag} available`}
+              className="ml-1 inline-flex items-center gap-1 rounded-sm border border-[hsl(var(--amber-instrument))]/50 bg-[hsl(var(--amber-instrument))]/10 px-2 py-0.5 font-display text-[11px] font-semibold tracking-[0.2em] uppercase text-[hsl(var(--amber-instrument))] hover:bg-[hsl(var(--amber-instrument))]/20 transition-colors"
+            >
+              <ArrowUpCircle className="w-3 h-3" /> Update {latestTag}
+            </Link>
           )}
         </div>
       </div>

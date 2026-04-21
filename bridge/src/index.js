@@ -22,6 +22,9 @@
  */
 
 import { WebSocketServer } from "ws";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { createMsfsAdapter } from "./adapters/msfs.js";
 import { createXPlaneAdapter } from "./adapters/xplane.js";
 import { verifyAccessToken } from "./auth.js";
@@ -29,6 +32,16 @@ import { verifyAccessToken } from "./auth.js";
 const PORT = 8080;
 const HOST = "127.0.0.1";
 const AUTH_GRACE_MS = 2000;
+
+// Resolve the bridge's own version from package.json so the browser can render
+// a "New version available" badge whenever a newer GitHub release is published.
+let BRIDGE_VERSION = "0.0.0";
+try {
+  const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
+  BRIDGE_VERSION = JSON.parse(readFileSync(pkgPath, "utf8")).version ?? BRIDGE_VERSION;
+} catch {
+  // Non-fatal — the bridge still runs without a self-reported version.
+}
 
 const ALLOWED_ORIGINS = [
   /^https:\/\/simpilot\.ai$/,
@@ -145,7 +158,7 @@ wss.on("connection", (ws, req) => {
         clearTimeout(authTimer);
         console.log(`[bridge] auth ok — user ${claims.sub}${claims.email ? ` (${claims.email})` : ""}`);
         try {
-          ws.send(JSON.stringify({ type: "auth-ok", sub: claims.sub }));
+          ws.send(JSON.stringify({ type: "auth-ok", sub: claims.sub, bridge_version: BRIDGE_VERSION }));
         } catch {}
         // Push the latest known frame so the UI doesn't sit blank.
         if (lastFrame) {
