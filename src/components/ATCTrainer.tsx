@@ -1520,7 +1520,15 @@ ${transcript}`;
           ) : (
             <>
               <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
-              <span className="text-muted-foreground">Mic Ready — Hold PTT</span>
+              <span className="text-muted-foreground">Mic Ready — Hold</span>
+              <kbd
+                aria-label="Spacebar"
+                title="Hold Spacebar to transmit"
+                className="inline-flex items-center gap-1 rounded border border-border bg-muted/40 px-1.5 py-0.5 font-display text-[9px] tracking-[0.2em] uppercase text-foreground/80 shadow-sm"
+              >
+                <span className="inline-block h-[2px] w-3 rounded-full bg-foreground/60" />
+                Space
+              </kbd>
             </>
           )}
         </div>
