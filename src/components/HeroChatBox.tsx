@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, ImagePlus, Map, RefreshCw, Send, Sparkles, User, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, Bot, ImagePlus, Map, RefreshCw, Send, Sparkles, User, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -36,10 +36,30 @@ const HeroChatBox = () => {
   const chatUnlocked = pilotCtx.isComplete;
   const hasConversation = messages.length > 0;
 
-  // Auto-scroll to the very bottom every time content changes (handles streaming chunks too)
-  useEffect(() => {
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [showJumpToLatest, setShowJumpToLatest] = useState(false);
+
+  // Track user scroll position; pause auto-scroll if they scroll up away from the bottom.
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const atBottom = distanceFromBottom < 40;
+    setAutoScroll(atBottom);
+    setShowJumpToLatest(!atBottom && messages.length > 0);
+  }, [scrollRef, messages.length]);
+
+  const jumpToLatest = useCallback(() => {
+    setAutoScroll(true);
+    setShowJumpToLatest(false);
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, isLoading]);
+  }, []);
+
+  // Auto-scroll only when enabled (user hasn't scrolled up).
+  useEffect(() => {
+    if (!autoScroll) return;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isLoading, autoScroll]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,8 +146,10 @@ const HeroChatBox = () => {
       </div>
 
       {/* Messages area */}
+      <div className="relative">
       <div
         ref={scrollRef}
+        onScroll={handleScroll}
         className={`overflow-y-auto p-4 space-y-3 dark:bg-[hsl(220,15%,27%)] scroll-smooth transition-[height] duration-500 ease-out ${
           hasConversation
             ? "h-[min(70vh,640px)]"
