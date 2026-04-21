@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Send, Bot, User, Sparkles, ImagePlus, X, Map } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
@@ -77,7 +77,9 @@ const HeroChatBox = () => {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.6 }}
-      className="relative w-full max-w-2xl mx-auto rounded-xl border border-border/60 dark:bg-[hsl(220,15%,25%)] bg-card/80 backdrop-blur-xl shadow-[0_0_60px_hsl(var(--cyan-glow)/0.08)] overflow-hidden"
+      className={`relative w-full mx-auto rounded-xl border border-border/60 dark:bg-[hsl(220,15%,25%)] bg-card/80 backdrop-blur-xl shadow-[0_0_60px_hsl(var(--cyan-glow)/0.08)] overflow-hidden transition-[max-width] duration-500 ease-out ${
+        hasConversation ? "max-w-5xl" : "max-w-2xl"
+      }`}
     >
       {/* Gate overlay */}
       <AnimatePresence>
@@ -106,7 +108,14 @@ const HeroChatBox = () => {
       </div>
 
       {/* Messages area */}
-      <div ref={scrollRef} className="h-[200px] overflow-y-auto p-4 space-y-3 dark:bg-[hsl(220,15%,27%)]">
+      <div
+        ref={scrollRef}
+        className={`overflow-y-auto p-4 space-y-3 dark:bg-[hsl(220,15%,27%)] scroll-smooth transition-[height] duration-500 ease-out ${
+          hasConversation
+            ? "h-[min(70vh,640px)]"
+            : "h-[200px]"
+        }`}
+      >
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center gap-3">
             {!pilotCtx.isComplete ? (
