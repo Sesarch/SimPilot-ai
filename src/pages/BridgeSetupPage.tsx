@@ -33,6 +33,10 @@ const BRIDGE_DOWNLOAD_URL: string | null =
 const BRIDGE_RELEASES_URL = "https://github.com/simpilot-ai/bridge/releases";
 const BRIDGE_SOURCE_URL = "https://github.com/simpilot-ai/bridge";
 const BRIDGE_LATEST_RELEASE_API = "https://api.github.com/repos/simpilot-ai/bridge/releases/latest";
+// Cache the resolved GitHub release lookup for 10 minutes so repeat visits
+// don't hammer the unauthenticated GitHub API (60 req/hr/IP limit).
+const RELEASE_CACHE_KEY = "simpilot:bridge-release-cache:v1";
+const RELEASE_CACHE_TTL_MS = 10 * 60 * 1000;
 
 type ResolvedRelease = {
   tagName: string;
