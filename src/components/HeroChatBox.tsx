@@ -59,6 +59,24 @@ const HeroChatBox = () => {
     setPendingImage(null);
   };
 
+  const lastUserMessage = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        const c = messages[i].content;
+        if (typeof c === "string") return { text: c, image: undefined as string | undefined };
+        const text = c.filter((p) => p.type === "text").map((p: any) => p.text).join("");
+        const image = c.find((p) => p.type === "image_url") as any;
+        return { text, image: image?.image_url?.url as string | undefined };
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const handleRetry = () => {
+    if (!lastUserMessage) return;
+    send(lastUserMessage.text, lastUserMessage.image);
+  };
+
   const handleSampleChart = async () => {
     // Convert the bundled image to base64 for the vision API
     const res = await fetch(sampleChart);
