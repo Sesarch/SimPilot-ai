@@ -331,42 +331,19 @@ export default function BridgeSetupPage() {
             <div className="flex flex-wrap gap-3">
               {release?.installer ? (
                 <Button
-                  asChild
                   size="lg"
+                  onClick={() => triggerInstallerDownload(release.installer!.downloadUrl, release.installer!.name)}
                   className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
                 >
-                  <a href={release.installer.downloadUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="h-5 w-5" />
-                    Download {release.tagName} Installer
-                  </a>
-                </Button>
-              ) : BRIDGE_DOWNLOAD_URL ? (
-                <Button
-                  asChild
-                  size="lg"
-                  className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
-                >
-                  <a href={BRIDGE_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
-                    <Download className="h-5 w-5" />
-                    {releaseLoading ? "Loading…" : "View Releases"}
-                  </a>
+                  <Download className="h-5 w-5" />
+                  Download for Windows
                 </Button>
               ) : (
                 <Button disabled size="lg" className="gap-2">
                   <Download className="h-5 w-5" />
-                  Download for Windows (coming soon)
+                  {releaseLoading ? "Preparing download…" : "Download for Windows (coming soon)"}
                 </Button>
               )}
-              <Button asChild variant="outline" className="gap-2">
-                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener">
-                  All releases
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="gap-2">
-                <a href={BRIDGE_SOURCE_URL} target="_blank" rel="noreferrer noopener">
-                  View source
-                </a>
-              </Button>
             </div>
 
             {releaseLoading && (
