@@ -82,6 +82,26 @@ function writeReleaseCache(release: ResolvedRelease | null) {
   }
 }
 
+/**
+ * Triggers an immediate same-tab download of the installer .exe without
+ * navigating away or popping a new tab. We use a transient anchor with
+ * the `download` attribute so the browser saves the binary directly —
+ * users never see the underlying release host.
+ */
+function triggerInstallerDownload(url: string, filename: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast({
+    title: "Download started!",
+    description: "Run the installer to begin your flight.",
+  });
+}
+
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
