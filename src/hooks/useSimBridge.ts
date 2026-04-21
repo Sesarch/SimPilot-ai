@@ -106,6 +106,10 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
   const [telemetry, setTelemetry] = useState<SimBridgeTelemetry | null>(null);
   const [lastUpdate, setLastUpdate] = useState<number | null>(null);
   const [isFlightActive, setIsFlightActive] = useState(false);
+  // Bridge self-reports its version in the auth-ok handshake (>=1.0.1).
+  // Older bridges return null; the UI treats null as "version unknown" and
+  // hides the update-available badge in that case.
+  const [bridgeVersion, setBridgeVersion] = useState<string | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<number | null>(null);
