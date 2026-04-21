@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, ImagePlus, Map, Send, Sparkles, User, X } from "lucide-react";
+import { Bot, ImagePlus, Map, RefreshCw, Send, Sparkles, User, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
