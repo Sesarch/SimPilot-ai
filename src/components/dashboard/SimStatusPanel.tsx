@@ -73,6 +73,15 @@ const SimStatusPanel = () => {
               <Plane className="w-3 h-3" /> In Flight
             </span>
           )}
+          {updateAvailable && (
+            <Link
+              to="/flight-deck/bridge"
+              title={`Bridge v${bridgeVersion} → ${latestTag} available`}
+              className="ml-1 inline-flex items-center gap-1 rounded-sm border border-[hsl(var(--amber-instrument))]/50 bg-[hsl(var(--amber-instrument))]/10 px-2 py-0.5 font-display text-[11px] font-semibold tracking-[0.2em] uppercase text-[hsl(var(--amber-instrument))] hover:bg-[hsl(var(--amber-instrument))]/20 transition-colors"
+            >
+              <ArrowUpCircle className="w-3 h-3" /> Update {latestTag}
+            </Link>
+          )}
         </div>
       </div>
 
