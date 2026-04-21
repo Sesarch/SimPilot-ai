@@ -181,6 +181,7 @@ const OralExamPage = () => {
         keywords="oral exam simulator, checkride prep, DPE oral exam practice, private pilot oral, instrument rating oral, commercial pilot checkride, CFI oral exam, FAA practical test"
         canonical="/oral-exam"
         ogImage="/og-oral-exam.jpg"
+        noIndex
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Course",

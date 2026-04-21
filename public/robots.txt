@@ -4,11 +4,19 @@ Disallow: /auth
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /dashboard
+Disallow: /flight-deck
+Disallow: /account
+Disallow: /ground-school
+Disallow: /oral-exam
+Disallow: /weather-briefing
+Disallow: /live-tools
 Disallow: /session-history
 Disallow: /progress
+Disallow: /logbook
 Disallow: /admin
 Disallow: /chat
 Disallow: /unsubscribe
+Disallow: /pilot/
 
 User-agent: Googlebot
 Allow: /

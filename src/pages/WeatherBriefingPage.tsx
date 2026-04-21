@@ -76,6 +76,7 @@ const WeatherBriefingPage = () => {
         keywords="aviation weather briefing, METAR decoder, TAF analysis, flight planning weather, VFR weather minimums, aviation weather AI"
         canonical="/weather-briefing"
         ogImage="/og-ground-school.jpg"
+        noIndex
       />
 
       {/* Nav */}
