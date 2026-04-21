@@ -1,14 +1,28 @@
-import { Plug, PlugZap, Radio, Plane, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plug, PlugZap, Radio, Plane, Sparkles, ArrowUpCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSimBridge } from "@/hooks/useSimBridge";
+import { readCachedBridgeRelease, isNewerVersion } from "@/lib/bridgeReleaseCache";
 
 const SimStatusPanel = () => {
   // Telemetry listener is always on; users configure their sim on /flight-deck/bridge.
   // MSFS 2024 is the default source — the bridge auto-detects MSFS vs X-Plane upstream.
-  const { status, telemetry, lastUpdate, isFlightActive, isConnected } = useSimBridge({
+  const { status, telemetry, lastUpdate, isFlightActive, isConnected, bridgeVersion } = useSimBridge({
     enabled: true,
     source: "msfs2024",
   });
+
+  // Latest published bridge tag, sourced from the localStorage cache populated
+  // by /flight-deck/bridge. We re-read on mount and whenever the bridge
+  // reports its version so the badge stays accurate without a network call.
+  const [latestTag, setLatestTag] = useState<string | null>(null);
+  useEffect(() => {
+    const cached = readCachedBridgeRelease();
+    setLatestTag(cached?.tagName ?? null);
+  }, [bridgeVersion]);
+
+  const updateAvailable = isConnected && isNewerVersion(bridgeVersion, latestTag);
 
   const isConnecting = status === "connecting";
 
