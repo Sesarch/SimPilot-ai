@@ -20,11 +20,13 @@ const TEST_TIMEOUT_MS = 4000;
 // instantly serves the new build. Override per-version if you ever need to pin
 // (e.g. ".../releases/download/v0.2.0/SimPilotBridge.exe").
 const BRIDGE_VERSION = "1.0.0";
-// Tracks the GitHub Releases "latest" alias so the link auto-upgrades when
-// you publish v1.1.0, v1.2.0, etc. The Inno Setup installer is named
-// SimPilotBridge-Setup-X.Y.Z.exe — this URL serves whichever is newest.
+// Sends users to the GitHub Releases index instead of a hard-coded asset URL.
+// The previous direct-asset link (…/releases/latest/download/SimPilotBridge-Setup-X.Y.Z.exe)
+// returns a 404 whenever no release has been published yet, or when the asset
+// filename drifts from BRIDGE_VERSION. The releases page always renders and
+// surfaces every published installer, so users can grab the newest build.
 const BRIDGE_DOWNLOAD_URL: string | null =
-  `https://github.com/simpilot-ai/bridge/releases/latest/download/SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
+  "https://github.com/simpilot-ai/bridge/releases/latest";
 // SHA-256 of the published SimPilotBridge.exe (lowercase hex, 64 chars).
 // Publish this alongside the GitHub Release so users can verify integrity:
 //   Get-FileHash SimPilotBridge.exe -Algorithm SHA256
@@ -203,9 +205,9 @@ export default function BridgeSetupPage() {
                   size="lg"
                   className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
                 >
-                  <a href={BRIDGE_DOWNLOAD_URL} download>
+                  <a href={BRIDGE_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
                     <Download className="h-5 w-5" />
-                    Download v{BRIDGE_VERSION} Installer
+                    Download Latest Installer
                   </a>
                 </Button>
               ) : (
