@@ -299,7 +299,8 @@ export default function BridgeSetupPage() {
                       variant="destructive"
                       className="gap-2"
                       onClick={async () => {
-                        setDownloadProgress({
+                        setLastNonErrorPhase(null);
+                        handleDownloadProgress({
                           phase: "resolving",
                           percent: 0,
                           message: `Retrying pinned v${PINNED_BRIDGE_VERSION} download…`,
@@ -312,7 +313,7 @@ export default function BridgeSetupPage() {
                         } catch {
                           /* non-fatal — helper will surface its own error */
                         }
-                        downloadAndVerifyInstaller({ onProgress: setDownloadProgress });
+                        downloadAndVerifyInstaller({ onProgress: handleDownloadProgress });
                       }}
                     >
                       <Loader2 className="h-3.5 w-3.5" />
