@@ -13,7 +13,9 @@ import {
   resolveBridgeRelease,
   downloadAndVerifyInstaller,
   type ResolvedBridgeRelease,
+  type DownloadProgress,
 } from "@/lib/bridgeDownload";
+import { Progress } from "@/components/ui/progress";
 
 type TestState = "idle" | "testing" | "success" | "failure";
 
@@ -41,6 +43,7 @@ export default function BridgeSetupPage() {
   const [release, setRelease] = useState<ResolvedRelease | null>(null);
   const [releaseLoading, setReleaseLoading] = useState(true);
   const [releaseError, setReleaseError] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -223,7 +226,15 @@ export default function BridgeSetupPage() {
               {release?.installer ? (
                 <Button
                   size="lg"
-                  onClick={() => downloadAndVerifyInstaller()}
+                  disabled={
+                    downloadProgress != null &&
+                    downloadProgress.phase !== "done" &&
+                    downloadProgress.phase !== "error"
+                  }
+                  onClick={() => {
+                    setDownloadProgress({ phase: "resolving", percent: 0, message: "Starting…" });
+                    downloadAndVerifyInstaller({ onProgress: setDownloadProgress });
+                  }}
                   className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
                 >
                   <Download className="h-5 w-5" />
@@ -236,6 +247,43 @@ export default function BridgeSetupPage() {
                 </Button>
               )}
             </div>
+
+            {downloadProgress && downloadProgress.phase !== "idle" && (
+              <div
+                className={`rounded-md border p-3 space-y-2 ${
+                  downloadProgress.phase === "error"
+                    ? "border-destructive/50 bg-destructive/5"
+                    : "border-border/60 bg-muted/30"
+                }`}
+                role="status"
+                aria-live="polite"
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-2 font-medium text-foreground">
+                    {downloadProgress.phase === "done" ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                    ) : downloadProgress.phase === "error" ? (
+                      <XCircle className="h-3.5 w-3.5 text-destructive" />
+                    ) : downloadProgress.phase === "verifying" ? (
+                      <ShieldCheck className="h-3.5 w-3.5 text-primary animate-pulse" />
+                    ) : (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                    )}
+                    {downloadProgress.message}
+                  </span>
+                  <span className="font-mono text-muted-foreground">
+                    {downloadProgress.percent}%
+                  </span>
+                </div>
+                <Progress
+                  value={downloadProgress.phase === "error" ? 100 : downloadProgress.percent}
+                  className={`h-1.5 ${downloadProgress.phase === "error" ? "[&>div]:bg-destructive" : ""}`}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Pinned to v{PINNED_BRIDGE_VERSION} · SHA-512 verified in your browser · served direct to your downloads folder
+                </p>
+              </div>
+            )}
 
             {releaseLoading && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
