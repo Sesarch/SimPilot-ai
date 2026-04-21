@@ -8,39 +8,22 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  PINNED_BRIDGE_VERSION,
+  resolveBridgeRelease,
+  downloadAndVerifyInstaller,
+  type ResolvedBridgeRelease,
+} from "@/lib/bridgeDownload";
 
 type TestState = "idle" | "testing" | "success" | "failure";
 
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
 
-// SimPilot Bridge Windows installer.
-// Points at the GitHub Releases "latest" alias so the URL never goes stale —
-// publish a new release tagged on the simpilot-ai/bridge repo and this button
-// instantly serves the new build. Override per-version if you ever need to pin
-// (e.g. ".../releases/download/v0.2.0/SimPilotBridge.exe").
-const BRIDGE_VERSION = "1.0.0";
-// Resolves the latest installer asset live from the release API so the URL
-// never goes stale. The download is then triggered through a transient
-// anchor with the `download` attribute, so users see only a native browser
-// download — never the underlying release host.
-const BRIDGE_LATEST_RELEASE_API = "https://api.github.com/repos/simpilot-ai/bridge/releases/latest";
-// Cache the resolved GitHub release lookup for 10 minutes so repeat visits
-// don't hammer the unauthenticated GitHub API (60 req/hr/IP limit).
-const RELEASE_CACHE_KEY = "simpilot:bridge-release-cache:v1";
-const RELEASE_CACHE_TTL_MS = 10 * 60 * 1000;
+// Pinned to v1.0.0 (resolver falls back to /latest if the tag isn't published).
+const BRIDGE_VERSION = PINNED_BRIDGE_VERSION;
 
-type ResolvedRelease = {
-  tagName: string;
-  publishedAt: string | null;
-  htmlUrl: string;
-  installer: {
-    name: string;
-    downloadUrl: string;
-    sizeBytes: number;
-  } | null;
-  sha512: string | null;
-};
+type ResolvedRelease = ResolvedBridgeRelease;
 
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return "—";
@@ -48,51 +31,6 @@ function formatBytes(bytes: number): string {
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
 }
 
-type ReleaseCacheEntry = { cachedAt: number; release: ResolvedRelease | null };
-
-function readReleaseCache(): ReleaseCacheEntry | null {
-  try {
-    const raw = localStorage.getItem(RELEASE_CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as ReleaseCacheEntry;
-    if (!parsed || typeof parsed.cachedAt !== "number") return null;
-    if (Date.now() - parsed.cachedAt > RELEASE_CACHE_TTL_MS) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function writeReleaseCache(release: ResolvedRelease | null) {
-  try {
-    localStorage.setItem(
-      RELEASE_CACHE_KEY,
-      JSON.stringify({ cachedAt: Date.now(), release } satisfies ReleaseCacheEntry),
-    );
-  } catch {
-    // localStorage may be unavailable (private mode, quota) — non-fatal.
-  }
-}
-
-/**
- * Triggers an immediate same-tab download of the installer .exe without
- * navigating away or popping a new tab. We use a transient anchor with
- * the `download` attribute so the browser saves the binary directly —
- * users never see the underlying release host.
- */
-function triggerInstallerDownload(url: string, filename: string) {
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.rel = "noopener";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  toast({
-    title: "Download started!",
-    description: "Run the installer to begin your flight.",
-  });
-}
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
@@ -106,71 +44,12 @@ export default function BridgeSetupPage() {
 
   useEffect(() => {
     let cancelled = false;
-    // Hydrate from localStorage first so repeat visits render instantly and
-    // skip the network call entirely while the cache is still warm.
-    const cached = readReleaseCache();
-    if (cached) {
-      setRelease(cached.release);
-      setReleaseLoading(false);
-      return () => {
-        cancelled = true;
-      };
-    }
     (async () => {
       try {
         setReleaseLoading(true);
         setReleaseError(null);
-        const res = await fetch(BRIDGE_LATEST_RELEASE_API, {
-          headers: { Accept: "application/vnd.github+json" },
-        });
-        if (!res.ok) {
-          // 404 = no published release yet; treat as a soft state, not an error toast.
-          if (res.status === 404) {
-            if (!cancelled) {
-              setRelease(null);
-              writeReleaseCache(null);
-            }
-            return;
-          }
-          throw new Error(`GitHub API returned ${res.status}`);
-        }
-        const data = await res.json() as {
-          tag_name: string;
-          published_at: string | null;
-          html_url: string;
-          assets: Array<{ name: string; browser_download_url: string; size: number }>;
-        };
-        const installerAsset = data.assets.find((a) => /SimPilotBridge-Setup-.*\.exe$/i.test(a.name)) ?? null;
-        const ymlAsset = data.assets.find((a) => a.name === "latest.yml");
-
-        // Parse the SHA-512 published by the build workflow's latest.yml.
-        let sha512: string | null = null;
-        if (ymlAsset) {
-          try {
-            const yml = await fetch(ymlAsset.browser_download_url).then((r) => r.text());
-            const match = yml.match(/^sha512:\s*(\S+)/m);
-            if (match) sha512 = match[1];
-          } catch {
-            // Non-fatal — the installer still works without an inline checksum.
-          }
-        }
-
-        if (cancelled) return;
-        const resolved: ResolvedRelease = {
-          tagName: data.tag_name,
-          publishedAt: data.published_at,
-          htmlUrl: data.html_url,
-          installer: installerAsset
-            ? {
-                name: installerAsset.name,
-                downloadUrl: installerAsset.browser_download_url,
-                sizeBytes: installerAsset.size,
-              }
-            : null,
-          sha512,
-        };
-        setRelease(resolved);
-        writeReleaseCache(resolved);
+        const resolved = await resolveBridgeRelease();
+        if (!cancelled) setRelease(resolved);
       } catch (err) {
         if (!cancelled) setReleaseError((err as Error).message);
       } finally {
@@ -344,7 +223,7 @@ export default function BridgeSetupPage() {
               {release?.installer ? (
                 <Button
                   size="lg"
-                  onClick={() => triggerInstallerDownload(release.installer!.downloadUrl, release.installer!.name)}
+                  onClick={() => downloadAndVerifyInstaller()}
                   className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
                 >
                   <Download className="h-5 w-5" />
