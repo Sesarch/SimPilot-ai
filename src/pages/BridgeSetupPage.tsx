@@ -284,7 +284,18 @@ export default function BridgeSetupPage() {
               leave it open while you fly. macOS / Linux builds are coming soon — for now you can run it from source.
             </p>
             <div className="flex flex-wrap gap-3">
-              {BRIDGE_DOWNLOAD_URL ? (
+              {release?.installer ? (
+                <Button
+                  asChild
+                  size="lg"
+                  className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
+                >
+                  <a href={release.installer.downloadUrl} target="_blank" rel="noopener noreferrer">
+                    <Download className="h-5 w-5" />
+                    Download {release.tagName} Installer
+                  </a>
+                </Button>
+              ) : BRIDGE_DOWNLOAD_URL ? (
                 <Button
                   asChild
                   size="lg"
@@ -292,7 +303,7 @@ export default function BridgeSetupPage() {
                 >
                   <a href={BRIDGE_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
                     <Download className="h-5 w-5" />
-                    Download Latest Installer
+                    {releaseLoading ? "Loading…" : "View Releases"}
                   </a>
                 </Button>
               ) : (
@@ -312,38 +323,84 @@ export default function BridgeSetupPage() {
                 </a>
               </Button>
             </div>
-            {BRIDGE_DOWNLOAD_SHA256 && (
-              <div className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-2">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-                  SHA-256 checksum
+
+            {releaseLoading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Resolving latest release from GitHub…
+              </div>
+            )}
+
+            {!releaseLoading && !release && !releaseError && (
+              <p className="text-xs text-muted-foreground">
+                No installer has been published yet — check{" "}
+                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener" className="underline">
+                  the releases page
+                </a>{" "}
+                later.
+              </p>
+            )}
+
+            {releaseError && (
+              <p className="text-xs text-muted-foreground">
+                Couldn't reach the GitHub Releases API ({releaseError}). Use the{" "}
+                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener" className="underline">
+                  releases page
+                </a>{" "}
+                to grab the installer manually.
+              </p>
+            )}
+
+            {release?.installer && (
+              <div className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-3">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <Badge variant="secondary" className="font-mono">{release.tagName}</Badge>
+                  <span className="text-muted-foreground">
+                    {release.installer.name} • {formatBytes(release.installer.sizeBytes)}
+                    {release.publishedAt && (
+                      <> • published {new Date(release.publishedAt).toLocaleDateString()}</>
+                    )}
+                  </span>
                 </div>
-                <div className="flex items-start gap-2">
-                  <code className="flex-1 break-all rounded bg-background/60 px-2 py-1.5 font-mono text-[11px] text-foreground">
-                    {BRIDGE_DOWNLOAD_SHA256}
-                  </code>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="shrink-0 gap-1.5"
-                    onClick={() => {
-                      navigator.clipboard.writeText(BRIDGE_DOWNLOAD_SHA256);
-                      toast({ title: "Checksum copied", description: "Paste it next to your Get-FileHash output to compare." });
-                    }}
-                  >
-                    <Copy className="h-3 w-3" />
-                    Copy
-                  </Button>
-                </div>
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p>
-                    Verify on Windows: <span className="font-mono text-foreground">Get-FileHash SimPilotBridge.exe -Algorithm SHA256</span>
+
+                {release.sha512 ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                      <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                      SHA-512 checksum (from latest.yml)
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <code className="flex-1 break-all rounded bg-background/60 px-2 py-1.5 font-mono text-[11px] text-foreground">
+                        {release.sha512}
+                      </code>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0 gap-1.5"
+                        onClick={() => {
+                          navigator.clipboard.writeText(release.sha512!);
+                          toast({ title: "Checksum copied", description: "Compare it with your local hash output." });
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </Button>
+                    </div>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <p>
+                        Verify on Windows: <span className="font-mono text-foreground">Get-FileHash {release.installer.name} -Algorithm SHA512</span>
+                      </p>
+                      <p>
+                        Verify on macOS / Linux: <span className="font-mono text-foreground">shasum -a 512 {release.installer.name}</span>
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Checksum file (<span className="font-mono">latest.yml</span>) wasn't found in this release — skip the integrity check or grab it from the releases page.
                   </p>
-                  <p>
-                    Verify on macOS / Linux: <span className="font-mono text-foreground">shasum -a 256 SimPilotBridge.exe</span>
-                  </p>
-                </div>
+                )}
               </div>
             )}
             <p className="text-xs text-muted-foreground">
