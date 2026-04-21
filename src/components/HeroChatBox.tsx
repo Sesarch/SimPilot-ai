@@ -203,12 +203,15 @@ const HeroChatBox = () => {
             ))}
 
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
-              <div className="flex gap-2">
+              <div className="flex gap-2" aria-live="polite" aria-label="Assistant is thinking">
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <Bot className="w-3 h-3 text-primary" />
                 </div>
-                <div className="bg-secondary/80 rounded-lg px-3 py-2">
-                  <div className="flex gap-1">
+                <div className="bg-secondary/80 rounded-lg px-3 py-2.5 max-w-[80%] w-full space-y-1.5">
+                  <div className="h-2 rounded bg-muted-foreground/20 animate-pulse w-[85%]" />
+                  <div className="h-2 rounded bg-muted-foreground/20 animate-pulse w-[70%] [animation-delay:0.15s]" />
+                  <div className="h-2 rounded bg-muted-foreground/20 animate-pulse w-[55%] [animation-delay:0.3s]" />
+                  <div className="flex gap-1 pt-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
@@ -218,7 +221,20 @@ const HeroChatBox = () => {
             )}
 
             {error && (
-              <p className="text-xs text-destructive text-center">{error}</p>
+              <div className="flex flex-col items-center gap-2 py-1" role="alert">
+                <p className="text-xs text-destructive text-center">{error}</p>
+                {lastUserMessage && (
+                  <button
+                    type="button"
+                    onClick={handleRetry}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-full border border-destructive/40 bg-destructive/10 hover:bg-destructive/20 text-destructive transition-all disabled:opacity-50"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Retry last message
+                  </button>
+                )}
+              </div>
             )}
           </>
         )}
