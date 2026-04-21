@@ -204,6 +204,8 @@ const HeroChatBox = () => {
             )}
           </>
         )}
+        {/* Anchor for auto-scroll */}
+        <div ref={bottomRef} aria-hidden="true" />
       </div>
 
       {/* Input */}
