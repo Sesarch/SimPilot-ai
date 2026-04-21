@@ -375,21 +375,13 @@ export default function BridgeSetupPage() {
 
             {!releaseLoading && !release && !releaseError && (
               <p className="text-xs text-muted-foreground">
-                No installer has been published yet — check{" "}
-                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener" className="underline">
-                  the releases page
-                </a>{" "}
-                later.
+                The first installer is being prepared — check back shortly.
               </p>
             )}
 
             {releaseError && (
               <p className="text-xs text-muted-foreground">
-                Couldn't reach the GitHub Releases API ({releaseError}). Use the{" "}
-                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener" className="underline">
-                  releases page
-                </a>{" "}
-                to grab the installer manually.
+                Couldn't reach the release server right now. Please try again in a moment.
               </p>
             )}
 
