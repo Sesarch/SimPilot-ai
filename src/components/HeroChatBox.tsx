@@ -31,8 +31,15 @@ const HeroChatBox = () => {
   const { messages, isLoading, error, send, scrollRef } = useChat(chatOptions);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
-  
+  const bottomRef = useRef<HTMLDivElement>(null);
+
   const chatUnlocked = pilotCtx.isComplete;
+  const hasConversation = messages.length > 0;
+
+  // Auto-scroll to the very bottom every time content changes (handles streaming chunks too)
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isLoading]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
