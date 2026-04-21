@@ -67,81 +67,11 @@ const HeroSection = () => {
           ATC phraseology. Try it right now, no signup needed.
         </motion.p>
 
-        {/* SimConnect Bridge download CTA — pinned to v1.0.0, verified install */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.55 }}
-          className="flex flex-col items-center justify-center gap-4 mb-8"
-        >
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button
-              size="lg"
-              onClick={() => downloadAndVerifyInstaller()}
-              className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
-            >
-              <Download className="h-5 w-5" />
-              Download SimConnect Bridge
-            </Button>
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              v{PINNED_BRIDGE_VERSION} · SHA-512 verified · Windows
-            </span>
-          </div>
-
-          {/* Verification details + prerequisites */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl w-full text-left">
-            <div className="rounded-lg border border-border/60 bg-background/40 backdrop-blur-sm p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                <p className="font-display text-xs uppercase tracking-wider text-foreground">
-                  Verified install
-                </p>
-              </div>
-              <ul className="space-y-1.5 text-xs text-muted-foreground">
-                <li className="flex items-start gap-1.5">
-                  <KeyRound className="h-3 w-3 mt-0.5 text-primary shrink-0" />
-                  SHA-512 checksum verified in your browser before save
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <ShieldCheck className="h-3 w-3 mt-0.5 text-primary shrink-0" />
-                  Pinned to v{PINNED_BRIDGE_VERSION} · signed Inno Setup installer
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <Download className="h-3 w-3 mt-0.5 text-primary shrink-0" />
-                  Direct in-browser download — no third-party redirects
-                </li>
-              </ul>
-            </div>
-            <div className="rounded-lg border border-border/60 bg-background/40 backdrop-blur-sm p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Cpu className="h-4 w-4 text-accent" />
-                <p className="font-display text-xs uppercase tracking-wider text-foreground">
-                  Prerequisites
-                </p>
-              </div>
-              <ul className="space-y-1.5 text-xs text-muted-foreground">
-                <li className="flex items-start gap-1.5">
-                  <MonitorCheck className="h-3 w-3 mt-0.5 text-accent shrink-0" />
-                  Windows 10 or 11 (64-bit) · ~80 MB free disk
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <Plane className="h-3 w-3 mt-0.5 text-accent shrink-0" />
-                  Uses the SimConnect SDK already bundled with MSFS — no extra Microsoft drivers needed
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <Cpu className="h-3 w-3 mt-0.5 text-accent shrink-0" />
-                  X-Plane 11/12 supported via the built-in UDP adapter
-                </li>
-              </ul>
-            </div>
-          </div>
-        </motion.div>
-
         {/* Embedded AI Chat */}
         <HeroChatBoxBoundary>
           <HeroChatBox />
         </HeroChatBoxBoundary>
+
 
         {/* HUD-style stats */}
         <motion.div
