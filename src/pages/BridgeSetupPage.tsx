@@ -94,6 +94,16 @@ export default function BridgeSetupPage() {
 
   useEffect(() => {
     let cancelled = false;
+    // Hydrate from localStorage first so repeat visits render instantly and
+    // skip the network call entirely while the cache is still warm.
+    const cached = readReleaseCache();
+    if (cached) {
+      setRelease(cached.release);
+      setReleaseLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
     (async () => {
       try {
         setReleaseLoading(true);
@@ -104,7 +114,10 @@ export default function BridgeSetupPage() {
         if (!res.ok) {
           // 404 = no published release yet; treat as a soft state, not an error toast.
           if (res.status === 404) {
-            if (!cancelled) setRelease(null);
+            if (!cancelled) {
+              setRelease(null);
+              writeReleaseCache(null);
+            }
             return;
           }
           throw new Error(`GitHub API returned ${res.status}`);
