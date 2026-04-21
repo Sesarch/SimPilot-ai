@@ -3,6 +3,7 @@ import { useTheme } from "next-themes";
 import heroCockpit from "@/assets/hero-cockpit.jpg";
 import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
 import HeroChatBox from "@/components/HeroChatBox";
+import HeroChatBoxBoundary from "@/components/HeroChatBoxBoundary";
 
 const HeroSection = () => {
   const { resolvedTheme } = useTheme();
