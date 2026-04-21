@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
+import { Download, ShieldCheck } from "lucide-react";
 import heroCockpit from "@/assets/hero-cockpit.jpg";
 import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
 import HeroChatBox from "@/components/HeroChatBox";
 import HeroChatBoxBoundary from "@/components/HeroChatBoxBoundary";
+import { Button } from "@/components/ui/button";
+import { downloadAndVerifyInstaller, PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
 
 const HeroSection = () => {
   const { resolvedTheme } = useTheme();
