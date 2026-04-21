@@ -144,7 +144,7 @@ export default function BridgeSetupPage() {
         }
 
         if (cancelled) return;
-        setRelease({
+        const resolved: ResolvedRelease = {
           tagName: data.tag_name,
           publishedAt: data.published_at,
           htmlUrl: data.html_url,
@@ -156,7 +156,9 @@ export default function BridgeSetupPage() {
               }
             : null,
           sha512,
-        });
+        };
+        setRelease(resolved);
+        writeReleaseCache(resolved);
       } catch (err) {
         if (!cancelled) setReleaseError((err as Error).message);
       } finally {
