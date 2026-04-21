@@ -1467,11 +1467,22 @@ ${transcript}`;
             pttActive={micUiActive}
           />
           <button
-            onMouseDown={startPTT}
-            onMouseUp={endPTT}
-            onMouseLeave={endPTT}
-            onTouchStart={(e) => { e.preventDefault(); startPTT(); }}
-            onTouchEnd={(e) => { e.preventDefault(); endPTT(); }}
+            type="button"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* noop */ }
+              void startPTT();
+            }}
+            onPointerUp={(e) => {
+              e.preventDefault();
+              try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* noop */ }
+              endPTT();
+            }}
+            onPointerCancel={(e) => {
+              e.preventDefault();
+              try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* noop */ }
+              endPTT();
+            }}
             disabled={speaking || loading}
             className={cn(
               "relative h-40 w-40 rounded-full border-4 transition-all select-none z-10",
