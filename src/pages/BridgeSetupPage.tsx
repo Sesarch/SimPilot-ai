@@ -32,6 +32,7 @@ function formatBytes(bytes: number): string {
 }
 
 
+export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
   const [lastFrame, setLastFrame] = useState<string | null>(null);
@@ -43,71 +44,12 @@ function formatBytes(bytes: number): string {
 
   useEffect(() => {
     let cancelled = false;
-    // Hydrate from localStorage first so repeat visits render instantly and
-    // skip the network call entirely while the cache is still warm.
-    const cached = readReleaseCache();
-    if (cached) {
-      setRelease(cached.release);
-      setReleaseLoading(false);
-      return () => {
-        cancelled = true;
-      };
-    }
     (async () => {
       try {
         setReleaseLoading(true);
         setReleaseError(null);
-        const res = await fetch(BRIDGE_LATEST_RELEASE_API, {
-          headers: { Accept: "application/vnd.github+json" },
-        });
-        if (!res.ok) {
-          // 404 = no published release yet; treat as a soft state, not an error toast.
-          if (res.status === 404) {
-            if (!cancelled) {
-              setRelease(null);
-              writeReleaseCache(null);
-            }
-            return;
-          }
-          throw new Error(`GitHub API returned ${res.status}`);
-        }
-        const data = await res.json() as {
-          tag_name: string;
-          published_at: string | null;
-          html_url: string;
-          assets: Array<{ name: string; browser_download_url: string; size: number }>;
-        };
-        const installerAsset = data.assets.find((a) => /SimPilotBridge-Setup-.*\.exe$/i.test(a.name)) ?? null;
-        const ymlAsset = data.assets.find((a) => a.name === "latest.yml");
-
-        // Parse the SHA-512 published by the build workflow's latest.yml.
-        let sha512: string | null = null;
-        if (ymlAsset) {
-          try {
-            const yml = await fetch(ymlAsset.browser_download_url).then((r) => r.text());
-            const match = yml.match(/^sha512:\s*(\S+)/m);
-            if (match) sha512 = match[1];
-          } catch {
-            // Non-fatal — the installer still works without an inline checksum.
-          }
-        }
-
-        if (cancelled) return;
-        const resolved: ResolvedRelease = {
-          tagName: data.tag_name,
-          publishedAt: data.published_at,
-          htmlUrl: data.html_url,
-          installer: installerAsset
-            ? {
-                name: installerAsset.name,
-                downloadUrl: installerAsset.browser_download_url,
-                sizeBytes: installerAsset.size,
-              }
-            : null,
-          sha512,
-        };
-        setRelease(resolved);
-        writeReleaseCache(resolved);
+        const resolved = await resolveBridgeRelease();
+        if (!cancelled) setRelease(resolved);
       } catch (err) {
         if (!cancelled) setReleaseError((err as Error).message);
       } finally {
