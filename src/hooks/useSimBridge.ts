@@ -387,6 +387,7 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
         ws.onclose = () => {
           if (cancelled) return;
           setStatus("disconnected");
+          setBridgeVersion(null);
           reconnectRef.current = window.setTimeout(connect, RECONNECT_MS);
         };
       } catch {
