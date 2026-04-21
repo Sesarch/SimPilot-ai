@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, ImagePlus, Map, Send, Sparkles, User, X } from "lucide-react";
+import { Bot, ImagePlus, Map, RefreshCw, Send, Sparkles, User, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useChat, getTextContent } from "@/hooks/useChat";
 import { useMessageLimit } from "@/hooks/useMessageLimit";
@@ -57,6 +57,24 @@ const HeroChatBox = () => {
     send(text, image || pendingImage || undefined);
     setInput("");
     setPendingImage(null);
+  };
+
+  const lastUserMessage = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        const c = messages[i].content;
+        if (typeof c === "string") return { text: c, image: undefined as string | undefined };
+        const text = c.filter((p) => p.type === "text").map((p: any) => p.text).join("");
+        const image = c.find((p) => p.type === "image_url") as any;
+        return { text, image: image?.image_url?.url as string | undefined };
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const handleRetry = () => {
+    if (!lastUserMessage) return;
+    send(lastUserMessage.text, lastUserMessage.image);
   };
 
   const handleSampleChart = async () => {
@@ -185,12 +203,15 @@ const HeroChatBox = () => {
             ))}
 
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
-              <div className="flex gap-2">
+              <div className="flex gap-2" aria-live="polite" aria-label="Assistant is thinking">
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <Bot className="w-3 h-3 text-primary" />
                 </div>
-                <div className="bg-secondary/80 rounded-lg px-3 py-2">
-                  <div className="flex gap-1">
+                <div className="bg-secondary/80 rounded-lg px-3 py-2.5 max-w-[80%] w-full space-y-1.5">
+                  <div className="h-2 rounded bg-muted-foreground/20 animate-pulse w-[85%]" />
+                  <div className="h-2 rounded bg-muted-foreground/20 animate-pulse w-[70%] [animation-delay:0.15s]" />
+                  <div className="h-2 rounded bg-muted-foreground/20 animate-pulse w-[55%] [animation-delay:0.3s]" />
+                  <div className="flex gap-1 pt-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
@@ -200,7 +221,20 @@ const HeroChatBox = () => {
             )}
 
             {error && (
-              <p className="text-xs text-destructive text-center">{error}</p>
+              <div className="flex flex-col items-center gap-2 py-1" role="alert">
+                <p className="text-xs text-destructive text-center">{error}</p>
+                {lastUserMessage && (
+                  <button
+                    type="button"
+                    onClick={handleRetry}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-full border border-destructive/40 bg-destructive/10 hover:bg-destructive/20 text-destructive transition-all disabled:opacity-50"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Retry last message
+                  </button>
+                )}
+              </div>
             )}
           </>
         )}
