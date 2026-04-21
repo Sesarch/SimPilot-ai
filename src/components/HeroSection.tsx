@@ -70,6 +70,27 @@ const HeroSection = () => {
           ATC phraseology. Try it right now, no signup needed.
         </motion.p>
 
+        {/* SimConnect Bridge download CTA — pinned to v1.0.0, verified install */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.55 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8"
+        >
+          <Button
+            size="lg"
+            onClick={() => downloadAndVerifyInstaller()}
+            className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
+          >
+            <Download className="h-5 w-5" />
+            Download SimConnect Bridge
+          </Button>
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+            v{PINNED_BRIDGE_VERSION} · SHA-512 verified · Windows
+          </span>
+        </motion.div>
+
         {/* Embedded AI Chat */}
         <HeroChatBoxBoundary>
           <HeroChatBox />
