@@ -33,6 +33,25 @@ const BRIDGE_DOWNLOAD_URL: string | null =
 const BRIDGE_DOWNLOAD_SHA256: string | null = null;
 const BRIDGE_RELEASES_URL = "https://github.com/simpilot-ai/bridge/releases";
 const BRIDGE_SOURCE_URL = "https://github.com/simpilot-ai/bridge";
+const BRIDGE_LATEST_RELEASE_API = "https://api.github.com/repos/simpilot-ai/bridge/releases/latest";
+
+type ResolvedRelease = {
+  tagName: string;
+  publishedAt: string | null;
+  htmlUrl: string;
+  installer: {
+    name: string;
+    downloadUrl: string;
+    sizeBytes: number;
+  } | null;
+  sha512: string | null;
+};
+
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "—";
+  const mb = bytes / (1024 * 1024);
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
+}
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
