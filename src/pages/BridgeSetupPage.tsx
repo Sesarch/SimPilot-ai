@@ -223,7 +223,7 @@ export default function BridgeSetupPage() {
               {release?.installer ? (
                 <Button
                   size="lg"
-                  onClick={() => triggerInstallerDownload(release.installer!.downloadUrl, release.installer!.name)}
+                  onClick={() => downloadAndVerifyInstaller()}
                   className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
                 >
                   <Download className="h-5 w-5" />
