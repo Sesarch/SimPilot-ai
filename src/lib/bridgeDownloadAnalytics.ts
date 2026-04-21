@@ -45,6 +45,7 @@ export function getLastBridgeDownloadEvent(): BridgeDownloadEvent | null {
 }
 
 export function trackBridgeDownloadEvent(event: BridgeDownloadEvent): void {
+  lastTrackedEvent = event;
   try {
     const payload = {
       event: "bridge_download",
