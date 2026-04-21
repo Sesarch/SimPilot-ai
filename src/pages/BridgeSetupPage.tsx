@@ -33,6 +33,10 @@ const BRIDGE_DOWNLOAD_URL: string | null =
 const BRIDGE_RELEASES_URL = "https://github.com/simpilot-ai/bridge/releases";
 const BRIDGE_SOURCE_URL = "https://github.com/simpilot-ai/bridge";
 const BRIDGE_LATEST_RELEASE_API = "https://api.github.com/repos/simpilot-ai/bridge/releases/latest";
+// Cache the resolved GitHub release lookup for 10 minutes so repeat visits
+// don't hammer the unauthenticated GitHub API (60 req/hr/IP limit).
+const RELEASE_CACHE_KEY = "simpilot:bridge-release-cache:v1";
+const RELEASE_CACHE_TTL_MS = 10 * 60 * 1000;
 
 type ResolvedRelease = {
   tagName: string;
@@ -52,6 +56,32 @@ function formatBytes(bytes: number): string {
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
 }
 
+type ReleaseCacheEntry = { cachedAt: number; release: ResolvedRelease | null };
+
+function readReleaseCache(): ReleaseCacheEntry | null {
+  try {
+    const raw = localStorage.getItem(RELEASE_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ReleaseCacheEntry;
+    if (!parsed || typeof parsed.cachedAt !== "number") return null;
+    if (Date.now() - parsed.cachedAt > RELEASE_CACHE_TTL_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeReleaseCache(release: ResolvedRelease | null) {
+  try {
+    localStorage.setItem(
+      RELEASE_CACHE_KEY,
+      JSON.stringify({ cachedAt: Date.now(), release } satisfies ReleaseCacheEntry),
+    );
+  } catch {
+    // localStorage may be unavailable (private mode, quota) — non-fatal.
+  }
+}
+
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
@@ -64,6 +94,16 @@ export default function BridgeSetupPage() {
 
   useEffect(() => {
     let cancelled = false;
+    // Hydrate from localStorage first so repeat visits render instantly and
+    // skip the network call entirely while the cache is still warm.
+    const cached = readReleaseCache();
+    if (cached) {
+      setRelease(cached.release);
+      setReleaseLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
     (async () => {
       try {
         setReleaseLoading(true);
@@ -74,7 +114,10 @@ export default function BridgeSetupPage() {
         if (!res.ok) {
           // 404 = no published release yet; treat as a soft state, not an error toast.
           if (res.status === 404) {
-            if (!cancelled) setRelease(null);
+            if (!cancelled) {
+              setRelease(null);
+              writeReleaseCache(null);
+            }
             return;
           }
           throw new Error(`GitHub API returned ${res.status}`);
@@ -101,7 +144,7 @@ export default function BridgeSetupPage() {
         }
 
         if (cancelled) return;
-        setRelease({
+        const resolved: ResolvedRelease = {
           tagName: data.tag_name,
           publishedAt: data.published_at,
           htmlUrl: data.html_url,
@@ -113,7 +156,9 @@ export default function BridgeSetupPage() {
               }
             : null,
           sha512,
-        });
+        };
+        setRelease(resolved);
+        writeReleaseCache(resolved);
       } catch (err) {
         if (!cancelled) setReleaseError((err as Error).message);
       } finally {
