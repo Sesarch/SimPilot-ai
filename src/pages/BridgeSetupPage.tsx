@@ -205,9 +205,9 @@ export default function BridgeSetupPage() {
                   size="lg"
                   className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
                 >
-                  <a href={BRIDGE_DOWNLOAD_URL} download>
+                  <a href={BRIDGE_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
                     <Download className="h-5 w-5" />
-                    Download v{BRIDGE_VERSION} Installer
+                    Download Latest Installer
                   </a>
                 </Button>
               ) : (
