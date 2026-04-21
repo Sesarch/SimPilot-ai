@@ -13,7 +13,9 @@ import {
   resolveBridgeRelease,
   downloadAndVerifyInstaller,
   type ResolvedBridgeRelease,
+  type DownloadProgress,
 } from "@/lib/bridgeDownload";
+import { Progress } from "@/components/ui/progress";
 
 type TestState = "idle" | "testing" | "success" | "failure";
 
