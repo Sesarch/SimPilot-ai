@@ -40,11 +40,12 @@ const HeroChatBox = () => {
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
 
   // Track user scroll position; pause auto-scroll if they scroll up away from the bottom.
+  const NEAR_BOTTOM_PX = 80;
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    const atBottom = distanceFromBottom < 40;
+    const atBottom = distanceFromBottom < NEAR_BOTTOM_PX;
     setAutoScroll(atBottom);
     setShowJumpToLatest(!atBottom && messages.length > 0);
   }, [scrollRef, messages.length]);
@@ -55,10 +56,19 @@ const HeroChatBox = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, []);
 
-  // Auto-scroll only when enabled (user hasn't scrolled up).
+  // Auto-scroll only when enabled (user is near the bottom). Use "auto" during
+  // active streaming to keep up with rapid token updates without smooth-scroll
+  // queueing; use "smooth" once streaming settles.
   useEffect(() => {
     if (!autoScroll) return;
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const el = scrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (distanceFromBottom > NEAR_BOTTOM_PX) return; // safety: don't snap if user drifted up
+    bottomRef.current?.scrollIntoView({
+      behavior: isLoading ? "auto" : "smooth",
+      block: "end",
+    });
   }, [messages, isLoading, autoScroll]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
