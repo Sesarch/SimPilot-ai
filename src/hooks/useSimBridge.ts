@@ -329,6 +329,9 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
             if (raw && typeof raw.type === "string") {
               if (raw.type === "auth-ok") {
                 setStatus("connected");
+                if (typeof raw.bridge_version === "string") {
+                  setBridgeVersion(raw.bridge_version);
+                }
                 return;
               }
               if (raw.type === "auth-error") {
