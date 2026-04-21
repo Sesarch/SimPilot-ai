@@ -46,6 +46,7 @@ const LiveToolsPage = () => {
         keywords="live flight tracker, ATC trainer, real-time flight tracking, ATC radio practice, aviation map, aircraft tracking, flight radar, air traffic control simulation, pilot radio training"
         canonical="/live-tools"
         ogImage="/og-live-sky.jpg"
+        noIndex
         jsonLd={liveToolsJsonLd}
       />
       <div className="min-h-full bg-background">

@@ -291,6 +291,7 @@ export default function BridgeSetupPage() {
         description="Install and connect the SimPilot Bridge sidecar to stream MSFS 2024 and X-Plane 12 telemetry into your Flight Deck."
         keywords="SimPilot Bridge, MSFS 2024 SimConnect, X-Plane 12 telemetry, flight deck setup"
         canonical="/flight-deck/bridge"
+        noIndex
       />
 
       <div className="container mx-auto max-w-4xl px-4 py-10">

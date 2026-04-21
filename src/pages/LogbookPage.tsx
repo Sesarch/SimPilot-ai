@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ClipboardList, Plus, Plane, Flame, Radio, X, Save, Pencil, Download, CheckCheck } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -259,6 +260,13 @@ const LogbookPage = () => {
 
   return (
     <div className="g3000 min-h-full bg-background p-4 sm:p-6 lg:p-8 space-y-6">
+      <SEOHead
+        title="Digital Logbook — SimPilot.AI"
+        description="Track your flight time, landings, approaches, and ratings in your SimPilot.AI digital pilot logbook with ForeFlight-compatible CSV export."
+        keywords="digital pilot logbook, flight time tracker, ForeFlight CSV export"
+        canonical="/logbook"
+        noIndex
+      />
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>

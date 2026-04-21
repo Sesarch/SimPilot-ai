@@ -104,6 +104,7 @@ const GroundSchoolPage = () => {
         keywords="AI ground school, FAA knowledge test prep, pilot ground school online, aerodynamics study, aviation weather training, ACS study guide, private pilot ground school"
         canonical="/ground-school"
         ogImage="/og-ground-school.jpg"
+        noIndex
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Course",
