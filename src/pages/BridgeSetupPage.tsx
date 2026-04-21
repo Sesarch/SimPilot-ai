@@ -20,18 +20,10 @@ const TEST_TIMEOUT_MS = 4000;
 // instantly serves the new build. Override per-version if you ever need to pin
 // (e.g. ".../releases/download/v0.2.0/SimPilotBridge.exe").
 const BRIDGE_VERSION = "1.0.0";
-// Sends users to the GitHub Releases index instead of a hard-coded asset URL.
-// The previous direct-asset link (…/releases/latest/download/SimPilotBridge-Setup-X.Y.Z.exe)
-// returns a 404 whenever no release has been published yet, or when the asset
-// filename drifts from BRIDGE_VERSION. The releases page always renders and
-// surfaces every published installer, so users can grab the newest build.
-const BRIDGE_DOWNLOAD_URL: string | null =
-  "https://github.com/simpilot-ai/bridge/releases/latest";
-// SHA-512 checksums are now resolved live from the GitHub Releases API
-// (parsed from the `latest.yml` asset emitted by the Inno Setup workflow).
-// See useEffect inside BridgeSetupPage for the fetch logic.
-const BRIDGE_RELEASES_URL = "https://github.com/simpilot-ai/bridge/releases";
-const BRIDGE_SOURCE_URL = "https://github.com/simpilot-ai/bridge";
+// Resolves the latest installer asset live from the release API so the URL
+// never goes stale. The download is then triggered through a transient
+// anchor with the `download` attribute, so users see only a native browser
+// download — never the underlying release host.
 const BRIDGE_LATEST_RELEASE_API = "https://api.github.com/repos/simpilot-ai/bridge/releases/latest";
 // Cache the resolved GitHub release lookup for 10 minutes so repeat visits
 // don't hammer the unauthenticated GitHub API (60 req/hr/IP limit).
