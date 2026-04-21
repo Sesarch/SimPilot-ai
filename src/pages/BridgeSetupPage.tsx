@@ -27,10 +27,9 @@ const BRIDGE_VERSION = "1.0.0";
 // surfaces every published installer, so users can grab the newest build.
 const BRIDGE_DOWNLOAD_URL: string | null =
   "https://github.com/simpilot-ai/bridge/releases/latest";
-// SHA-256 of the published SimPilotBridge.exe (lowercase hex, 64 chars).
-// Publish this alongside the GitHub Release so users can verify integrity:
-//   Get-FileHash SimPilotBridge.exe -Algorithm SHA256
-const BRIDGE_DOWNLOAD_SHA256: string | null = null;
+// SHA-512 checksums are now resolved live from the GitHub Releases API
+// (parsed from the `latest.yml` asset emitted by the Inno Setup workflow).
+// See useEffect inside BridgeSetupPage for the fetch logic.
 const BRIDGE_RELEASES_URL = "https://github.com/simpilot-ai/bridge/releases";
 const BRIDGE_SOURCE_URL = "https://github.com/simpilot-ai/bridge";
 const BRIDGE_LATEST_RELEASE_API = "https://api.github.com/repos/simpilot-ai/bridge/releases/latest";
