@@ -44,6 +44,15 @@ export default function BridgeSetupPage() {
   const [releaseLoading, setReleaseLoading] = useState(true);
   const [releaseError, setReleaseError] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
+  // Tracks the phase that was active right before an error, so we can show
+  // the user a contextual "we detected an issue at <phase>" hint sourced
+  // from the analytics stream.
+  const [lastNonErrorPhase, setLastNonErrorPhase] = useState<DownloadProgress["phase"] | null>(null);
+
+  const handleDownloadProgress = (p: DownloadProgress) => {
+    setDownloadProgress(p);
+    if (p.phase !== "error") setLastNonErrorPhase(p.phase);
+  };
 
   useEffect(() => {
     let cancelled = false;
