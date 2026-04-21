@@ -56,6 +56,32 @@ function formatBytes(bytes: number): string {
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
 }
 
+type ReleaseCacheEntry = { cachedAt: number; release: ResolvedRelease | null };
+
+function readReleaseCache(): ReleaseCacheEntry | null {
+  try {
+    const raw = localStorage.getItem(RELEASE_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ReleaseCacheEntry;
+    if (!parsed || typeof parsed.cachedAt !== "number") return null;
+    if (Date.now() - parsed.cachedAt > RELEASE_CACHE_TTL_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeReleaseCache(release: ResolvedRelease | null) {
+  try {
+    localStorage.setItem(
+      RELEASE_CACHE_KEY,
+      JSON.stringify({ cachedAt: Date.now(), release } satisfies ReleaseCacheEntry),
+    );
+  } catch {
+    // localStorage may be unavailable (private mode, quota) — non-fatal.
+  }
+}
+
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
