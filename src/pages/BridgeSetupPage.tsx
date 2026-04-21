@@ -43,6 +43,7 @@ export default function BridgeSetupPage() {
   const [release, setRelease] = useState<ResolvedRelease | null>(null);
   const [releaseLoading, setReleaseLoading] = useState(true);
   const [releaseError, setReleaseError] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
 
   useEffect(() => {
     let cancelled = false;
