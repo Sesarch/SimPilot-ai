@@ -263,6 +263,18 @@ const HeroChatBox = () => {
         {/* Anchor for auto-scroll */}
         <div ref={bottomRef} aria-hidden="true" />
       </div>
+      {showJumpToLatest && (
+        <button
+          type="button"
+          onClick={jumpToLatest}
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-full border border-primary/40 bg-primary/90 text-primary-foreground shadow-lg hover:bg-primary transition-all backdrop-blur-sm z-10"
+          aria-label="Jump to latest message"
+        >
+          <ArrowDown className="w-3 h-3" />
+          Jump to latest
+        </button>
+      )}
+      </div>
 
       {/* Input */}
       <div className="px-4 py-3 border-t border-border/40 bg-secondary/20 dark:bg-[hsl(220,15%,28%)]">
