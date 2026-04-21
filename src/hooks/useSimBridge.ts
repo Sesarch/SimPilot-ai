@@ -420,5 +420,6 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
     lastUpdate,
     isFlightActive,
     isConnected: status === "connected",
+    bridgeVersion,
   };
 }
