@@ -13,6 +13,7 @@
  * surface only "the release server" / "verifying" copy in toasts.
  */
 import { toast } from "@/hooks/use-toast";
+import { trackBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
 
 // --- Pinned version ---------------------------------------------------------
 // Bump this constant when cutting a new public release. The downloader will
@@ -257,7 +258,27 @@ async function readWithProgress(
 export async function downloadAndVerifyInstaller(
   options: DownloadOptions = {},
 ): Promise<void> {
-  const emit = (p: DownloadProgress) => options.onProgress?.(p);
+  const startedAt = Date.now();
+  let lastTrackedPhase: DownloadPhase | null = null;
+  const emit = (p: DownloadProgress) => {
+    options.onProgress?.(p);
+    // Fire one analytics event per phase transition (plus every terminal
+    // state) so we can track funnel drop-off without flooding the data layer
+    // with per-chunk download progress.
+    const isTerminal = p.phase === "done" || p.phase === "error";
+    if (p.phase !== lastTrackedPhase || isTerminal) {
+      lastTrackedPhase = p.phase;
+      trackBridgeDownloadEvent({
+        phase: p.phase,
+        version: PINNED_TAG,
+        percent: p.percent,
+        message: p.message,
+        receivedBytes: p.receivedBytes,
+        totalBytes: p.totalBytes,
+        durationMs: Date.now() - startedAt,
+      });
+    }
+  };
   try {
     emit({ phase: "resolving", percent: 5, message: `Resolving SimPilot Bridge v${PINNED_BRIDGE_VERSION}…` });
     toast({
