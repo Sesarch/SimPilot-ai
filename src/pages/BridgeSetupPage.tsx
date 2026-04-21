@@ -16,6 +16,24 @@ import {
   type DownloadProgress,
 } from "@/lib/bridgeDownload";
 import { Progress } from "@/components/ui/progress";
+import { getLastBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
+
+// Maps the last successful phase before an error into a short, actionable
+// self-correction hint. Sourced from the same analytics stream that powers
+// our funnel dashboards so support copy stays in sync with what we track.
+const PHASE_ISSUE_HINTS: Record<DownloadProgress["phase"], string> = {
+  idle: "The download didn't start. Check your network connection and try again.",
+  resolving:
+    "We couldn't reach the release server. A VPN, ad-blocker, or corporate firewall may be blocking the request — try disabling them or switching networks.",
+  downloading:
+    "The installer download was interrupted. This is usually a flaky network or an antivirus scanning the file mid-transfer — pause your VPN/AV and retry.",
+  verifying:
+    "The installer didn't match the published SHA-512 checksum. The file may be corrupted in transit or modified by a proxy — retry on a different network if this repeats.",
+  saving:
+    "Your browser blocked the file save. Allow downloads from this site in your browser settings, then click Retry.",
+  done: "The download started, but something else went wrong afterwards. Try again — your previous file is safe.",
+  error: "Something unexpected went wrong. Please retry — most issues clear on a second attempt.",
+};
 
 type TestState = "idle" | "testing" | "success" | "failure";
 
@@ -44,6 +62,15 @@ export default function BridgeSetupPage() {
   const [releaseLoading, setReleaseLoading] = useState(true);
   const [releaseError, setReleaseError] = useState<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
+  // Tracks the phase that was active right before an error, so we can show
+  // the user a contextual "we detected an issue at <phase>" hint sourced
+  // from the analytics stream.
+  const [lastNonErrorPhase, setLastNonErrorPhase] = useState<DownloadProgress["phase"] | null>(null);
+
+  const handleDownloadProgress = (p: DownloadProgress) => {
+    setDownloadProgress(p);
+    if (p.phase !== "error") setLastNonErrorPhase(p.phase);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -232,8 +259,9 @@ export default function BridgeSetupPage() {
                     downloadProgress.phase !== "error"
                   }
                   onClick={() => {
-                    setDownloadProgress({ phase: "resolving", percent: 0, message: "Starting…" });
-                    downloadAndVerifyInstaller({ onProgress: setDownloadProgress });
+                    setLastNonErrorPhase(null);
+                    handleDownloadProgress({ phase: "resolving", percent: 0, message: "Starting…" });
+                    downloadAndVerifyInstaller({ onProgress: handleDownloadProgress });
                   }}
                   className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
                 >
@@ -283,13 +311,46 @@ export default function BridgeSetupPage() {
                   Pinned to v{PINNED_BRIDGE_VERSION} · SHA-512 verified in your browser · served direct to your downloads folder
                 </p>
                 {downloadProgress.phase === "error" && (
+                  <>
+                    {(() => {
+                      const issuePhase = lastNonErrorPhase ?? "error";
+                      const lastEvent = getLastBridgeDownloadEvent();
+                      return (
+                        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 space-y-1.5">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-foreground">
+                                We detected an issue during the{" "}
+                                <span className="font-mono text-destructive">{issuePhase}</span> step.
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {PHASE_ISSUE_HINTS[issuePhase]}
+                              </p>
+                              {lastEvent && (
+                                <p className="text-[10px] font-mono text-muted-foreground/80">
+                                  Tracked: phase={lastEvent.phase} · v{PINNED_BRIDGE_VERSION} · {lastEvent.percent}%
+                                  {typeof lastEvent.durationMs === "number"
+                                    ? ` · ${(lastEvent.durationMs / 1000).toFixed(1)}s`
+                                    : ""}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
+                {downloadProgress.phase === "error" && (
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <Button
                       size="sm"
                       variant="destructive"
                       className="gap-2"
                       onClick={async () => {
-                        setDownloadProgress({
+                        setLastNonErrorPhase(null);
+                        handleDownloadProgress({
                           phase: "resolving",
                           percent: 0,
                           message: `Retrying pinned v${PINNED_BRIDGE_VERSION} download…`,
@@ -302,7 +363,7 @@ export default function BridgeSetupPage() {
                         } catch {
                           /* non-fatal — helper will surface its own error */
                         }
-                        downloadAndVerifyInstaller({ onProgress: setDownloadProgress });
+                        downloadAndVerifyInstaller({ onProgress: handleDownloadProgress });
                       }}
                     >
                       <Loader2 className="h-3.5 w-3.5" />

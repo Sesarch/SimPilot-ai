@@ -33,7 +33,19 @@ type DataLayerWindow = Window & {
   dataLayer?: Array<Record<string, unknown>>;
 };
 
+/**
+ * In-memory record of the most recent tracked event. Surfaces the last
+ * known phase to UI affordances (e.g. the "we detected an issue" hint on
+ * the Bridge Setup page) so we don't need a parallel state store.
+ */
+let lastTrackedEvent: BridgeDownloadEvent | null = null;
+
+export function getLastBridgeDownloadEvent(): BridgeDownloadEvent | null {
+  return lastTrackedEvent;
+}
+
 export function trackBridgeDownloadEvent(event: BridgeDownloadEvent): void {
+  lastTrackedEvent = event;
   try {
     const payload = {
       event: "bridge_download",
