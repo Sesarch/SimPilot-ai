@@ -285,6 +285,7 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
       cleanup();
       setStatus("disconnected");
       setTelemetry(null);
+      setBridgeVersion(null);
       return;
     }
 
