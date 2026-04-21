@@ -282,6 +282,37 @@ export default function BridgeSetupPage() {
                 <p className="text-[11px] text-muted-foreground">
                   Pinned to v{PINNED_BRIDGE_VERSION} · SHA-512 verified in your browser · served direct to your downloads folder
                 </p>
+                {downloadProgress.phase === "error" && (
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="gap-2"
+                      onClick={async () => {
+                        setDownloadProgress({
+                          phase: "resolving",
+                          percent: 0,
+                          message: `Retrying pinned v${PINNED_BRIDGE_VERSION} download…`,
+                        });
+                        // Force a fresh release lookup so any stale cached
+                        // metadata (e.g. an outdated checksum) is bypassed.
+                        try {
+                          const fresh = await resolveBridgeRelease({ forceRefresh: true });
+                          if (fresh) setRelease(fresh);
+                        } catch {
+                          /* non-fatal — helper will surface its own error */
+                        }
+                        downloadAndVerifyInstaller({ onProgress: setDownloadProgress });
+                      }}
+                    >
+                      <Loader2 className="h-3.5 w-3.5" />
+                      Retry verified download
+                    </Button>
+                    <span className="text-[11px] text-muted-foreground">
+                      Re-runs the same pinned v{PINNED_BRIDGE_VERSION} flow with a fresh checksum fetch.
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
