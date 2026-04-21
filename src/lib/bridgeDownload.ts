@@ -13,6 +13,7 @@
  * surface only "the release server" / "verifying" copy in toasts.
  */
 import { toast } from "@/hooks/use-toast";
+import { trackBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
 
 // --- Pinned version ---------------------------------------------------------
 // Bump this constant when cutting a new public release. The downloader will
