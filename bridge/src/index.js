@@ -158,7 +158,7 @@ wss.on("connection", (ws, req) => {
         clearTimeout(authTimer);
         console.log(`[bridge] auth ok — user ${claims.sub}${claims.email ? ` (${claims.email})` : ""}`);
         try {
-          ws.send(JSON.stringify({ type: "auth-ok", sub: claims.sub }));
+          ws.send(JSON.stringify({ type: "auth-ok", sub: claims.sub, bridge_version: BRIDGE_VERSION }));
         } catch {}
         // Push the latest known frame so the UI doesn't sit blank.
         if (lastFrame) {
