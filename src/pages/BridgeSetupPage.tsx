@@ -16,6 +16,24 @@ import {
   type DownloadProgress,
 } from "@/lib/bridgeDownload";
 import { Progress } from "@/components/ui/progress";
+import { getLastBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
+
+// Maps the last successful phase before an error into a short, actionable
+// self-correction hint. Sourced from the same analytics stream that powers
+// our funnel dashboards so support copy stays in sync with what we track.
+const PHASE_ISSUE_HINTS: Record<DownloadProgress["phase"], string> = {
+  idle: "The download didn't start. Check your network connection and try again.",
+  resolving:
+    "We couldn't reach the release server. A VPN, ad-blocker, or corporate firewall may be blocking the request — try disabling them or switching networks.",
+  downloading:
+    "The installer download was interrupted. This is usually a flaky network or an antivirus scanning the file mid-transfer — pause your VPN/AV and retry.",
+  verifying:
+    "The installer didn't match the published SHA-512 checksum. The file may be corrupted in transit or modified by a proxy — retry on a different network if this repeats.",
+  saving:
+    "Your browser blocked the file save. Allow downloads from this site in your browser settings, then click Retry.",
+  done: "The download started, but something else went wrong afterwards. Try again — your previous file is safe.",
+  error: "Something unexpected went wrong. Please retry — most issues clear on a second attempt.",
+};
 
 type TestState = "idle" | "testing" | "success" | "failure";
 
