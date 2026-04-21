@@ -20,18 +20,10 @@ const TEST_TIMEOUT_MS = 4000;
 // instantly serves the new build. Override per-version if you ever need to pin
 // (e.g. ".../releases/download/v0.2.0/SimPilotBridge.exe").
 const BRIDGE_VERSION = "1.0.0";
-// Sends users to the GitHub Releases index instead of a hard-coded asset URL.
-// The previous direct-asset link (…/releases/latest/download/SimPilotBridge-Setup-X.Y.Z.exe)
-// returns a 404 whenever no release has been published yet, or when the asset
-// filename drifts from BRIDGE_VERSION. The releases page always renders and
-// surfaces every published installer, so users can grab the newest build.
-const BRIDGE_DOWNLOAD_URL: string | null =
-  "https://github.com/simpilot-ai/bridge/releases/latest";
-// SHA-512 checksums are now resolved live from the GitHub Releases API
-// (parsed from the `latest.yml` asset emitted by the Inno Setup workflow).
-// See useEffect inside BridgeSetupPage for the fetch logic.
-const BRIDGE_RELEASES_URL = "https://github.com/simpilot-ai/bridge/releases";
-const BRIDGE_SOURCE_URL = "https://github.com/simpilot-ai/bridge";
+// Resolves the latest installer asset live from the release API so the URL
+// never goes stale. The download is then triggered through a transient
+// anchor with the `download` attribute, so users see only a native browser
+// download — never the underlying release host.
 const BRIDGE_LATEST_RELEASE_API = "https://api.github.com/repos/simpilot-ai/bridge/releases/latest";
 // Cache the resolved GitHub release lookup for 10 minutes so repeat visits
 // don't hammer the unauthenticated GitHub API (60 req/hr/IP limit).
@@ -80,6 +72,26 @@ function writeReleaseCache(release: ResolvedRelease | null) {
   } catch {
     // localStorage may be unavailable (private mode, quota) — non-fatal.
   }
+}
+
+/**
+ * Triggers an immediate same-tab download of the installer .exe without
+ * navigating away or popping a new tab. We use a transient anchor with
+ * the `download` attribute so the browser saves the binary directly —
+ * users never see the underlying release host.
+ */
+function triggerInstallerDownload(url: string, filename: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast({
+    title: "Download started!",
+    description: "Run the installer to begin your flight.",
+  });
 }
 
 export default function BridgeSetupPage() {
@@ -331,42 +343,19 @@ export default function BridgeSetupPage() {
             <div className="flex flex-wrap gap-3">
               {release?.installer ? (
                 <Button
-                  asChild
                   size="lg"
+                  onClick={() => triggerInstallerDownload(release.installer!.downloadUrl, release.installer!.name)}
                   className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
                 >
-                  <a href={release.installer.downloadUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="h-5 w-5" />
-                    Download {release.tagName} Installer
-                  </a>
-                </Button>
-              ) : BRIDGE_DOWNLOAD_URL ? (
-                <Button
-                  asChild
-                  size="lg"
-                  className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
-                >
-                  <a href={BRIDGE_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
-                    <Download className="h-5 w-5" />
-                    {releaseLoading ? "Loading…" : "View Releases"}
-                  </a>
+                  <Download className="h-5 w-5" />
+                  Download for Windows
                 </Button>
               ) : (
                 <Button disabled size="lg" className="gap-2">
                   <Download className="h-5 w-5" />
-                  Download for Windows (coming soon)
+                  {releaseLoading ? "Preparing download…" : "Download for Windows (coming soon)"}
                 </Button>
               )}
-              <Button asChild variant="outline" className="gap-2">
-                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener">
-                  All releases
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="gap-2">
-                <a href={BRIDGE_SOURCE_URL} target="_blank" rel="noreferrer noopener">
-                  View source
-                </a>
-              </Button>
             </div>
 
             {releaseLoading && (
@@ -378,21 +367,13 @@ export default function BridgeSetupPage() {
 
             {!releaseLoading && !release && !releaseError && (
               <p className="text-xs text-muted-foreground">
-                No installer has been published yet — check{" "}
-                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener" className="underline">
-                  the releases page
-                </a>{" "}
-                later.
+                The first installer is being prepared — check back shortly.
               </p>
             )}
 
             {releaseError && (
               <p className="text-xs text-muted-foreground">
-                Couldn't reach the GitHub Releases API ({releaseError}). Use the{" "}
-                <a href={BRIDGE_RELEASES_URL} target="_blank" rel="noreferrer noopener" className="underline">
-                  releases page
-                </a>{" "}
-                to grab the installer manually.
+                Couldn't reach the release server right now. Please try again in a moment.
               </p>
             )}
 
