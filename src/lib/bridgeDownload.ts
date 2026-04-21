@@ -178,17 +178,95 @@ function saveBlobAs(blob: Blob, filename: string) {
 }
 
 /**
- * End-to-end: resolve → fetch → verify SHA-512 → save. Fires user-facing
- * toasts at each milestone. Never throws — surfaces errors via toast.
+ * Phased progress states surfaced to the UI so users can see exactly what's
+ * happening during the verified download. Kept stable so callers can map each
+ * phase to a label / progress percentage.
  */
-export async function downloadAndVerifyInstaller(): Promise<void> {
+export type DownloadPhase =
+  | "idle"
+  | "resolving"
+  | "downloading"
+  | "verifying"
+  | "saving"
+  | "done"
+  | "error";
+
+export type DownloadProgress = {
+  phase: DownloadPhase;
+  /** 0–100 — overall progress across all phases. */
+  percent: number;
+  /** Short human-readable status line. */
+  message: string;
+  /** Bytes received so far (downloading phase only). */
+  receivedBytes?: number;
+  /** Total bytes when Content-Length is known. */
+  totalBytes?: number;
+};
+
+type DownloadOptions = {
+  onProgress?: (p: DownloadProgress) => void;
+};
+
+/**
+ * Streams a fetch Response into an ArrayBuffer while reporting byte-level
+ * progress. Falls back to a single-shot arrayBuffer() if the body isn't
+ * streamable (older browsers / opaque responses).
+ */
+async function readWithProgress(
+  res: Response,
+  onChunk: (received: number, total: number | null) => void,
+): Promise<ArrayBuffer> {
+  const total = Number(res.headers.get("Content-Length")) || null;
+  if (!res.body || typeof res.body.getReader !== "function") {
+    const buf = await res.arrayBuffer();
+    onChunk(buf.byteLength, total);
+    return buf;
+  }
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) {
+      chunks.push(value);
+      received += value.byteLength;
+      onChunk(received, total);
+    }
+  }
+  const out = new Uint8Array(received);
+  let offset = 0;
+  for (const c of chunks) {
+    out.set(c, offset);
+    offset += c.byteLength;
+  }
+  return out.buffer;
+}
+
+/**
+ * End-to-end: resolve → fetch → verify SHA-512 → save. Fires user-facing
+ * toasts at each milestone AND emits granular progress via `onProgress` so
+ * the calling UI can render a verification progress bar. Never throws —
+ * surfaces errors via toast + `phase: "error"`.
+ *
+ * The helper always serves the file from the resolved direct asset URL via
+ * fetch + Blob save, so the user never leaves the SimPilot domain — no new
+ * tab, no upstream host UI, no redirect.
+ */
+export async function downloadAndVerifyInstaller(
+  options: DownloadOptions = {},
+): Promise<void> {
+  const emit = (p: DownloadProgress) => options.onProgress?.(p);
   try {
+    emit({ phase: "resolving", percent: 5, message: `Resolving SimPilot Bridge v${PINNED_BRIDGE_VERSION}…` });
     toast({
       title: "Preparing your download…",
       description: `Fetching SimPilot Bridge v${PINNED_BRIDGE_VERSION}`,
     });
     const release = await resolveBridgeRelease();
     if (!release?.installer) {
+      emit({ phase: "error", percent: 0, message: "Installer not available yet." });
       toast({
         title: "Installer not available yet",
         description: "The release is still being prepared — please try again in a moment.",
@@ -196,13 +274,36 @@ export async function downloadAndVerifyInstaller(): Promise<void> {
       });
       return;
     }
-    const { downloadUrl, name } = release.installer;
+    const { downloadUrl, name, sizeBytes } = release.installer;
+
+    emit({
+      phase: "downloading",
+      percent: 10,
+      message: "Downloading installer…",
+      receivedBytes: 0,
+      totalBytes: sizeBytes,
+    });
     const fileRes = await fetch(downloadUrl);
     if (!fileRes.ok) throw new Error(`Download failed (${fileRes.status})`);
-    const buf = await fileRes.arrayBuffer();
+
+    const buf = await readWithProgress(fileRes, (received, total) => {
+      const knownTotal = total ?? sizeBytes ?? 0;
+      // Map download phase to 10–70% of the overall progress bar.
+      const ratio = knownTotal > 0 ? Math.min(received / knownTotal, 1) : 0;
+      emit({
+        phase: "downloading",
+        percent: 10 + Math.round(ratio * 60),
+        message: knownTotal
+          ? `Downloading installer… ${(received / 1_048_576).toFixed(1)} / ${(knownTotal / 1_048_576).toFixed(1)} MB`
+          : `Downloading installer… ${(received / 1_048_576).toFixed(1)} MB`,
+        receivedBytes: received,
+        totalBytes: knownTotal || undefined,
+      });
+    });
 
     // Verify SHA-512 if the release published a checksum.
     if (release.sha512) {
+      emit({ phase: "verifying", percent: 75, message: "Verifying SHA-512 checksum…" });
       toast({
         title: "Verifying integrity…",
         description: "Checking SHA-512 checksum.",
@@ -210,6 +311,11 @@ export async function downloadAndVerifyInstaller(): Promise<void> {
       const digest = await crypto.subtle.digest("SHA-512", buf);
       const computedHex = bufferToHex(digest);
       if (!checksumMatches(computedHex, release.sha512, digest)) {
+        emit({
+          phase: "error",
+          percent: 0,
+          message: "Checksum mismatch — download blocked.",
+        });
         toast({
           title: "Checksum mismatch — download blocked",
           description:
@@ -218,9 +324,18 @@ export async function downloadAndVerifyInstaller(): Promise<void> {
         });
         return;
       }
+      emit({ phase: "verifying", percent: 90, message: "Checksum verified ✓" });
     }
 
+    emit({ phase: "saving", percent: 95, message: "Saving installer to your downloads…" });
     saveBlobAs(new Blob([buf], { type: "application/octet-stream" }), name);
+    emit({
+      phase: "done",
+      percent: 100,
+      message: release.sha512
+        ? "Download started — verified ✓"
+        : "Download started.",
+    });
     toast({
       title: "Download started!",
       description: release.sha512
@@ -228,6 +343,11 @@ export async function downloadAndVerifyInstaller(): Promise<void> {
         : "Run the installer to begin your flight.",
     });
   } catch (err) {
+    emit({
+      phase: "error",
+      percent: 0,
+      message: (err as Error).message || "Download failed.",
+    });
     toast({
       title: "Download failed",
       description: (err as Error).message || "Please try again in a moment.",
