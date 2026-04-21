@@ -311,6 +311,38 @@ export default function BridgeSetupPage() {
                   Pinned to v{PINNED_BRIDGE_VERSION} · SHA-512 verified in your browser · served direct to your downloads folder
                 </p>
                 {downloadProgress.phase === "error" && (
+                  <>
+                    {(() => {
+                      const issuePhase = lastNonErrorPhase ?? "error";
+                      const lastEvent = getLastBridgeDownloadEvent();
+                      return (
+                        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 space-y-1.5">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-foreground">
+                                We detected an issue during the{" "}
+                                <span className="font-mono text-destructive">{issuePhase}</span> step.
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {PHASE_ISSUE_HINTS[issuePhase]}
+                              </p>
+                              {lastEvent && (
+                                <p className="text-[10px] font-mono text-muted-foreground/80">
+                                  Tracked: phase={lastEvent.phase} · v{PINNED_BRIDGE_VERSION} · {lastEvent.percent}%
+                                  {typeof lastEvent.durationMs === "number"
+                                    ? ` · ${(lastEvent.durationMs / 1000).toFixed(1)}s`
+                                    : ""}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
+                {downloadProgress.phase === "error" && (
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <Button
                       size="sm"
