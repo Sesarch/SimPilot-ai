@@ -68,7 +68,9 @@ const HeroSection = () => {
         </motion.p>
 
         {/* Embedded AI Chat */}
-        <HeroChatBox />
+        <HeroChatBoxBoundary>
+          <HeroChatBox />
+        </HeroChatBoxBoundary>
 
         {/* HUD-style stats */}
         <motion.div
