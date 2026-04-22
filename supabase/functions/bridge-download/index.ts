@@ -74,6 +74,32 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const platform = (url.searchParams.get("platform") ?? "").toLowerCase();
   const version = url.searchParams.get("version") ?? DEFAULT_VERSION;
+  const checkMode = url.searchParams.get("check") === "1";
+
+  // Availability probe: returns { windows: bool, macos: bool, linux: bool }
+  // for the requested version without streaming any bytes.
+  if (checkMode) {
+    try {
+      const platforms = ["windows", "macos", "linux"] as const;
+      const results = await Promise.all(
+        platforms.map(async (p) => {
+          const fn = filenameFor(p, version);
+          if (!fn) return [p, false] as const;
+          const a = await findAsset(token, version, fn);
+          return [p, a !== null] as const;
+        }),
+      );
+      const body: Record<string, unknown> = { version };
+      for (const [p, ok] of results) body[p] = ok;
+      return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      return jsonError(502, `Failed to query GitHub release: ${(err as Error).message}`);
+    }
+  }
+
   const filename = filenameFor(platform, version);
   if (!filename) {
     return jsonError(400, "Invalid platform. Use windows, macos, or linux.");
