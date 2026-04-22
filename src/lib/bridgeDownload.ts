@@ -354,7 +354,7 @@ export async function downloadAndVerifyInstaller(
     });
     const release = await resolveBridgeRelease();
     const validation = validateResolvedRelease(release);
-    if (!validation.ok) {
+    if (validation.ok !== true) {
       emit({ phase: "error", percent: 0, message: validation.message });
       toast({
         title: validation.title,
