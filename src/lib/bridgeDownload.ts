@@ -125,8 +125,18 @@ function writeCache(release: ResolvedBridgeRelease | null) {
   }
 }
 
-async function fetchReleaseFromApi(url: string): Promise<ResolvedBridgeRelease | null> {
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+async function fetchReleaseFromApi(
+  url: string,
+  kind: "tag-api" | "latest-api",
+): Promise<ResolvedBridgeRelease | null> {
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+  } catch (err) {
+    lastResolverAttempts.push({ kind, url, status: null, ok: false, error: (err as Error).message });
+    throw err;
+  }
+  lastResolverAttempts.push({ kind, url, status: res.status, ok: res.ok });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Release server returned ${res.status}`);
   const data = (await res.json()) as {
