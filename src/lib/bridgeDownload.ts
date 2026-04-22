@@ -260,50 +260,58 @@ async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<Reso
 export async function resolveBridgeRelease(
   options: { forceRefresh?: boolean } = {},
 ): Promise<ResolvedBridgeRelease | null> {
-  if (!options.forceRefresh) {
+  if (options.forceRefresh) {
+    // Caller explicitly wants a clean slate — wipe cache + diagnostics + any
+    // pending in-flight resolution so we don't piggy-back on a stale request.
+    clearBridgeReleaseCache();
+  } else {
     const cached = readCache();
     if (cached) return cached.release;
+    // Dedupe concurrent callers (Hero CTA + setup page mounting at once).
+    if (inFlightResolve) return inFlightResolve;
   }
 
-  // Reset per-call diagnostics so the UI shows only this attempt's URLs.
-  lastResolverAttempts = [];
-  lastResolverUsedFallback = false;
+  const run = (async (): Promise<ResolvedBridgeRelease | null> => {
+    lastResolverAttempts = [];
+    lastResolverUsedFallback = false;
 
-  for (const source of RELEASE_SOURCES) {
-    let resolved: ResolvedBridgeRelease | null = null;
-
-    try {
-      resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "tag"), "tag-api");
-      if (!resolved) {
-        resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "latest"), "latest-api");
+    for (const source of RELEASE_SOURCES) {
+      let resolved: ResolvedBridgeRelease | null = null;
+      try {
+        resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "tag"), "tag-api");
+        if (!resolved) {
+          resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "latest"), "latest-api");
+        }
+      } catch {
+        resolved = null;
       }
-    } catch {
-      resolved = null;
+      if (!resolved) {
+        resolved = await fetchReleaseFromDirectAssets(source);
+      }
+      if (resolved) {
+        writeCache(resolved);
+        return resolved;
+      }
     }
 
-    if (!resolved) {
-      resolved = await fetchReleaseFromDirectAssets(source);
-    }
+    const fallback = buildHardFallbackRelease();
+    lastResolverUsedFallback = true;
+    lastResolverAttempts.push({
+      kind: "hard-fallback",
+      url: fallback.installer!.downloadUrl,
+      status: null,
+      ok: true,
+    });
+    writeCache(fallback);
+    return fallback;
+  })();
 
-    if (resolved) {
-      writeCache(resolved);
-      return resolved;
-    }
+  inFlightResolve = run;
+  try {
+    return await run;
+  } finally {
+    if (inFlightResolve === run) inFlightResolve = null;
   }
-
-  // Hard fallback — every discovery path failed (GitHub API down, blocked by
-  // an ad-blocker, rate-limited, etc.). Synthesize the pinned v1.0.0 record
-  // so the button stays enabled and points at the canonical asset URL.
-  const fallback = buildHardFallbackRelease();
-  lastResolverUsedFallback = true;
-  lastResolverAttempts.push({
-    kind: "hard-fallback",
-    url: fallback.installer!.downloadUrl,
-    status: null,
-    ok: true,
-  });
-  writeCache(fallback);
-  return fallback;
 }
 
 /**
