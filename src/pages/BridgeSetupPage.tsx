@@ -50,18 +50,16 @@ export default function BridgeSetupPage() {
       const result = await preflightInstallerUrl(url);
       if (cancelled) return;
 
-      if (result.ok) {
+      if (result.ok === true) {
         setState({ status: "ready" });
         return;
       }
 
-      setState({
-        status: "unavailable",
-        message:
-          result.status === 404
-            ? `${platformLabel} build is not published for pinned v${BRIDGE_VERSION} yet.`
-            : result.message,
-      });
+      const message =
+        result.status === 404
+          ? `${platformLabel} build is not published for pinned v${BRIDGE_VERSION} yet.`
+          : result.message;
+      setState({ status: "unavailable", message });
     };
 
     void Promise.all([
