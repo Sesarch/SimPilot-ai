@@ -78,7 +78,7 @@ const REQUEST_LOG_MAX = 50;
 const requestLog: ReleaseAttemptLogEntry[] = [];
 
 function recordAttempt(attempt: ReleaseAttempt): void {
-  recordAttempt(attempt);
+  lastResolverAttempts.push(attempt);
   requestLog.push({ ...attempt, at: Date.now(), tag: PINNED_TAG });
   if (requestLog.length > REQUEST_LOG_MAX) {
     requestLog.splice(0, requestLog.length - REQUEST_LOG_MAX);
