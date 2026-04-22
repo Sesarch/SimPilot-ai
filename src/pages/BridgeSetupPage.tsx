@@ -50,7 +50,7 @@ export default function BridgeSetupPage() {
       const result = await preflightInstallerUrl(url);
       if (cancelled) return;
 
-      if (result.ok) {
+      if (result.ok === true) {
         setState({ status: "ready" });
         return;
       }
