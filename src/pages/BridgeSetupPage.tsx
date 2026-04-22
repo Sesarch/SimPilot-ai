@@ -393,6 +393,56 @@ export default function BridgeSetupPage() {
               </div>
             )}
 
+            {resolverDiagnostics &&
+              (downloadProgress?.phase === "error" ||
+                resolverDiagnostics.usedHardFallback ||
+                resolverDiagnostics.attempts.some((a) => !a.ok)) && (
+                <div
+                  className="rounded-md border border-destructive/40 bg-destructive/5 p-3 space-y-2"
+                  role="status"
+                  aria-live="polite"
+                  data-testid="bridge-resolver-diagnostics"
+                >
+                  <div className="flex items-center gap-2 text-xs font-display font-semibold uppercase tracking-[0.18em] text-destructive">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Release discovery diagnostics
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    These are the exact URLs the resolver tried and the HTTP status each one returned. Share this block with support if the issue persists.
+                  </p>
+                  <ul className="space-y-1.5">
+                    {resolverDiagnostics.attempts.map((a, i) => (
+                      <li
+                        key={`${a.kind}-${i}`}
+                        className="flex flex-wrap items-start gap-2 rounded border border-border/50 bg-background/40 p-2 text-[11px]"
+                      >
+                        <Badge
+                          variant={a.ok ? "secondary" : "destructive"}
+                          className="font-mono text-[10px] uppercase"
+                        >
+                          {a.kind}
+                        </Badge>
+                        <span className="font-mono text-foreground">
+                          {a.status !== null ? `HTTP ${a.status}` : a.error ? "network error" : "—"}
+                        </span>
+                        <code className="flex-1 break-all font-mono text-muted-foreground">
+                          {a.url}
+                        </code>
+                        {a.error && (
+                          <span className="basis-full text-destructive/80">{a.error}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  {resolverDiagnostics.usedHardFallback && (
+                    <p className="text-[11px] text-muted-foreground">
+                      All discovery paths failed — falling back to the hard-pinned v
+                      {PINNED_BRIDGE_VERSION} asset URL above. The button stays enabled.
+                    </p>
+                  )}
+                </div>
+              )}
+
             {releaseLoading && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
