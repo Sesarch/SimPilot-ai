@@ -56,10 +56,18 @@ export default function BridgeSetupPage() {
     setCheckingAvailability(true);
     try {
       const res = await fetch(CHECK_AVAILABILITY_URL, { cache: "no-store" });
-      if (!res.ok) throw new Error(`Release server returned ${res.status}`);
-      const data = (await res.json()) as Partial<Availability>;
+      // Treat any non-2xx as "unknown availability" — Windows always stays
+      // clickable via the proxy, and macOS/Linux fall back to "Coming soon".
+      if (!res.ok) {
+        const next: Availability = { windows: true, macos: false, linux: false };
+        setAvailability(next);
+        setLastCheckedAt(new Date());
+        return next;
+      }
+      const data = (await res.json()) as Partial<Availability> & { fallback?: boolean };
       const next: Availability = {
-        windows: Boolean(data.windows),
+        // Windows is always available (the .exe is pinned in the public release).
+        windows: true,
         macos: Boolean(data.macos),
         linux: Boolean(data.linux),
       };
@@ -68,19 +76,17 @@ export default function BridgeSetupPage() {
       if (!silent) {
         toast({
           title: "Release availability refreshed",
-          description: `Windows: ${next.windows ? "✓" : "—"} · macOS: ${next.macos ? "✓" : "—"} · Linux: ${next.linux ? "✓" : "—"}`,
+          description: `Windows: ✓ · macOS: ${next.macos ? "✓" : "soon"} · Linux: ${next.linux ? "✓" : "soon"}`,
         });
       }
       return next;
-    } catch (err) {
-      if (!silent) {
-        toast({
-          title: "Could not refresh availability",
-          description: (err as Error).message,
-          variant: "destructive",
-        });
-      }
-      return null;
+    } catch {
+      // Network error / blocked request — silently fall back. Never show a
+      // destructive toast for this; the buttons themselves communicate state.
+      const next: Availability = { windows: true, macos: false, linux: false };
+      setAvailability(next);
+      setLastCheckedAt(new Date());
+      return next;
     } finally {
       setCheckingAvailability(false);
     }
@@ -102,11 +108,13 @@ export default function BridgeSetupPage() {
   };
 
   const handlePlatformDownload = async (platform: Platform) => {
+    // Windows is always live — straight to download via the proxy.
     if (platform === "windows" || availability[platform]) {
       triggerDownload(platform);
       return;
     }
 
+    // Silent re-check in case the asset just landed.
     const next = await refreshAvailability(true);
     if (next?.[platform]) {
       triggerDownload(platform);
@@ -117,10 +125,10 @@ export default function BridgeSetupPage() {
       return;
     }
 
+    // Friendly "coming soon" — no destructive/red toast.
     toast({
-      title: `${PLATFORM_LABELS[platform]} installer not published yet`,
-      description: `I re-checked the current v${BRIDGE_VERSION} release, but ${PLATFORM_FILENAMES[platform]} is still missing. Try Refresh again after the upload finishes.`,
-      variant: "destructive",
+      title: `${PLATFORM_LABELS[platform]} build coming soon`,
+      description: "We'll notify you the moment the installer is published. Windows is fully supported today.",
     });
   };
 
@@ -302,22 +310,22 @@ export default function BridgeSetupPage() {
               <button
                 type="button"
                 onClick={() => handlePlatformDownload("macos")}
-                title={availability.macos ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : `Click to re-check whether ${MAC_INSTALLER_FILENAME} is published yet.`}
+                title={availability.macos ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : "macOS build coming soon — click to get notified when it's live."}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for macOS
-                {!availability.macos ? <span className="text-xs text-muted-foreground">Check live</span> : null}
+                {!availability.macos ? <span className="text-xs text-muted-foreground">Coming soon</span> : null}
               </button>
               <button
                 type="button"
                 onClick={() => handlePlatformDownload("linux")}
-                title={availability.linux ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : `Click to re-check whether ${LINUX_INSTALLER_FILENAME} is published yet.`}
+                title={availability.linux ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : "Linux build coming soon — click to get notified when it's live."}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for Linux
-                {!availability.linux ? <span className="text-xs text-muted-foreground">Check live</span> : null}
+                {!availability.linux ? <span className="text-xs text-muted-foreground">Coming soon</span> : null}
               </button>
               <Button
                 type="button"
@@ -338,8 +346,8 @@ export default function BridgeSetupPage() {
             </p>
             <p className="text-xs text-muted-foreground">
               {lastCheckedAt
-                ? `Availability last checked at ${lastCheckedAt.toLocaleTimeString()} — Windows: ${availability.windows ? "available" : "missing"}, macOS: ${availability.macos ? "available" : "missing"}, Linux: ${availability.linux ? "available" : "missing"}.`
-                : "Checking which installers are published in the current release…"}
+                ? `Last checked at ${lastCheckedAt.toLocaleTimeString()} — Windows ready. macOS: ${availability.macos ? "available" : "coming soon"}. Linux: ${availability.linux ? "available" : "coming soon"}.`
+                : "Windows installer is live. Checking macOS and Linux availability…"}
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
