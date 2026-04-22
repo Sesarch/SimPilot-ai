@@ -8,7 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
-import { buildPinnedBridgeReleaseUrl, PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
+import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
@@ -25,8 +25,9 @@ const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-linux-x64.tar
 const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 const buildDownloadUrl = (platform: "windows" | "macos" | "linux") =>
   `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?platform=${platform}&version=${BRIDGE_VERSION}`;
-const RELEASE_PAGE_URL = buildPinnedBridgeReleaseUrl();
 const INSTALLER_DIRECT_URL = buildDownloadUrl("windows");
+const MAC_INSTALLER_AVAILABLE = false;
+const LINUX_INSTALLER_AVAILABLE = false;
 
 export default function BridgeSetupPage() {
   const { settings } = useSiteSettings();
@@ -35,12 +36,12 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const macDownloadUrl = settings.bridge_direct_download_enabled
+  const macDownloadUrl = settings.bridge_direct_download_enabled && MAC_INSTALLER_AVAILABLE
     ? buildDownloadUrl("macos")
-    : RELEASE_PAGE_URL;
-  const linuxDownloadUrl = settings.bridge_direct_download_enabled
+    : null;
+  const linuxDownloadUrl = settings.bridge_direct_download_enabled && LINUX_INSTALLER_AVAILABLE
     ? buildDownloadUrl("linux")
-    : RELEASE_PAGE_URL;
+    : null;
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -218,34 +219,55 @@ export default function BridgeSetupPage() {
                 <Download className="h-5 w-5" />
                 Download for Windows
               </a>
-              <a
-                href={macDownloadUrl}
-                download={settings.bridge_direct_download_enabled ? MAC_INSTALLER_FILENAME : undefined}
-                rel="noopener noreferrer"
-                title={settings.bridge_direct_download_enabled
-                  ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
-                  : `Open the v${BRIDGE_VERSION} release page.`}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-              >
-                <Download className="h-5 w-5" />
-                Download for macOS
-              </a>
-              <a
-                href={linuxDownloadUrl}
-                download={settings.bridge_direct_download_enabled ? LINUX_INSTALLER_FILENAME : undefined}
-                rel="noopener noreferrer"
-                title={settings.bridge_direct_download_enabled
-                  ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
-                  : `Open the v${BRIDGE_VERSION} release page.`}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-              >
-                <Download className="h-5 w-5" />
-                Download for Linux
-              </a>
+              {macDownloadUrl ? (
+                <a
+                  href={macDownloadUrl}
+                  download={MAC_INSTALLER_FILENAME}
+                  rel="noopener noreferrer"
+                  title={`Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
+                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+                >
+                  <Download className="h-5 w-5" />
+                  Download for macOS
+                </a>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  title={`macOS installer is not published for v${BRIDGE_VERSION} yet.`}
+                  className="inline-flex cursor-not-allowed items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted text-muted-foreground opacity-70 font-semibold text-sm"
+                >
+                  <Download className="h-5 w-5" />
+                  macOS unavailable
+                </span>
+              )}
+              {linuxDownloadUrl ? (
+                <a
+                  href={linuxDownloadUrl}
+                  download={LINUX_INSTALLER_FILENAME}
+                  rel="noopener noreferrer"
+                  title={`Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
+                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+                >
+                  <Download className="h-5 w-5" />
+                  Download for Linux
+                </a>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  title={`Linux installer is not published for v${BRIDGE_VERSION} yet.`}
+                  className="inline-flex cursor-not-allowed items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted text-muted-foreground opacity-70 font-semibold text-sm"
+                >
+                  <Download className="h-5 w-5" />
+                  Linux unavailable
+                </span>
+              )}
             </div>
 
             <p className="text-xs text-muted-foreground">
               Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Only the Windows installer is published in the current release, so macOS and Linux stay disabled until those files are uploaded.
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
