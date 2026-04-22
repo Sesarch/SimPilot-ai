@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
+import { getBridgeDirectDownloadEnabled } from "@/lib/bridgeDownloadMode";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 type TestState = "idle" | "testing" | "success" | "failure";
