@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles } from "lucide-react";
+import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,8 +26,9 @@ const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 const buildDownloadUrl = (platform: "windows" | "macos" | "linux") =>
   `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?platform=${platform}&version=${BRIDGE_VERSION}`;
 const INSTALLER_DIRECT_URL = buildDownloadUrl("windows");
-const MAC_INSTALLER_AVAILABLE = false;
-const LINUX_INSTALLER_AVAILABLE = false;
+const CHECK_AVAILABILITY_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?check=1&version=${BRIDGE_VERSION}`;
+
+type Availability = { windows: boolean; macos: boolean; linux: boolean };
 
 export default function BridgeSetupPage() {
   const { settings } = useSiteSettings();
@@ -36,10 +37,51 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const macDownloadUrl = settings.bridge_direct_download_enabled && MAC_INSTALLER_AVAILABLE
+  const [availability, setAvailability] = useState<Availability>({ windows: true, macos: false, linux: false });
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
+
+  const refreshAvailability = async (silent = false) => {
+    setCheckingAvailability(true);
+    try {
+      const res = await fetch(CHECK_AVAILABILITY_URL, { cache: "no-store" });
+      if (!res.ok) throw new Error(`Release server returned ${res.status}`);
+      const data = (await res.json()) as Partial<Availability>;
+      const next: Availability = {
+        windows: Boolean(data.windows),
+        macos: Boolean(data.macos),
+        linux: Boolean(data.linux),
+      };
+      setAvailability(next);
+      setLastCheckedAt(new Date());
+      if (!silent) {
+        toast({
+          title: "Release availability refreshed",
+          description: `Windows: ${next.windows ? "✓" : "—"} · macOS: ${next.macos ? "✓" : "—"} · Linux: ${next.linux ? "✓" : "—"}`,
+        });
+      }
+    } catch (err) {
+      if (!silent) {
+        toast({
+          title: "Could not refresh availability",
+          description: (err as Error).message,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshAvailability(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const macDownloadUrl = settings.bridge_direct_download_enabled && availability.macos
     ? buildDownloadUrl("macos")
     : null;
-  const linuxDownloadUrl = settings.bridge_direct_download_enabled && LINUX_INSTALLER_AVAILABLE
+  const linuxDownloadUrl = settings.bridge_direct_download_enabled && availability.linux
     ? buildDownloadUrl("linux")
     : null;
 
@@ -261,13 +303,27 @@ export default function BridgeSetupPage() {
                   Linux unavailable
                 </span>
               )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => refreshAvailability(false)}
+                disabled={checkingAvailability}
+                className="h-11"
+                title="Re-check which installers are published in the current release"
+              >
+                <RefreshCw className={`h-4 w-4 ${checkingAvailability ? "animate-spin" : ""}`} />
+                {checkingAvailability ? "Checking…" : "Refresh"}
+              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
               Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
             </p>
             <p className="text-xs text-muted-foreground">
-              Only the Windows installer is published in the current release, so macOS and Linux stay disabled until those files are uploaded.
+              {lastCheckedAt
+                ? `Availability last checked at ${lastCheckedAt.toLocaleTimeString()} — Windows: ${availability.windows ? "available" : "missing"}, macOS: ${availability.macos ? "available" : "missing"}, Linux: ${availability.linux ? "available" : "missing"}.`
+                : "Checking which installers are published in the current release…"}
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
