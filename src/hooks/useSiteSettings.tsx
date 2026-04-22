@@ -9,6 +9,7 @@ export type SiteSettings = {
   ground_school_enabled: boolean;
   weather_enabled: boolean;
   live_tools_enabled: boolean;
+  bridge_direct_download_enabled: boolean;
 };
 
 const defaults: SiteSettings = {
@@ -19,6 +20,7 @@ const defaults: SiteSettings = {
   ground_school_enabled: true,
   weather_enabled: true,
   live_tools_enabled: true,
+  bridge_direct_download_enabled: false,
 };
 
 type Ctx = { settings: SiteSettings; loading: boolean };
@@ -32,6 +34,19 @@ export const SiteSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const applySettings = (data: Record<string, unknown>) => {
+      setSettings({
+        maintenance_mode: Boolean(data.maintenance_mode),
+        announcement: typeof data.announcement === "string" ? data.announcement : "",
+        signup_enabled: Boolean(data.signup_enabled),
+        chat_enabled: Boolean(data.chat_enabled),
+        ground_school_enabled: Boolean(data.ground_school_enabled),
+        weather_enabled: Boolean(data.weather_enabled),
+        live_tools_enabled: Boolean(data.live_tools_enabled),
+        bridge_direct_download_enabled: Boolean(data.bridge_direct_download_enabled),
+      });
+    };
+
     const fetch = async () => {
       const { data } = await supabase
         .from("site_settings")
@@ -39,19 +54,22 @@ export const SiteSettingsProvider = ({ children }: { children: ReactNode }) => {
         .eq("id", 1)
         .single();
       if (data) {
-        setSettings({
-          maintenance_mode: data.maintenance_mode,
-          announcement: data.announcement,
-          signup_enabled: data.signup_enabled,
-          chat_enabled: data.chat_enabled,
-          ground_school_enabled: data.ground_school_enabled,
-          weather_enabled: data.weather_enabled,
-          live_tools_enabled: data.live_tools_enabled,
-        });
+        applySettings(data as unknown as Record<string, unknown>);
       }
       setLoading(false);
     };
+
+    const syncFromAdmin = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>).detail;
+      if (detail) applySettings(detail);
+    };
+
+    window.addEventListener("simpilot:site-settings-updated", syncFromAdmin as EventListener);
     fetch();
+
+    return () => {
+      window.removeEventListener("simpilot:site-settings-updated", syncFromAdmin as EventListener);
+    };
   }, []);
 
   return (
