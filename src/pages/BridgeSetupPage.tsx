@@ -8,8 +8,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
-import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
+import { buildPinnedBridgeReleaseUrl, PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 type TestState = "idle" | "testing" | "success" | "failure";
 const BRIDGE_URL = "ws://localhost:8080";
@@ -24,16 +25,22 @@ const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-linux-x64.tar
 const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 const buildDownloadUrl = (platform: "windows" | "macos" | "linux") =>
   `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?platform=${platform}&version=${BRIDGE_VERSION}`;
+const RELEASE_PAGE_URL = buildPinnedBridgeReleaseUrl();
 const INSTALLER_DIRECT_URL = buildDownloadUrl("windows");
-const MAC_INSTALLER_DIRECT_URL = buildDownloadUrl("macos");
-const LINUX_INSTALLER_DIRECT_URL = buildDownloadUrl("linux");
 
 export default function BridgeSetupPage() {
+  const { settings } = useSiteSettings();
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const macDownloadUrl = settings.bridge_direct_download_enabled
+    ? buildDownloadUrl("macos")
+    : RELEASE_PAGE_URL;
+  const linuxDownloadUrl = settings.bridge_direct_download_enabled
+    ? buildDownloadUrl("linux")
+    : RELEASE_PAGE_URL;
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -212,20 +219,24 @@ export default function BridgeSetupPage() {
                 Download for Windows
               </a>
               <a
-                href={MAC_INSTALLER_DIRECT_URL}
-                download={MAC_INSTALLER_FILENAME}
+                href={macDownloadUrl}
+                download={settings.bridge_direct_download_enabled ? MAC_INSTALLER_FILENAME : undefined}
                 rel="noopener noreferrer"
-                title={`Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
+                title={settings.bridge_direct_download_enabled
+                  ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
+                  : `Open the v${BRIDGE_VERSION} release page.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for macOS
               </a>
               <a
-                href={LINUX_INSTALLER_DIRECT_URL}
-                download={LINUX_INSTALLER_FILENAME}
+                href={linuxDownloadUrl}
+                download={settings.bridge_direct_download_enabled ? LINUX_INSTALLER_FILENAME : undefined}
                 rel="noopener noreferrer"
-                title={`Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
+                title={settings.bridge_direct_download_enabled
+                  ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
+                  : `Open the v${BRIDGE_VERSION} release page.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
