@@ -202,55 +202,39 @@ export default function BridgeSetupPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => handlePlatformDownload("windows")}
+              <a
+                href={INSTALLER_DIRECT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 h-11 rounded-md px-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for Windows
+              </a>
+              <button
+                type="button"
+                onClick={() => handleComingSoon("macOS")}
+                title="Coming soon — v1.0.0 is Windows-only"
+                aria-disabled="true"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed font-semibold text-sm opacity-60"
+              >
+                <Lock className="h-4 w-4" />
+                macOS · Coming soon
               </button>
               <button
                 type="button"
-                onClick={() => handlePlatformDownload("macos")}
-                title={availability.macos ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : "macOS build coming soon — click to get notified when it's live."}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+                onClick={() => handleComingSoon("Linux")}
+                title="Coming soon — v1.0.0 is Windows-only"
+                aria-disabled="true"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed font-semibold text-sm opacity-60"
               >
-                <Download className="h-5 w-5" />
-                Download for macOS
-                {!availability.macos ? <span className="text-xs text-muted-foreground">Coming soon</span> : null}
+                <Lock className="h-4 w-4" />
+                Linux · Coming soon
               </button>
-              <button
-                type="button"
-                onClick={() => handlePlatformDownload("linux")}
-                title={availability.linux ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : "Linux build coming soon — click to get notified when it's live."}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-              >
-                <Download className="h-5 w-5" />
-                Download for Linux
-                {!availability.linux ? <span className="text-xs text-muted-foreground">Coming soon</span> : null}
-              </button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => refreshAvailability(false)}
-                disabled={checkingAvailability}
-                className="h-11"
-                title="Re-check which installers are published in the current release"
-              >
-                <RefreshCw className={`h-4 w-4 ${checkingAvailability ? "animate-spin" : ""}`} />
-                {checkingAvailability ? "Checking…" : "Refresh"}
-              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {lastCheckedAt
-                ? `Last checked at ${lastCheckedAt.toLocaleTimeString()} — Windows ready. macOS: ${availability.macos ? "available" : "coming soon"}. Linux: ${availability.linux ? "available" : "coming soon"}.`
-                : "Windows installer is live. Checking macOS and Linux availability…"}
+              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS &amp; Linux builds coming soon.
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
