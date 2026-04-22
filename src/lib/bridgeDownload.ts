@@ -49,6 +49,32 @@ type ReleaseCacheEntry = { cachedAt: number; release: ResolvedBridgeRelease | nu
 
 type ReleaseSource = (typeof RELEASE_SOURCES)[number];
 
+// Hard fallback source — used to synthesize a pinned release when every
+// upstream discovery path fails (GitHub API rate-limited, ad-blocker, etc.).
+// The button stays clickable and points at the canonical v1.0.0 asset.
+const HARD_FALLBACK_SOURCE: ReleaseSource = { owner: "simpilot-ai", repo: "bridge" };
+
+/**
+ * Synthesizes a pinned-release record from the explicit v1.0.0 asset URL.
+ * No network calls — guaranteed to succeed so the download button is never
+ * dead. Checksum is null (verification is skipped) but the URL is still a
+ * trusted GitHub release asset, so `validateResolvedRelease` will accept it.
+ */
+function buildHardFallbackRelease(): ResolvedBridgeRelease {
+  const installerName = `SimPilotBridge-Setup-${PINNED_BRIDGE_VERSION}.exe`;
+  return {
+    tagName: PINNED_TAG,
+    publishedAt: null,
+    htmlUrl: `https://github.com/${HARD_FALLBACK_SOURCE.owner}/${HARD_FALLBACK_SOURCE.repo}/releases/tag/${PINNED_TAG}`,
+    installer: {
+      name: installerName,
+      downloadUrl: buildReleaseAssetUrl(HARD_FALLBACK_SOURCE, installerName),
+      sizeBytes: 0,
+    },
+    sha512: null,
+  };
+}
+
 function readCache(): ReleaseCacheEntry | null {
   try {
     const raw = localStorage.getItem(RELEASE_CACHE_KEY);
@@ -192,8 +218,12 @@ export async function resolveBridgeRelease(
     }
   }
 
-  writeCache(null);
-  return null;
+  // Hard fallback — every discovery path failed (GitHub API down, blocked by
+  // an ad-blocker, rate-limited, etc.). Synthesize the pinned v1.0.0 record
+  // so the button stays enabled and points at the canonical asset URL.
+  const fallback = buildHardFallbackRelease();
+  writeCache(fallback);
+  return fallback;
 }
 
 /**
