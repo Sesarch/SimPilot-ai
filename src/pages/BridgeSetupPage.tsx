@@ -99,7 +99,10 @@ export default function BridgeSetupPage() {
         setReleaseError(null);
         const resolved = await resolveBridgeRelease();
         if (!cancelled) setRelease(resolved);
-        if (!cancelled) setResolverDiagnostics(getLastResolverDiagnostics());
+        if (!cancelled) {
+          setResolverDiagnostics(getLastResolverDiagnostics());
+          refreshRequestLog();
+        }
       } catch (err) {
         if (!cancelled) {
           setReleaseError((err as Error).message);
