@@ -278,6 +278,35 @@ export default function BridgeSetupPage() {
               Download the Windows installer, run <span className="font-mono text-foreground">SimPilotBridge.exe</span>, and
               leave it open while you fly. macOS / Linux builds are coming soon — for now you can run it from source.
             </p>
+
+            {/* Hard-fallback banner — visible whenever the resolver couldn't
+                reach GitHub and synthesized the pinned v1.0.0 URL directly.
+                Tells the user the download still works AND whether SHA-512
+                verification will be skipped (no checksum was discoverable). */}
+            {resolverDiagnostics?.usedHardFallback && (
+              <div
+                className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 flex items-start gap-2"
+                role="status"
+                aria-live="polite"
+                data-testid="bridge-hard-fallback-banner"
+              >
+                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <div className="space-y-1 text-xs">
+                  <p className="font-medium text-foreground">
+                    Using hard-pinned v{PINNED_BRIDGE_VERSION} URL
+                  </p>
+                  <p className="text-muted-foreground">
+                    The release server couldn't be reached, so we're serving the canonical
+                    v{PINNED_BRIDGE_VERSION} installer URL directly. The download still works.
+                  </p>
+                  <p className={release?.sha512 ? "text-muted-foreground" : "text-amber-600 dark:text-amber-400 font-medium"}>
+                    {release?.sha512
+                      ? "SHA-512 checksum verification: enabled ✓"
+                      : "SHA-512 checksum verification: skipped (no checksum available offline)"}
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="flex flex-wrap gap-3">
               {release?.installer ? (
                 <Button
