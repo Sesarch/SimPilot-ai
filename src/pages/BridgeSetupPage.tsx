@@ -8,8 +8,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
-import { getBridgeDirectDownloadEnabled } from "@/lib/bridgeDownloadMode";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 type TestState = "idle" | "testing" | "success" | "failure";
@@ -31,25 +31,13 @@ const MAC_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${MAC_INSTALLER_FILENAME}`
 const LINUX_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${LINUX_INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
+  const { settings } = useSiteSettings();
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [directDownload, setDirectDownload] = useState<boolean>(() => getBridgeDirectDownloadEnabled());
-
-  useEffect(() => {
-    const sync = () => setDirectDownload(getBridgeDirectDownloadEnabled());
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "simpilot.bridge.macLinuxDirectDownload") sync();
-    };
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("simpilot:bridge-download-mode-changed", sync as EventListener);
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("simpilot:bridge-download-mode-changed", sync as EventListener);
-    };
-  }, []);
+  const directDownload = settings.bridge_direct_download_enabled;
 
   const macHref = directDownload ? MAC_INSTALLER_DIRECT_URL : MAC_RELEASE_PAGE_URL;
   const linuxHref = directDownload ? LINUX_INSTALLER_DIRECT_URL : LINUX_RELEASE_PAGE_URL;
