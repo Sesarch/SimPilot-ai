@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles } from "lucide-react";
+import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, Radio, Copy, ShieldCheck, Link2, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,56 +8,18 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  PINNED_BRIDGE_VERSION,
-  resolveBridgeRelease,
-  downloadAndVerifyInstaller,
-  getLastResolverDiagnostics,
-  clearBridgeReleaseCache,
-  getResolverRequestLog,
-  clearResolverRequestLog,
-  type ResolvedBridgeRelease,
-  type DownloadProgress,
-  type ReleaseAttempt,
-  type ReleaseAttemptLogEntry,
-} from "@/lib/bridgeDownload";
-import { Progress } from "@/components/ui/progress";
-import { getLastBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
+import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
-
-// Maps the last successful phase before an error into a short, actionable
-// self-correction hint. Sourced from the same analytics stream that powers
-// our funnel dashboards so support copy stays in sync with what we track.
-const PHASE_ISSUE_HINTS: Record<DownloadProgress["phase"], string> = {
-  idle: "The download didn't start. Check your network connection and try again.",
-  resolving:
-    "We couldn't reach the release server. A VPN, ad-blocker, or corporate firewall may be blocking the request — try disabling them or switching networks.",
-  downloading:
-    "The installer download was interrupted. This is usually a flaky network or an antivirus scanning the file mid-transfer — pause your VPN/AV and retry.",
-  verifying:
-    "The installer didn't match the published SHA-512 checksum. The file may be corrupted in transit or modified by a proxy — retry on a different network if this repeats.",
-  saving:
-    "Your browser blocked the file save. Allow downloads from this site in your browser settings, then click Retry.",
-  done: "The download started, but something else went wrong afterwards. Try again — your previous file is safe.",
-  error: "Something unexpected went wrong. Please retry — most issues clear on a second attempt.",
-};
 
 type TestState = "idle" | "testing" | "success" | "failure";
 
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
 
-// Pinned to v1.0.0 (resolver falls back to /latest if the tag isn't published).
+// Pinned installer — direct GitHub release asset, no resolver indirection.
 const BRIDGE_VERSION = PINNED_BRIDGE_VERSION;
-
-type ResolvedRelease = ResolvedBridgeRelease;
-
-function formatBytes(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes <= 0) return "—";
-  const mb = bytes / (1024 * 1024);
-  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
-}
-
+const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
+const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/${INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
