@@ -231,24 +231,32 @@ export default function BridgeSetupPage() {
                 Download for Windows
               </a>
               <a
-                href={MAC_RELEASE_PAGE_URL}
-                target="_blank"
+                href={macHref}
+                {...(directDownload
+                  ? { download: MAC_INSTALLER_FILENAME }
+                  : { target: "_blank" as const })}
                 rel="noopener noreferrer"
-                title={`Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${MAC_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
+                title={directDownload
+                  ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
+                  : `Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${MAC_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
-                macOS — View release
+                {directDownload ? "Download for macOS" : "macOS — View release"}
               </a>
               <a
-                href={LINUX_RELEASE_PAGE_URL}
-                target="_blank"
+                href={linuxHref}
+                {...(directDownload
+                  ? { download: LINUX_INSTALLER_FILENAME }
+                  : { target: "_blank" as const })}
                 rel="noopener noreferrer"
-                title={`Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${LINUX_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
+                title={directDownload
+                  ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
+                  : `Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${LINUX_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
-                Linux — View release
+                {directDownload ? "Download for Linux" : "Linux — View release"}
               </a>
             </div>
 
