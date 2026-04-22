@@ -190,11 +190,11 @@ releaseDate: '$date'
             bridge-desktop/installer/output/latest.yml
 
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
           name: SimPilot Bridge ${{ steps.version.outputs.version }}
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}', steps.version.outputs.version) }}
           generate_release_notes: true
           files: |
             bridge-desktop/installer/output/SimPilotBridge-Setup-${{ steps.version.outputs.version }}.exe
@@ -281,11 +281,11 @@ releaseDate: '$date'
           path: bridge-desktop/installer/output/*.zip
 
       - name: Publish to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
           name: SimPilot Bridge ${{ steps.version.outputs.version }}
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}', steps.version.outputs.version) }}
           generate_release_notes: true
           files: |
             bridge-desktop/installer/output/SimPilotBridge-${{ steps.version.outputs.version }}-mac-universal.zip
@@ -367,11 +367,11 @@ releaseDate: '$date'
           path: bridge-desktop/installer/output/*.tar.gz
 
       - name: Publish to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
           name: SimPilot Bridge ${{ steps.version.outputs.version }}
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}', steps.version.outputs.version) }}
           generate_release_notes: true
           files: |
             bridge-desktop/installer/output/SimPilotBridge-${{ steps.version.outputs.version }}-linux-x64.tar.gz
