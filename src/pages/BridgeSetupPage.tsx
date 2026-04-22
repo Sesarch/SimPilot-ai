@@ -8,10 +8,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
-import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
+import { PINNED_BRIDGE_VERSION, preflightInstallerUrl } from "@/lib/bridgeDownload";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 type TestState = "idle" | "testing" | "success" | "failure";
+type PlatformAssetState = {
+  status: "checking" | "ready" | "unavailable";
+  message?: string;
+};
 
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
@@ -32,6 +36,43 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [macAssetState, setMacAssetState] = useState<PlatformAssetState>({ status: "checking" });
+  const [linuxAssetState, setLinuxAssetState] = useState<PlatformAssetState>({ status: "checking" });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkPlatformAsset = async (
+      setState: (state: PlatformAssetState) => void,
+      url: string,
+      platformLabel: string,
+    ) => {
+      const result = await preflightInstallerUrl(url);
+      if (cancelled) return;
+
+      if (result.ok) {
+        setState({ status: "ready" });
+        return;
+      }
+
+      setState({
+        status: "unavailable",
+        message:
+          result.status === 404
+            ? `${platformLabel} build is not published for pinned v${BRIDGE_VERSION} yet.`
+            : result.message,
+      });
+    };
+
+    void Promise.all([
+      checkPlatformAsset(setMacAssetState, MAC_INSTALLER_DIRECT_URL, "macOS"),
+      checkPlatformAsset(setLinuxAssetState, LINUX_INSTALLER_DIRECT_URL, "Linux"),
+    ]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -209,27 +250,57 @@ export default function BridgeSetupPage() {
                 <Download className="h-5 w-5" />
                 Download for Windows
               </a>
-              <a
-                href={MAC_INSTALLER_DIRECT_URL}
-                download={MAC_INSTALLER_FILENAME}
-                rel="noopener noreferrer"
-                title={`Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-              >
-                <Download className="h-5 w-5" />
-                Download for macOS
-              </a>
-              <a
-                href={LINUX_INSTALLER_DIRECT_URL}
-                download={LINUX_INSTALLER_FILENAME}
-                rel="noopener noreferrer"
-                title={`Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-              >
-                <Download className="h-5 w-5" />
-                Download for Linux
-              </a>
+              {macAssetState.status === "ready" ? (
+                <a
+                  href={MAC_INSTALLER_DIRECT_URL}
+                  download={MAC_INSTALLER_FILENAME}
+                  rel="noopener noreferrer"
+                  title={`Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
+                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+                >
+                  <Download className="h-5 w-5" />
+                  Download for macOS
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  title={macAssetState.message ?? "Checking macOS build availability"}
+                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background text-muted-foreground transition-all font-semibold text-sm opacity-70 cursor-not-allowed"
+                >
+                  {macAssetState.status === "checking" ? <Loader2 className="h-5 w-5 animate-spin" /> : <AlertTriangle className="h-5 w-5" />}
+                  {macAssetState.status === "checking" ? "Checking macOS build…" : "macOS build unavailable"}
+                </button>
+              )}
+              {linuxAssetState.status === "ready" ? (
+                <a
+                  href={LINUX_INSTALLER_DIRECT_URL}
+                  download={LINUX_INSTALLER_FILENAME}
+                  rel="noopener noreferrer"
+                  title={`Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
+                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+                >
+                  <Download className="h-5 w-5" />
+                  Download for Linux
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  title={linuxAssetState.message ?? "Checking Linux build availability"}
+                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background text-muted-foreground transition-all font-semibold text-sm opacity-70 cursor-not-allowed"
+                >
+                  {linuxAssetState.status === "checking" ? <Loader2 className="h-5 w-5 animate-spin" /> : <AlertTriangle className="h-5 w-5" />}
+                  {linuxAssetState.status === "checking" ? "Checking Linux build…" : "Linux build unavailable"}
+                </button>
+              )}
             </div>
+
+            {(macAssetState.status === "unavailable" || linuxAssetState.status === "unavailable") && (
+              <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                macOS and Linux downloads only enable after those exact files are published to the pinned v{BRIDGE_VERSION} release.
+              </div>
+            )}
 
             <p className="text-xs text-muted-foreground">
               Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
