@@ -51,6 +51,7 @@ const AdminSiteSettings = () => {
         setGroundSchoolEnabled(data.ground_school_enabled);
         setWeatherEnabled(data.weather_enabled);
         setLiveToolsEnabled(data.live_tools_enabled);
+        setBridgeDirectDownload(Boolean((data as { bridge_direct_download_enabled?: boolean }).bridge_direct_download_enabled));
       }
       setLoading(false);
     };
@@ -59,22 +60,26 @@ const AdminSiteSettings = () => {
 
   const handleSave = async () => {
     setSaving(true);
+    const nextSettings = {
+      maintenance_mode: maintenanceMode,
+      announcement,
+      signup_enabled: signupEnabled,
+      chat_enabled: chatEnabled,
+      ground_school_enabled: groundSchoolEnabled,
+      weather_enabled: weatherEnabled,
+      live_tools_enabled: liveToolsEnabled,
+      bridge_direct_download_enabled: bridgeDirectDownload,
+    };
     const { error } = await supabase
       .from("site_settings")
-      .update({
-        maintenance_mode: maintenanceMode,
-        announcement,
-        signup_enabled: signupEnabled,
-        chat_enabled: chatEnabled,
-        ground_school_enabled: groundSchoolEnabled,
-        weather_enabled: weatherEnabled,
-        live_tools_enabled: liveToolsEnabled,
-      })
+      .update(nextSettings)
       .eq("id", 1);
 
     if (error) {
       toast.error("Failed to save settings");
     } else {
+      setBridgeDirectDownloadEnabled(bridgeDirectDownload);
+      window.dispatchEvent(new CustomEvent("simpilot:site-settings-updated", { detail: nextSettings }));
       toast.success("Settings saved successfully");
     }
     setSaving(false);
