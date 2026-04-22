@@ -189,8 +189,7 @@ export default function BridgeSetupPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Download the Windows installer, run <span className="font-mono text-foreground">SimPilotBridge.exe</span>, and
-              leave it open while you fly. macOS / Linux builds are coming soon — for now you can run it from source.
+              Download the installer for your platform, run the bridge app, and leave it open while you fly.
             </p>
 
             <div className="flex flex-wrap gap-3">
@@ -203,10 +202,28 @@ export default function BridgeSetupPage() {
                 <Download className="h-5 w-5" />
                 Download for Windows
               </a>
+              <a
+                href={MAC_INSTALLER_DIRECT_URL}
+                download={MAC_INSTALLER_FILENAME}
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+              >
+                <Download className="h-5 w-5" />
+                Download for macOS
+              </a>
+              <a
+                href={LINUX_INSTALLER_DIRECT_URL}
+                download={LINUX_INSTALLER_FILENAME}
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+              >
+                <Download className="h-5 w-5" />
+                Download for Linux
+              </a>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Pinned to v{BRIDGE_VERSION} · {INSTALLER_FILENAME}
+              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
