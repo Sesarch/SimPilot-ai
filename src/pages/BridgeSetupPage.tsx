@@ -395,9 +395,11 @@ export default function BridgeSetupPage() {
                           const fresh = await resolveBridgeRelease({ forceRefresh: true });
                           if (fresh) setRelease(fresh);
                           setResolverDiagnostics(getLastResolverDiagnostics());
+                          refreshRequestLog();
                         } catch (err) {
                           setReleaseError((err as Error).message);
                           setResolverDiagnostics(getLastResolverDiagnostics());
+                          refreshRequestLog();
                         }
                         downloadAndVerifyInstaller({ onProgress: handleDownloadProgress });
                       }}
