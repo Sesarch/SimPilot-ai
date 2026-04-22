@@ -61,14 +61,44 @@ export type ReleaseAttempt = {
   error?: string;
 };
 
+/** Timestamped attempt record for the persistent request log. */
+export type ReleaseAttemptLogEntry = ReleaseAttempt & {
+  /** Unix ms when the attempt completed. */
+  at: number;
+  /** Pinned tag the resolver was targeting at the time of the attempt. */
+  tag: string;
+};
+
 let lastResolverAttempts: ReleaseAttempt[] = [];
 let lastResolverUsedFallback = false;
+
+// Rolling history of every resolver attempt across the session, capped so it
+// can't grow unbounded. Surfaced via the on-page "Request log" panel.
+const REQUEST_LOG_MAX = 50;
+const requestLog: ReleaseAttemptLogEntry[] = [];
+
+function recordAttempt(attempt: ReleaseAttempt): void {
+  lastResolverAttempts.push(attempt);
+  requestLog.push({ ...attempt, at: Date.now(), tag: PINNED_TAG });
+  if (requestLog.length > REQUEST_LOG_MAX) {
+    requestLog.splice(0, requestLog.length - REQUEST_LOG_MAX);
+  }
+}
 
 export function getLastResolverDiagnostics(): {
   attempts: ReleaseAttempt[];
   usedHardFallback: boolean;
 } {
   return { attempts: lastResolverAttempts, usedHardFallback: lastResolverUsedFallback };
+}
+
+/** Full rolling request log (newest last). */
+export function getResolverRequestLog(): ReleaseAttemptLogEntry[] {
+  return requestLog.slice();
+}
+
+export function clearResolverRequestLog(): void {
+  requestLog.length = 0;
 }
 
 // Hard fallback source — used to synthesize a pinned release when every
