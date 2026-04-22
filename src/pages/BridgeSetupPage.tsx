@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
+import { getBridgeDirectDownloadEnabled } from "@/lib/bridgeDownloadMode";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 type TestState = "idle" | "testing" | "success" | "failure";
@@ -26,6 +27,8 @@ const RELEASE_PAGE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/tag/v$
 const MAC_RELEASE_PAGE_URL = `${RELEASE_PAGE_URL}#:~:text=${encodeURIComponent(MAC_INSTALLER_FILENAME)}`;
 const LINUX_RELEASE_PAGE_URL = `${RELEASE_PAGE_URL}#:~:text=${encodeURIComponent(LINUX_INSTALLER_FILENAME)}`;
 const INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${INSTALLER_FILENAME}`;
+const MAC_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${MAC_INSTALLER_FILENAME}`;
+const LINUX_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${LINUX_INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
@@ -33,6 +36,24 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [directDownload, setDirectDownload] = useState<boolean>(() => getBridgeDirectDownloadEnabled());
+
+  useEffect(() => {
+    const sync = () => setDirectDownload(getBridgeDirectDownloadEnabled());
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "simpilot.bridge.macLinuxDirectDownload") sync();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("simpilot:bridge-download-mode-changed", sync as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("simpilot:bridge-download-mode-changed", sync as EventListener);
+    };
+  }, []);
+
+  const macHref = directDownload ? MAC_INSTALLER_DIRECT_URL : MAC_RELEASE_PAGE_URL;
+  const linuxHref = directDownload ? LINUX_INSTALLER_DIRECT_URL : LINUX_RELEASE_PAGE_URL;
+
   const handlePairBridge = async () => {
     setPairing(true);
     setPairResult(null);
@@ -210,24 +231,32 @@ export default function BridgeSetupPage() {
                 Download for Windows
               </a>
               <a
-                href={MAC_RELEASE_PAGE_URL}
-                target="_blank"
+                href={macHref}
+                {...(directDownload
+                  ? { download: MAC_INSTALLER_FILENAME }
+                  : { target: "_blank" as const })}
                 rel="noopener noreferrer"
-                title={`Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${MAC_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
+                title={directDownload
+                  ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
+                  : `Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${MAC_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
-                macOS — View release
+                {directDownload ? "Download for macOS" : "macOS — View release"}
               </a>
               <a
-                href={LINUX_RELEASE_PAGE_URL}
-                target="_blank"
+                href={linuxHref}
+                {...(directDownload
+                  ? { download: LINUX_INSTALLER_FILENAME }
+                  : { target: "_blank" as const })}
                 rel="noopener noreferrer"
-                title={`Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${LINUX_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
+                title={directDownload
+                  ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
+                  : `Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${LINUX_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
-                Linux — View release
+                {directDownload ? "Download for Linux" : "Linux — View release"}
               </a>
             </div>
 

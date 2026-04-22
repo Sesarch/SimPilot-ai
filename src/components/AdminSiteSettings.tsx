@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
-import { Settings, Bell, Wrench, Globe, Loader2 } from "lucide-react";
+import { Settings, Bell, Wrench, Globe, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  getBridgeDirectDownloadEnabled,
+  setBridgeDirectDownloadEnabled,
+} from "@/lib/bridgeDownloadMode";
 
 const AdminSiteSettings = () => {
   const [loading, setLoading] = useState(true);
@@ -16,6 +20,21 @@ const AdminSiteSettings = () => {
   const [groundSchoolEnabled, setGroundSchoolEnabled] = useState(true);
   const [weatherEnabled, setWeatherEnabled] = useState(true);
   const [liveToolsEnabled, setLiveToolsEnabled] = useState(true);
+  const [bridgeDirectDownload, setBridgeDirectDownload] = useState(false);
+
+  useEffect(() => {
+    setBridgeDirectDownload(getBridgeDirectDownloadEnabled());
+  }, []);
+
+  const handleBridgeDirectDownloadChange = (next: boolean) => {
+    setBridgeDirectDownload(next);
+    setBridgeDirectDownloadEnabled(next);
+    toast.success(
+      next
+        ? "macOS & Linux buttons now use direct download URLs"
+        : "macOS & Linux buttons now link to the GitHub release page",
+    );
+  };
 
   useEffect(() => {
     const fetch = async () => {
@@ -128,6 +147,23 @@ const AdminSiteSettings = () => {
                 <Switch checked={toggle.value} onCheckedChange={toggle.set} />
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Bridge Download Mode */}
+        <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Download className="w-4 h-4 text-primary" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Bridge: Mac/Linux direct downloads</p>
+                <p className="text-xs text-muted-foreground">
+                  Off → buttons open the GitHub release page. On → buttons download the .dmg / .AppImage
+                  directly. Only flip on once those assets are published to the pinned release.
+                </p>
+              </div>
+            </div>
+            <Switch checked={bridgeDirectDownload} onCheckedChange={handleBridgeDirectDownloadChange} />
           </div>
         </div>
 
