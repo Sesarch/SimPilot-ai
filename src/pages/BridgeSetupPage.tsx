@@ -19,7 +19,12 @@ const TEST_TIMEOUT_MS = 4000;
 // Pinned installer — direct GitHub release asset, no resolver indirection.
 const BRIDGE_VERSION = PINNED_BRIDGE_VERSION;
 const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
-const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/${INSTALLER_FILENAME}`;
+const MAC_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}.dmg`;
+const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}.AppImage`;
+const RELEASE_BASE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}`;
+const INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${INSTALLER_FILENAME}`;
+const MAC_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${MAC_INSTALLER_FILENAME}`;
+const LINUX_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${LINUX_INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
