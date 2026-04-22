@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,32 +15,11 @@ type TestState = "idle" | "testing" | "success" | "failure";
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
 
-// Installers are served by the `bridge-download` edge function so the
-// browser never has to talk to a (potentially private) GitHub release URL.
+// v1.0.0 launch is Windows-only. Mac/Linux installers are not built yet, so
+// we skip all GitHub probing and hard-code the Windows download URL.
 const BRIDGE_VERSION = PINNED_BRIDGE_VERSION;
 const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
-const MAC_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-mac-universal.zip`;
-const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-linux-x64.tar.gz`;
-const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-const buildDownloadUrl = (platform: "windows" | "macos" | "linux") =>
-  `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?platform=${platform}&version=${BRIDGE_VERSION}`;
-const INSTALLER_DIRECT_URL = buildDownloadUrl("windows");
-const CHECK_AVAILABILITY_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?check=1&version=${BRIDGE_VERSION}`;
-
-type Platform = "windows" | "macos" | "linux";
-type Availability = Record<Platform, boolean>;
-
-const PLATFORM_FILENAMES: Record<Platform, string> = {
-  windows: INSTALLER_FILENAME,
-  macos: MAC_INSTALLER_FILENAME,
-  linux: LINUX_INSTALLER_FILENAME,
-};
-
-const PLATFORM_LABELS: Record<Platform, string> = {
-  windows: "Windows",
-  macos: "macOS",
-  linux: "Linux",
-};
+const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/${INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
@@ -48,87 +27,11 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [availability, setAvailability] = useState<Availability>({ windows: true, macos: false, linux: false });
-  const [checkingAvailability, setCheckingAvailability] = useState(false);
-  const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
 
-  const refreshAvailability = async (silent = false): Promise<Availability | null> => {
-    setCheckingAvailability(true);
-    try {
-      const res = await fetch(CHECK_AVAILABILITY_URL, { cache: "no-store" });
-      // Treat any non-2xx as "unknown availability" — Windows always stays
-      // clickable via the proxy, and macOS/Linux fall back to "Coming soon".
-      if (!res.ok) {
-        const next: Availability = { windows: true, macos: false, linux: false };
-        setAvailability(next);
-        setLastCheckedAt(new Date());
-        return next;
-      }
-      const data = (await res.json()) as Partial<Availability> & { fallback?: boolean };
-      const next: Availability = {
-        // Windows is always available (the .exe is pinned in the public release).
-        windows: true,
-        macos: Boolean(data.macos),
-        linux: Boolean(data.linux),
-      };
-      setAvailability(next);
-      setLastCheckedAt(new Date());
-      if (!silent) {
-        toast({
-          title: "Release availability refreshed",
-          description: `Windows: ✓ · macOS: ${next.macos ? "✓" : "soon"} · Linux: ${next.linux ? "✓" : "soon"}`,
-        });
-      }
-      return next;
-    } catch {
-      // Network error / blocked request — silently fall back. Never show a
-      // destructive toast for this; the buttons themselves communicate state.
-      const next: Availability = { windows: true, macos: false, linux: false };
-      setAvailability(next);
-      setLastCheckedAt(new Date());
-      return next;
-    } finally {
-      setCheckingAvailability(false);
-    }
-  };
-
-  useEffect(() => {
-    refreshAvailability(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const triggerDownload = (platform: Platform) => {
-    const link = document.createElement("a");
-    link.href = buildDownloadUrl(platform);
-    link.download = PLATFORM_FILENAMES[platform];
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
-
-  const handlePlatformDownload = async (platform: Platform) => {
-    // Windows is always live — straight to download via the proxy.
-    if (platform === "windows" || availability[platform]) {
-      triggerDownload(platform);
-      return;
-    }
-
-    // Silent re-check in case the asset just landed.
-    const next = await refreshAvailability(true);
-    if (next?.[platform]) {
-      triggerDownload(platform);
-      toast({
-        title: `${PLATFORM_LABELS[platform]} installer is live`,
-        description: `Starting ${PLATFORM_FILENAMES[platform]}.`,
-      });
-      return;
-    }
-
-    // Friendly "coming soon" — no destructive/red toast.
+  const handleComingSoon = (platform: "macOS" | "Linux") => {
     toast({
-      title: `${PLATFORM_LABELS[platform]} build coming soon`,
-      description: "We'll notify you the moment the installer is published. Windows is fully supported today.",
+      title: `${platform} build coming soon`,
+      description: "We're launching Windows-only for v1.0.0. We'll announce macOS and Linux as soon as they're ready.",
     });
   };
 
@@ -299,55 +202,39 @@ export default function BridgeSetupPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => handlePlatformDownload("windows")}
+              <a
+                href={INSTALLER_DIRECT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 h-11 rounded-md px-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for Windows
+              </a>
+              <button
+                type="button"
+                onClick={() => handleComingSoon("macOS")}
+                title="Coming soon — v1.0.0 is Windows-only"
+                aria-disabled="true"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed font-semibold text-sm opacity-60"
+              >
+                <Lock className="h-4 w-4" />
+                macOS · Coming soon
               </button>
               <button
                 type="button"
-                onClick={() => handlePlatformDownload("macos")}
-                title={availability.macos ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : "macOS build coming soon — click to get notified when it's live."}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+                onClick={() => handleComingSoon("Linux")}
+                title="Coming soon — v1.0.0 is Windows-only"
+                aria-disabled="true"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed font-semibold text-sm opacity-60"
               >
-                <Download className="h-5 w-5" />
-                Download for macOS
-                {!availability.macos ? <span className="text-xs text-muted-foreground">Coming soon</span> : null}
+                <Lock className="h-4 w-4" />
+                Linux · Coming soon
               </button>
-              <button
-                type="button"
-                onClick={() => handlePlatformDownload("linux")}
-                title={availability.linux ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : "Linux build coming soon — click to get notified when it's live."}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-              >
-                <Download className="h-5 w-5" />
-                Download for Linux
-                {!availability.linux ? <span className="text-xs text-muted-foreground">Coming soon</span> : null}
-              </button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => refreshAvailability(false)}
-                disabled={checkingAvailability}
-                className="h-11"
-                title="Re-check which installers are published in the current release"
-              >
-                <RefreshCw className={`h-4 w-4 ${checkingAvailability ? "animate-spin" : ""}`} />
-                {checkingAvailability ? "Checking…" : "Refresh"}
-              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {lastCheckedAt
-                ? `Last checked at ${lastCheckedAt.toLocaleTimeString()} — Windows ready. macOS: ${availability.macos ? "available" : "coming soon"}. Linux: ${availability.linux ? "available" : "coming soon"}.`
-                : "Windows installer is live. Checking macOS and Linux availability…"}
+              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS &amp; Linux builds coming soon.
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
