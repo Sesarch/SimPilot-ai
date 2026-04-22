@@ -355,6 +355,78 @@ export function validateResolvedRelease(
 }
 
 /**
+ * Preflight HEAD request against the pinned installer URL. Confirms the
+ * asset is publicly reachable (no auth wall, no 404, no network block) before
+ * we start streaming the full download. Falls back to a tiny ranged GET if
+ * the host rejects HEAD on release assets.
+ */
+export type PreflightResult =
+  | { ok: true; status: number }
+  | { ok: false; title: string; message: string; status: number | null };
+
+export async function preflightInstallerUrl(url: string): Promise<PreflightResult> {
+  const probe = async (method: "HEAD" | "GET"): Promise<Response | { error: string }> => {
+    try {
+      return await fetch(url, {
+        method,
+        redirect: "follow",
+        ...(method === "GET" ? { headers: { Range: "bytes=0-0" } } : {}),
+      });
+    } catch (err) {
+      return { error: (err as Error).message };
+    }
+  };
+
+  let res = await probe("HEAD");
+  if ("error" in res) {
+    return {
+      ok: false,
+      title: "Can't reach the release server",
+      message: `Network error while checking the installer URL: ${res.error}. Check your connection or any ad-blocker, then retry.`,
+      status: null,
+    };
+  }
+  if (res.status === 405 || res.status === 403) {
+    const retry = await probe("GET");
+    if ("error" in retry) {
+      return {
+        ok: false,
+        title: "Can't reach the release server",
+        message: `Network error while checking the installer URL: ${retry.error}. Check your connection or any ad-blocker, then retry.`,
+        status: null,
+      };
+    }
+    res = retry;
+  }
+
+  if (res.status === 404) {
+    return {
+      ok: false,
+      title: "Installer not published yet",
+      message: `The pinned SimPilot Bridge ${PINNED_TAG} installer isn't publicly reachable at the expected URL (404). Please try again shortly.`,
+      status: 404,
+    };
+  }
+  if (res.status === 401 || res.status === 403) {
+    return {
+      ok: false,
+      title: "Installer not publicly reachable",
+      message: `The release server returned ${res.status} for the pinned installer URL. The asset may be private or rate-limited. Please try again shortly.`,
+      status: res.status,
+    };
+  }
+  if (!res.ok && res.status !== 206) {
+    return {
+      ok: false,
+      title: "Release server unavailable",
+      message: `The release server returned HTTP ${res.status} for the pinned installer URL. Please try again in a moment.`,
+      status: res.status,
+    };
+  }
+  return { ok: true, status: res.status };
+}
+
+/**
  * Hex-encodes an ArrayBuffer (used for SHA-512 comparison).
  */
 function bufferToHex(buf: ArrayBuffer): string {
@@ -523,6 +595,22 @@ export async function downloadAndVerifyInstaller(
       return;
     }
     const { downloadUrl, name, sizeBytes } = release!.installer!;
+
+    // Preflight: confirm the pinned installer URL is publicly reachable
+    // before we kick off the full download. Blocks with a clear message if
+    // GitHub returns 404 / 403 / network-blocked, so the user isn't left
+    // staring at a stalled progress bar.
+    emit({ phase: "resolving", percent: 8, message: "Checking installer availability…" });
+    const preflight = await preflightInstallerUrl(downloadUrl);
+    if (preflight.ok !== true) {
+      emit({ phase: "error", percent: 0, message: preflight.message });
+      toast({
+        title: preflight.title,
+        description: preflight.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     emit({
       phase: "downloading",
