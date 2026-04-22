@@ -49,6 +49,28 @@ type ReleaseCacheEntry = { cachedAt: number; release: ResolvedBridgeRelease | nu
 
 type ReleaseSource = (typeof RELEASE_SOURCES)[number];
 
+// --- Resolver diagnostics ---------------------------------------------------
+// Per-attempt log of every URL the resolver tried, with HTTP status / error,
+// so the bridge setup page can render a precise on-page diagnostics panel
+// when discovery fails or falls back to the hard-pinned URL.
+export type ReleaseAttempt = {
+  kind: "tag-api" | "latest-api" | "direct-asset-yml" | "hard-fallback";
+  url: string;
+  status: number | null;
+  ok: boolean;
+  error?: string;
+};
+
+let lastResolverAttempts: ReleaseAttempt[] = [];
+let lastResolverUsedFallback = false;
+
+export function getLastResolverDiagnostics(): {
+  attempts: ReleaseAttempt[];
+  usedHardFallback: boolean;
+} {
+  return { attempts: lastResolverAttempts, usedHardFallback: lastResolverUsedFallback };
+}
+
 // Hard fallback source — used to synthesize a pinned release when every
 // upstream discovery path fails (GitHub API rate-limited, ad-blocker, etc.).
 // The button stays clickable and points at the canonical v1.0.0 asset.
