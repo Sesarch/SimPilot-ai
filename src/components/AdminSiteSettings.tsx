@@ -22,17 +22,12 @@ const AdminSiteSettings = () => {
   const [liveToolsEnabled, setLiveToolsEnabled] = useState(true);
   const [bridgeDirectDownload, setBridgeDirectDownload] = useState(false);
 
-  useEffect(() => {
-    setBridgeDirectDownload(getBridgeDirectDownloadEnabled());
-  }, []);
-
   const handleBridgeDirectDownloadChange = (next: boolean) => {
     setBridgeDirectDownload(next);
-    setBridgeDirectDownloadEnabled(next);
-    toast.success(
+    toast.info(
       next
-        ? "macOS & Linux buttons now use direct download URLs"
-        : "macOS & Linux buttons now link to the GitHub release page",
+        ? "Mac and Linux direct downloads will go live after you save settings"
+        : "Mac and Linux buttons will switch back to the GitHub release page after you save settings",
     );
   };
 
