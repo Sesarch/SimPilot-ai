@@ -129,6 +129,73 @@ export async function resolveBridgeRelease(
 }
 
 /**
+ * Runtime guard: ensures the resolved release is the pinned v1.0.0 build and
+ * that its installer asset is a valid direct GitHub release download URL
+ * matching the expected `SimPilotBridge-Setup-<version>.exe` filename. Any
+ * mismatch (missing asset, wrong tag, non-GitHub host) surfaces a clear,
+ * user-facing error instead of silently downloading the wrong file.
+ */
+export type ReleaseValidation =
+  | { ok: true }
+  | { ok: false; title: string; message: string };
+
+export function validateResolvedRelease(
+  release: ResolvedBridgeRelease | null,
+): ReleaseValidation {
+  if (!release) {
+    return {
+      ok: false,
+      title: "Installer not available yet",
+      message: "The release server didn't return a published build. Please try again in a moment.",
+    };
+  }
+  if (!release.installer) {
+    return {
+      ok: false,
+      title: "Installer asset missing",
+      message: `Release ${release.tagName} is published but the SimPilotBridge installer asset is missing. Please try again shortly.`,
+    };
+  }
+  if (release.tagName !== PINNED_TAG) {
+    return {
+      ok: false,
+      title: "Unexpected release version",
+      message: `Expected SimPilot Bridge ${PINNED_TAG} but the server returned ${release.tagName}. Refresh the page and try again.`,
+    };
+  }
+  const { downloadUrl, name } = release.installer;
+  const expectedName = `SimPilotBridge-Setup-${PINNED_BRIDGE_VERSION}.exe`;
+  if (name !== expectedName) {
+    return {
+      ok: false,
+      title: "Installer asset mismatch",
+      message: `Expected "${expectedName}" but received "${name}". Please report this if it persists.`,
+    };
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(downloadUrl);
+  } catch {
+    return {
+      ok: false,
+      title: "Invalid installer URL",
+      message: "The release server returned a malformed download URL. Please try again shortly.",
+    };
+  }
+  const isGithubAsset =
+    (parsed.hostname === "github.com" || parsed.hostname === "objects.githubusercontent.com") &&
+    parsed.protocol === "https:";
+  if (!isGithubAsset) {
+    return {
+      ok: false,
+      title: "Untrusted download source",
+      message: "The installer URL didn't resolve to an official GitHub release asset. Download blocked for safety.",
+    };
+  }
+  return { ok: true };
+}
+
+/**
  * Hex-encodes an ArrayBuffer (used for SHA-512 comparison).
  */
 function bufferToHex(buf: ArrayBuffer): string {
@@ -286,16 +353,17 @@ export async function downloadAndVerifyInstaller(
       description: `Fetching SimPilot Bridge v${PINNED_BRIDGE_VERSION}`,
     });
     const release = await resolveBridgeRelease();
-    if (!release?.installer) {
-      emit({ phase: "error", percent: 0, message: "Installer not available yet." });
+    const validation = validateResolvedRelease(release);
+    if (validation.ok !== true) {
+      emit({ phase: "error", percent: 0, message: validation.message });
       toast({
-        title: "Installer not available yet",
-        description: "The release is still being prepared — please try again in a moment.",
+        title: validation.title,
+        description: validation.message,
         variant: "destructive",
       });
       return;
     }
-    const { downloadUrl, name, sizeBytes } = release.installer;
+    const { downloadUrl, name, sizeBytes } = release!.installer!;
 
     emit({
       phase: "downloading",
