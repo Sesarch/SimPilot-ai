@@ -188,9 +188,15 @@ export default function BridgeSetupPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Download the installer for your platform, run the bridge app, and leave it open while you fly.
-            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                Download the installer for your platform, run the bridge app, and leave it open while you fly.
+              </p>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono font-semibold text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                Pinned v{BRIDGE_VERSION}
+              </span>
+            </div>
 
             <div className="flex flex-wrap gap-3">
               <a
