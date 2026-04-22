@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,32 +15,11 @@ type TestState = "idle" | "testing" | "success" | "failure";
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
 
-// Installers are served by the `bridge-download` edge function so the
-// browser never has to talk to a (potentially private) GitHub release URL.
+// v1.0.0 launch is Windows-only. Mac/Linux installers are not built yet, so
+// we skip all GitHub probing and hard-code the Windows download URL.
 const BRIDGE_VERSION = PINNED_BRIDGE_VERSION;
 const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
-const MAC_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-mac-universal.zip`;
-const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-linux-x64.tar.gz`;
-const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-const buildDownloadUrl = (platform: "windows" | "macos" | "linux") =>
-  `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?platform=${platform}&version=${BRIDGE_VERSION}`;
-const INSTALLER_DIRECT_URL = buildDownloadUrl("windows");
-const CHECK_AVAILABILITY_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?check=1&version=${BRIDGE_VERSION}`;
-
-type Platform = "windows" | "macos" | "linux";
-type Availability = Record<Platform, boolean>;
-
-const PLATFORM_FILENAMES: Record<Platform, string> = {
-  windows: INSTALLER_FILENAME,
-  macos: MAC_INSTALLER_FILENAME,
-  linux: LINUX_INSTALLER_FILENAME,
-};
-
-const PLATFORM_LABELS: Record<Platform, string> = {
-  windows: "Windows",
-  macos: "macOS",
-  linux: "Linux",
-};
+const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/${INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
