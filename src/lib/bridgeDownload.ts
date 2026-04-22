@@ -188,7 +188,25 @@ async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<Reso
   const ymlUrl = buildReleaseAssetUrl(source, "latest.yml");
 
   try {
-    const ymlRes = await fetch(ymlUrl, { cache: "no-store" });
+    let ymlRes: Response;
+    try {
+      ymlRes = await fetch(ymlUrl, { cache: "no-store" });
+    } catch (err) {
+      lastResolverAttempts.push({
+        kind: "direct-asset-yml",
+        url: ymlUrl,
+        status: null,
+        ok: false,
+        error: (err as Error).message,
+      });
+      return null;
+    }
+    lastResolverAttempts.push({
+      kind: "direct-asset-yml",
+      url: ymlUrl,
+      status: ymlRes.status,
+      ok: ymlRes.ok,
+    });
     if (!ymlRes.ok) return null;
 
     const yml = await ymlRes.text();
@@ -232,9 +250,9 @@ export async function resolveBridgeRelease(
     let resolved: ResolvedBridgeRelease | null = null;
 
     try {
-      resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "tag"));
+      resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "tag"), "tag-api");
       if (!resolved) {
-        resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "latest"));
+        resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "latest"), "latest-api");
       }
     } catch {
       resolved = null;
