@@ -602,7 +602,7 @@ export async function downloadAndVerifyInstaller(
     // staring at a stalled progress bar.
     emit({ phase: "resolving", percent: 8, message: "Checking installer availability…" });
     const preflight = await preflightInstallerUrl(downloadUrl);
-    if (!preflight.ok) {
+    if (preflight.ok !== true) {
       emit({ phase: "error", percent: 0, message: preflight.message });
       toast({
         title: preflight.title,
