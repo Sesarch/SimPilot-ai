@@ -208,24 +208,22 @@ export default function BridgeSetupPage() {
                 <Download className="h-5 w-5" />
                 Download for Windows
               </a>
-              <a
-                href={MAC_INSTALLER_DIRECT_URL}
-                download={MAC_INSTALLER_FILENAME}
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+              <span
+                aria-disabled="true"
+                title="macOS build coming soon"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground font-semibold text-sm cursor-not-allowed opacity-70"
               >
                 <Download className="h-5 w-5" />
-                Download for macOS
-              </a>
-              <a
-                href={LINUX_INSTALLER_DIRECT_URL}
-                download={LINUX_INSTALLER_FILENAME}
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+                macOS — Coming soon
+              </span>
+              <span
+                aria-disabled="true"
+                title="Linux build coming soon"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground font-semibold text-sm cursor-not-allowed opacity-70"
               >
                 <Download className="h-5 w-5" />
-                Download for Linux
-              </a>
+                Linux — Coming soon
+              </span>
             </div>
 
             <p className="text-xs text-muted-foreground">
