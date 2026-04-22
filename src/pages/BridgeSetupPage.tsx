@@ -22,9 +22,8 @@ const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
 const MAC_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}.dmg`;
 const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}.AppImage`;
 const RELEASE_BASE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}`;
+const RELEASE_PAGE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/tag/v${BRIDGE_VERSION}`;
 const INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${INSTALLER_FILENAME}`;
-const MAC_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${MAC_INSTALLER_FILENAME}`;
-const LINUX_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${LINUX_INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
@@ -208,22 +207,24 @@ export default function BridgeSetupPage() {
                 <Download className="h-5 w-5" />
                 Download for Windows
               </a>
-              <span
-                aria-disabled="true"
-                title="macOS build coming soon"
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground font-semibold text-sm cursor-not-allowed opacity-70"
+              <a
+                href={RELEASE_PAGE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
-                macOS — Coming soon
-              </span>
-              <span
-                aria-disabled="true"
-                title="Linux build coming soon"
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground font-semibold text-sm cursor-not-allowed opacity-70"
+                macOS — View release
+              </a>
+              <a
+                href={RELEASE_PAGE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
-                Linux — Coming soon
-              </span>
+                Linux — View release
+              </a>
             </div>
 
             <p className="text-xs text-muted-foreground">
