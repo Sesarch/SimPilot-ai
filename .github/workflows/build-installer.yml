@@ -201,8 +201,8 @@ releaseDate: '$date'
             bridge-desktop/installer/output/latest.yml
 
   # ============================================================================
-  #  macOS build — packages the Electron tray app as a .zip for both Intel and
-  #  Apple Silicon, then attaches them to the same GitHub release.
+  #  macOS build — packages the Electron tray app as one universal .zip, then
+  #  attaches it to the same GitHub release.
   #  No code-signing / notarization yet — users will need to right-click → Open
   #  the first time (we surface this in the Bridge Setup page instructions).
   # ============================================================================
@@ -254,14 +254,10 @@ releaseDate: '$date'
             ls bridge-core
           fi
 
-      - name: Package Electron app (darwin x64 + arm64)
+      - name: Package Electron app (darwin universal)
         run: |
           npx @electron/packager . SimPilotBridge \
-            --platform=darwin --arch=x64 \
-            --out=release --overwrite --prune=true \
-            --ignore="^/release"
-          npx @electron/packager . SimPilotBridge \
-            --platform=darwin --arch=arm64 \
+            --platform=darwin --arch=universal \
             --out=release --overwrite --prune=true \
             --ignore="^/release"
 
@@ -274,11 +270,8 @@ releaseDate: '$date'
           # ditto preserves macOS metadata (resource forks, symlinks, exec bits)
           # which is required for the .app bundle to launch after extraction.
           ditto -c -k --sequesterRsrc --keepParent \
-            "release/SimPilotBridge-darwin-x64/SimPilotBridge.app" \
-            "installer/output/SimPilotBridge-${V}-mac-x64.zip"
-          ditto -c -k --sequesterRsrc --keepParent \
-            "release/SimPilotBridge-darwin-arm64/SimPilotBridge.app" \
-            "installer/output/SimPilotBridge-${V}-mac-arm64.zip"
+            "release/SimPilotBridge-darwin-universal/SimPilotBridge.app" \
+            "installer/output/SimPilotBridge-${V}-mac-universal.zip"
           ls -lh installer/output
 
       - name: Upload build artifacts
@@ -295,8 +288,7 @@ releaseDate: '$date'
           tag_name: ${{ github.ref_name }}
           generate_release_notes: true
           files: |
-            bridge-desktop/installer/output/SimPilotBridge-${{ steps.version.outputs.version }}-mac-x64.zip
-            bridge-desktop/installer/output/SimPilotBridge-${{ steps.version.outputs.version }}-mac-arm64.zip
+            bridge-desktop/installer/output/SimPilotBridge-${{ steps.version.outputs.version }}-mac-universal.zip
 
   # ============================================================================
   #  Linux build — packages the Electron tray app as a .tar.gz for x64.

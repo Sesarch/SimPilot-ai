@@ -465,6 +465,7 @@ export type Database = {
       site_settings: {
         Row: {
           announcement: string
+          bridge_direct_download_enabled: boolean
           chat_enabled: boolean
           ground_school_enabled: boolean
           id: number
@@ -476,6 +477,7 @@ export type Database = {
         }
         Insert: {
           announcement?: string
+          bridge_direct_download_enabled?: boolean
           chat_enabled?: boolean
           ground_school_enabled?: boolean
           id?: number
@@ -487,6 +489,7 @@ export type Database = {
         }
         Update: {
           announcement?: string
+          bridge_direct_download_enabled?: boolean
           chat_enabled?: boolean
           ground_school_enabled?: boolean
           id?: number
