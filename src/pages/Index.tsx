@@ -15,6 +15,7 @@ import Footer from "@/components/Footer";
 
 import CookieConsent from "@/components/CookieConsent";
 import SEOHead from "@/components/SEOHead";
+import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 const homeJsonLd = {
   "@context": "https://schema.org",
@@ -114,6 +115,9 @@ const Index = () => {
       />
       <Navbar />
       <HeroSection />
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 -mt-2 mb-6">
+        <BridgeVerifiedStatusPanel />
+      </div>
       <ServicesSection />
       <AudiencesSection />
       <WhySimPilotSection />
