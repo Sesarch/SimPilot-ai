@@ -13,6 +13,7 @@ import {
   resolveBridgeRelease,
   downloadAndVerifyInstaller,
   getLastResolverDiagnostics,
+  clearBridgeReleaseCache,
   type ResolvedBridgeRelease,
   type DownloadProgress,
   type ReleaseAttempt,
@@ -365,19 +366,26 @@ export default function BridgeSetupPage() {
                       variant="destructive"
                       className="gap-2"
                       onClick={async () => {
+                        // Fully reset UI + resolver state so the retry runs
+                        // from a clean slate — no stale "no installer" cache
+                        // entry, no leftover diagnostics, no in-flight call.
                         setLastNonErrorPhase(null);
+                        setReleaseError(null);
+                        setRelease(null);
+                        setResolverDiagnostics(null);
+                        clearBridgeReleaseCache();
                         handleDownloadProgress({
                           phase: "resolving",
                           percent: 0,
                           message: `Retrying pinned v${PINNED_BRIDGE_VERSION} download…`,
                         });
-                        // Force a fresh release lookup so any stale cached
-                        // metadata (e.g. an outdated checksum) is bypassed.
                         try {
                           const fresh = await resolveBridgeRelease({ forceRefresh: true });
                           if (fresh) setRelease(fresh);
-                        } catch {
-                          /* non-fatal — helper will surface its own error */
+                          setResolverDiagnostics(getLastResolverDiagnostics());
+                        } catch (err) {
+                          setReleaseError((err as Error).message);
+                          setResolverDiagnostics(getLastResolverDiagnostics());
                         }
                         downloadAndVerifyInstaller({ onProgress: handleDownloadProgress });
                       }}
@@ -386,7 +394,7 @@ export default function BridgeSetupPage() {
                       Retry verified download
                     </Button>
                     <span className="text-[11px] text-muted-foreground">
-                      Re-runs the same pinned v{PINNED_BRIDGE_VERSION} flow with a fresh checksum fetch.
+                      Clears cached state and re-runs the pinned v{PINNED_BRIDGE_VERSION} flow from scratch.
                     </span>
                   </div>
                 )}
