@@ -28,11 +28,6 @@ const RELEASE_SOURCES = [
   { owner: "Sesarch", repo: "SimPilot-ai" },
 ] as const;
 
-// Hard fallback source — used to synthesize a pinned release when every
-// upstream discovery path fails (GitHub API rate-limited, ad-blocker, etc.).
-// The button stays clickable and points at the canonical v1.0.0 asset.
-const HARD_FALLBACK_SOURCE: ReleaseSource = { owner: "simpilot-ai", repo: "bridge" };
-
 // Versioned cache key — bumping PINNED_BRIDGE_VERSION invalidates old caches
 // automatically so users always pull the new pinned release on next visit.
 const RELEASE_CACHE_KEY = `simpilot:bridge-release-cache:v2:${PINNED_TAG}`;
@@ -53,6 +48,32 @@ export type ResolvedBridgeRelease = {
 type ReleaseCacheEntry = { cachedAt: number; release: ResolvedBridgeRelease | null };
 
 type ReleaseSource = (typeof RELEASE_SOURCES)[number];
+
+// Hard fallback source — used to synthesize a pinned release when every
+// upstream discovery path fails (GitHub API rate-limited, ad-blocker, etc.).
+// The button stays clickable and points at the canonical v1.0.0 asset.
+const HARD_FALLBACK_SOURCE: ReleaseSource = { owner: "simpilot-ai", repo: "bridge" };
+
+/**
+ * Synthesizes a pinned-release record from the explicit v1.0.0 asset URL.
+ * No network calls — guaranteed to succeed so the download button is never
+ * dead. Checksum is null (verification is skipped) but the URL is still a
+ * trusted GitHub release asset, so `validateResolvedRelease` will accept it.
+ */
+function buildHardFallbackRelease(): ResolvedBridgeRelease {
+  const installerName = `SimPilotBridge-Setup-${PINNED_BRIDGE_VERSION}.exe`;
+  return {
+    tagName: PINNED_TAG,
+    publishedAt: null,
+    htmlUrl: `https://github.com/${HARD_FALLBACK_SOURCE.owner}/${HARD_FALLBACK_SOURCE.repo}/releases/tag/${PINNED_TAG}`,
+    installer: {
+      name: installerName,
+      downloadUrl: buildReleaseAssetUrl(HARD_FALLBACK_SOURCE, installerName),
+      sizeBytes: 0,
+    },
+    sha512: null,
+  };
+}
 
 function readCache(): ReleaseCacheEntry | null {
   try {
