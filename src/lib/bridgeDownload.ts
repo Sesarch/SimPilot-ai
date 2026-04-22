@@ -524,6 +524,22 @@ export async function downloadAndVerifyInstaller(
     }
     const { downloadUrl, name, sizeBytes } = release!.installer!;
 
+    // Preflight: confirm the pinned installer URL is publicly reachable
+    // before we kick off the full download. Blocks with a clear message if
+    // GitHub returns 404 / 403 / network-blocked, so the user isn't left
+    // staring at a stalled progress bar.
+    emit({ phase: "resolving", percent: 8, message: "Checking installer availability…" });
+    const preflight = await preflightInstallerUrl(downloadUrl);
+    if (!preflight.ok) {
+      emit({ phase: "error", percent: 0, message: preflight.message });
+      toast({
+        title: preflight.title,
+        description: preflight.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     emit({
       phase: "downloading",
       percent: 10,
