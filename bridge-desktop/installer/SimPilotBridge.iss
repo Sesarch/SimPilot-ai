@@ -186,6 +186,8 @@ const
 var
   TaglineLabel: TLabel;
   StatusBar: TLabel;
+  AgreeCheckBox: TNewCheckBox;
+  AgreeHintLabel: TLabel;
 
 function GetInstallTimestamp(Param: string): string;
 begin
@@ -251,6 +253,42 @@ begin
 
   // ---- Style the inner page headers ----
   StylePageHeading(nil);
+
+  // ---- Final consent checkbox on the Ready page (gates the Install button) ----
+  AgreeCheckBox := TNewCheckBox.Create(WizardForm);
+  AgreeCheckBox.Parent      := WizardForm.ReadyPage;
+  AgreeCheckBox.Left        := 0;
+  AgreeCheckBox.Width       := WizardForm.ReadyPage.ClientWidth;
+  AgreeCheckBox.Top         := WizardForm.ReadyPage.ClientHeight - 44;
+  AgreeCheckBox.Height      := 22;
+  AgreeCheckBox.Caption     := '  I have read and agree to the SimPilot Bridge License Agreement and Terms of Use.';
+  AgreeCheckBox.Font.Name   := 'Segoe UI Semibold';
+  AgreeCheckBox.Font.Size   := 9;
+  AgreeCheckBox.Font.Color  := COLOR_CYAN;
+  AgreeCheckBox.Checked     := False;
+  AgreeCheckBox.Anchors     := [akLeft, akRight, akBottom];
+  AgreeCheckBox.OnClick     := @AgreeCheckBoxClick;
+
+  AgreeHintLabel := TLabel.Create(WizardForm);
+  AgreeHintLabel.Parent     := WizardForm.ReadyPage;
+  AgreeHintLabel.Left       := 22;
+  AgreeHintLabel.Width      := WizardForm.ReadyPage.ClientWidth - 22;
+  AgreeHintLabel.Top        := WizardForm.ReadyPage.ClientHeight - 22;
+  AgreeHintLabel.Height     := 16;
+  AgreeHintLabel.Caption    := 'Tick the box above to enable the Install button.';
+  AgreeHintLabel.Font.Name  := 'Segoe UI';
+  AgreeHintLabel.Font.Size  := 8;
+  AgreeHintLabel.Font.Color := COLOR_MUTED;
+  AgreeHintLabel.Anchors    := [akLeft, akRight, akBottom];
+end;
+
+procedure AgreeCheckBoxClick(Sender: TObject);
+begin
+  if WizardForm.CurPageID = wpReady then
+  begin
+    WizardForm.NextButton.Enabled := AgreeCheckBox.Checked;
+    AgreeHintLabel.Visible := not AgreeCheckBox.Checked;
+  end;
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
@@ -261,6 +299,18 @@ begin
       StylePageHeading(nil);
   end;
 
+  // Gate the Install button on the Ready page behind the consent checkbox
+  if CurPageID = wpReady then
+  begin
+    WizardForm.NextButton.Enabled := AgreeCheckBox.Checked;
+    AgreeHintLabel.Visible := not AgreeCheckBox.Checked;
+  end
+  else
+  begin
+    // Re-enable Next on every other page so it doesn't get stuck disabled
+    WizardForm.NextButton.Enabled := True;
+  end;
+
   // On the install page, brighten the progress bar caption
   if (CurPageID = wpInstalling) and Assigned(WizardForm.StatusLabel) then
   begin
@@ -268,6 +318,18 @@ begin
     WizardForm.StatusLabel.Font.Color := COLOR_TEAL;
     WizardForm.StatusLabel.Font.Style := [fsBold];
   end;
+end;
+
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  // Hard-stop safeguard: never allow install without consent
+  if (CurPageID = wpReady) and (not AgreeCheckBox.Checked) then
+  begin
+    MsgBox('Please tick the agreement checkbox to continue.', mbInformation, MB_OK);
+    Result := False;
+    Exit;
+  end;
+  Result := True;
 end;
 
 function InitializeSetup(): Boolean;
