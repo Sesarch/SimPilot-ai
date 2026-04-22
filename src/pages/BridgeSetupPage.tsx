@@ -10,7 +10,6 @@ import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 type TestState = "idle" | "testing" | "success" | "failure";
 const BRIDGE_URL = "ws://localhost:8080";
@@ -31,7 +30,6 @@ const CHECK_AVAILABILITY_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co/funct
 type Availability = { windows: boolean; macos: boolean; linux: boolean };
 
 export default function BridgeSetupPage() {
-  const { settings } = useSiteSettings();
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
   const [lastFrame, setLastFrame] = useState<string | null>(null);
@@ -78,10 +76,10 @@ export default function BridgeSetupPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const macDownloadUrl = settings.bridge_direct_download_enabled && availability.macos
+  const macDownloadUrl = availability.macos
     ? buildDownloadUrl("macos")
     : null;
-  const linuxDownloadUrl = settings.bridge_direct_download_enabled && availability.linux
+  const linuxDownloadUrl = availability.linux
     ? buildDownloadUrl("linux")
     : null;
 
