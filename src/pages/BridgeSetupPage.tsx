@@ -12,8 +12,10 @@ import {
   PINNED_BRIDGE_VERSION,
   resolveBridgeRelease,
   downloadAndVerifyInstaller,
+  getLastResolverDiagnostics,
   type ResolvedBridgeRelease,
   type DownloadProgress,
+  type ReleaseAttempt,
 } from "@/lib/bridgeDownload";
 import { Progress } from "@/components/ui/progress";
 import { getLastBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
@@ -67,10 +69,17 @@ export default function BridgeSetupPage() {
   // the user a contextual "we detected an issue at <phase>" hint sourced
   // from the analytics stream.
   const [lastNonErrorPhase, setLastNonErrorPhase] = useState<DownloadProgress["phase"] | null>(null);
+  const [resolverDiagnostics, setResolverDiagnostics] = useState<{
+    attempts: ReleaseAttempt[];
+    usedHardFallback: boolean;
+  } | null>(null);
 
   const handleDownloadProgress = (p: DownloadProgress) => {
     setDownloadProgress(p);
     if (p.phase !== "error") setLastNonErrorPhase(p.phase);
+    if (p.phase === "error" || p.phase === "resolving") {
+      setResolverDiagnostics(getLastResolverDiagnostics());
+    }
   };
 
   useEffect(() => {
