@@ -1,18 +1,9 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
-import { Download, Loader2, ShieldCheck } from "lucide-react";
 import heroCockpit from "@/assets/hero-cockpit.jpg";
 import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
 import HeroChatBox from "@/components/HeroChatBox";
 import HeroChatBoxBoundary from "@/components/HeroChatBoxBoundary";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import {
-  PINNED_BRIDGE_VERSION,
-  downloadAndVerifyInstaller,
-  type DownloadProgress,
-} from "@/lib/bridgeDownload";
 
 const HeroSection = () => {
   const { resolvedTheme } = useTheme();
@@ -20,13 +11,6 @@ const HeroSection = () => {
   const heroAlt = resolvedTheme === "dark"
     ? "Aircraft cockpit view at sunset during flight — SimPilot.AI AI-powered pilot training platform hero image"
     : "Aircraft cockpit view on a bright morning flight — SimPilot.AI AI-powered pilot training platform hero image";
-
-  // Verified-download state for the Hero CTA. Mirrors the BridgeSetupPage
-  // flow so users can grab the pinned v1.0.0 installer without leaving the
-  // home page (no new tab, no GitHub host UI).
-  const [progress, setProgress] = useState<DownloadProgress | null>(null);
-  const isBusy =
-    progress != null && progress.phase !== "done" && progress.phase !== "error" && progress.phase !== "idle";
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -87,62 +71,6 @@ const HeroSection = () => {
         <HeroChatBoxBoundary>
           <HeroChatBox />
         </HeroChatBoxBoundary>
-
-        {/* SimPilot Bridge — verified direct download */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-8 flex flex-col items-center gap-3"
-        >
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button
-              size="lg"
-              disabled={isBusy}
-              onClick={() => {
-                setProgress({ phase: "resolving", percent: 0, message: "Starting…" });
-                downloadAndVerifyInstaller({ onProgress: setProgress });
-              }}
-              className="gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold"
-            >
-              {isBusy ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Download className="h-5 w-5" />
-              )}
-              {isBusy ? "Preparing…" : "Download SimPilot Bridge"}
-            </Button>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-primary">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              v{PINNED_BRIDGE_VERSION} Stable
-            </span>
-          </div>
-
-          {progress && progress.phase !== "idle" && (
-            <div
-              className={`w-full max-w-md rounded-md border p-3 text-left space-y-1.5 ${
-                progress.phase === "error"
-                  ? "border-destructive/50 bg-destructive/5"
-                  : "border-border/60 bg-card/70 backdrop-blur-sm"
-              }`}
-              role="status"
-              aria-live="polite"
-            >
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-foreground">{progress.message}</span>
-                <span className="font-mono text-muted-foreground">{progress.percent}%</span>
-              </div>
-              <Progress
-                value={progress.phase === "error" ? 100 : progress.percent}
-                className={`h-1.5 ${progress.phase === "error" ? "[&>div]:bg-destructive" : ""}`}
-              />
-              <p className="text-[10px] text-muted-foreground">
-                Pinned v{PINNED_BRIDGE_VERSION} · SHA-512 verified in your browser · saved straight to your downloads folder
-              </p>
-            </div>
-          )}
-        </motion.div>
-
 
         {/* HUD-style stats */}
         <motion.div
