@@ -61,14 +61,44 @@ export type ReleaseAttempt = {
   error?: string;
 };
 
+/** Timestamped attempt record for the persistent request log. */
+export type ReleaseAttemptLogEntry = ReleaseAttempt & {
+  /** Unix ms when the attempt completed. */
+  at: number;
+  /** Pinned tag the resolver was targeting at the time of the attempt. */
+  tag: string;
+};
+
 let lastResolverAttempts: ReleaseAttempt[] = [];
 let lastResolverUsedFallback = false;
+
+// Rolling history of every resolver attempt across the session, capped so it
+// can't grow unbounded. Surfaced via the on-page "Request log" panel.
+const REQUEST_LOG_MAX = 50;
+const requestLog: ReleaseAttemptLogEntry[] = [];
+
+function recordAttempt(attempt: ReleaseAttempt): void {
+  lastResolverAttempts.push(attempt);
+  requestLog.push({ ...attempt, at: Date.now(), tag: PINNED_TAG });
+  if (requestLog.length > REQUEST_LOG_MAX) {
+    requestLog.splice(0, requestLog.length - REQUEST_LOG_MAX);
+  }
+}
 
 export function getLastResolverDiagnostics(): {
   attempts: ReleaseAttempt[];
   usedHardFallback: boolean;
 } {
   return { attempts: lastResolverAttempts, usedHardFallback: lastResolverUsedFallback };
+}
+
+/** Full rolling request log (newest last). */
+export function getResolverRequestLog(): ReleaseAttemptLogEntry[] {
+  return requestLog.slice();
+}
+
+export function clearResolverRequestLog(): void {
+  requestLog.length = 0;
 }
 
 // Hard fallback source — used to synthesize a pinned release when every
@@ -152,10 +182,10 @@ async function fetchReleaseFromApi(
   try {
     res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
   } catch (err) {
-    lastResolverAttempts.push({ kind, url, status: null, ok: false, error: (err as Error).message });
+    recordAttempt({ kind, url, status: null, ok: false, error: (err as Error).message });
     throw err;
   }
-  lastResolverAttempts.push({ kind, url, status: res.status, ok: res.ok });
+  recordAttempt({ kind, url, status: res.status, ok: res.ok });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Release server returned ${res.status}`);
   const data = (await res.json()) as {
@@ -211,7 +241,7 @@ async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<Reso
     try {
       ymlRes = await fetch(ymlUrl, { cache: "no-store" });
     } catch (err) {
-      lastResolverAttempts.push({
+      recordAttempt({
         kind: "direct-asset-yml",
         url: ymlUrl,
         status: null,
@@ -220,7 +250,7 @@ async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<Reso
       });
       return null;
     }
-    lastResolverAttempts.push({
+    recordAttempt({
       kind: "direct-asset-yml",
       url: ymlUrl,
       status: ymlRes.status,
@@ -296,7 +326,7 @@ export async function resolveBridgeRelease(
 
     const fallback = buildHardFallbackRelease();
     lastResolverUsedFallback = true;
-    lastResolverAttempts.push({
+    recordAttempt({
       kind: "hard-fallback",
       url: fallback.installer!.downloadUrl,
       status: null,

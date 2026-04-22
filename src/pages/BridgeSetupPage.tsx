@@ -14,9 +14,12 @@ import {
   downloadAndVerifyInstaller,
   getLastResolverDiagnostics,
   clearBridgeReleaseCache,
+  getResolverRequestLog,
+  clearResolverRequestLog,
   type ResolvedBridgeRelease,
   type DownloadProgress,
   type ReleaseAttempt,
+  type ReleaseAttemptLogEntry,
 } from "@/lib/bridgeDownload";
 import { Progress } from "@/components/ui/progress";
 import { getLastBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
@@ -75,11 +78,16 @@ export default function BridgeSetupPage() {
     usedHardFallback: boolean;
   } | null>(null);
 
+  const [requestLog, setRequestLog] = useState<ReleaseAttemptLogEntry[]>([]);
+
+  const refreshRequestLog = () => setRequestLog(getResolverRequestLog());
+
   const handleDownloadProgress = (p: DownloadProgress) => {
     setDownloadProgress(p);
     if (p.phase !== "error") setLastNonErrorPhase(p.phase);
     if (p.phase === "error" || p.phase === "resolving") {
       setResolverDiagnostics(getLastResolverDiagnostics());
+      refreshRequestLog();
     }
   };
 
@@ -91,11 +99,15 @@ export default function BridgeSetupPage() {
         setReleaseError(null);
         const resolved = await resolveBridgeRelease();
         if (!cancelled) setRelease(resolved);
-        if (!cancelled) setResolverDiagnostics(getLastResolverDiagnostics());
+        if (!cancelled) {
+          setResolverDiagnostics(getLastResolverDiagnostics());
+          refreshRequestLog();
+        }
       } catch (err) {
         if (!cancelled) {
           setReleaseError((err as Error).message);
           setResolverDiagnostics(getLastResolverDiagnostics());
+          refreshRequestLog();
         }
       } finally {
         if (!cancelled) setReleaseLoading(false);
@@ -383,9 +395,11 @@ export default function BridgeSetupPage() {
                           const fresh = await resolveBridgeRelease({ forceRefresh: true });
                           if (fresh) setRelease(fresh);
                           setResolverDiagnostics(getLastResolverDiagnostics());
+                          refreshRequestLog();
                         } catch (err) {
                           setReleaseError((err as Error).message);
                           setResolverDiagnostics(getLastResolverDiagnostics());
+                          refreshRequestLog();
                         }
                         downloadAndVerifyInstaller({ onProgress: handleDownloadProgress });
                       }}
@@ -450,6 +464,88 @@ export default function BridgeSetupPage() {
                   )}
                 </div>
               )}
+
+            {/* Persistent request log — collapsed by default. Records every
+                resolver attempt across this session with timestamps so users
+                (or support) can audit what the resolver actually did. */}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="request-log" className="border-border/60">
+                <AccordionTrigger
+                  onClick={refreshRequestLog}
+                  className="text-xs uppercase tracking-[0.18em] font-display text-muted-foreground hover:text-foreground"
+                >
+                  <span className="flex items-center gap-2">
+                    Request log
+                    <Badge variant="outline" className="font-mono text-[10px]">
+                      {requestLog.length}
+                    </Badge>
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] text-muted-foreground">
+                        Recent release-resolution attempts (newest last). Useful for support tickets.
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 text-[11px]"
+                        onClick={() => {
+                          clearResolverRequestLog();
+                          refreshRequestLog();
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                    {requestLog.length === 0 ? (
+                      <p className="text-[11px] text-muted-foreground italic">
+                        No attempts recorded yet.
+                      </p>
+                    ) : (
+                      <ul className="space-y-1.5 max-h-72 overflow-y-auto">
+                        {requestLog.map((entry, i) => {
+                          const time = new Date(entry.at).toLocaleTimeString();
+                          return (
+                            <li
+                              key={`${entry.at}-${i}`}
+                              className="flex flex-wrap items-start gap-2 rounded border border-border/50 bg-background/40 p-2 text-[11px]"
+                            >
+                              <span className="font-mono text-muted-foreground">{time}</span>
+                              <Badge
+                                variant={entry.ok ? "secondary" : "destructive"}
+                                className="font-mono text-[10px] uppercase"
+                              >
+                                {entry.kind}
+                              </Badge>
+                              <span className="font-mono text-foreground">
+                                {entry.status !== null
+                                  ? `HTTP ${entry.status}`
+                                  : entry.error
+                                    ? "network error"
+                                    : entry.ok
+                                      ? "synthesized"
+                                      : "—"}
+                              </span>
+                              <code className="flex-1 break-all font-mono text-muted-foreground">
+                                {entry.url}
+                              </code>
+                              {entry.error && (
+                                <span className="basis-full text-destructive/80">
+                                  {entry.error}
+                                </span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
             {releaseLoading && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
