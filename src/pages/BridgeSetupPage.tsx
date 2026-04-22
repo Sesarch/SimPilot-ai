@@ -14,9 +14,12 @@ import {
   downloadAndVerifyInstaller,
   getLastResolverDiagnostics,
   clearBridgeReleaseCache,
+  getResolverRequestLog,
+  clearResolverRequestLog,
   type ResolvedBridgeRelease,
   type DownloadProgress,
   type ReleaseAttempt,
+  type ReleaseAttemptLogEntry,
 } from "@/lib/bridgeDownload";
 import { Progress } from "@/components/ui/progress";
 import { getLastBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
