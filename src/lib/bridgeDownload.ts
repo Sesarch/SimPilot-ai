@@ -218,8 +218,12 @@ export async function resolveBridgeRelease(
     }
   }
 
-  writeCache(null);
-  return null;
+  // Hard fallback — every discovery path failed (GitHub API down, blocked by
+  // an ad-blocker, rate-limited, etc.). Synthesize the pinned v1.0.0 record
+  // so the button stays enabled and points at the canonical asset URL.
+  const fallback = buildHardFallbackRelease();
+  writeCache(fallback);
+  return fallback;
 }
 
 /**
