@@ -227,7 +227,7 @@ export default function BridgeSetupPage() {
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
+              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS & Linux builds coming soon
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
