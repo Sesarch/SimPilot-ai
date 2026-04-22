@@ -303,13 +303,27 @@ export default function BridgeSetupPage() {
                   Linux unavailable
                 </span>
               )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => refreshAvailability(false)}
+                disabled={checkingAvailability}
+                className="h-11"
+                title="Re-check which installers are published in the current release"
+              >
+                <RefreshCw className={`h-4 w-4 ${checkingAvailability ? "animate-spin" : ""}`} />
+                {checkingAvailability ? "Checking…" : "Refresh"}
+              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
               Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
             </p>
             <p className="text-xs text-muted-foreground">
-              Only the Windows installer is published in the current release, so macOS and Linux stay disabled until those files are uploaded.
+              {lastCheckedAt
+                ? `Availability last checked at ${lastCheckedAt.toLocaleTimeString()} — Windows: ${availability.windows ? "available" : "missing"}, macOS: ${availability.macos ? "available" : "missing"}, Linux: ${availability.linux ? "available" : "missing"}.`
+                : "Checking which installers are published in the current release…"}
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
