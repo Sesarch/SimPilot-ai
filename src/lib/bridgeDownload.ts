@@ -23,8 +23,8 @@ import { trackBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
 export const PINNED_BRIDGE_VERSION = "1.0.0";
 const PINNED_TAG = `v${PINNED_BRIDGE_VERSION}`;
 
-const RELEASE_API_BY_TAG = `https://api.github.com/repos/simpilot-ai/bridge/releases/tags/${PINNED_TAG}`;
-const RELEASE_API_LATEST = "https://api.github.com/repos/simpilot-ai/bridge/releases/latest";
+const RELEASE_API_BY_TAG = `https://api.github.com/repos/Sesarch/SimPilot-ai/releases/tags/${PINNED_TAG}`;
+const RELEASE_API_LATEST = "https://api.github.com/repos/Sesarch/SimPilot-ai/releases/latest";
 
 // Versioned cache key — bumping PINNED_BRIDGE_VERSION invalidates old caches
 // automatically so users always pull the new pinned release on next visit.
