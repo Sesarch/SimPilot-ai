@@ -47,6 +47,8 @@ export type ResolvedBridgeRelease = {
 
 type ReleaseCacheEntry = { cachedAt: number; release: ResolvedBridgeRelease | null };
 
+type ReleaseSource = (typeof RELEASE_SOURCES)[number];
+
 function readCache(): ReleaseCacheEntry | null {
   try {
     const raw = localStorage.getItem(RELEASE_CACHE_KEY);
@@ -113,6 +115,49 @@ async function fetchReleaseFromApi(url: string): Promise<ResolvedBridgeRelease |
   };
 }
 
+function buildReleaseApiUrl(source: ReleaseSource, kind: "tag" | "latest"): string {
+  const base = `https://api.github.com/repos/${source.owner}/${source.repo}/releases`;
+  return kind === "tag" ? `${base}/tags/${PINNED_TAG}` : `${base}/latest`;
+}
+
+function buildReleaseAssetUrl(source: ReleaseSource, filename: string): string {
+  return `https://github.com/${source.owner}/${source.repo}/releases/download/${PINNED_TAG}/${filename}`;
+}
+
+async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<ResolvedBridgeRelease | null> {
+  const installerName = `SimPilotBridge-Setup-${PINNED_BRIDGE_VERSION}.exe`;
+  const installerUrl = buildReleaseAssetUrl(source, installerName);
+  const ymlUrl = buildReleaseAssetUrl(source, "latest.yml");
+
+  try {
+    const ymlRes = await fetch(ymlUrl, { cache: "no-store" });
+    if (!ymlRes.ok) return null;
+
+    const yml = await ymlRes.text();
+    const shaMatch = yml.match(/^sha512:\s*(\S+)/m);
+    const versionMatch = yml.match(/^version:\s*(\S+)/m);
+    const sizeMatch = yml.match(/^\s+size:\s*(\d+)/m);
+    const releaseDateMatch = yml.match(/^releaseDate:\s*['"]?([^'"\n]+)['"]?/m);
+
+    const version = versionMatch?.[1]?.trim();
+    if (version !== PINNED_BRIDGE_VERSION) return null;
+
+    return {
+      tagName: PINNED_TAG,
+      publishedAt: releaseDateMatch?.[1] ?? null,
+      htmlUrl: `https://github.com/${source.owner}/${source.repo}/releases/tag/${PINNED_TAG}`,
+      installer: {
+        name: installerName,
+        downloadUrl: installerUrl,
+        sizeBytes: Number(sizeMatch?.[1] ?? 0),
+      },
+      sha512: shaMatch?.[1] ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Resolves the pinned release (v1.0.0) with a transparent fallback to the
  * latest published release. Cached in localStorage for 10 minutes.
@@ -124,14 +169,31 @@ export async function resolveBridgeRelease(
     const cached = readCache();
     if (cached) return cached.release;
   }
-  let resolved = await fetchReleaseFromApi(RELEASE_API_BY_TAG);
-  if (!resolved) {
-    // Pinned tag not published yet — fall back to "latest" so the button
-    // still serves whatever is currently the freshest signed build.
-    resolved = await fetchReleaseFromApi(RELEASE_API_LATEST);
+
+  for (const source of RELEASE_SOURCES) {
+    let resolved: ResolvedBridgeRelease | null = null;
+
+    try {
+      resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "tag"));
+      if (!resolved) {
+        resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "latest"));
+      }
+    } catch {
+      resolved = null;
+    }
+
+    if (!resolved) {
+      resolved = await fetchReleaseFromDirectAssets(source);
+    }
+
+    if (resolved) {
+      writeCache(resolved);
+      return resolved;
+    }
   }
-  writeCache(resolved);
-  return resolved;
+
+  writeCache(null);
+  return null;
 }
 
 /**
