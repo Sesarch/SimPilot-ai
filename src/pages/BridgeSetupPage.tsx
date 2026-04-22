@@ -27,6 +27,8 @@ const RELEASE_PAGE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/tag/v$
 const MAC_RELEASE_PAGE_URL = `${RELEASE_PAGE_URL}#:~:text=${encodeURIComponent(MAC_INSTALLER_FILENAME)}`;
 const LINUX_RELEASE_PAGE_URL = `${RELEASE_PAGE_URL}#:~:text=${encodeURIComponent(LINUX_INSTALLER_FILENAME)}`;
 const INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${INSTALLER_FILENAME}`;
+const MAC_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${MAC_INSTALLER_FILENAME}`;
+const LINUX_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${LINUX_INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
@@ -34,6 +36,24 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [directDownload, setDirectDownload] = useState<boolean>(() => getBridgeDirectDownloadEnabled());
+
+  useEffect(() => {
+    const sync = () => setDirectDownload(getBridgeDirectDownloadEnabled());
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "simpilot.bridge.macLinuxDirectDownload") sync();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("simpilot:bridge-download-mode-changed", sync as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("simpilot:bridge-download-mode-changed", sync as EventListener);
+    };
+  }, []);
+
+  const macHref = directDownload ? MAC_INSTALLER_DIRECT_URL : MAC_RELEASE_PAGE_URL;
+  const linuxHref = directDownload ? LINUX_INSTALLER_DIRECT_URL : LINUX_RELEASE_PAGE_URL;
+
   const handlePairBridge = async () => {
     setPairing(true);
     setPairResult(null);
