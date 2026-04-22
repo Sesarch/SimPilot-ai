@@ -246,6 +246,10 @@ export async function resolveBridgeRelease(
     if (cached) return cached.release;
   }
 
+  // Reset per-call diagnostics so the UI shows only this attempt's URLs.
+  lastResolverAttempts = [];
+  lastResolverUsedFallback = false;
+
   for (const source of RELEASE_SOURCES) {
     let resolved: ResolvedBridgeRelease | null = null;
 
@@ -272,6 +276,13 @@ export async function resolveBridgeRelease(
   // an ad-blocker, rate-limited, etc.). Synthesize the pinned v1.0.0 record
   // so the button stays enabled and points at the canonical asset URL.
   const fallback = buildHardFallbackRelease();
+  lastResolverUsedFallback = true;
+  lastResolverAttempts.push({
+    kind: "hard-fallback",
+    url: fallback.installer!.downloadUrl,
+    status: null,
+    ok: true,
+  });
   writeCache(fallback);
   return fallback;
 }
