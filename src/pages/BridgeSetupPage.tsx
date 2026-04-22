@@ -213,6 +213,7 @@ export default function BridgeSetupPage() {
                 href={MAC_RELEASE_PAGE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                title={`Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${MAC_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
@@ -222,6 +223,7 @@ export default function BridgeSetupPage() {
                 href={LINUX_RELEASE_PAGE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                title={`Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${LINUX_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
