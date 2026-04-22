@@ -23,6 +23,8 @@ const MAC_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}.dmg`;
 const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}.AppImage`;
 const RELEASE_BASE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}`;
 const RELEASE_PAGE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/tag/v${BRIDGE_VERSION}`;
+const MAC_RELEASE_PAGE_URL = `${RELEASE_PAGE_URL}#:~:text=${encodeURIComponent(MAC_INSTALLER_FILENAME)}`;
+const LINUX_RELEASE_PAGE_URL = `${RELEASE_PAGE_URL}#:~:text=${encodeURIComponent(LINUX_INSTALLER_FILENAME)}`;
 const INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
@@ -208,7 +210,7 @@ export default function BridgeSetupPage() {
                 Download for Windows
               </a>
               <a
-                href={RELEASE_PAGE_URL}
+                href={MAC_RELEASE_PAGE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
@@ -217,7 +219,7 @@ export default function BridgeSetupPage() {
                 macOS — View release
               </a>
               <a
-                href={RELEASE_PAGE_URL}
+                href={LINUX_RELEASE_PAGE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
