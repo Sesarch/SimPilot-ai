@@ -107,6 +107,7 @@ export default function BridgeSetupPage() {
         if (!cancelled) {
           setReleaseError((err as Error).message);
           setResolverDiagnostics(getLastResolverDiagnostics());
+          refreshRequestLog();
         }
       } finally {
         if (!cancelled) setReleaseLoading(false);
