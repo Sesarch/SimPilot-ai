@@ -49,6 +49,28 @@ type ReleaseCacheEntry = { cachedAt: number; release: ResolvedBridgeRelease | nu
 
 type ReleaseSource = (typeof RELEASE_SOURCES)[number];
 
+// --- Resolver diagnostics ---------------------------------------------------
+// Per-attempt log of every URL the resolver tried, with HTTP status / error,
+// so the bridge setup page can render a precise on-page diagnostics panel
+// when discovery fails or falls back to the hard-pinned URL.
+export type ReleaseAttempt = {
+  kind: "tag-api" | "latest-api" | "direct-asset-yml" | "hard-fallback";
+  url: string;
+  status: number | null;
+  ok: boolean;
+  error?: string;
+};
+
+let lastResolverAttempts: ReleaseAttempt[] = [];
+let lastResolverUsedFallback = false;
+
+export function getLastResolverDiagnostics(): {
+  attempts: ReleaseAttempt[];
+  usedHardFallback: boolean;
+} {
+  return { attempts: lastResolverAttempts, usedHardFallback: lastResolverUsedFallback };
+}
+
 // Hard fallback source — used to synthesize a pinned release when every
 // upstream discovery path fails (GitHub API rate-limited, ad-blocker, etc.).
 // The button stays clickable and points at the canonical v1.0.0 asset.
@@ -103,8 +125,18 @@ function writeCache(release: ResolvedBridgeRelease | null) {
   }
 }
 
-async function fetchReleaseFromApi(url: string): Promise<ResolvedBridgeRelease | null> {
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+async function fetchReleaseFromApi(
+  url: string,
+  kind: "tag-api" | "latest-api",
+): Promise<ResolvedBridgeRelease | null> {
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+  } catch (err) {
+    lastResolverAttempts.push({ kind, url, status: null, ok: false, error: (err as Error).message });
+    throw err;
+  }
+  lastResolverAttempts.push({ kind, url, status: res.status, ok: res.ok });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Release server returned ${res.status}`);
   const data = (await res.json()) as {
@@ -156,7 +188,25 @@ async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<Reso
   const ymlUrl = buildReleaseAssetUrl(source, "latest.yml");
 
   try {
-    const ymlRes = await fetch(ymlUrl, { cache: "no-store" });
+    let ymlRes: Response;
+    try {
+      ymlRes = await fetch(ymlUrl, { cache: "no-store" });
+    } catch (err) {
+      lastResolverAttempts.push({
+        kind: "direct-asset-yml",
+        url: ymlUrl,
+        status: null,
+        ok: false,
+        error: (err as Error).message,
+      });
+      return null;
+    }
+    lastResolverAttempts.push({
+      kind: "direct-asset-yml",
+      url: ymlUrl,
+      status: ymlRes.status,
+      ok: ymlRes.ok,
+    });
     if (!ymlRes.ok) return null;
 
     const yml = await ymlRes.text();
@@ -196,13 +246,17 @@ export async function resolveBridgeRelease(
     if (cached) return cached.release;
   }
 
+  // Reset per-call diagnostics so the UI shows only this attempt's URLs.
+  lastResolverAttempts = [];
+  lastResolverUsedFallback = false;
+
   for (const source of RELEASE_SOURCES) {
     let resolved: ResolvedBridgeRelease | null = null;
 
     try {
-      resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "tag"));
+      resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "tag"), "tag-api");
       if (!resolved) {
-        resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "latest"));
+        resolved = await fetchReleaseFromApi(buildReleaseApiUrl(source, "latest"), "latest-api");
       }
     } catch {
       resolved = null;
@@ -222,6 +276,13 @@ export async function resolveBridgeRelease(
   // an ad-blocker, rate-limited, etc.). Synthesize the pinned v1.0.0 record
   // so the button stays enabled and points at the canonical asset URL.
   const fallback = buildHardFallbackRelease();
+  lastResolverUsedFallback = true;
+  lastResolverAttempts.push({
+    kind: "hard-fallback",
+    url: fallback.installer!.downloadUrl,
+    status: null,
+    ok: true,
+  });
   writeCache(fallback);
   return fallback;
 }
