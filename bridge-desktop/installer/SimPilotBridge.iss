@@ -186,6 +186,8 @@ const
 var
   TaglineLabel: TLabel;
   StatusBar: TLabel;
+  AgreeCheckBox: TNewCheckBox;
+  AgreeHintLabel: TLabel;
 
 function GetInstallTimestamp(Param: string): string;
 begin
