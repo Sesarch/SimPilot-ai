@@ -286,16 +286,17 @@ export async function downloadAndVerifyInstaller(
       description: `Fetching SimPilot Bridge v${PINNED_BRIDGE_VERSION}`,
     });
     const release = await resolveBridgeRelease();
-    if (!release?.installer) {
-      emit({ phase: "error", percent: 0, message: "Installer not available yet." });
+    const validation = validateResolvedRelease(release);
+    if (!validation.ok) {
+      emit({ phase: "error", percent: 0, message: validation.message });
       toast({
-        title: "Installer not available yet",
-        description: "The release is still being prepared — please try again in a moment.",
+        title: validation.title,
+        description: validation.message,
         variant: "destructive",
       });
       return;
     }
-    const { downloadUrl, name, sizeBytes } = release.installer;
+    const { downloadUrl, name, sizeBytes } = release!.installer!;
 
     emit({
       phase: "downloading",
