@@ -55,13 +55,11 @@ export default function BridgeSetupPage() {
         return;
       }
 
-      setState({
-        status: "unavailable",
-        message:
-          result.status === 404
-            ? `${platformLabel} build is not published for pinned v${BRIDGE_VERSION} yet.`
-            : result.message,
-      });
+      const message =
+        result.status === 404
+          ? `${platformLabel} build is not published for pinned v${BRIDGE_VERSION} yet.`
+          : result.message;
+      setState({ status: "unavailable", message });
     };
 
     void Promise.all([
