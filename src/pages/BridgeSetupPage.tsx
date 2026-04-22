@@ -27,7 +27,20 @@ const buildDownloadUrl = (platform: "windows" | "macos" | "linux") =>
 const INSTALLER_DIRECT_URL = buildDownloadUrl("windows");
 const CHECK_AVAILABILITY_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?check=1&version=${BRIDGE_VERSION}`;
 
-type Availability = { windows: boolean; macos: boolean; linux: boolean };
+type Platform = "windows" | "macos" | "linux";
+type Availability = Record<Platform, boolean>;
+
+const PLATFORM_FILENAMES: Record<Platform, string> = {
+  windows: INSTALLER_FILENAME,
+  macos: MAC_INSTALLER_FILENAME,
+  linux: LINUX_INSTALLER_FILENAME,
+};
+
+const PLATFORM_LABELS: Record<Platform, string> = {
+  windows: "Windows",
+  macos: "macOS",
+  linux: "Linux",
+};
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
@@ -39,7 +52,7 @@ export default function BridgeSetupPage() {
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
 
-  const refreshAvailability = async (silent = false) => {
+  const refreshAvailability = async (silent = false): Promise<Availability | null> => {
     setCheckingAvailability(true);
     try {
       const res = await fetch(CHECK_AVAILABILITY_URL, { cache: "no-store" });
@@ -58,6 +71,7 @@ export default function BridgeSetupPage() {
           description: `Windows: ${next.windows ? "✓" : "—"} · macOS: ${next.macos ? "✓" : "—"} · Linux: ${next.linux ? "✓" : "—"}`,
         });
       }
+      return next;
     } catch (err) {
       if (!silent) {
         toast({
@@ -66,6 +80,7 @@ export default function BridgeSetupPage() {
           variant: "destructive",
         });
       }
+      return null;
     } finally {
       setCheckingAvailability(false);
     }
@@ -76,12 +91,38 @@ export default function BridgeSetupPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const macDownloadUrl = availability.macos
-    ? buildDownloadUrl("macos")
-    : null;
-  const linuxDownloadUrl = availability.linux
-    ? buildDownloadUrl("linux")
-    : null;
+  const triggerDownload = (platform: Platform) => {
+    const link = document.createElement("a");
+    link.href = buildDownloadUrl(platform);
+    link.download = PLATFORM_FILENAMES[platform];
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handlePlatformDownload = async (platform: Platform) => {
+    if (platform === "windows" || availability[platform]) {
+      triggerDownload(platform);
+      return;
+    }
+
+    const next = await refreshAvailability(true);
+    if (next?.[platform]) {
+      triggerDownload(platform);
+      toast({
+        title: `${PLATFORM_LABELS[platform]} installer is live`,
+        description: `Starting ${PLATFORM_FILENAMES[platform]}.`,
+      });
+      return;
+    }
+
+    toast({
+      title: `${PLATFORM_LABELS[platform]} installer not published yet`,
+      description: `I re-checked the current v${BRIDGE_VERSION} release, but ${PLATFORM_FILENAMES[platform]} is still missing. Try Refresh again after the upload finishes.`,
+      variant: "destructive",
+    });
+  };
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -250,57 +291,34 @@ export default function BridgeSetupPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <a
-                href={INSTALLER_DIRECT_URL}
-                download={INSTALLER_FILENAME}
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => handlePlatformDownload("windows")}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for Windows
-              </a>
-              {macDownloadUrl ? (
-                <a
-                  href={macDownloadUrl}
-                  download={MAC_INSTALLER_FILENAME}
-                  rel="noopener noreferrer"
-                  title={`Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
-                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-                >
-                  <Download className="h-5 w-5" />
-                  Download for macOS
-                </a>
-              ) : (
-                <span
-                  aria-disabled="true"
-                  title={`macOS installer is not published for v${BRIDGE_VERSION} yet.`}
-                  className="inline-flex cursor-not-allowed items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted text-muted-foreground opacity-70 font-semibold text-sm"
-                >
-                  <Download className="h-5 w-5" />
-                  macOS unavailable
-                </span>
-              )}
-              {linuxDownloadUrl ? (
-                <a
-                  href={linuxDownloadUrl}
-                  download={LINUX_INSTALLER_FILENAME}
-                  rel="noopener noreferrer"
-                  title={`Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
-                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-                >
-                  <Download className="h-5 w-5" />
-                  Download for Linux
-                </a>
-              ) : (
-                <span
-                  aria-disabled="true"
-                  title={`Linux installer is not published for v${BRIDGE_VERSION} yet.`}
-                  className="inline-flex cursor-not-allowed items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted text-muted-foreground opacity-70 font-semibold text-sm"
-                >
-                  <Download className="h-5 w-5" />
-                  Linux unavailable
-                </span>
-              )}
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePlatformDownload("macos")}
+                title={availability.macos ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : `Click to re-check whether ${MAC_INSTALLER_FILENAME} is published yet.`}
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+              >
+                <Download className="h-5 w-5" />
+                Download for macOS
+                {!availability.macos ? <span className="text-xs text-muted-foreground">Check live</span> : null}
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePlatformDownload("linux")}
+                title={availability.linux ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : `Click to re-check whether ${LINUX_INSTALLER_FILENAME} is published yet.`}
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+              >
+                <Download className="h-5 w-5" />
+                Download for Linux
+                {!availability.linux ? <span className="text-xs text-muted-foreground">Check live</span> : null}
+              </button>
               <Button
                 type="button"
                 variant="outline"
