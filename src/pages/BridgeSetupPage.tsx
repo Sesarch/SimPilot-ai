@@ -8,21 +8,25 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
-import { PINNED_BRIDGE_VERSION, buildPinnedBridgeAssetUrl } from "@/lib/bridgeDownload";
+import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 type TestState = "idle" | "testing" | "success" | "failure";
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
 
-// Pinned installer — direct GitHub release asset, no resolver indirection.
+// Installers are served by the `bridge-download` edge function so the
+// browser never has to talk to a (potentially private) GitHub release URL.
 const BRIDGE_VERSION = PINNED_BRIDGE_VERSION;
 const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
 const MAC_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-mac-universal.zip`;
 const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-linux-x64.tar.gz`;
-const INSTALLER_DIRECT_URL = buildPinnedBridgeAssetUrl(INSTALLER_FILENAME);
-const MAC_INSTALLER_DIRECT_URL = buildPinnedBridgeAssetUrl(MAC_INSTALLER_FILENAME);
-const LINUX_INSTALLER_DIRECT_URL = buildPinnedBridgeAssetUrl(LINUX_INSTALLER_FILENAME);
+const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+const buildDownloadUrl = (platform: "windows" | "macos" | "linux") =>
+  `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/bridge-download?platform=${platform}&version=${BRIDGE_VERSION}`;
+const INSTALLER_DIRECT_URL = buildDownloadUrl("windows");
+const MAC_INSTALLER_DIRECT_URL = buildDownloadUrl("macos");
+const LINUX_INSTALLER_DIRECT_URL = buildDownloadUrl("linux");
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
