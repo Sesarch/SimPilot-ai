@@ -285,12 +285,12 @@ export default function BridgeSetupPage() {
                 verification will be skipped (no checksum was discoverable). */}
             {resolverDiagnostics?.usedHardFallback && (
               <div
-                className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 flex items-start gap-2"
+                className="rounded-md border border-destructive/40 bg-destructive/5 p-3 flex items-start gap-2"
                 role="status"
                 aria-live="polite"
                 data-testid="bridge-hard-fallback-banner"
               >
-                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
                 <div className="space-y-1 text-xs">
                   <p className="font-medium text-foreground">
                     Using hard-pinned v{PINNED_BRIDGE_VERSION} URL
@@ -299,7 +299,7 @@ export default function BridgeSetupPage() {
                     The release server couldn't be reached, so we're serving the canonical
                     v{PINNED_BRIDGE_VERSION} installer URL directly. The download still works.
                   </p>
-                  <p className={release?.sha512 ? "text-muted-foreground" : "text-amber-600 dark:text-amber-400 font-medium"}>
+                  <p className={release?.sha512 ? "text-muted-foreground" : "text-destructive font-medium"}>
                     {release?.sha512
                       ? "SHA-512 checksum verification: enabled ✓"
                       : "SHA-512 checksum verification: skipped (no checksum available offline)"}
