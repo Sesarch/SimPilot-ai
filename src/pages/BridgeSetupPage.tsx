@@ -13,6 +13,7 @@ import {
   resolveBridgeRelease,
   downloadAndVerifyInstaller,
   getLastResolverDiagnostics,
+  clearBridgeReleaseCache,
   type ResolvedBridgeRelease,
   type DownloadProgress,
   type ReleaseAttempt,
