@@ -8,7 +8,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
@@ -23,24 +22,16 @@ const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
 const MAC_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-mac-universal.zip`;
 const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-linux-x64.tar.gz`;
 const RELEASE_BASE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}`;
-const RELEASE_PAGE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/tag/v${BRIDGE_VERSION}`;
-const MAC_RELEASE_PAGE_URL = `${RELEASE_PAGE_URL}#:~:text=${encodeURIComponent(MAC_INSTALLER_FILENAME)}`;
-const LINUX_RELEASE_PAGE_URL = `${RELEASE_PAGE_URL}#:~:text=${encodeURIComponent(LINUX_INSTALLER_FILENAME)}`;
 const INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${INSTALLER_FILENAME}`;
 const MAC_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${MAC_INSTALLER_FILENAME}`;
 const LINUX_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${LINUX_INSTALLER_FILENAME}`;
 
 export default function BridgeSetupPage() {
-  const { settings } = useSiteSettings();
   const [testState, setTestState] = useState<TestState>("idle");
   const [testMessage, setTestMessage] = useState<string>("");
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const directDownload = settings.bridge_direct_download_enabled;
-
-  const macHref = directDownload ? MAC_INSTALLER_DIRECT_URL : MAC_RELEASE_PAGE_URL;
-  const linuxHref = directDownload ? LINUX_INSTALLER_DIRECT_URL : LINUX_RELEASE_PAGE_URL;
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -219,32 +210,24 @@ export default function BridgeSetupPage() {
                 Download for Windows
               </a>
               <a
-                href={macHref}
-                {...(directDownload
-                  ? { download: MAC_INSTALLER_FILENAME }
-                  : { target: "_blank" as const })}
+                href={MAC_INSTALLER_DIRECT_URL}
+                download={MAC_INSTALLER_FILENAME}
                 rel="noopener noreferrer"
-                title={directDownload
-                  ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
-                  : `Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${MAC_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
+                title={`Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
-                {directDownload ? "Download for macOS" : "macOS — View release"}
+                Download for macOS
               </a>
               <a
-                href={linuxHref}
-                {...(directDownload
-                  ? { download: LINUX_INSTALLER_FILENAME }
-                  : { target: "_blank" as const })}
+                href={LINUX_INSTALLER_DIRECT_URL}
+                download={LINUX_INSTALLER_FILENAME}
                 rel="noopener noreferrer"
-                title={directDownload
-                  ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`
-                  : `Opens the v${BRIDGE_VERSION} release page on GitHub. Once ${LINUX_INSTALLER_FILENAME} is published, the page will jump straight to that asset.`}
+                title={`Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
-                {directDownload ? "Download for Linux" : "Linux — View release"}
+                Download for Linux
               </a>
             </div>
 
