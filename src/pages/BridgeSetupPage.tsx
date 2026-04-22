@@ -27,59 +27,6 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [release, setRelease] = useState<ResolvedRelease | null>(null);
-  const [releaseLoading, setReleaseLoading] = useState(true);
-  const [releaseError, setReleaseError] = useState<string | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
-  // Tracks the phase that was active right before an error, so we can show
-  // the user a contextual "we detected an issue at <phase>" hint sourced
-  // from the analytics stream.
-  const [lastNonErrorPhase, setLastNonErrorPhase] = useState<DownloadProgress["phase"] | null>(null);
-  const [resolverDiagnostics, setResolverDiagnostics] = useState<{
-    attempts: ReleaseAttempt[];
-    usedHardFallback: boolean;
-  } | null>(null);
-
-  const [requestLog, setRequestLog] = useState<ReleaseAttemptLogEntry[]>([]);
-
-  const refreshRequestLog = () => setRequestLog(getResolverRequestLog());
-
-  const handleDownloadProgress = (p: DownloadProgress) => {
-    setDownloadProgress(p);
-    if (p.phase !== "error") setLastNonErrorPhase(p.phase);
-    if (p.phase === "error" || p.phase === "resolving") {
-      setResolverDiagnostics(getLastResolverDiagnostics());
-      refreshRequestLog();
-    }
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setReleaseLoading(true);
-        setReleaseError(null);
-        const resolved = await resolveBridgeRelease();
-        if (!cancelled) setRelease(resolved);
-        if (!cancelled) {
-          setResolverDiagnostics(getLastResolverDiagnostics());
-          refreshRequestLog();
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setReleaseError((err as Error).message);
-          setResolverDiagnostics(getLastResolverDiagnostics());
-          refreshRequestLog();
-        }
-      } finally {
-        if (!cancelled) setReleaseLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const handlePairBridge = async () => {
     setPairing(true);
     setPairResult(null);
