@@ -110,6 +110,25 @@ function readCache(): ReleaseCacheEntry | null {
   }
 }
 
+/**
+ * Fully clears any cached release metadata + diagnostics + in-flight
+ * resolution promise. Used by the Retry button so the next resolve call
+ * starts from a completely clean slate (no stale "no installer" entry, no
+ * leftover hard-fallback flag, no piggy-backing on a pending request).
+ */
+export function clearBridgeReleaseCache(): void {
+  try {
+    localStorage.removeItem(RELEASE_CACHE_KEY);
+  } catch {
+    /* private mode — non-fatal */
+  }
+  lastResolverAttempts = [];
+  lastResolverUsedFallback = false;
+  inFlightResolve = null;
+}
+
+let inFlightResolve: Promise<ResolvedBridgeRelease | null> | null = null;
+
 function writeCache(release: ResolvedBridgeRelease | null) {
   try {
     if (!release) {
