@@ -23,12 +23,14 @@ import { trackBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
 export const PINNED_BRIDGE_VERSION = "1.0.0";
 const PINNED_TAG = `v${PINNED_BRIDGE_VERSION}`;
 
-const RELEASE_API_BY_TAG = `https://api.github.com/repos/Sesarch/SimPilot-ai/releases/tags/${PINNED_TAG}`;
-const RELEASE_API_LATEST = "https://api.github.com/repos/Sesarch/SimPilot-ai/releases/latest";
+const RELEASE_SOURCES = [
+  { owner: "simpilot-ai", repo: "bridge" },
+  { owner: "Sesarch", repo: "SimPilot-ai" },
+] as const;
 
 // Versioned cache key — bumping PINNED_BRIDGE_VERSION invalidates old caches
 // automatically so users always pull the new pinned release on next visit.
-const RELEASE_CACHE_KEY = `simpilot:bridge-release-cache:v1:${PINNED_TAG}`;
+const RELEASE_CACHE_KEY = `simpilot:bridge-release-cache:v2:${PINNED_TAG}`;
 const RELEASE_CACHE_TTL_MS = 10 * 60 * 1000;
 
 export type ResolvedBridgeRelease = {
@@ -60,6 +62,10 @@ function readCache(): ReleaseCacheEntry | null {
 
 function writeCache(release: ResolvedBridgeRelease | null) {
   try {
+    if (!release) {
+      localStorage.removeItem(RELEASE_CACHE_KEY);
+      return;
+    }
     localStorage.setItem(
       RELEASE_CACHE_KEY,
       JSON.stringify({ cachedAt: Date.now(), release } satisfies ReleaseCacheEntry),
