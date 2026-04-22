@@ -27,87 +27,11 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [availability, setAvailability] = useState<Availability>({ windows: true, macos: false, linux: false });
-  const [checkingAvailability, setCheckingAvailability] = useState(false);
-  const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
 
-  const refreshAvailability = async (silent = false): Promise<Availability | null> => {
-    setCheckingAvailability(true);
-    try {
-      const res = await fetch(CHECK_AVAILABILITY_URL, { cache: "no-store" });
-      // Treat any non-2xx as "unknown availability" — Windows always stays
-      // clickable via the proxy, and macOS/Linux fall back to "Coming soon".
-      if (!res.ok) {
-        const next: Availability = { windows: true, macos: false, linux: false };
-        setAvailability(next);
-        setLastCheckedAt(new Date());
-        return next;
-      }
-      const data = (await res.json()) as Partial<Availability> & { fallback?: boolean };
-      const next: Availability = {
-        // Windows is always available (the .exe is pinned in the public release).
-        windows: true,
-        macos: Boolean(data.macos),
-        linux: Boolean(data.linux),
-      };
-      setAvailability(next);
-      setLastCheckedAt(new Date());
-      if (!silent) {
-        toast({
-          title: "Release availability refreshed",
-          description: `Windows: ✓ · macOS: ${next.macos ? "✓" : "soon"} · Linux: ${next.linux ? "✓" : "soon"}`,
-        });
-      }
-      return next;
-    } catch {
-      // Network error / blocked request — silently fall back. Never show a
-      // destructive toast for this; the buttons themselves communicate state.
-      const next: Availability = { windows: true, macos: false, linux: false };
-      setAvailability(next);
-      setLastCheckedAt(new Date());
-      return next;
-    } finally {
-      setCheckingAvailability(false);
-    }
-  };
-
-  useEffect(() => {
-    refreshAvailability(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const triggerDownload = (platform: Platform) => {
-    const link = document.createElement("a");
-    link.href = buildDownloadUrl(platform);
-    link.download = PLATFORM_FILENAMES[platform];
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
-
-  const handlePlatformDownload = async (platform: Platform) => {
-    // Windows is always live — straight to download via the proxy.
-    if (platform === "windows" || availability[platform]) {
-      triggerDownload(platform);
-      return;
-    }
-
-    // Silent re-check in case the asset just landed.
-    const next = await refreshAvailability(true);
-    if (next?.[platform]) {
-      triggerDownload(platform);
-      toast({
-        title: `${PLATFORM_LABELS[platform]} installer is live`,
-        description: `Starting ${PLATFORM_FILENAMES[platform]}.`,
-      });
-      return;
-    }
-
-    // Friendly "coming soon" — no destructive/red toast.
+  const handleComingSoon = (platform: "macOS" | "Linux") => {
     toast({
-      title: `${PLATFORM_LABELS[platform]} build coming soon`,
-      description: "We'll notify you the moment the installer is published. Windows is fully supported today.",
+      title: `${platform} build coming soon`,
+      description: "We're launching Windows-only for v1.0.0. We'll announce macOS and Linux as soon as they're ready.",
     });
   };
 
