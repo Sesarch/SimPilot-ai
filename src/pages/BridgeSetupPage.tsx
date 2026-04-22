@@ -78,11 +78,16 @@ export default function BridgeSetupPage() {
     usedHardFallback: boolean;
   } | null>(null);
 
+  const [requestLog, setRequestLog] = useState<ReleaseAttemptLogEntry[]>([]);
+
+  const refreshRequestLog = () => setRequestLog(getResolverRequestLog());
+
   const handleDownloadProgress = (p: DownloadProgress) => {
     setDownloadProgress(p);
     if (p.phase !== "error") setLastNonErrorPhase(p.phase);
     if (p.phase === "error" || p.phase === "resolving") {
       setResolverDiagnostics(getLastResolverDiagnostics());
+      refreshRequestLog();
     }
   };
 
