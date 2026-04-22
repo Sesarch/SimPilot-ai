@@ -166,6 +166,8 @@ const AdminSiteSettings = () => {
             <Switch checked={bridgeDirectDownload} onCheckedChange={handleBridgeDirectDownloadChange} />
           </div>
         </div>
+
+        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
           {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : "Save Settings"}
         </Button>
       </div>
