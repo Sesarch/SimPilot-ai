@@ -310,22 +310,22 @@ export default function BridgeSetupPage() {
               <button
                 type="button"
                 onClick={() => handlePlatformDownload("macos")}
-                title={availability.macos ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : `Click to re-check whether ${MAC_INSTALLER_FILENAME} is published yet.`}
+                title={availability.macos ? `Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : "macOS build coming soon — click to get notified when it's live."}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for macOS
-                {!availability.macos ? <span className="text-xs text-muted-foreground">Check live</span> : null}
+                {!availability.macos ? <span className="text-xs text-muted-foreground">Coming soon</span> : null}
               </button>
               <button
                 type="button"
                 onClick={() => handlePlatformDownload("linux")}
-                title={availability.linux ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : `Click to re-check whether ${LINUX_INSTALLER_FILENAME} is published yet.`}
+                title={availability.linux ? `Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.` : "Linux build coming soon — click to get notified when it's live."}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for Linux
-                {!availability.linux ? <span className="text-xs text-muted-foreground">Check live</span> : null}
+                {!availability.linux ? <span className="text-xs text-muted-foreground">Coming soon</span> : null}
               </button>
               <Button
                 type="button"
@@ -346,8 +346,8 @@ export default function BridgeSetupPage() {
             </p>
             <p className="text-xs text-muted-foreground">
               {lastCheckedAt
-                ? `Availability last checked at ${lastCheckedAt.toLocaleTimeString()} — Windows: ${availability.windows ? "available" : "missing"}, macOS: ${availability.macos ? "available" : "missing"}, Linux: ${availability.linux ? "available" : "missing"}.`
-                : "Checking which installers are published in the current release…"}
+                ? `Last checked at ${lastCheckedAt.toLocaleTimeString()} — Windows ready. macOS: ${availability.macos ? "available" : "coming soon"}. Linux: ${availability.linux ? "available" : "coming soon"}.`
+                : "Windows installer is live. Checking macOS and Linux availability…"}
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
