@@ -230,6 +230,10 @@ function buildReleaseAssetUrl(source: ReleaseSource, filename: string): string {
   return `https://github.com/${source.owner}/${source.repo}/releases/download/${PINNED_TAG}/${filename}`;
 }
 
+export function buildPinnedBridgeReleaseUrl(): string {
+  return `https://github.com/${RELEASE_SOURCES[0].owner}/${RELEASE_SOURCES[0].repo}/releases/tag/${PINNED_TAG}`;
+}
+
 export function buildPinnedBridgeAssetUrl(filename: string): string {
   return buildReleaseAssetUrl(RELEASE_SOURCES[0], filename);
 }
