@@ -24,7 +24,6 @@ export const PINNED_BRIDGE_VERSION = "1.0.0";
 const PINNED_TAG = `v${PINNED_BRIDGE_VERSION}`;
 
 const RELEASE_SOURCES = [
-  { owner: "simpilot-ai", repo: "bridge" },
   { owner: "Sesarch", repo: "SimPilot-ai" },
 ] as const;
 
@@ -104,7 +103,7 @@ export function clearResolverRequestLog(): void {
 // Hard fallback source — used to synthesize a pinned release when every
 // upstream discovery path fails (GitHub API rate-limited, ad-blocker, etc.).
 // The button stays clickable and points at the canonical v1.0.0 asset.
-const HARD_FALLBACK_SOURCE: ReleaseSource = { owner: "simpilot-ai", repo: "bridge" };
+const HARD_FALLBACK_SOURCE: ReleaseSource = { owner: "Sesarch", repo: "SimPilot-ai" };
 
 /**
  * Synthesizes a pinned-release record from the explicit v1.0.0 asset URL.
