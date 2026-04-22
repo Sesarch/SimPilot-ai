@@ -17,6 +17,7 @@ import {
 } from "@/lib/bridgeDownload";
 import { Progress } from "@/components/ui/progress";
 import { getLastBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
+import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 // Maps the last successful phase before an error into a short, actionable
 // self-correction hint. Sourced from the same analytics stream that powers
@@ -231,10 +232,12 @@ export default function BridgeSetupPage() {
         <h1 className="font-orbitron text-3xl md:text-4xl font-bold tracking-tight mb-3">
           SimPilot Bridge Setup
         </h1>
-        <p className="text-muted-foreground max-w-2xl mb-10">
+        <p className="text-muted-foreground max-w-2xl mb-6">
           The SimPilot Bridge is a small app that runs on your PC and streams live telemetry from
           Microsoft Flight Simulator 2024 or X-Plane 12 into your browser-based Flight Deck.
         </p>
+
+        <BridgeVerifiedStatusPanel className="mb-10 max-w-2xl" />
 
         {/* Step 1 — Download */}
         <Card className="mb-6 border-border/60">
