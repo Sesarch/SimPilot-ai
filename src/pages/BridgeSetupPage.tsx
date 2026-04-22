@@ -210,7 +210,7 @@ export default function BridgeSetupPage() {
                 Download for Windows
               </a>
               <a
-                href={RELEASE_PAGE_URL}
+                href={MAC_RELEASE_PAGE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
