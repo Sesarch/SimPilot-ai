@@ -230,6 +230,10 @@ function buildReleaseAssetUrl(source: ReleaseSource, filename: string): string {
   return `https://github.com/${source.owner}/${source.repo}/releases/download/${PINNED_TAG}/${filename}`;
 }
 
+export function buildPinnedBridgeAssetUrl(filename: string): string {
+  return buildReleaseAssetUrl(RELEASE_SOURCES[0], filename);
+}
+
 async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<ResolvedBridgeRelease | null> {
   const installerName = `SimPilotBridge-Setup-${PINNED_BRIDGE_VERSION}.exe`;
   const installerUrl = buildReleaseAssetUrl(source, installerName);

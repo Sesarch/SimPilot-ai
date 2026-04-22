@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -8,15 +8,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
-import { PINNED_BRIDGE_VERSION, preflightInstallerUrl } from "@/lib/bridgeDownload";
+import { PINNED_BRIDGE_VERSION, buildPinnedBridgeAssetUrl } from "@/lib/bridgeDownload";
 import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 type TestState = "idle" | "testing" | "success" | "failure";
-type PlatformAssetState = {
-  status: "checking" | "ready" | "unavailable";
-  message?: string;
-};
-
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
 
@@ -25,10 +20,9 @@ const BRIDGE_VERSION = PINNED_BRIDGE_VERSION;
 const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
 const MAC_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-mac-universal.zip`;
 const LINUX_INSTALLER_FILENAME = `SimPilotBridge-${BRIDGE_VERSION}-linux-x64.tar.gz`;
-const RELEASE_BASE_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}`;
-const INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${INSTALLER_FILENAME}`;
-const MAC_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${MAC_INSTALLER_FILENAME}`;
-const LINUX_INSTALLER_DIRECT_URL = `${RELEASE_BASE_URL}/${LINUX_INSTALLER_FILENAME}`;
+const INSTALLER_DIRECT_URL = buildPinnedBridgeAssetUrl(INSTALLER_FILENAME);
+const MAC_INSTALLER_DIRECT_URL = buildPinnedBridgeAssetUrl(MAC_INSTALLER_FILENAME);
+const LINUX_INSTALLER_DIRECT_URL = buildPinnedBridgeAssetUrl(LINUX_INSTALLER_FILENAME);
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
@@ -36,41 +30,6 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [macAssetState, setMacAssetState] = useState<PlatformAssetState>({ status: "checking" });
-  const [linuxAssetState, setLinuxAssetState] = useState<PlatformAssetState>({ status: "checking" });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const checkPlatformAsset = async (
-      setState: (state: PlatformAssetState) => void,
-      url: string,
-      platformLabel: string,
-    ) => {
-      const result = await preflightInstallerUrl(url);
-      if (cancelled) return;
-
-      if (result.ok === true) {
-        setState({ status: "ready" });
-        return;
-      }
-
-      const message =
-        result.status === 404
-          ? `${platformLabel} build is not published for pinned v${BRIDGE_VERSION} yet.`
-          : result.message;
-      setState({ status: "unavailable", message });
-    };
-
-    void Promise.all([
-      checkPlatformAsset(setMacAssetState, MAC_INSTALLER_DIRECT_URL, "macOS"),
-      checkPlatformAsset(setLinuxAssetState, LINUX_INSTALLER_DIRECT_URL, "Linux"),
-    ]);
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -248,57 +207,27 @@ export default function BridgeSetupPage() {
                 <Download className="h-5 w-5" />
                 Download for Windows
               </a>
-              {macAssetState.status === "ready" ? (
-                <a
-                  href={MAC_INSTALLER_DIRECT_URL}
-                  download={MAC_INSTALLER_FILENAME}
-                  rel="noopener noreferrer"
-                  title={`Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
-                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-                >
-                  <Download className="h-5 w-5" />
-                  Download for macOS
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  title={macAssetState.message ?? "Checking macOS build availability"}
-                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background text-muted-foreground transition-all font-semibold text-sm opacity-70 cursor-not-allowed"
-                >
-                  {macAssetState.status === "checking" ? <Loader2 className="h-5 w-5 animate-spin" /> : <AlertTriangle className="h-5 w-5" />}
-                  {macAssetState.status === "checking" ? "Checking macOS build…" : "macOS build unavailable"}
-                </button>
-              )}
-              {linuxAssetState.status === "ready" ? (
-                <a
-                  href={LINUX_INSTALLER_DIRECT_URL}
-                  download={LINUX_INSTALLER_FILENAME}
-                  rel="noopener noreferrer"
-                  title={`Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
-                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
-                >
-                  <Download className="h-5 w-5" />
-                  Download for Linux
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  title={linuxAssetState.message ?? "Checking Linux build availability"}
-                  className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background text-muted-foreground transition-all font-semibold text-sm opacity-70 cursor-not-allowed"
-                >
-                  {linuxAssetState.status === "checking" ? <Loader2 className="h-5 w-5 animate-spin" /> : <AlertTriangle className="h-5 w-5" />}
-                  {linuxAssetState.status === "checking" ? "Checking Linux build…" : "Linux build unavailable"}
-                </button>
-              )}
+              <a
+                href={MAC_INSTALLER_DIRECT_URL}
+                download={MAC_INSTALLER_FILENAME}
+                rel="noopener noreferrer"
+                title={`Direct download: ${MAC_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+              >
+                <Download className="h-5 w-5" />
+                Download for macOS
+              </a>
+              <a
+                href={LINUX_INSTALLER_DIRECT_URL}
+                download={LINUX_INSTALLER_FILENAME}
+                rel="noopener noreferrer"
+                title={`Direct download: ${LINUX_INSTALLER_FILENAME} from the v${BRIDGE_VERSION} release.`}
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-all font-semibold text-sm"
+              >
+                <Download className="h-5 w-5" />
+                Download for Linux
+              </a>
             </div>
-
-            {(macAssetState.status === "unavailable" || linuxAssetState.status === "unavailable") && (
-              <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                macOS and Linux downloads only enable after those exact files are published to the pinned v{BRIDGE_VERSION} release.
-              </div>
-            )}
 
             <p className="text-xs text-muted-foreground">
               Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS: {MAC_INSTALLER_FILENAME} · Linux: {LINUX_INSTALLER_FILENAME}
