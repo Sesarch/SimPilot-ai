@@ -1,8 +1,9 @@
-name: Build SimPilot Bridge (Windows)
+name: Build SimPilot Bridge Installer (Windows)
 
-# Builds SimPilotBridge.exe on a Windows runner and attaches it to a GitHub
-# Release. Trigger by pushing a tag like `bridge-v0.2.0`, or manually from the
-# Actions tab via "Run workflow".
+# Builds the modern Electron tray app + NSIS one-click installer
+# (SimPilotBridge-Setup-X.Y.Z.exe) on a Windows runner and attaches it to a
+# GitHub Release. Trigger by pushing a tag like `bridge-v1.0.0`, or run
+# manually from the Actions tab.
 on:
   push:
     tags:
@@ -14,54 +15,57 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build Windows .exe
+    name: Build Windows installer (.exe)
     runs-on: windows-latest
     defaults:
       run:
-        working-directory: bridge
+        working-directory: bridge-desktop
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 18
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
-          cache-dependency-path: bridge/package-lock.json
+          cache-dependency-path: bridge-desktop/package-lock.json
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build SimPilotBridge.exe
+      - name: Build NSIS one-click installer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:win
 
-      - name: Verify build output and compute SHA-256
+      - name: Resolve installer path & SHA-256
         id: hash
         shell: pwsh
         run: |
-          if (!(Test-Path "dist/SimPilotBridge.exe")) {
-            Write-Error "Build failed — dist/SimPilotBridge.exe not found"
+          $exe = Get-ChildItem dist/SimPilotBridge-Setup-*.exe | Select-Object -First 1
+          if (-not $exe) {
+            Write-Error "Build failed — no SimPilotBridge-Setup-*.exe found in dist/"
             exit 1
           }
-          $info = Get-Item dist/SimPilotBridge.exe
-          $info | Format-List Name, Length, LastWriteTime
-          $hash = (Get-FileHash dist/SimPilotBridge.exe -Algorithm SHA256).Hash.ToLower()
+          $exe | Format-List Name, Length, LastWriteTime
+          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
           Write-Host "SHA-256: $hash"
-          # Write the hash to a sidecar file uploaded with the binary
-          "$hash  SimPilotBridge.exe" | Out-File -Encoding ascii dist/SimPilotBridge.exe.sha256
-          # Expose for later steps
+          "$hash  $($exe.Name)" | Out-File -Encoding ascii "$($exe.FullName).sha256"
           "sha256=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "size=$($info.Length)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "size=$($exe.Length)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "name=$($exe.Name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "path=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Upload artifact (always)
         uses: actions/upload-artifact@v4
         with:
-          name: SimPilotBridge-windows
+          name: SimPilotBridge-Setup-${{ steps.hash.outputs.name }}
           path: |
-            bridge/dist/SimPilotBridge.exe
-            bridge/dist/SimPilotBridge.exe.sha256
+            bridge-desktop/dist/SimPilotBridge-Setup-*.exe
+            bridge-desktop/dist/SimPilotBridge-Setup-*.exe.sha256
+            bridge-desktop/dist/latest.yml
           if-no-files-found: error
 
       - name: Build release notes with checksum
@@ -71,22 +75,19 @@ jobs:
           $notes = @"
           ## SimPilot Bridge ${{ github.ref_name }}
 
-          Local sidecar that streams MSFS 2024 (SimConnect) and X-Plane 12 (UDP) telemetry to the SimPilot.AI Flight Deck.
+          Modern one-click installer (NSIS) for the SimPilot Bridge desktop tray app.
+          Streams MSFS 2024 (SimConnect) and X-Plane 12 (UDP) telemetry to the
+          SimPilot.AI Flight Deck.
 
           ### Download
-          - **SimPilotBridge.exe** — Windows x64 (${{ steps.hash.outputs.size }} bytes)
+          - **${{ steps.hash.outputs.name }}** — Windows x64 (${{ steps.hash.outputs.size }} bytes)
 
           ### Verify integrity (SHA-256)
           ``${{ steps.hash.outputs.sha256 }}``
 
           PowerShell:
           ``````powershell
-          Get-FileHash SimPilotBridge.exe -Algorithm SHA256
-          ``````
-
-          macOS / Linux:
-          ``````bash
-          shasum -a 256 SimPilotBridge.exe
+          Get-FileHash ${{ steps.hash.outputs.name }} -Algorithm SHA256
           ``````
           "@
           $notes | Out-File -Encoding utf8 release-notes.md
@@ -97,9 +98,10 @@ jobs:
         with:
           name: SimPilot Bridge ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          body_path: bridge/release-notes.md
+          body_path: bridge-desktop/release-notes.md
           append_body: true
           generate_release_notes: true
           files: |
-            bridge/dist/SimPilotBridge.exe
-            bridge/dist/SimPilotBridge.exe.sha256
+            bridge-desktop/dist/SimPilotBridge-Setup-*.exe
+            bridge-desktop/dist/SimPilotBridge-Setup-*.exe.sha256
+            bridge-desktop/dist/latest.yml
