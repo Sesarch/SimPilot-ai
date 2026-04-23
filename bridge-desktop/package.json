@@ -45,6 +45,8 @@
         { "target": "nsis", "arch": ["x64"] }
       ],
       "icon": "build/icon.ico",
+      "publisherName": "Sesarch SimPilot",
+      "legalTrademarks": "SimPilot.AI",
       "artifactName": "SimPilotBridge-Setup-${version}.${ext}"
     },
     "nsis": {
@@ -56,6 +58,8 @@
       "shortcutName": "SimPilot Bridge",
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": false,
+      "menuCategory": "SimPilot",
+      "uninstallDisplayName": "SimPilot Bridge ${version}",
       "installerIcon": "build/installerIcon.ico",
       "uninstallerIcon": "build/uninstallerIcon.ico",
       "installerHeaderIcon": "build/installerHeaderIcon.ico",
