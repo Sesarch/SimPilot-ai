@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Link2, Sparkles, Lock } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -8,17 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 
-type TestState = "idle" | "testing" | "success" | "failure";
-const BRIDGE_URL = "ws://localhost:8080";
-const TEST_TIMEOUT_MS = 4000;
 const BRIDGE_VERSION = "1.0.0";
 const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
 const INSTALLER_DIRECT_URL = "https://github.com/Sesarch/SimPilot-ai/releases/download/v1.0.0/SimPilotBridge-Setup-1.0.0.exe";
 
 export default function BridgeSetupPage() {
-  const [testState, setTestState] = useState<TestState>("idle");
-  const [testMessage, setTestMessage] = useState<string>("");
-  const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
 
@@ -44,91 +38,6 @@ export default function BridgeSetupPage() {
       setPairResult({ ok: false, message: (err as Error).message || "Failed to mint pairing token." });
     } finally {
       setPairing(false);
-    }
-  };
-
-  const runTest = async () => {
-    setTestState("testing");
-    setTestMessage("Connecting to ws://localhost:8080…");
-    setLastFrame(null);
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData.session?.access_token;
-    if (!token) {
-      setTestState("failure");
-      setTestMessage("You need to be signed in to test the bridge — it only accepts your authenticated session token.");
-      return;
-    }
-
-    let ws: WebSocket | null = null;
-    let settled = false;
-
-    const fail = (msg: string) => {
-      if (settled) return;
-      settled = true;
-      setTestState("failure");
-      setTestMessage(msg);
-      try { ws?.close(); } catch { /* noop */ }
-    };
-
-    const succeed = (frame?: string) => {
-      if (settled) return;
-      settled = true;
-      setTestState("success");
-      setTestMessage("Bridge detected and authenticated. Telemetry stream is live.");
-      if (frame) setLastFrame(frame);
-      try { ws?.close(); } catch { /* noop */ }
-    };
-
-    const timer = window.setTimeout(() => {
-      fail("No response from the bridge after 4 seconds. Make sure SimPilot Bridge is running.");
-    }, TEST_TIMEOUT_MS);
-
-    try {
-      ws = new WebSocket(BRIDGE_URL);
-      ws.onopen = () => {
-        setTestMessage("Connected. Authenticating…");
-        try {
-          ws?.send(JSON.stringify({ type: "auth", token }));
-        } catch (err) {
-          fail((err as Error).message);
-        }
-      };
-      ws.onmessage = (evt) => {
-        const text = typeof evt.data === "string" ? evt.data : "";
-        try {
-          const parsed = JSON.parse(text);
-          if (parsed?.type === "auth-error") {
-            window.clearTimeout(timer);
-            fail(`Bridge rejected the session token (${parsed.reason ?? "unknown"}).`);
-            return;
-          }
-          if (parsed?.type === "auth-ok") {
-            setTestMessage("Authenticated. Waiting for first telemetry frame…");
-            return;
-          }
-        } catch {
-        }
-        window.clearTimeout(timer);
-        succeed(text.slice(0, 240));
-      };
-      ws.onerror = () => {
-        window.clearTimeout(timer);
-        fail("Could not reach ws://localhost:8080. Is SimPilot Bridge installed and running?");
-      };
-      ws.onclose = (evt) => {
-        if (!settled) {
-          window.clearTimeout(timer);
-          if (evt.code === 4401) {
-            fail("Bridge rejected the session token. Sign out and back in, then retry.");
-          } else {
-            fail(`Connection closed before any data arrived (code ${evt.code}).`);
-          }
-        }
-      };
-    } catch (err) {
-      window.clearTimeout(timer);
-      fail((err as Error).message);
     }
   };
 
@@ -322,107 +231,8 @@ EnableDataBroadcast=1`}
           </CardContent>
         </Card>
 
-        {/* Step 4 — Test connection */}
-        <Card className="mb-6 border-border/60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-orbitron">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm font-bold">4</span>
-              Test connection
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Button onClick={runTest} disabled={testState === "testing"} className="gap-2">
-                {testState === "testing" ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Testing…
-                  </>
-                ) : (
-                  <>
-                    <Plug className="h-4 w-4" />
-                    Test connection
-                  </>
-                )}
-              </Button>
-
-              {testState === "success" && (
-                <span className="inline-flex items-center gap-2 text-sm text-primary">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Connected
-                </span>
-              )}
-              {testState === "failure" && (
-                <span className="inline-flex items-center gap-2 text-sm text-destructive">
-                  <XCircle className="h-4 w-4" />
-                  Failed
-                </span>
-              )}
-            </div>
-
-            {testMessage && (
-              <p className={`text-sm ${testState === "failure" ? "text-destructive" : "text-muted-foreground"}`}>
-                {testMessage}
-              </p>
-            )}
-
-            {lastFrame && (
-              <div className="rounded-md border border-border/60 bg-muted/30 p-3">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">First frame</p>
-                <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-all">{lastFrame}</pre>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Troubleshooting */}
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-orbitron">
-              <AlertTriangle className="h-5 w-5 text-primary" />
-              Troubleshooting
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="not-running">
-                <AccordionTrigger>Test says "No response from the bridge"</AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground space-y-2">
-                  <p>Make sure <span className="font-mono">SimPilotBridge.exe</span> is running — you should see a console window.</p>
-                  <p>Check that no other app is using port <span className="font-mono">8080</span>.</p>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="firewall">
-                <AccordionTrigger>Windows Firewall is blocking the bridge</AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  When you first run the bridge, allow it on <strong>Private networks</strong>. The bridge only listens on{" "}
-                  <span className="font-mono">127.0.0.1</span> so your data never leaves your machine.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="msfs-noconnect">
-                <AccordionTrigger>MSFS connects but no telemetry shows up</AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  SimConnect only emits values once a flight is loaded. Sit at the runway or in flight, then re-test.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="xplane-noconnect">
-                <AccordionTrigger>X-Plane is running but the bridge sees nothing</AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground space-y-2">
-                  <p>Double-check the four required Data Output rows are ticked under <span className="font-mono">Network via UDP</span>.</p>
-                  <p>Confirm the destination IP is <span className="font-mono">127.0.0.1</span> and port <span className="font-mono">49003</span>.</p>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="https">
-                <AccordionTrigger>Browser blocks ws:// from an https:// page</AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  Modern browsers allow <span className="font-mono">ws://localhost</span> from secure pages. If your browser
-                  still blocks it, try Chrome or Edge — Safari occasionally requires a flag.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
 }
+
