@@ -1,13 +1,9 @@
 ; ============================================================================
-;  SimPilot Bridge — Modern Cockpit-Themed Inno Setup Installer
-;  Premium wizard UI: dark cockpit accents, animated progress, custom pages,
-;  shortcuts, autostart, deep-link protocol, and built-in auto-update channel.
-;
-;  Build:
-;    1. Install Inno Setup 6 from https://jrsoftware.org/isdl.php
-;    2. Drop your compiled SimPilotBridge.exe into  installer/payload/
-;    3. Right-click this .iss file → "Compile"
-;    4. Output appears in  installer/output/SimPilotBridge-Setup-1.0.0.exe
+;  SimPilot Bridge — Modern One-Click Cockpit Installer (Inno Setup)
+;  "Discord-style" experience: branded welcome splash → automatic install →
+;  finished page. No directory picker, no task picker, no license dialog.
+;  Desktop shortcut, Start Menu entry, run-on-startup, firewall rule, and
+;  simpilot:// deep-link are all enabled by default.
 ; ============================================================================
 
 #define MyAppName        "SimPilot Bridge"
@@ -32,11 +28,13 @@ AppContact=support@simpilot.ai
 AppComments=Live cockpit telemetry bridge for SimPilot.AI
 DefaultDirName={autopf}\SimPilot\Bridge
 DefaultGroupName=SimPilot
+; ---- One-click experience: hide every page except Welcome / Installing / Finished
 DisableProgramGroupPage=yes
-DisableDirPage=auto
-DisableReadyPage=no
+DisableDirPage=yes
+DisableReadyPage=yes
 DisableWelcomePage=no
-LicenseFile=assets\license.txt
+DisableFinishedPage=no
+LicenseFile=
 OutputDir=output
 OutputBaseFilename=SimPilotBridge-Setup-{#MyAppVersion}
 SetupIconFile=assets\app-icon.ico
@@ -64,29 +62,23 @@ AllowNoIcons=yes
 AppCopyright=© 2025 SimPilot.AI — All rights reserved
 SetupMutex=SimPilotBridgeSetupMutex
 UsePreviousAppDir=yes
-UsePreviousTasks=yes
+UsePreviousTasks=no
 ChangesAssociations=yes
 TimeStampsInUTC=yes
-DisableFinishedPage=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-; Custom wizard copy with a more premium, aviation-flavored tone
+; Branded copy for the only two visible pages: Welcome + Finished
 WelcomeLabel1=Welcome aboard%n{#MyAppName}
-WelcomeLabel2=You are about to install {#MyAppName} {#MyAppVersion}.%n%n{#MyAppName} links your flight simulator (MSFS, X-Plane, P3D) to your SimPilot.AI flight deck for live telemetry, automatic logbook entries, and AI-powered debriefs.%n%nClose any running simulators before continuing for the smoothest install.
+WelcomeLabel2=Click Install to set up {#MyAppName} {#MyAppVersion} in one click.%n%n• A desktop shortcut and Start Menu entry will be created.%n• {#MyAppName} will run automatically when Windows starts.%n• The simpilot:// pairing protocol will be registered.%n%nClose any running simulators before continuing for the smoothest install.
 FinishedHeadingLabel=Pre-flight checklist complete
 FinishedLabelNoIcons={#MyAppName} is installed and ready for taxi.
 FinishedLabel={#MyAppName} is installed and ready for taxi.%n%nLaunch the app, sign in to your SimPilot.AI dashboard, and tap “Pair Bridge” to link your simulator.
 ClickFinish=Tap Finish to close the installer.
-SelectDirLabel3={#MyAppName} will be installed into the following folder.
-SelectDirBrowseLabel=To continue, click Next. To choose a different folder, click Browse.
-ReadyLabel1=Ready for departure
-ReadyLabel2a=Setup is ready to install {#MyAppName} on your computer.
-ReadyLabel2b=Click Install to begin, or Back to review your selections.
 ButtonInstall=&Install
-ButtonNext=&Next
+ButtonNext=&Install
 ButtonFinish=&Take off
 StatusExtractFiles=Loading flight systems...
 StatusCreateIcons=Wiring up shortcuts...
@@ -94,71 +86,62 @@ StatusCreateRegistryEntries=Calibrating instruments...
 StatusRegisterFiles=Spinning up engines...
 StatusRollback=Aborting takeoff, restoring previous state...
 
-[Tasks]
-Name: "desktopicon";    Description: "Pin a &desktop shortcut";                          GroupDescription: "Shortcuts:"
-Name: "startmenuicon";  Description: "Add a Start &Menu entry";                          GroupDescription: "Shortcuts:"; Flags: checkedonce
-Name: "autostart";      Description: "Launch {#MyAppName} silently when Windows &starts"; GroupDescription: "Startup:"
-Name: "deeplink";       Description: "Register the simpilot:// browser protocol (one-click pairing from your dashboard)"; GroupDescription: "Integration:"; Flags: checkedonce
-Name: "autoupdate";     Description: "Keep {#MyAppName} up to date automatically";       GroupDescription: "Updates:"; Flags: checkedonce
-Name: "firewall";       Description: "Allow {#MyAppName} through Windows Firewall (recommended)"; GroupDescription: "Network:"; Flags: checkedonce
-
 [Files]
 Source: "payload\{#MyAppExeName}";  DestDir: "{app}"; Flags: ignoreversion
 Source: "payload\*";                DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "{#MyAppExeName}"
 Source: "assets\app-icon.ico";      DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#MyAppName}";              Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\app-icon.ico"; Comment: "{#MyTagline}"; Tasks: startmenuicon
-Name: "{group}\{#MyAppName} Dashboard";    Filename: "{#MyAppURL}/dashboard"; IconFilename: "{app}\app-icon.ico"; Comment: "Open your SimPilot.AI dashboard"; Tasks: startmenuicon
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}";                                  Tasks: startmenuicon
-Name: "{autodesktop}\{#MyAppName}";        Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\app-icon.ico"; Comment: "{#MyTagline}"; Tasks: desktopicon
+; All shortcuts always created — no user choice (one-click).
+Name: "{group}\{#MyAppName}";              Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\app-icon.ico"; Comment: "{#MyTagline}"
+Name: "{group}\{#MyAppName} Dashboard";    Filename: "{#MyAppURL}/dashboard"; IconFilename: "{app}\app-icon.ico"; Comment: "Open your SimPilot.AI dashboard"
+Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\{#MyAppName}";        Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\app-icon.ico"; Comment: "{#MyTagline}"
 
 [Registry]
-; ---- Launch at Windows startup (per-user, hidden) ----
+; ---- Launch at Windows startup (per-user, hidden) — always on ----
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; \
   ValueType: string; ValueName: "SimPilotBridge"; ValueData: """{app}\{#MyAppExeName}"" --hidden"; \
-  Flags: uninsdeletevalue; Tasks: autostart
+  Flags: uninsdeletevalue
 
-; ---- simpilot:// deep-link protocol handler ----
+; ---- simpilot:// deep-link protocol handler — always registered ----
 Root: HKCR; Subkey: "simpilot"; \
   ValueType: string; ValueName: ""; ValueData: "URL:SimPilot Protocol"; \
-  Flags: uninsdeletekey; Tasks: deeplink
+  Flags: uninsdeletekey
 Root: HKCR; Subkey: "simpilot"; \
-  ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Tasks: deeplink
+  ValueType: string; ValueName: "URL Protocol"; ValueData: ""
 Root: HKCR; Subkey: "simpilot\DefaultIcon"; \
-  ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"",0"; Tasks: deeplink
+  ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"",0"
 Root: HKCR; Subkey: "simpilot\shell\open\command"; \
-  ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: deeplink
+  ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 
-; ---- Auto-update feed configuration ----
+; ---- Auto-update feed configuration — always on ----
 Root: HKCU; Subkey: "Software\SimPilot\Bridge"; \
   ValueType: string; ValueName: "UpdateFeed"; ValueData: "{#MyUpdateFeedURL}"; \
-  Flags: uninsdeletekey; Tasks: autoupdate
+  Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\SimPilot\Bridge"; \
-  ValueType: dword;  ValueName: "AutoUpdate"; ValueData: "1"; Tasks: autoupdate
+  ValueType: dword;  ValueName: "AutoUpdate"; ValueData: "1"
 
-; ---- Install metadata (always written) ----
-Root: HKCU; Subkey: "Software\SimPilot\Bridge"; ValueType: string; ValueName: "InstallDir";    ValueData: "{app}";              Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\SimPilot\Bridge"; ValueType: string; ValueName: "Version";       ValueData: "{#MyAppVersion}";    Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\SimPilot\Bridge"; ValueType: string; ValueName: "InstalledOn";   ValueData: "{code:GetInstallTimestamp}"; Flags: uninsdeletevalue
+; ---- Install metadata ----
+Root: HKCU; Subkey: "Software\SimPilot\Bridge"; ValueType: string; ValueName: "InstallDir";  ValueData: "{app}";              Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\SimPilot\Bridge"; ValueType: string; ValueName: "Version";     ValueData: "{#MyAppVersion}";    Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\SimPilot\Bridge"; ValueType: string; ValueName: "InstalledOn"; ValueData: "{code:GetInstallTimestamp}"; Flags: uninsdeletevalue
 
 [Run]
-; Windows Firewall rule (best-effort, silent)
+; Windows Firewall rule (best-effort, silent) — always added
 Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""SimPilot Bridge"" dir=in action=allow program=""{app}\{#MyAppExeName}"" enable=yes profile=any"; \
-  Flags: runhidden; Tasks: firewall; StatusMsg: "Opening firewall lane for telemetry..."
+  Flags: runhidden; StatusMsg: "Opening firewall lane for telemetry..."
 
 ; Launch the bridge after install
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName} now"; \
-  Flags: nowait postinstall skipifsilent unchecked
+  Flags: nowait postinstall skipifsilent
 
 ; Open the dashboard so users can pair immediately
 Filename: "{#MyAppURL}/dashboard"; Description: "Open SimPilot.AI dashboard to pair"; \
-  Flags: shellexec nowait postinstall skipifsilent
+  Flags: shellexec nowait postinstall skipifsilent unchecked
 
 [UninstallRun]
-; Best-effort: stop the bridge before uninstall
 Filename: "taskkill.exe"; Parameters: "/F /IM {#MyAppExeName}"; Flags: runhidden; RunOnceId: "KillBridge"
-; Remove firewall rule
 Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""SimPilot Bridge"""; Flags: runhidden; RunOnceId: "RemoveFirewall"
 
 [UninstallDelete]
@@ -168,46 +151,26 @@ Type: filesandordirs; Name: "{userappdata}\SimPilot\Bridge\cache"
 
 [Code]
 // ---------------------------------------------------------------------------
-//  Cockpit-themed wizard polish
+//  Cockpit-themed wizard polish — Welcome + Installing + Finished pages only
 //  Palette (BGR — Inno uses BGR, not RGB):
 //    Cyan  #21D4FD → BGR $FDD421   (primary accent)
 //    Teal  #009199 → BGR $999100   (brand)
-//    Slate #0B1220 → BGR $20120B   (deep cockpit background)
 //    Ice   #E6F7FF → BGR $FFF7E6   (light text on dark)
+//    Muted                        (sub-caption)
 // ---------------------------------------------------------------------------
 
 const
-  COLOR_CYAN     = $FDD421;
-  COLOR_TEAL     = $999100;
-  COLOR_SLATE    = $20120B;
-  COLOR_ICE      = $FFF7E6;
-  COLOR_MUTED    = $A89888;
+  COLOR_CYAN  = $FDD421;
+  COLOR_TEAL  = $999100;
+  COLOR_ICE   = $FFF7E6;
+  COLOR_MUTED = $A89888;
 
 var
   TaglineLabel: TLabel;
-  StatusBar: TLabel;
-  AgreeCheckBox: TNewCheckBox;
-  AgreeHintLabel: TLabel;
 
 function GetInstallTimestamp(Param: string): string;
 begin
   Result := GetDateTimeString('yyyy-mm-dd"T"hh:nn:ss', '-', ':');
-end;
-
-procedure StylePageHeading(Page: TWizardPage);
-begin
-  if Page = nil then Exit;
-  if Assigned(WizardForm.PageNameLabel) then
-  begin
-    WizardForm.PageNameLabel.Font.Name  := 'Segoe UI Semibold';
-    WizardForm.PageNameLabel.Font.Size  := 13;
-    WizardForm.PageNameLabel.Font.Color := COLOR_TEAL;
-  end;
-  if Assigned(WizardForm.PageDescriptionLabel) then
-  begin
-    WizardForm.PageDescriptionLabel.Font.Name := 'Segoe UI';
-    WizardForm.PageDescriptionLabel.Font.Size := 9;
-  end;
 end;
 
 procedure InitializeWizard;
@@ -226,17 +189,17 @@ begin
   WizardForm.FinishedHeadingLabel.Font.Size  := 18;
   WizardForm.FinishedHeadingLabel.Font.Color := COLOR_CYAN;
 
-  WizardForm.FinishedLabel.Font.Name := 'Segoe UI';
-  WizardForm.FinishedLabel.Font.Size := 10;
+  WizardForm.FinishedLabel.Font.Name  := 'Segoe UI';
+  WizardForm.FinishedLabel.Font.Size  := 10;
   WizardForm.FinishedLabel.Font.Color := COLOR_ICE;
 
-  // ---- Buttons: cockpit accent ----
+  // ---- Buttons ----
   WizardForm.NextButton.Font.Name   := 'Segoe UI Semibold';
   WizardForm.NextButton.Font.Style  := [fsBold];
   WizardForm.BackButton.Font.Name   := 'Segoe UI';
   WizardForm.CancelButton.Font.Name := 'Segoe UI';
 
-  // ---- Tagline strip beneath the wizard header ----
+  // ---- Tagline strip beneath the wizard ----
   TaglineLabel := TLabel.Create(WizardForm);
   TaglineLabel.Parent      := WizardForm;
   TaglineLabel.Caption     := '  ✈  {#MyTagline}   •   v{#MyAppVersion}   •   {#MyAppPublisher}';
@@ -250,68 +213,11 @@ begin
   TaglineLabel.Height      := 18;
   TaglineLabel.Transparent := True;
   TaglineLabel.Anchors     := [akLeft, akRight, akBottom];
-
-  // ---- Style the inner page headers ----
-  StylePageHeading(nil);
-
-  // ---- Final consent checkbox on the Ready page (gates the Install button) ----
-  AgreeCheckBox := TNewCheckBox.Create(WizardForm);
-  AgreeCheckBox.Parent      := WizardForm.ReadyPage;
-  AgreeCheckBox.Left        := 0;
-  AgreeCheckBox.Width       := WizardForm.ReadyPage.ClientWidth;
-  AgreeCheckBox.Top         := WizardForm.ReadyPage.ClientHeight - 44;
-  AgreeCheckBox.Height      := 22;
-  AgreeCheckBox.Caption     := '  I have read and agree to the SimPilot Bridge License Agreement and Terms of Use.';
-  AgreeCheckBox.Font.Name   := 'Segoe UI Semibold';
-  AgreeCheckBox.Font.Size   := 9;
-  AgreeCheckBox.Font.Color  := COLOR_CYAN;
-  AgreeCheckBox.Checked     := False;
-  AgreeCheckBox.Anchors     := [akLeft, akRight, akBottom];
-  AgreeCheckBox.OnClick     := @AgreeCheckBoxClick;
-
-  AgreeHintLabel := TLabel.Create(WizardForm);
-  AgreeHintLabel.Parent     := WizardForm.ReadyPage;
-  AgreeHintLabel.Left       := 22;
-  AgreeHintLabel.Width      := WizardForm.ReadyPage.ClientWidth - 22;
-  AgreeHintLabel.Top        := WizardForm.ReadyPage.ClientHeight - 22;
-  AgreeHintLabel.Height     := 16;
-  AgreeHintLabel.Caption    := 'Tick the box above to enable the Install button.';
-  AgreeHintLabel.Font.Name  := 'Segoe UI';
-  AgreeHintLabel.Font.Size  := 8;
-  AgreeHintLabel.Font.Color := COLOR_MUTED;
-  AgreeHintLabel.Anchors    := [akLeft, akRight, akBottom];
-end;
-
-procedure AgreeCheckBoxClick(Sender: TObject);
-begin
-  if WizardForm.CurPageID = wpReady then
-  begin
-    WizardForm.NextButton.Enabled := AgreeCheckBox.Checked;
-    AgreeHintLabel.Visible := not AgreeCheckBox.Checked;
-  end;
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
-  // Re-apply heading styling each page change (Inno re-creates labels)
-  case CurPageID of
-    wpSelectDir, wpSelectComponents, wpSelectTasks, wpReady, wpInstalling:
-      StylePageHeading(nil);
-  end;
-
-  // Gate the Install button on the Ready page behind the consent checkbox
-  if CurPageID = wpReady then
-  begin
-    WizardForm.NextButton.Enabled := AgreeCheckBox.Checked;
-    AgreeHintLabel.Visible := not AgreeCheckBox.Checked;
-  end
-  else
-  begin
-    // Re-enable Next on every other page so it doesn't get stuck disabled
-    WizardForm.NextButton.Enabled := True;
-  end;
-
-  // On the install page, brighten the progress bar caption
+  // Brighten the install progress caption
   if (CurPageID = wpInstalling) and Assigned(WizardForm.StatusLabel) then
   begin
     WizardForm.StatusLabel.Font.Name  := 'Segoe UI';
@@ -320,24 +226,11 @@ begin
   end;
 end;
 
-function NextButtonClick(CurPageID: Integer): Boolean;
-begin
-  // Hard-stop safeguard: never allow install without consent
-  if (CurPageID = wpReady) and (not AgreeCheckBox.Checked) then
-  begin
-    MsgBox('Please tick the agreement checkbox to continue.', mbInformation, MB_OK);
-    Result := False;
-    Exit;
-  end;
-  Result := True;
-end;
-
 function InitializeSetup(): Boolean;
 var
   Version: TWindowsVersion;
 begin
   GetWindowsVersionEx(Version);
-  // Friendly modern-Windows check (already enforced by MinVersion, but messaged nicely)
   if Version.Major < 10 then
   begin
     MsgBox('SimPilot Bridge requires Windows 10 or later.' + #13#10 + #13#10 +
