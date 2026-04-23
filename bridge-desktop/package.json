@@ -26,7 +26,7 @@
     "copyright": "Copyright © 2025 SimPilot.AI",
     "directories": {
       "output": "dist",
-      "buildResources": "installer/assets"
+      "buildResources": "build"
     },
     "files": [
       "electron/**/*",
@@ -44,7 +44,6 @@
       "target": [
         { "target": "nsis", "arch": ["x64"] }
       ],
-      "icon": "installer/assets/app-icon.png",
       "artifactName": "SimPilotBridge-Setup-${version}.${ext}"
     },
     "nsis": {
