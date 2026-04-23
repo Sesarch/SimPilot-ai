@@ -1,25 +1,19 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Copy, ShieldCheck, Link2, Sparkles, Lock } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { ArrowLeft, Download, Plug, CheckCircle2, XCircle, Loader2, AlertTriangle, Radio, Link2, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
-import { PINNED_BRIDGE_VERSION } from "@/lib/bridgeDownload";
-import BridgeVerifiedStatusPanel from "@/components/BridgeVerifiedStatusPanel";
 
 type TestState = "idle" | "testing" | "success" | "failure";
 const BRIDGE_URL = "ws://localhost:8080";
 const TEST_TIMEOUT_MS = 4000;
-
-// v1.0.0 launch is Windows-only. Mac/Linux installers are not built yet, so
-// we skip all GitHub probing and hard-code the Windows download URL.
-const BRIDGE_VERSION = PINNED_BRIDGE_VERSION;
+const BRIDGE_VERSION = "1.0.0";
 const INSTALLER_FILENAME = `SimPilotBridge-Setup-${BRIDGE_VERSION}.exe`;
-const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/${INSTALLER_FILENAME}`;
+const INSTALLER_DIRECT_URL = "https://github.com/Sesarch/SimPilot-ai/releases/download/v1.0.0/SimPilotBridge-Setup-1.0.0.exe";
 
 export default function BridgeSetupPage() {
   const [testState, setTestState] = useState<TestState>("idle");
@@ -27,13 +21,6 @@ export default function BridgeSetupPage() {
   const [lastFrame, setLastFrame] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-
-  const handleComingSoon = (platform: "macOS" | "Linux") => {
-    toast({
-      title: `${platform} build coming soon`,
-      description: "We're launching Windows-only for v1.0.0. We'll announce macOS and Linux as soon as they're ready.",
-    });
-  };
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -48,7 +35,6 @@ export default function BridgeSetupPage() {
       if (error) throw error;
       const deepLink = (data as { deep_link?: string })?.deep_link;
       if (!deepLink) throw new Error("No deep link returned");
-      // Trigger the simpilot:// protocol — Windows hands off to the installed bridge.
       window.location.href = deepLink;
       setPairResult({
         ok: true,
@@ -66,8 +52,6 @@ export default function BridgeSetupPage() {
     setTestMessage("Connecting to ws://localhost:8080…");
     setLastFrame(null);
 
-    // The bridge requires an authenticated session — fetch the access token
-    // before opening the socket so we can complete the handshake.
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     if (!token) {
@@ -124,7 +108,6 @@ export default function BridgeSetupPage() {
             return;
           }
         } catch {
-          // not a control frame — fall through, treat as telemetry
         }
         window.clearTimeout(timer);
         succeed(text.slice(0, 240));
@@ -180,8 +163,6 @@ export default function BridgeSetupPage() {
           Microsoft Flight Simulator 2024 or X-Plane 12 into your browser-based Flight Deck.
         </p>
 
-        <BridgeVerifiedStatusPanel className="mb-10 max-w-2xl" />
-
         {/* Step 1 — Download */}
         <Card className="mb-6 border-border/60">
           <CardHeader>
@@ -204,37 +185,31 @@ export default function BridgeSetupPage() {
             <div className="flex flex-wrap gap-3">
               <a
                 href={INSTALLER_DIRECT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 h-11 rounded-md px-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
                 Download for Windows
               </a>
-              <button
-                type="button"
-                onClick={() => handleComingSoon("macOS")}
-                title="Coming soon — v1.0.0 is Windows-only"
+              <span
+                title="Windows Only"
                 aria-disabled="true"
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed font-semibold text-sm opacity-60"
               >
                 <Lock className="h-4 w-4" />
-                macOS · Coming soon
-              </button>
-              <button
-                type="button"
-                onClick={() => handleComingSoon("Linux")}
-                title="Coming soon — v1.0.0 is Windows-only"
+                macOS · Windows Only
+              </span>
+              <span
+                title="Windows Only"
                 aria-disabled="true"
                 className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed font-semibold text-sm opacity-60"
               >
                 <Lock className="h-4 w-4" />
-                Linux · Coming soon
-              </button>
+                Linux · Windows Only
+              </span>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS &amp; Linux builds coming soon.
+              Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS &amp; Linux are disabled for this Windows-only launch.
             </p>
             <p className="text-xs text-muted-foreground">
               The bridge binds to <span className="font-mono">127.0.0.1:8080</span> only — it never exposes data to your network.
