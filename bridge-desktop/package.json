@@ -44,6 +44,7 @@
       "target": [
         { "target": "nsis", "arch": ["x64"] }
       ],
+      "icon": "build/icon.ico",
       "artifactName": "SimPilotBridge-Setup-${version}.${ext}"
     },
     "nsis": {
@@ -54,7 +55,14 @@
       "createStartMenuShortcut": true,
       "shortcutName": "SimPilot Bridge",
       "runAfterFinish": true,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "build/installerIcon.ico",
+      "uninstallerIcon": "build/uninstallerIcon.ico",
+      "installerHeaderIcon": "build/installerHeaderIcon.ico",
+      "installerHeader": "build/installerHeader.bmp",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/installerSidebar.bmp",
+      "artifactName": "SimPilotBridge-Setup-${version}.${ext}"
     }
   },
   "author": "SimPilot.AI",
