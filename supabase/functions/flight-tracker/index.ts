@@ -519,7 +519,7 @@ serve(async (req) => {
       });
     }
 
-    // Strategy 4: Fallback to mock data
+    // Strategy 3: Fallback to mock data
     console.log("All live sources unavailable, returning mock flight data");
     const mockData = {
       time: Math.floor(Date.now() / 1000),
