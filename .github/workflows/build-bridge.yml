@@ -6,6 +6,9 @@ on:
       - "bridge-v*"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -35,5 +38,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SimPilotBridge-Setup
-          path: bridge-desktop/dist/*.exe
+          path: |
+            bridge-desktop/dist/*.exe
+            bridge-desktop/dist/latest.yml
+            bridge-desktop/dist/*.blockmap
           if-no-files-found: error
+
+      - name: Attach installer to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            bridge-desktop/dist/*.exe
+            bridge-desktop/dist/latest.yml
+            bridge-desktop/dist/*.blockmap
+          fail_on_unmatched_files: false
