@@ -488,7 +488,10 @@ export type Database = {
           id: string
           message: string | null
           phone: string | null
+          preferred_start_date: string | null
           school_name: string
+          status: string
+          updated_at: string
         }
         Insert: {
           contact_email: string
@@ -498,7 +501,10 @@ export type Database = {
           id?: string
           message?: string | null
           phone?: string | null
+          preferred_start_date?: string | null
           school_name: string
+          status?: string
+          updated_at?: string
         }
         Update: {
           contact_email?: string
@@ -508,7 +514,10 @@ export type Database = {
           id?: string
           message?: string | null
           phone?: string | null
+          preferred_start_date?: string | null
           school_name?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
