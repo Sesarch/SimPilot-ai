@@ -131,7 +131,11 @@ const AccountSettings = () => {
 
   return (
     <div className="space-y-6">
-      {/* Study Track */}
+      {/* School Code Redemption */}
+      <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <RedeemSchoolCode />
+      </div>
+
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
           <GraduationCap className="w-4 h-4 text-primary" /> Study Track
