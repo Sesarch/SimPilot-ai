@@ -483,6 +483,11 @@ const AdminPage = () => {
             </div>
           </TabsContent>
 
+          {/* Schools Tab */}
+          <TabsContent value="schools">
+            <AdminSchoolInquiries />
+          </TabsContent>
+
           {/* Emails Tab */}
           <TabsContent value="emails">
             <AdminEmailDashboard />
