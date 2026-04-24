@@ -6,6 +6,9 @@ on:
       - "bridge-v*"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     name: Build Windows installer (.exe)
@@ -19,33 +22,81 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      - name: Ignore missing package-lock.json
-        shell: pwsh
-        run: |
-          if (Test-Path "bridge-desktop/package-lock.json") {
-            Write-Host "package-lock.json found in bridge-desktop"
-          } else {
-            Write-Host "package-lock.json not found in bridge-desktop, continuing with npm install"
-          }
+          cache: "npm"
+          cache-dependency-path: bridge-desktop/package-lock.json
 
       - name: Install dependencies
-        shell: pwsh
-        run: |
-          Set-Location bridge-desktop
-          npm install
+        working-directory: bridge-desktop
+        run: npm install
 
-      - name: Build NSIS installer
-        shell: pwsh
+      - name: Build NSIS one-click installer
+        working-directory: bridge-desktop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          Set-Location bridge-desktop
-          npm run build:win
+        run: npm run build:win
 
-      - name: Upload installer artifact
+      - name: Resolve installer path & SHA-256
+        id: hash
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem bridge-desktop/dist/SimPilotBridge-Setup-*.exe | Select-Object -First 1
+          if (-not $exe) {
+            Write-Error "Build failed — no SimPilotBridge-Setup-*.exe found in bridge-desktop/dist/"
+            exit 1
+          }
+          $exe | Format-List Name, Length, LastWriteTime
+          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          Write-Host "SHA-256: $hash"
+          "$hash  $($exe.Name)" | Out-File -Encoding ascii "$($exe.FullName).sha256"
+          "sha256=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "size=$($exe.Length)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "name=$($exe.Name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "path=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Upload artifact (always)
         uses: actions/upload-artifact@v4
         with:
-          name: SimPilotBridge-Setup
-          path: bridge-desktop/dist/*.exe
+          name: SimPilotBridge-Setup-${{ steps.hash.outputs.name }}
+          path: |
+            bridge-desktop/dist/SimPilotBridge-Setup-*.exe
+            bridge-desktop/dist/SimPilotBridge-Setup-*.exe.sha256
+            bridge-desktop/dist/latest.yml
           if-no-files-found: error
+
+      - name: Build release notes with checksum
+        if: startsWith(github.ref, 'refs/tags/bridge-v')
+        shell: pwsh
+        run: |
+          $notes = @"
+          ## SimPilot Bridge ${{ github.ref_name }}
+
+          Modern one-click installer (NSIS) for the SimPilot Bridge desktop tray app.
+          Streams MSFS 2024 (SimConnect) and X-Plane 12 (UDP) telemetry to the
+          SimPilot.AI Flight Deck.
+
+          ### Download
+          - **${{ steps.hash.outputs.name }}** — Windows x64 (${{ steps.hash.outputs.size }} bytes)
+
+          ### Verify integrity (SHA-256)
+          ``${{ steps.hash.outputs.sha256 }}``
+
+          PowerShell:
+          ``````powershell
+          Get-FileHash ${{ steps.hash.outputs.name }} -Algorithm SHA256
+          ``````
+          "@
+          $notes | Out-File -Encoding utf8 bridge-desktop/release-notes.md
+
+      - name: Create / update GitHub Release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/bridge-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SimPilot Bridge ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body_path: bridge-desktop/release-notes.md
+          append_body: true
+          generate_release_notes: true
+          files: |
+            bridge-desktop/dist/SimPilotBridge-Setup-*.exe
+            bridge-desktop/dist/SimPilotBridge-Setup-*.exe.sha256
+            bridge-desktop/dist/latest.yml
