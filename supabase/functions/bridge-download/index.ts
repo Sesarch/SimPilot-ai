@@ -27,6 +27,7 @@ function filenameCandidatesFor(platform: string, version: string): string[] {
       // electron-builder default output uses spaces; keep the legacy hyphenated
       // name as a fallback in case an older release is still pinned.
       return [
+        `SimPilot.Bridge.Setup.${version}.exe`,
         `SimPilot Bridge Setup ${version}.exe`,
         `SimPilotBridge-Setup-${version}.exe`,
       ];
