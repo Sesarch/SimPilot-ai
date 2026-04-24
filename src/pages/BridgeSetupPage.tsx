@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock, AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,6 @@ const BRIDGE_VERSION = "1.0.1";
 const INSTALLER_FILENAME = `SimPilot.Bridge.Setup.${BRIDGE_VERSION}.exe`;
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const INSTALLER_DOWNLOAD_URL = `${SUPABASE_URL}/functions/v1/bridge-download?platform=windows&version=${BRIDGE_VERSION}`;
-const INSTALLER_CHECK_URL = `${SUPABASE_URL}/functions/v1/bridge-download?check=1&version=${BRIDGE_VERSION}`;
-
-type InstallerCheck =
-  | { status: "checking" }
-  | { status: "ok" }
-  | { status: "error"; message: string };
 
 type DownloadState =
   | { status: "idle" }
@@ -74,48 +68,8 @@ function describeDownloadError(status: number, body: string): { message: string;
 export default function BridgeSetupPage() {
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [installerCheck, setInstallerCheck] = useState<InstallerCheck>({ status: "checking" });
   const [download, setDownload] = useState<DownloadState>({ status: "idle" });
   const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const verifyInstaller = async () => {
-      try {
-        const res = await fetch(INSTALLER_CHECK_URL, { method: "GET" });
-        if (cancelled) return;
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          setInstallerCheck({
-            status: "error",
-            message: `Installer check returned HTTP ${res.status}. ${text.slice(0, 160)}`,
-          });
-          return;
-        }
-        const data = (await res.json()) as { windows?: boolean; version?: string };
-        if (!data.windows) {
-          setInstallerCheck({
-            status: "error",
-            message: `${INSTALLER_FILENAME} is not attached to the v${BRIDGE_VERSION} GitHub release.`,
-          });
-          return;
-        }
-        setInstallerCheck({ status: "ok" });
-      } catch (err) {
-        if (cancelled) return;
-        setInstallerCheck({
-          status: "error",
-          message:
-            (err as Error).message ||
-            `Could not verify the installer. Confirm ${INSTALLER_FILENAME} is attached to the v${BRIDGE_VERSION} GitHub release.`,
-        });
-      }
-    };
-    verifyInstaller();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -219,7 +173,7 @@ export default function BridgeSetupPage() {
 
   const isBusy =
     download.status === "starting" || download.status === "downloading" || download.status === "saving";
-  const downloadDisabled = installerCheck.status !== "ok" || isBusy;
+  const downloadDisabled = isBusy;
   const progressPct =
     download.status === "downloading" && download.total
       ? Math.min(100, Math.round((download.received / download.total) * 100))
