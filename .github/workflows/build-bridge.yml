@@ -6,12 +6,8 @@ on:
       - "bridge-v*"
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build-windows:
-    name: Build Windows installer (.exe)
     runs-on: windows-latest
 
     steps:
@@ -24,25 +20,20 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        working-directory: bridge-desktop
-        run: npm install
+        shell: pwsh
+        run: |
+          cd bridge-desktop
+          npm install
 
       - name: Build Windows installer
-        working-directory: bridge-desktop
-        run: npm run build:win
+        shell: pwsh
+        run: |
+          cd bridge-desktop
+          npm run build:win
 
-      - name: Upload artifact
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: SimPilotBridge-Setup
           path: bridge-desktop/dist/*.exe
           if-no-files-found: error
-
-      - name: Create GitHub Release (tag pushes only)
-        if: startsWith(github.ref, 'refs/tags/bridge-v')
-        uses: softprops/action-gh-release@v2
-        with:
-          name: SimPilot Bridge ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          generate_release_notes: true
-          files: bridge-desktop/dist/*.exe
