@@ -471,9 +471,9 @@ const ATCTrainer = () => {
     try { localStorage.setItem("atc_last_scenario", selectedScenario); } catch { /* private mode */ }
   }, [selectedScenario]);
 
-  // Reset COM1 active/standby when the scenario changes.
+  // Reset COM1 active/standby when the scenario changes (legacy preset path).
   useEffect(() => {
-    if (!selectedScenario) return;
+    if (!selectedScenario || selectedScenario === "live") return;
     const sc = scenarios.find((s) => s.id === selectedScenario);
     const fac = sc?.facility ?? "TWR";
     const freq = sc?.frequency ?? "118.300";
@@ -481,6 +481,45 @@ const ATCTrainer = () => {
     setActiveFreq(`${intp}.${(dec + "000").slice(0, 3)}`);
     setStandbyFreq(fac === "GND" ? "118.300" : "121.500");
   }, [selectedScenario]);
+
+  // ---- Live frequency mode helpers ---------------------------------------
+  /**
+   * Resolve the controller persona for the currently-tuned active frequency
+   * at the selected airport. Returns `null` when not in live mode.
+   */
+  const liveContext = (() => {
+    if (!liveAirport) return null;
+    const freqMHz = parseFloat(activeFreq);
+    if (!Number.isFinite(freqMHz)) return null;
+    const lookup = lookupFacility(liveAirport.icao, freqMHz);
+    return {
+      airport: liveAirport,
+      freqMHz,
+      facility: lookup.facility,
+    };
+  })();
+
+  /** Build the system prompt for the current session (live or preset). */
+  const buildSystemPrompt = useCallback((): string => {
+    if (selectedScenario === "live" && liveAirport) {
+      const freqMHz = parseFloat(activeFreq);
+      const lookup = lookupFacility(liveAirport.icao, freqMHz);
+      return LIVE_FREQ_PROMPT({
+        airportIcao: liveAirport.icao,
+        airportCallName: liveAirport.callName,
+        facilityKind: (lookup.facility?.kind ?? "NONE") as FacilityKind | "NONE",
+        facilityName: lookup.facility?.name ?? "(no station)",
+        frequency: formatFreq(freqMHz),
+        knownFacilities: liveAirport.facilities.map((f) => ({
+          kind: f.kind,
+          name: f.name,
+          freq: formatFreq(f.freq),
+        })),
+      });
+    }
+    const sc = scenarios.find((s) => s.id === selectedScenario);
+    return FAA_PROMPT(sc?.label ?? "ATC Communications");
+  }, [selectedScenario, liveAirport, activeFreq]);
 
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
@@ -511,6 +550,50 @@ const ATCTrainer = () => {
       setLoading(false);
     }
   };
+
+  /**
+   * Begin a free-form live session at an airport. The pilot picks the airport,
+   * we set the active frequency to its tower (or first listed facility), and
+   * the user can tune from there. We DO NOT auto-call the pilot — the pilot
+   * initiates the first transmission, since they're "tuning in" to a freq.
+   */
+  const startLiveSession = (airport: AirportFrequencies) => {
+    setLiveAirport(airport);
+    setSelectedScenario("live");
+    setMessages([]);
+    setError(null);
+    setPhraseologyScore(null);
+    // Default tune: tower if present, else first facility.
+    const tower = airport.facilities.find((f) => f.kind === "TOWER");
+    const first = tower ?? airport.facilities[0];
+    if (first) setActiveFreq(formatFreq(first.freq));
+    const ground = airport.facilities.find((f) => f.kind === "GROUND");
+    setStandbyFreq(ground ? formatFreq(ground.freq) : "121.500");
+    const intro: ATCMessage = {
+      id: crypto.randomUUID(),
+      role: "system",
+      content: `📡 Live Frequencies — ${airport.icao} (${airport.callName}) · N123AB · Tune your radio and call up.`,
+    };
+    setMessages([intro]);
+  };
+
+  /** Tune the active radio to a published facility instantly. */
+  const tuneToFacility = (facility: AtcFacility) => {
+    const freqStr = formatFreq(facility.freq);
+    setStandbyFreq(activeFreq);
+    setActiveFreq(freqStr);
+    setSwapAnim(true);
+    window.setTimeout(() => setSwapAnim(false), 350);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        role: "system",
+        content: `🎚️ Tuned ${facility.name} · ${freqStr}`,
+      },
+    ]);
+  };
+
 
   const speakATC = async (text: string) => {
     // Strip [FEEDBACK] line from spoken audio (only spoken radio call).
