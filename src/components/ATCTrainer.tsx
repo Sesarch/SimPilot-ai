@@ -376,6 +376,10 @@ const ATCTrainer = () => {
   const [activeFreq, setActiveFreq] = useState("118.300");
   const [standbyFreq, setStandbyFreq] = useState("121.500");
   const [swapAnim, setSwapAnim] = useState(false);
+  // Live-frequency mode: pilot picks an airport, then tunes a real freq;
+  // the controller persona is derived from the airport's published facilities.
+  const [liveAirport, setLiveAirport] = useState<AirportFrequencies | null>(null);
+  const [airportSearch, setAirportSearch] = useState("");
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
       setStandbyFreq(prevA);
