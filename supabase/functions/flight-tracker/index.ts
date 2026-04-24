@@ -324,7 +324,7 @@ async function tryADSBExchange(lamin: string, lamax: string, lomin: string, loma
         false, 0,
       ]);
 
-    return { time: now, states, _source: "live" };
+    return { time: now, states, _source: "live", _provider: "adsbexchange" };
   } catch (err) {
     clearTimeout(timeoutId);
     console.log(`ADS-B Exchange fetch failed: ${getErrorMessage(err)}`);
@@ -459,7 +459,7 @@ async function tryAdsbLol(lamin: string, lamax: string, lomin: string, lomax: st
   const now = Math.floor(Date.now() / 1000);
   const states = Array.from(seen.values()).slice(0, 600).map((ac) => mapAdsbAircraft(ac, now));
   console.log(`adsb.lol: returning ${states.length} aircraft from ${tiles.length} tiles`);
-  return { time: now, states, _source: "live" };
+  return { time: now, states, _source: "live", _provider: "adsblol" };
 }
 
 serve(async (req) => {
@@ -488,27 +488,15 @@ serve(async (req) => {
     params.set("lomin", lomin);
     params.set("lomax", lomax);
 
-    // Detect logged-in user via JWT presence (we don't need to validate — just check intent).
-    // Anonymous users use anon key; signed-in users send a real user JWT (3-part, sub != anon).
-    const authHeader = req.headers.get("Authorization") || "";
-    const token = authHeader.replace(/^Bearer\s+/i, "");
-    let isAuthenticated = false;
-    if (token && token.split(".").length === 3) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
-        isAuthenticated = !!payload?.sub && payload?.role === "authenticated";
-      } catch { /* not a user JWT */ }
-    }
-
-    // Strategy 0 (PREMIUM, auth-only): FlightAware AeroAPI
-    if (isAuthenticated) {
-      const faData = await tryFlightAware(lamin, lamax, lomin, lomax);
-      if (faData) {
-        console.log(`FlightAware returned ${faData.states?.length || 0} aircraft (premium)`);
-        return new Response(JSON.stringify(faData), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    // Strategy 0 (PREMIUM): FlightAware AeroAPI — tried first whenever the key is configured.
+    // tryFlightAware() returns null on any failure (timeout, non-2xx, parse error),
+    // which lets the chain fall through to adsb.lol automatically.
+    const faData = await tryFlightAware(lamin, lamax, lomin, lomax);
+    if (faData) {
+      console.log(`FlightAware returned ${faData.states?.length || 0} aircraft (premium)`);
+      return new Response(JSON.stringify(faData), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Strategy 1: Try adsb.lol live feed (no key required)
