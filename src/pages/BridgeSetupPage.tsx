@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock, AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,10 +20,63 @@ type InstallerCheck =
   | { status: "ok" }
   | { status: "error"; message: string };
 
+type DownloadState =
+  | { status: "idle" }
+  | { status: "starting" }
+  | { status: "downloading"; received: number; total: number | null; startedAt: number }
+  | { status: "saving" }
+  | { status: "done" }
+  | { status: "cancelled" }
+  | { status: "error"; message: string; hint?: string };
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function describeDownloadError(status: number, body: string): { message: string; hint?: string } {
+  const trimmed = body.trim().slice(0, 240);
+  switch (status) {
+    case 401:
+    case 403:
+      return {
+        message: "The download server rejected the request (auth).",
+        hint: "Refresh the page or sign in again, then retry.",
+      };
+    case 404:
+      return {
+        message: `${INSTALLER_FILENAME} is not attached to the v${BRIDGE_VERSION} GitHub release yet.`,
+        hint: "Wait for the release workflow to finish, then retry.",
+      };
+    case 429:
+      return {
+        message: "GitHub rate-limited the download proxy.",
+        hint: "Wait a minute and try again.",
+      };
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return {
+        message: `Download proxy is temporarily unavailable (HTTP ${status}).`,
+        hint: "Try again in a moment. If it persists, contact support.",
+      };
+    default:
+      return {
+        message: `Download failed with HTTP ${status}.`,
+        hint: trimmed || undefined,
+      };
+  }
+}
+
 export default function BridgeSetupPage() {
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [installerCheck, setInstallerCheck] = useState<InstallerCheck>({ status: "checking" });
+  const [download, setDownload] = useState<DownloadState>({ status: "idle" });
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,6 +142,94 @@ export default function BridgeSetupPage() {
     }
   };
 
+  const handleDownload = async () => {
+    if (download.status === "downloading" || download.status === "starting" || download.status === "saving") {
+      return;
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setDownload({ status: "starting" });
+    try {
+      const res = await fetch(INSTALLER_DOWNLOAD_URL, { method: "GET", signal: controller.signal });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        const { message, hint } = describeDownloadError(res.status, body);
+        setDownload({ status: "error", message, hint });
+        return;
+      }
+      const lenHeader = res.headers.get("content-length");
+      const total = lenHeader ? Number(lenHeader) : null;
+      const startedAt = Date.now();
+      setDownload({ status: "downloading", received: 0, total, startedAt });
+
+      if (!res.body) {
+        // Browser doesn't expose a stream — fall back to blob() with no progress.
+        const blob = await res.blob();
+        triggerSave(blob);
+        setDownload({ status: "done" });
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.byteLength;
+          setDownload({ status: "downloading", received, total, startedAt });
+        }
+      }
+      setDownload({ status: "saving" });
+      const blob = new Blob(chunks as BlobPart[], { type: "application/octet-stream" });
+      triggerSave(blob);
+      setDownload({ status: "done" });
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        setDownload({ status: "cancelled" });
+        return;
+      }
+      const msg = (err as Error).message || "Network error during download.";
+      setDownload({
+        status: "error",
+        message: msg,
+        hint: "Check your connection and retry. If you're on a corporate network, the proxy may be blocked.",
+      });
+    } finally {
+      abortRef.current = null;
+    }
+  };
+
+  const triggerSave = (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = INSTALLER_FILENAME;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  };
+
+  const cancelDownload = () => {
+    abortRef.current?.abort();
+  };
+
+  const isBusy =
+    download.status === "starting" || download.status === "downloading" || download.status === "saving";
+  const downloadDisabled = installerCheck.status !== "ok" || isBusy;
+  const progressPct =
+    download.status === "downloading" && download.total
+      ? Math.min(100, Math.round((download.received / download.total) * 100))
+      : download.status === "saving" || download.status === "done"
+        ? 100
+        : 0;
+  const speedKbps =
+    download.status === "downloading" && Date.now() - download.startedAt > 250
+      ? (download.received / 1024) / ((Date.now() - download.startedAt) / 1000)
+      : 0;
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead
@@ -139,13 +281,35 @@ export default function BridgeSetupPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <a
-                href={INSTALLER_DOWNLOAD_URL}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm"
+              <Button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloadDisabled}
+                className="h-11 px-8 gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm disabled:opacity-60 disabled:hover:scale-100"
               >
-                <Download className="h-5 w-5" />
-                Download for Windows
-              </a>
+                {download.status === "starting" || download.status === "saving" ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : download.status === "downloading" ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Download className="h-5 w-5" />
+                )}
+                {download.status === "starting"
+                  ? "Connecting…"
+                  : download.status === "downloading"
+                    ? `Downloading… ${progressPct}%`
+                    : download.status === "saving"
+                      ? "Saving…"
+                      : download.status === "done"
+                        ? "Download complete · Re-download"
+                        : "Download for Windows"}
+              </Button>
+              {isBusy && (
+                <Button type="button" variant="outline" className="h-11 gap-2" onClick={cancelDownload}>
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+              )}
               <span
                 title="Windows Only"
                 aria-disabled="true"
@@ -163,6 +327,61 @@ export default function BridgeSetupPage() {
                 Linux · Windows Only
               </span>
             </div>
+
+            {/* Download progress */}
+            {(isBusy || download.status === "done" || download.status === "cancelled") && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="rounded-md border border-border bg-muted/30 px-3 py-2.5 space-y-1.5"
+              >
+                <Progress value={progressPct} className="h-2" />
+                <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
+                  <span>
+                    {download.status === "downloading" && download.total
+                      ? `${formatBytes(download.received)} / ${formatBytes(download.total)}`
+                      : download.status === "downloading"
+                        ? `${formatBytes(download.received)} received`
+                        : download.status === "starting"
+                          ? "Contacting download proxy…"
+                          : download.status === "saving"
+                            ? "Writing file to disk…"
+                            : download.status === "done"
+                              ? `Saved ${INSTALLER_FILENAME}`
+                              : "Download cancelled"}
+                  </span>
+                  <span>
+                    {download.status === "downloading" && speedKbps > 0
+                      ? speedKbps > 1024
+                        ? `${(speedKbps / 1024).toFixed(2)} MB/s`
+                        : `${speedKbps.toFixed(0)} KB/s`
+                      : ""}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Download error */}
+            {download.status === "error" && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+              >
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-semibold">Download failed</p>
+                  <p>{download.message}</p>
+                  {download.hint && <p className="text-destructive/80">{download.hint}</p>}
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    className="underline font-semibold hover:text-destructive/80"
+                  >
+                    Retry download
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Installer availability check */}
             <div
