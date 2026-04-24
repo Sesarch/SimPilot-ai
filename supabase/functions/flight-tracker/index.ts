@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const OPENSKY_API = "https://opensky-network.org/api/states/all";
+
 const ADSBEX_RAPID_API = "https://adsbexchange-com1.p.rapidapi.com/v2/lat/";
 const ADSB_LOL_API = "https://api.adsb.lol/v2/lat/";
 const ADSB_LOL_TRACE_BASE = "https://adsb.lol/data/traces";
