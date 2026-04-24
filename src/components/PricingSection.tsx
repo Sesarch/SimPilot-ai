@@ -294,6 +294,7 @@ const PricingSection = () => {
         </motion.div>
 
         <PlanComparisonTable />
+        <ForSchoolsSection />
         <PricingFAQ />
       </div>
     </section>
