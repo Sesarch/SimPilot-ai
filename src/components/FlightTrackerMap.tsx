@@ -441,7 +441,13 @@ const FlightTrackerMap = () => {
         <MapContainer center={[39, -98]} zoom={5} style={{ width: "100%", height: "100%" }} zoomControl={true}>
           <TileLayer
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
+          />
+          {/* Brighter labels overlay so airport names + codes stay readable
+              against the darker base. */}
+          <TileLayer
+            attribution=''
+            url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
           />
           <BoundsTracker onBoundsChange={setBounds} />
           {flyTo && <FlyToLocation lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
