@@ -63,6 +63,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [dataSource, setDataSource] = useState<DataSource>(null);
+  const [provider, setProvider] = useState<string | null>(null);
 
   const fetchAircraft = useCallback(async () => {
     setLoading(true);
