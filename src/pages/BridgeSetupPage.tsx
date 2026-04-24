@@ -140,7 +140,7 @@ export default function BridgeSetupPage() {
 
             <div className="flex flex-wrap gap-3">
               <a
-                href={INSTALLER_DIRECT_URL}
+                href={INSTALLER_DOWNLOAD_URL}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
