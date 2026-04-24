@@ -102,11 +102,11 @@ export function clearResolverRequestLog(): void {
 
 // Hard fallback source — used to synthesize a pinned release when every
 // upstream discovery path fails (GitHub API rate-limited, ad-blocker, etc.).
-// The button stays clickable and points at the canonical v1.0.0 asset.
+// The button stays clickable and points at the canonical v1.0.1 asset.
 const HARD_FALLBACK_SOURCE: ReleaseSource = { owner: "Sesarch", repo: "SimPilot-ai" };
 
 /**
- * Synthesizes a pinned-release record from the explicit v1.0.0 asset URL.
+ * Synthesizes a pinned-release record from the explicit v1.0.1 asset URL.
  * No network calls — guaranteed to succeed so the download button is never
  * dead. Checksum is null (verification is skipped) but the URL is still a
  * trusted GitHub release asset, so `validateResolvedRelease` will accept it.
