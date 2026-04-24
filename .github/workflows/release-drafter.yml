@@ -6,7 +6,7 @@
 #   • It reads .github/release-drafter.yml for categorization rules.
 #   • Maintains a single DRAFT release on GitHub, continuously updated
 #     with every merged PR grouped by label (feature / bug / security / etc.).
-#   • When you push a tag (v1.0.0), the build-installer workflow publishes
+#   • When you push a tag (v1.0.1), the build-installer workflow publishes
 #     the release and Release Drafter auto-promotes the draft to that tag.
 # ============================================================================
 
