@@ -35,6 +35,8 @@ import MobileChatPage from "./pages/MobileChatPage.tsx";
 import PublicProfilePage from "./pages/PublicProfilePage.tsx";
 import WeatherBriefingPage from "./pages/WeatherBriefingPage.tsx";
 import LiveToolsPage from "./pages/LiveToolsPage.tsx";
+import ForSchoolsPage from "./pages/ForSchoolsPage.tsx";
+import ForSchoolsSuccessPage from "./pages/ForSchoolsSuccessPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
