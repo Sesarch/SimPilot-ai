@@ -1,5 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History, Plane, Search } from "lucide-react";
+import {
+  atcFrequencies,
+  getAirportFrequencies,
+  lookupFacility,
+  formatFreq,
+  parseFreqInput,
+  type AirportFrequencies,
+  type AtcFacility,
+  type FacilityKind,
+} from "@/data/atcFrequencies";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
