@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown } from "lucide-react";
 import PlanComparisonTable from "./PlanComparisonTable";
 import PricingFAQ from "./PricingFAQ";
+import ForSchoolsSection from "./ForSchoolsSection";
 
 const plans = [
   {
@@ -293,6 +294,7 @@ const PricingSection = () => {
         </motion.div>
 
         <PlanComparisonTable />
+        <ForSchoolsSection />
         <PricingFAQ />
       </div>
     </section>
