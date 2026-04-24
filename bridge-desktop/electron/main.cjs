@@ -169,15 +169,7 @@ function refreshTrayMenu() {
       click: () => (bridgeProc ? stopBridge() : startBridge()),
     },
     { type: "separator" },
-    {
-      label: "Check for updates…",
-      click: () => {
-        showWindow();
-        mainWindow?.webContents.send("ui:navigate", { tab: "updates" });
-        try { updater.checkForUpdate({ silent: false }); } catch (err) { pushLog(`[updater] ${err.message}`); }
-      },
-    },
-    { type: "separator" },
+    // "Check for updates…" hidden for v1.0.1 — see main.cjs whenReady() note.
     { label: "Quit SimPilot Bridge", click: () => quitApp() },
   ]);
   tray.setContextMenu(menu);
@@ -382,8 +374,10 @@ app.whenReady().then(() => {
   // Handle deep-link if the app was launched directly via simpilot://...
   const link = extractDeepLink(process.argv);
   if (link) handleDeepLink(link);
-  // Kick off the auto-updater (first check 30s after launch, then every 6h).
-  try { updater.start(mainWindow); } catch (err) { pushLog(`[updater] start failed: ${err.message}`); }
+  // Auto-updater disabled for v1.0.1 — latest.yml is not yet published to the
+  // GitHub release, so checking would surface a "Network Error" in the UI.
+  // Re-enable once the build workflow uploads latest.yml alongside the .exe.
+  // try { updater.start(mainWindow); } catch (err) { pushLog(`[updater] start failed: ${err.message}`); }
 });
 
 ipcMain.handle("updater:check-now", () => updater.checkForUpdate({ silent: false }));

@@ -15,15 +15,17 @@
           <p class="brand__subtitle">Telemetry sidecar · v<span id="brand-version">0.0.0</span></p>
         </div>
       </div>
-      <div class="status-pill" id="status-pill">
+      <div class="status-pill" id="status-pill" hidden>
         <span class="status-pill__dot" data-status="stopped"></span>
         <span class="status-pill__label" id="status-label">STOPPED</span>
       </div>
     </header>
 
-    <nav class="tabs" role="tablist">
+    <!-- Tabs hidden for v1.0.1 stable launch — Updates panel disabled until
+         the GitHub release ships a latest.yml feed. -->
+    <nav class="tabs" role="tablist" hidden>
       <button class="tab tab--active" role="tab" data-tab="dashboard">Dashboard</button>
-      <button class="tab" role="tab" data-tab="updates">
+      <button class="tab" role="tab" data-tab="updates" hidden>
         Updates
         <span class="tab__badge" id="tab-updates-badge" hidden>1</span>
       </button>
