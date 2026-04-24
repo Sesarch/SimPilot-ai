@@ -67,10 +67,38 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
+      devTools: true,
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
+  // Resolve renderer/index.html robustly. In a packaged build the files live
+  // inside app.asar (or app/) under resources/. We try a few likely spots so
+  // the window never stays blank just because of a path mismatch.
+  const candidates = [
+    path.join(__dirname, "..", "renderer", "index.html"),
+    path.join(app.getAppPath(), "renderer", "index.html"),
+    path.join(process.resourcesPath || "", "app", "renderer", "index.html"),
+    path.join(process.resourcesPath || "", "app.asar", "renderer", "index.html"),
+  ];
+  const indexPath = candidates.find((p) => { try { return fs.existsSync(p); } catch { return false; } }) || candidates[0];
+  console.log("[main] loading renderer from:", indexPath);
+  mainWindow.loadFile(indexPath).catch((err) => {
+    console.error("[main] loadFile failed:", err);
+    mainWindow.loadURL(
+      "data:text/html;charset=utf-8," +
+        encodeURIComponent(
+          `<body style="background:#070b14;color:#e6edf3;font-family:sans-serif;padding:24px">
+             <h2>SimPilot Bridge — failed to load UI</h2>
+             <pre>${String(err && err.message)}</pre>
+             <pre>Tried:\n${candidates.join("\n")}</pre>
+           </body>`
+        )
+    );
+  });
+
+  mainWindow.webContents.on("did-fail-load", (_e, code, desc, url) => {
+    console.error(`[main] did-fail-load ${code} ${desc} ${url}`);
+  });
 
   mainWindow.once("ready-to-show", () => {
     // Honor --hidden from the installer's autostart entry.
