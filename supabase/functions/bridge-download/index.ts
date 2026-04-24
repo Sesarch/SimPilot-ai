@@ -148,7 +148,17 @@ Deno.serve(async (req) => {
 
   const headers = new Headers(corsHeaders);
   headers.set("Content-Type", "application/octet-stream");
-  headers.set("Content-Disposition", `attachment; filename="${asset.name}"`);
+  // RFC 5987 / 6266 — provide both a sanitized ASCII fallback and a UTF-8
+  // encoded filename* so spaces, unicode, and special chars round-trip
+  // correctly across browsers and proxies.
+  const asciiFallback = asset.name
+    .normalize("NFKD")
+    .replace(/[^\x20-\x7E]/g, "_")
+    .replace(/["\\]/g, "_");
+  headers.set(
+    "Content-Disposition",
+    `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(asset.name)}`,
+  );
   headers.set("Accept-Ranges", "bytes");
   const len = upstream.headers.get("content-length");
   if (len) headers.set("Content-Length", len);
