@@ -21,6 +21,10 @@ const DEFAULT_VERSION = "1.0.1";
 const REPO_OWNER = Deno.env.get("BRIDGE_RELEASE_OWNER") ?? "Sesarch";
 const REPO_NAME = Deno.env.get("BRIDGE_RELEASE_REPO") ?? "SimPilot-ai";
 
+function releaseTagCandidates(version: string): string[] {
+  return [`v${version}`, `bridge-v${version}`];
+}
+
 function filenameCandidatesFor(platform: string, version: string): string[] {
   switch (platform) {
     case "windows":
@@ -56,22 +60,23 @@ async function findAsset(
   version: string,
   filenames: string[],
 ): Promise<{ id: number; size: number; name: string } | null> {
-  const tag = `v${version}`;
-  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/tags/${tag}`;
-  const res = await fetch(url, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${token}`,
-      "User-Agent": "simpilot-bridge-download-proxy",
-    },
-  });
-  if (!res.ok) return null;
-  const data = (await res.json()) as {
-    assets: Array<{ id: number; name: string; size: number }>;
-  };
-  for (const fn of filenames) {
-    const match = data.assets.find((a) => a.name === fn);
-    if (match) return { id: match.id, size: match.size, name: match.name };
+  for (const tag of releaseTagCandidates(version)) {
+    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/tags/${tag}`;
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "User-Agent": "simpilot-bridge-download-proxy",
+      },
+    });
+    if (!res.ok) continue;
+    const data = (await res.json()) as {
+      assets: Array<{ id: number; name: string; size: number }>;
+    };
+    for (const fn of filenames) {
+      const match = data.assets.find((a) => a.name === fn);
+      if (match) return { id: match.id, size: match.size, name: match.name };
+    }
   }
   return null;
 }
@@ -127,7 +132,7 @@ Deno.serve(async (req) => {
   if (!asset) {
     return jsonError(
       404,
-      `No installer matching ${candidates.join(" or ")} for v${version} in ${REPO_OWNER}/${REPO_NAME}.`,
+      `No installer matching ${candidates.join(" or ")} for tags ${releaseTagCandidates(version).join(" or ")} in ${REPO_OWNER}/${REPO_NAME}.`,
     );
   }
 

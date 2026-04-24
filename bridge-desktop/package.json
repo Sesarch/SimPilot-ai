@@ -19,6 +19,7 @@
   "build": {
     "appId": "ai.simpilot.bridge",
     "productName": "SimPilot Bridge",
+    "artifactName": "${productName}.Setup.${version}.${ext}",
     "directories": {
       "output": "dist"
     },
