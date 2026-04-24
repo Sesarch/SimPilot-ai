@@ -235,10 +235,11 @@ const AdminPage = () => {
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full grid grid-cols-2 sm:grid-cols-5 mb-8">
+          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-6 mb-8">
             <TabsTrigger value="overview" className="font-display text-xs tracking-wider">Overview</TabsTrigger>
             <TabsTrigger value="users" className="font-display text-xs tracking-wider">Users</TabsTrigger>
             <TabsTrigger value="leads" className="font-display text-xs tracking-wider">Leads</TabsTrigger>
+            <TabsTrigger value="schools" className="font-display text-xs tracking-wider">Schools</TabsTrigger>
             <TabsTrigger value="emails" className="font-display text-xs tracking-wider">Emails</TabsTrigger>
             <TabsTrigger value="settings" className="font-display text-xs tracking-wider">Settings</TabsTrigger>
           </TabsList>
