@@ -479,6 +479,48 @@ export type Database = {
           },
         ]
       }
+      school_inquiries: {
+        Row: {
+          contact_email: string
+          contact_name: string
+          created_at: string
+          estimated_seats: number | null
+          id: string
+          message: string | null
+          phone: string | null
+          preferred_start_date: string | null
+          school_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email: string
+          contact_name: string
+          created_at?: string
+          estimated_seats?: number | null
+          id?: string
+          message?: string | null
+          phone?: string | null
+          preferred_start_date?: string | null
+          school_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string
+          contact_name?: string
+          created_at?: string
+          estimated_seats?: number | null
+          id?: string
+          message?: string | null
+          phone?: string | null
+          preferred_start_date?: string | null
+          school_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       school_purchases: {
         Row: {
           amount_paid_cents: number
