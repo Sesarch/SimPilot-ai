@@ -97,6 +97,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
       }
       const data = await res.json();
       setDataSource(data._source === "demo" ? "demo" : "live");
+      setProvider(data._provider || null);
       if (!data.states) {
         setAircraft([]);
         setLastUpdated(new Date());
