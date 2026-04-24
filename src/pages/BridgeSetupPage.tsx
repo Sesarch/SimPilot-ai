@@ -11,8 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const BRIDGE_VERSION = "1.0.1";
 const INSTALLER_FILENAME = `SimPilot.Bridge.Setup.${BRIDGE_VERSION}.exe`;
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const INSTALLER_DOWNLOAD_URL = `${SUPABASE_URL}/functions/v1/bridge-download?platform=windows&version=${BRIDGE_VERSION}`;
+const INSTALLER_DOWNLOAD_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/${INSTALLER_FILENAME}`;
 
 type DownloadState =
   | { status: "idle" }
