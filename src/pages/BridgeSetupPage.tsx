@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -12,9 +12,58 @@ const BRIDGE_VERSION = "1.0.1";
 const INSTALLER_FILENAME = `SimPilot Bridge Setup ${BRIDGE_VERSION}.exe`;
 const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/SimPilot%20Bridge%20Setup%20${BRIDGE_VERSION}.exe`;
 
+type InstallerCheck =
+  | { status: "checking" }
+  | { status: "ok"; resolvedUrl?: string }
+  | { status: "error"; message: string };
+
 export default function BridgeSetupPage() {
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [installerCheck, setInstallerCheck] = useState<InstallerCheck>({ status: "checking" });
+
+  useEffect(() => {
+    let cancelled = false;
+    const verifyInstaller = async () => {
+      try {
+        const res = await fetch(INSTALLER_DIRECT_URL, { method: "HEAD", redirect: "follow", mode: "cors" });
+        if (cancelled) return;
+        if (!res.ok) {
+          setInstallerCheck({
+            status: "error",
+            message: `Installer not reachable (HTTP ${res.status}). Expected ${INSTALLER_FILENAME} on the v${BRIDGE_VERSION} release.`,
+          });
+          return;
+        }
+        const url = res.url || "";
+        const matchesVersion = url.includes(`v${BRIDGE_VERSION}`) || url.includes(BRIDGE_VERSION);
+        const matchesFile =
+          url.includes(encodeURIComponent(INSTALLER_FILENAME)) ||
+          url.includes(INSTALLER_FILENAME) ||
+          url.includes(INSTALLER_FILENAME.replace(/ /g, "+"));
+        if (url && (!matchesVersion || !matchesFile)) {
+          setInstallerCheck({
+            status: "error",
+            message: `Installer URL responded but did not resolve to v${BRIDGE_VERSION} (${INSTALLER_FILENAME}).`,
+          });
+          return;
+        }
+        setInstallerCheck({ status: "ok", resolvedUrl: url });
+      } catch (err) {
+        if (cancelled) return;
+        setInstallerCheck({
+          status: "error",
+          message:
+            (err as Error).message ||
+            `Could not verify the installer URL. Confirm ${INSTALLER_FILENAME} is attached to the v${BRIDGE_VERSION} GitHub release.`,
+        });
+      }
+    };
+    verifyInstaller();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handlePairBridge = async () => {
     setPairing(true);
