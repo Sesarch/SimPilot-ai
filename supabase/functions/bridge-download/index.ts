@@ -48,6 +48,27 @@ function filenameFor(platform: string, version: string): string | null {
   return filenameCandidatesFor(platform, version)[0] ?? null;
 }
 
+function normalizeFilename(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function isLikelyPlatformAsset(name: string, platform: string, version: string): boolean {
+  const lower = name.toLowerCase();
+  const normalized = normalizeFilename(name);
+  const normalizedVersion = version.replace(/[^a-z0-9]+/g, "").toLowerCase();
+
+  switch (platform) {
+    case "windows":
+      return lower.endsWith(".exe") && normalized.includes("simpilotbridge") && normalized.includes(`setup${normalizedVersion}`);
+    case "macos":
+      return lower.endsWith(".zip") && normalized.includes("simpilotbridge") && normalized.includes(normalizedVersion) && normalized.includes("mac");
+    case "linux":
+      return lower.endsWith(".tar.gz") && normalized.includes("simpilotbridge") && normalized.includes(normalizedVersion) && normalized.includes("linux");
+    default:
+      return false;
+  }
+}
+
 function jsonError(status: number, message: string): Response {
   return new Response(JSON.stringify({ error: message }), {
     status,
@@ -57,6 +78,7 @@ function jsonError(status: number, message: string): Response {
 
 async function findAsset(
   token: string,
+  platform: string,
   version: string,
   filenames: string[],
 ): Promise<{ id: number; size: number; name: string } | null> {
@@ -76,6 +98,17 @@ async function findAsset(
     for (const fn of filenames) {
       const match = data.assets.find((a) => a.name === fn);
       if (match) return { id: match.id, size: match.size, name: match.name };
+    }
+
+    const normalizedCandidates = filenames.map(normalizeFilename);
+    const normalizedMatch = data.assets.find((a) => normalizedCandidates.includes(normalizeFilename(a.name)));
+    if (normalizedMatch) {
+      return { id: normalizedMatch.id, size: normalizedMatch.size, name: normalizedMatch.name };
+    }
+
+    const fuzzyMatch = data.assets.find((a) => isLikelyPlatformAsset(a.name, platform, version));
+    if (fuzzyMatch) {
+      return { id: fuzzyMatch.id, size: fuzzyMatch.size, name: fuzzyMatch.name };
     }
   }
   return null;
@@ -103,7 +136,7 @@ Deno.serve(async (req) => {
         platforms.map(async (p) => {
           const fns = filenameCandidatesFor(p, version);
           if (fns.length === 0) return [p, false] as const;
-          const a = await findAsset(token, version, fns);
+          const a = await findAsset(token, p, version, fns);
           return [p, a !== null] as const;
         }),
       );
@@ -125,7 +158,7 @@ Deno.serve(async (req) => {
 
   let asset: { id: number; size: number; name: string } | null = null;
   try {
-    asset = await findAsset(token, version, candidates);
+    asset = await findAsset(token, platform, version, candidates);
   } catch (err) {
     return jsonError(502, `Failed to query GitHub release: ${(err as Error).message}`);
   }
