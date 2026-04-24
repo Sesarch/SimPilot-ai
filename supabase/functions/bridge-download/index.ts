@@ -17,21 +17,30 @@ const corsHeaders = {
   "Access-Control-Expose-Headers": "content-length, content-type, content-disposition, accept-ranges",
 };
 
-const DEFAULT_VERSION = "1.0.0";
+const DEFAULT_VERSION = "1.0.1";
 const REPO_OWNER = Deno.env.get("BRIDGE_RELEASE_OWNER") ?? "Sesarch";
 const REPO_NAME = Deno.env.get("BRIDGE_RELEASE_REPO") ?? "SimPilot-ai";
 
-function filenameFor(platform: string, version: string): string | null {
+function filenameCandidatesFor(platform: string, version: string): string[] {
   switch (platform) {
     case "windows":
-      return `SimPilotBridge-Setup-${version}.exe`;
+      // electron-builder default output uses spaces; keep the legacy hyphenated
+      // name as a fallback in case an older release is still pinned.
+      return [
+        `SimPilot Bridge Setup ${version}.exe`,
+        `SimPilotBridge-Setup-${version}.exe`,
+      ];
     case "macos":
-      return `SimPilotBridge-${version}-mac-universal.zip`;
+      return [`SimPilotBridge-${version}-mac-universal.zip`];
     case "linux":
-      return `SimPilotBridge-${version}-linux-x64.tar.gz`;
+      return [`SimPilotBridge-${version}-linux-x64.tar.gz`];
     default:
-      return null;
+      return [];
   }
+}
+
+function filenameFor(platform: string, version: string): string | null {
+  return filenameCandidatesFor(platform, version)[0] ?? null;
 }
 
 function jsonError(status: number, message: string): Response {
