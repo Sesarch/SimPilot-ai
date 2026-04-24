@@ -1149,9 +1149,14 @@ ${transcript}`;
   };
 
   const activeScenario = scenarios.find((s) => s.id === selectedScenario);
-  const scenarioLabel = activeScenario?.label;
-  const facility = activeScenario?.facility ?? "TWR";
-  const frequency = activeScenario?.frequency ?? "118.300";
+  const isLiveMode = selectedScenario === "live" && !!liveAirport;
+  const scenarioLabel = isLiveMode
+    ? `${liveAirport!.icao} · ${liveContext?.facility?.name ?? "OFF FREQUENCY"}`
+    : activeScenario?.label;
+  const facility = isLiveMode
+    ? (liveContext?.facility?.kind ?? "OFF FREQ")
+    : (activeScenario?.facility ?? "TWR");
+  const frequency = isLiveMode ? activeFreq : (activeScenario?.frequency ?? "118.300");
   const micUiActive = pttHeld || pttActive;
   // Normalize to a 6-char "118.700" style display.
   const normalizeFreq = (f: string) => {
