@@ -44,6 +44,7 @@ const benefits = [
 const ForSchoolsSection = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,6 +74,7 @@ const ForSchoolsSection = () => {
         ? (parsed.data.estimated_seats as number)
         : null,
       message: parsed.data.message || null,
+      preferred_start_date: startDate ? format(startDate, "yyyy-MM-dd") : null,
     });
     setSubmitting(false);
 
