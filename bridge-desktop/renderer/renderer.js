@@ -115,7 +115,7 @@ els.btnCheckUpdates.addEventListener("click", async () => {
 });
 
 els.btnOpenReleases.addEventListener("click", () =>
-  window.simpilot.openExternal("https://github.com/simpilot-ai/bridge/releases")
+  window.simpilot.openExternal("https://github.com/Sesarch/SimPilot-ai/releases")
 );
 
 window.simpilot.onUpdaterStatus((payload) => {

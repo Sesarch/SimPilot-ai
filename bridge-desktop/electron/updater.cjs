@@ -25,7 +25,7 @@ const { spawn } = require("node:child_process");
 
 const FEED_URL =
   process.env.SIMPILOT_UPDATE_FEED ||
-  "https://github.com/simpilot-ai/bridge/releases/latest/download/latest.yml";
+  "https://github.com/Sesarch/SimPilot-ai/releases/latest/download/latest.yml";
 const POLL_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6h
 
 let mainWindow = null;
