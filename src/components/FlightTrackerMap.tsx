@@ -3,13 +3,14 @@ import { MapContainer, TileLayer, Marker, useMapEvents, Polyline, Popup, useMap 
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useFlightTracker, Aircraft } from "@/hooks/useFlightTracker";
-import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal } from "lucide-react";
+import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
 import { useAirportWeather } from "@/hooks/useAirportWeather";
 import { useAirportWeatherBatch, FlightCategory } from "@/hooks/useAirportWeatherBatch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { supabase } from "@/integrations/supabase/client";
 
 const createAircraftIcon = (heading: number, onGround: boolean, selected: boolean) => {
   const color = selected ? "#f59e0b" : onGround ? "#6b7280" : "#06b6d4";
@@ -81,17 +82,19 @@ const weatherColors: Record<string, string> = {
 };
 
 const createAirportIcon = (category?: FlightCategory) => {
-  const color = (category && weatherColors[category]) || "#a78bfa";
-  const glow = category ? `filter: drop-shadow(0 0 4px ${color});` : "";
+  const color = (category && weatherColors[category]) || "#fbbf24";
+  // Always render a strong glow + dark outline so the marker pops against the basemap.
+  const glow = `filter: drop-shadow(0 0 6px ${color}) drop-shadow(0 0 2px rgba(0,0,0,0.9));`;
   return L.divIcon({
     className: "airport-marker",
-    html: `<div style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; ${glow}">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2v20M2 12h20M6 6l12 12M18 6L6 18"/>
+    html: `<div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; ${glow}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="${color}" stroke="rgba(0,0,0,0.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="6.5" />
+        <circle cx="12" cy="12" r="2.2" fill="rgba(0,0,0,0.85)" stroke="none" />
       </svg>
     </div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
   });
 };
 
