@@ -118,7 +118,7 @@ const FlightTrackerMap = () => {
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
 
-  const { aircraft, loading, error, lastUpdated, refresh, dataSource } = useFlightTracker(bounds);
+  const { aircraft, loading, error, lastUpdated, refresh, dataSource, provider } = useFlightTracker(bounds);
 
 
   // Update selected aircraft data and track history
@@ -451,6 +451,17 @@ const FlightTrackerMap = () => {
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-[1000] bg-primary/90 backdrop-blur-sm text-primary-foreground rounded-lg px-4 py-2 text-xs font-medium shadow-lg border border-primary/50 flex items-center gap-2">
             <Plane className="h-3.5 w-3.5" />
             <span>Showing demo flights — live data temporarily unavailable</span>
+          </div>
+        )}
+
+        {/* Premium provider badge */}
+        {provider === "flightaware" && !loading && (
+          <div className="absolute top-3 right-3 z-[1000] bg-accent/90 backdrop-blur-sm text-accent-foreground rounded-md px-2.5 py-1 text-[10px] font-display tracking-widest uppercase shadow-lg border border-accent/50 flex items-center gap-1.5">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-current" />
+            </span>
+            FlightAware Premium
           </div>
         )}
 
