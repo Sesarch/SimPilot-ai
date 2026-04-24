@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const BRIDGE_VERSION = "1.0.1";
 const INSTALLER_FILENAME = `SimPilot Bridge Setup ${BRIDGE_VERSION}.exe`;
-const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/SimPilot.Bridge.Setup.${BRIDGE_VERSION}.exe`;
+const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/SimPilot%20Bridge%20Setup%20${BRIDGE_VERSION}.exe`;
 
 export default function BridgeSetupPage() {
   const [pairing, setPairing] = useState(false);
