@@ -11,7 +11,7 @@ import {
  * Compact "Verified installer status" panel surfaced on the Home page and the
  * /flight-deck/bridge setup page. It runs the same release resolver +
  * validator the download button uses, so the user can see — at a glance —
- * that the live release matches the pinned v1.0.0 build, the asset filename
+ * that the live release matches the pinned v1.0.1 build, the asset filename
  * is the expected installer, and the URL is hosted on a trusted GitHub host.
  */
 type Props = {
