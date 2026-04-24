@@ -513,6 +513,29 @@ serve(async (req) => {
     params.set("lomin", lomin);
     params.set("lomax", lomax);
 
+    // Detect logged-in user via JWT presence (we don't need to validate — just check intent).
+    // Anonymous users use anon key; signed-in users send a real user JWT (3-part, sub != anon).
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    let isAuthenticated = false;
+    if (token && token.split(".").length === 3) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+        isAuthenticated = !!payload?.sub && payload?.role === "authenticated";
+      } catch { /* not a user JWT */ }
+    }
+
+    // Strategy 0 (PREMIUM, auth-only): FlightAware AeroAPI
+    if (isAuthenticated) {
+      const faData = await tryFlightAware(lamin, lamax, lomin, lomax);
+      if (faData) {
+        console.log(`FlightAware returned ${faData.states?.length || 0} aircraft (premium)`);
+        return new Response(JSON.stringify(faData), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Strategy 1: Try adsb.lol live feed (no key required)
     const adsbLolData = await tryAdsbLol(lamin, lamax, lomin, lomax);
     if (adsbLolData) {
