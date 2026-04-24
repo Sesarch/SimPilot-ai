@@ -3,14 +3,13 @@ import { MapContainer, TileLayer, Marker, useMapEvents, Polyline, Popup, useMap 
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useFlightTracker, Aircraft } from "@/hooks/useFlightTracker";
-import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal, Building2 } from "lucide-react";
+import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
 import { useAirportWeather } from "@/hooks/useAirportWeather";
 import { useAirportWeatherBatch, FlightCategory } from "@/hooks/useAirportWeatherBatch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { supabase } from "@/integrations/supabase/client";
 
 const createAircraftIcon = (heading: number, onGround: boolean, selected: boolean) => {
   const color = selected ? "#f59e0b" : onGround ? "#6b7280" : "#06b6d4";
