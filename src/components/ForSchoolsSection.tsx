@@ -233,19 +233,50 @@ const ForSchoolsSection = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="estimated_seats" className="block text-xs font-display tracking-widest uppercase text-muted-foreground mb-1.5">
-                      Estimated Student Seats
-                    </label>
-                    <input
-                      id="estimated_seats"
-                      name="estimated_seats"
-                      type="number"
-                      min={1}
-                      max={10000}
-                      className="w-full px-3 py-2 rounded-md bg-secondary/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary/50"
-                      placeholder="25"
-                    />
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="estimated_seats" className="block text-xs font-display tracking-widest uppercase text-muted-foreground mb-1.5">
+                        Estimated Student Seats
+                      </label>
+                      <input
+                        id="estimated_seats"
+                        name="estimated_seats"
+                        type="number"
+                        min={1}
+                        max={10000}
+                        className="w-full px-3 py-2 rounded-md bg-secondary/50 border border-border text-foreground text-sm focus:outline-none focus:border-primary/50"
+                        placeholder="25"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-display tracking-widest uppercase text-muted-foreground mb-1.5">
+                        Preferred Start Date
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className={cn(
+                              "w-full px-3 py-2 rounded-md bg-secondary/50 border border-border text-sm text-left flex items-center justify-between hover:border-primary/50 transition-colors",
+                              !startDate && "text-muted-foreground"
+                            )}
+                          >
+                            {startDate ? format(startDate, "PPP") : "Pick a date"}
+                            <CalendarIcon className="w-4 h-4 opacity-60" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={startDate}
+                            onSelect={setStartDate}
+                            disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
 
                   <div>
