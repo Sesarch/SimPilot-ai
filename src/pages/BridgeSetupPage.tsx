@@ -249,11 +249,11 @@ export default function BridgeSetupPage() {
                   <Download className="h-5 w-5" />
                 )}
                 {download.status === "starting"
-                  ? "Connecting…"
+                  ? `Connecting to SimPilot Bridge ${BRIDGE_VERSION}…`
                   : download.status === "downloading"
-                    ? `Downloading… ${progressPct}%`
+                    ? `Downloading SimPilot Bridge ${BRIDGE_VERSION}… ${progressPct}%`
                     : download.status === "saving"
-                      ? "Saving…"
+                      ? `Saving SimPilot Bridge ${BRIDGE_VERSION}…`
                       : download.status === "done"
                         ? "Download complete · Re-download"
                         : "Download for Windows"}
