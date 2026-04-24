@@ -140,5 +140,5 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
     return () => clearInterval(interval);
   }, [fetchAircraft]);
 
-  return { aircraft, loading, error, lastUpdated, refresh: fetchAircraft, dataSource };
+  return { aircraft, loading, error, lastUpdated, refresh: fetchAircraft, dataSource, provider };
 };
