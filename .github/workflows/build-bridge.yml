@@ -1,9 +1,5 @@
 name: Build SimPilot Bridge Installer (Windows)
 
-# Builds the modern Electron tray app + NSIS one-click installer
-# (SimPilotBridge-Setup-X.Y.Z.exe) on a Windows runner and attaches it to a
-# GitHub Release. Trigger by pushing a tag like `bridge-v1.0.0`, or run
-# manually from the Actions tab.
 on:
   push:
     tags:
@@ -17,9 +13,6 @@ jobs:
   build-windows:
     name: Build Windows installer (.exe)
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: bridge-desktop
 
     steps:
       - name: Checkout repository
@@ -34,19 +27,21 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: bridge-desktop
 
       - name: Build NSIS one-click installer
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:win
+        working-directory: bridge-desktop
 
       - name: Resolve installer path & SHA-256
         id: hash
         shell: pwsh
         run: |
-          $exe = Get-ChildItem dist/SimPilotBridge-Setup-*.exe | Select-Object -First 1
+          $exe = Get-ChildItem bridge-desktop/dist/SimPilotBridge-Setup-*.exe | Select-Object -First 1
           if (-not $exe) {
-            Write-Error "Build failed — no SimPilotBridge-Setup-*.exe found in dist/"
+            Write-Error "Build failed — no SimPilotBridge-Setup-*.exe found in bridge-desktop/dist/"
             exit 1
           }
           $exe | Format-List Name, Length, LastWriteTime
@@ -90,7 +85,7 @@ jobs:
           Get-FileHash ${{ steps.hash.outputs.name }} -Algorithm SHA256
           ``````
           "@
-          $notes | Out-File -Encoding utf8 release-notes.md
+          $notes | Out-File -Encoding utf8 bridge-desktop/release-notes.md
 
       - name: Create / update GitHub Release (tag pushes only)
         if: startsWith(github.ref, 'refs/tags/bridge-v')
