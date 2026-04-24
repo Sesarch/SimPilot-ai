@@ -21,6 +21,7 @@ import AdminSupportChats from "@/components/AdminSupportChats";
 import AdminAnalytics from "@/components/AdminAnalytics";
 import AdminSiteSettings from "@/components/AdminSiteSettings";
 import AdminMissingAcsCodes from "@/components/AdminMissingAcsCodes";
+import AdminSchoolInquiries from "@/components/AdminSchoolInquiries";
 
 type AdminUser = {
   id: string;
