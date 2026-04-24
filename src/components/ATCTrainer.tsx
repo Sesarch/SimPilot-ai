@@ -646,7 +646,6 @@ const ATCTrainer = () => {
   const sendPilotTransmission = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || !selectedScenario) return;
-    const scenario = scenarios.find((s) => s.id === selectedScenario)!;
     const userMsg: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
     const updated = [...messages, userMsg];
     setMessages(updated);
@@ -663,7 +662,7 @@ const ATCTrainer = () => {
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
-          messages: [{ role: "system", content: FAA_PROMPT(scenario.label) }, ...history],
+          messages: [{ role: "system", content: buildSystemPrompt() }, ...history],
         },
       });
       if (error) throw error;
@@ -676,7 +675,7 @@ const ATCTrainer = () => {
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
