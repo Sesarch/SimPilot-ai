@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink } from "lucide-react";
 import { usePilotContext } from "@/hooks/usePilotContext";
+import RedeemSchoolCode from "@/components/RedeemSchoolCode";
 
 const TRACK_OPTIONS = [
   { value: "PPL", label: "PPL — Private Pilot" },
