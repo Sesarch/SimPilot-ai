@@ -2,6 +2,7 @@ import { useState } from "react";
 import FlightTrackerMap from "@/components/FlightTrackerMap";
 import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary";
 import ATCTrainer from "@/components/ATCTrainer";
+import FlightAwareTestButton from "@/components/FlightAwareTestButton";
 import { Radar, Radio } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
@@ -60,12 +61,17 @@ const LiveToolsPage = () => {
                 </span>
                 <div className="h-px flex-1 bg-border" />
               </div>
-              <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-wider">
-                LIVE <span className="text-accent">SKY</span>
-              </h1>
-              <p className="text-muted-foreground text-xs sm:text-sm mt-1">
-                Real-time global traffic and AI ATC radio drills.
-              </p>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-wider">
+                    LIVE <span className="text-accent">SKY</span>
+                  </h1>
+                  <p className="text-muted-foreground text-xs sm:text-sm mt-1">
+                    Real-time global traffic and AI ATC radio drills.
+                  </p>
+                </div>
+                {activeTab === "tracker" && <FlightAwareTestButton />}
+              </div>
             </div>
 
             {/* Tabs */}
