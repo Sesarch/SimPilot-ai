@@ -510,17 +510,7 @@ serve(async (req) => {
       });
     }
 
-    // Strategy 2: Try OpenSky API (with auth if available)
-    const openSkyRes = await tryOpenSky(params);
-    if (openSkyRes) {
-      const data = await openSkyRes.json();
-      console.log(`OpenSky returned ${data.states?.length || 0} aircraft`);
-      return new Response(JSON.stringify({ ...data, _source: "live" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Strategy 3: Try ADS-B Exchange via RapidAPI
+    // Strategy 2: Try ADS-B Exchange via RapidAPI
     const adsbData = await tryADSBExchange(lamin, lamax, lomin, lomax);
     if (adsbData) {
       console.log(`ADS-B Exchange returned ${adsbData.states?.length || 0} aircraft`);
