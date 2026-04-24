@@ -1,5 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History, Plane, Search } from "lucide-react";
+import {
+  atcFrequencies,
+  getAirportFrequencies,
+  lookupFacility,
+  formatFreq,
+  parseFreqInput,
+  type AirportFrequencies,
+  type AtcFacility,
+  type FacilityKind,
+} from "@/data/atcFrequencies";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,6 +68,71 @@ OUTPUT FORMAT (CRITICAL):
   [FEEDBACK] short, specific correction (e.g. "Read back runway and hold-short instruction.")
 - If the pilot's call was correct, omit the [FEEDBACK] line entirely.
 - Never break character. You are the controller, not a teacher.`;
+
+/**
+ * Dynamic prompt for the "live frequency" mode — the controller persona is
+ * derived from whichever facility the pilot has tuned. The AI must:
+ *  - Respond ONLY if it really is the controller for that frequency.
+ *  - If the pilot calls the wrong facility (e.g. addresses "Tower" while tuned
+ *    to Ground), correct them by name and tell them which freq to contact.
+ *  - If the frequency has no facility (dead air), respond with empty or static.
+ */
+const LIVE_FREQ_PROMPT = (opts: {
+  airportIcao: string;
+  airportCallName: string;
+  facilityKind: FacilityKind | "NONE";
+  facilityName: string;
+  frequency: string;
+  knownFacilities: { kind: FacilityKind; name: string; freq: string }[];
+}) => {
+  const facilityList = opts.knownFacilities
+    .map((f) => `  • ${f.name} (${f.kind}) — ${f.freq}`)
+    .join("\n");
+
+  if (opts.facilityKind === "NONE") {
+    return `You are a FAA-certified Air Traffic Controller training simulator.
+The pilot has tuned ${opts.frequency} at ${opts.airportIcao} but NO facility operates on this frequency.
+Respond with a single short line acknowledging dead air, e.g. "[no response — frequency is unmonitored]".
+Do NOT impersonate a controller. Do NOT add [FEEDBACK].`;
+  }
+
+  return `You are ${opts.facilityName} at ${opts.airportIcao} (${opts.airportCallName}) on ${opts.frequency} MHz.
+Facility role: ${opts.facilityKind}. The pilot is "November One Two Three Alpha Bravo" (N123AB), a Cessna 172.
+
+OTHER FACILITIES AT ${opts.airportIcao} (for redirection only):
+${facilityList || "  • (none on file)"}
+
+CRITICAL ROLE RULES:
+1. You are ONLY ${opts.facilityName}. Never speak as any other facility.
+2. If the pilot addresses you correctly (e.g. uses "${opts.facilityName}" or its short form), respond as that controller using standard FAA phraseology for the ${opts.facilityKind} role:
+   - GROUND: taxi instructions, taxi clearances, runway crossings, hold-short.
+   - TOWER: takeoff/landing clearances, traffic, pattern entries, runway assignments.
+   - CLEARANCE: IFR/VFR clearances, departure routes, transponder codes.
+   - APPROACH/DEPARTURE: vectors, altitudes, traffic advisories, handoffs.
+   - ATIS: read-only weather/runway info — no two-way conversation; if pilot transmits, do NOT respond.
+   - CTAF/UNICOM: respond as nearby traffic, not as a controller.
+   - GUARD: 121.5 — only respond to emergency calls.
+3. If the pilot addresses the WRONG facility (e.g. calls "${opts.airportCallName} Tower" while you are ${opts.facilityName}), DO NOT play along.
+   Instead, respond with a brief correction in standard phraseology, e.g.:
+   "${opts.airportCallName.toUpperCase()} ${opts.facilityKind}, three alpha bravo — you've reached ${opts.facilityName} on ${opts.frequency}. For tower contact one one nine point two."
+   Pick the right frequency to redirect to from the list above.
+4. If the pilot addresses a different airport entirely, say something like:
+   "Three alpha bravo, ${opts.facilityName} — verify station called, you are on ${opts.frequency} at ${opts.airportIcao}."
+
+STRICT PHRASEOLOGY (FAA AIM 4-2 / Pilot-Controller Glossary):
+- Numbers: pronounce digits individually ("one two three", not "one twenty-three"). "Niner" for 9. Altitudes use "thousand"/"hundred". Frequencies: decimal as "point".
+- Sequence: WHO you're calling, WHO you are, WHERE, WHAT.
+- Use roger, wilco, affirmative, negative, say again, stand by, unable, cleared, contact, monitor, squawk, ident, verify. No "okay/yeah/alright".
+- Keep transmissions short — one breath each.
+
+OUTPUT FORMAT (CRITICAL):
+- Respond ONLY with the spoken radio transmission. No labels, no markdown, no prose around it.
+- ONE transmission per turn.
+- After your transmission, on a NEW LINE, append a feedback block ONLY if the pilot's previous call had a phraseology error:
+  [FEEDBACK] short specific correction.
+- If the pilot's call was correct, omit the [FEEDBACK] line entirely.
+- Never break character.`;
+};
 
 // ---- Static / squelch sound design (WebAudio, no asset files) -----------
 class RadioFX {
@@ -301,6 +376,10 @@ const ATCTrainer = () => {
   const [activeFreq, setActiveFreq] = useState("118.300");
   const [standbyFreq, setStandbyFreq] = useState("121.500");
   const [swapAnim, setSwapAnim] = useState(false);
+  // Live-frequency mode: pilot picks an airport, then tunes a real freq;
+  // the controller persona is derived from the airport's published facilities.
+  const [liveAirport, setLiveAirport] = useState<AirportFrequencies | null>(null);
+  const [airportSearch, setAirportSearch] = useState("");
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
       setStandbyFreq(prevA);
@@ -392,9 +471,9 @@ const ATCTrainer = () => {
     try { localStorage.setItem("atc_last_scenario", selectedScenario); } catch { /* private mode */ }
   }, [selectedScenario]);
 
-  // Reset COM1 active/standby when the scenario changes.
+  // Reset COM1 active/standby when the scenario changes (legacy preset path).
   useEffect(() => {
-    if (!selectedScenario) return;
+    if (!selectedScenario || selectedScenario === "live") return;
     const sc = scenarios.find((s) => s.id === selectedScenario);
     const fac = sc?.facility ?? "TWR";
     const freq = sc?.frequency ?? "118.300";
@@ -402,6 +481,45 @@ const ATCTrainer = () => {
     setActiveFreq(`${intp}.${(dec + "000").slice(0, 3)}`);
     setStandbyFreq(fac === "GND" ? "118.300" : "121.500");
   }, [selectedScenario]);
+
+  // ---- Live frequency mode helpers ---------------------------------------
+  /**
+   * Resolve the controller persona for the currently-tuned active frequency
+   * at the selected airport. Returns `null` when not in live mode.
+   */
+  const liveContext = (() => {
+    if (!liveAirport) return null;
+    const freqMHz = parseFloat(activeFreq);
+    if (!Number.isFinite(freqMHz)) return null;
+    const lookup = lookupFacility(liveAirport.icao, freqMHz);
+    return {
+      airport: liveAirport,
+      freqMHz,
+      facility: lookup.facility,
+    };
+  })();
+
+  /** Build the system prompt for the current session (live or preset). */
+  const buildSystemPrompt = useCallback((): string => {
+    if (selectedScenario === "live" && liveAirport) {
+      const freqMHz = parseFloat(activeFreq);
+      const lookup = lookupFacility(liveAirport.icao, freqMHz);
+      return LIVE_FREQ_PROMPT({
+        airportIcao: liveAirport.icao,
+        airportCallName: liveAirport.callName,
+        facilityKind: (lookup.facility?.kind ?? "NONE") as FacilityKind | "NONE",
+        facilityName: lookup.facility?.name ?? "(no station)",
+        frequency: formatFreq(freqMHz),
+        knownFacilities: liveAirport.facilities.map((f) => ({
+          kind: f.kind,
+          name: f.name,
+          freq: formatFreq(f.freq),
+        })),
+      });
+    }
+    const sc = scenarios.find((s) => s.id === selectedScenario);
+    return FAA_PROMPT(sc?.label ?? "ATC Communications");
+  }, [selectedScenario, liveAirport, activeFreq]);
 
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
@@ -432,6 +550,50 @@ const ATCTrainer = () => {
       setLoading(false);
     }
   };
+
+  /**
+   * Begin a free-form live session at an airport. The pilot picks the airport,
+   * we set the active frequency to its tower (or first listed facility), and
+   * the user can tune from there. We DO NOT auto-call the pilot — the pilot
+   * initiates the first transmission, since they're "tuning in" to a freq.
+   */
+  const startLiveSession = (airport: AirportFrequencies) => {
+    setLiveAirport(airport);
+    setSelectedScenario("live");
+    setMessages([]);
+    setError(null);
+    setPhraseologyScore(null);
+    // Default tune: tower if present, else first facility.
+    const tower = airport.facilities.find((f) => f.kind === "TOWER");
+    const first = tower ?? airport.facilities[0];
+    if (first) setActiveFreq(formatFreq(first.freq));
+    const ground = airport.facilities.find((f) => f.kind === "GROUND");
+    setStandbyFreq(ground ? formatFreq(ground.freq) : "121.500");
+    const intro: ATCMessage = {
+      id: crypto.randomUUID(),
+      role: "system",
+      content: `📡 Live Frequencies — ${airport.icao} (${airport.callName}) · N123AB · Tune your radio and call up.`,
+    };
+    setMessages([intro]);
+  };
+
+  /** Tune the active radio to a published facility instantly. */
+  const tuneToFacility = (facility: AtcFacility) => {
+    const freqStr = formatFreq(facility.freq);
+    setStandbyFreq(activeFreq);
+    setActiveFreq(freqStr);
+    setSwapAnim(true);
+    window.setTimeout(() => setSwapAnim(false), 350);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        role: "system",
+        content: `🎚️ Tuned ${facility.name} · ${freqStr}`,
+      },
+    ]);
+  };
+
 
   const speakATC = async (text: string) => {
     // Strip [FEEDBACK] line from spoken audio (only spoken radio call).
@@ -484,7 +646,6 @@ const ATCTrainer = () => {
   const sendPilotTransmission = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || !selectedScenario) return;
-    const scenario = scenarios.find((s) => s.id === selectedScenario)!;
     const userMsg: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
     const updated = [...messages, userMsg];
     setMessages(updated);
@@ -501,7 +662,7 @@ const ATCTrainer = () => {
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
-          messages: [{ role: "system", content: FAA_PROMPT(scenario.label) }, ...history],
+          messages: [{ role: "system", content: buildSystemPrompt() }, ...history],
         },
       });
       if (error) throw error;
@@ -514,7 +675,7 @@ const ATCTrainer = () => {
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
@@ -988,9 +1149,14 @@ ${transcript}`;
   };
 
   const activeScenario = scenarios.find((s) => s.id === selectedScenario);
-  const scenarioLabel = activeScenario?.label;
-  const facility = activeScenario?.facility ?? "TWR";
-  const frequency = activeScenario?.frequency ?? "118.300";
+  const isLiveMode = selectedScenario === "live" && !!liveAirport;
+  const scenarioLabel = isLiveMode
+    ? `${liveAirport!.icao} · ${liveContext?.facility?.name ?? "OFF FREQUENCY"}`
+    : activeScenario?.label;
+  const facility = isLiveMode
+    ? (liveContext?.facility?.kind ?? "OFF FREQ")
+    : (activeScenario?.facility ?? "TWR");
+  const frequency = isLiveMode ? activeFreq : (activeScenario?.frequency ?? "118.300");
   const micUiActive = pttHeld || pttActive;
   // Normalize to a 6-char "118.700" style display.
   const normalizeFreq = (f: string) => {
@@ -1098,7 +1264,7 @@ ${transcript}`;
                 Resume Last
               </Button>
             )}
-            <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setMessages([]); setPhraseologyScore(null); }}>
+            <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setLiveAirport(null); setMessages([]); setPhraseologyScore(null); }}>
               <RotateCcw className="h-3 w-3 mr-1" /> New Scenario
             </Button>
           </div>
@@ -1106,58 +1272,179 @@ ${transcript}`;
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[13px] leading-relaxed">
           {!selectedScenario && (
-            <div className="h-full flex flex-col">
-              <div className="text-center mb-4">
-                <div className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
-                  Select a Scenario
+            <div className="h-full flex flex-col gap-5">
+              {/* ========= LIVE FREQUENCY MODE (primary) ========= */}
+              <div>
+                <div className="text-center mb-3">
+                  <div className="font-display text-[10px] tracking-[0.3em] uppercase text-primary">
+                    Live Frequency Trainer
+                  </div>
+                  <div className="text-xs text-muted-foreground/80 mt-1">
+                    Pick an airport, then dial in any real published frequency. The controller on the other end is determined by the freq you tune.
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground/80 mt-1">
-                  Pick a drill — ATC will start the call.
+                <div className="relative mb-2">
+                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={airportSearch}
+                    onChange={(e) => setAirportSearch(e.target.value)}
+                    placeholder="Search by ICAO (e.g. KMYF) or name…"
+                    className="w-full pl-8 pr-3 py-2 rounded-md bg-muted/30 border border-border text-sm font-mono uppercase placeholder:normal-case placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40"
+                    aria-label="Search airport"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto pr-1">
+                  {(() => {
+                    const q = airportSearch.trim().toUpperCase();
+                    const list = q
+                      ? atcFrequencies.filter((a) => a.icao.includes(q) || a.callName.toUpperCase().includes(q))
+                      : atcFrequencies;
+                    if (list.length === 0) {
+                      return (
+                        <div className="col-span-full text-center text-xs text-muted-foreground py-6 font-sans">
+                          No airport matches "{airportSearch}". Try ICAO (e.g. KMYF, KJFK).
+                        </div>
+                      );
+                    }
+                    return list.map((a) => {
+                      const tower = a.facilities.find((f) => f.kind === "TOWER");
+                      return (
+                        <button
+                          key={a.icao}
+                          type="button"
+                          onClick={() => startLiveSession(a)}
+                          className="group text-left rounded-lg border border-border bg-muted/20 hover:bg-primary/5 hover:border-primary/50 hover:shadow-[0_0_18px_-6px_hsl(var(--primary)/0.6)] active:scale-[0.99] p-3 transition-all"
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className="font-display text-[12px] tracking-[0.15em] uppercase text-foreground">
+                              {a.icao}
+                            </span>
+                            <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                              {tower ? formatFreq(tower.freq) : "—"}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-muted-foreground leading-snug font-sans">
+                            {a.callName}
+                          </div>
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {a.facilities.slice(0, 5).map((f, i) => (
+                              <span
+                                key={i}
+                                className="px-1.5 py-0.5 rounded bg-background/60 border border-border font-display text-[8px] tracking-[0.15em] uppercase text-muted-foreground"
+                              >
+                                {f.kind}
+                              </span>
+                            ))}
+                            {a.facilities.length > 5 && (
+                              <span className="text-[8px] text-muted-foreground/70 font-mono">+{a.facilities.length - 5}</span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 content-start">
-                {scenarios.map((s) => {
-                  const isLast = lastScenarioId === s.id;
+
+              {/* ========= LEGACY GUIDED SCENARIOS ========= */}
+              <div className="border-t border-border pt-4">
+                <div className="text-center mb-3">
+                  <div className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+                    Or pick a guided scenario
+                  </div>
+                  <div className="text-xs text-muted-foreground/80 mt-1">
+                    Pre-scripted drill — ATC starts the call.
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {scenarios.map((s) => {
+                    const isLast = lastScenarioId === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => { void startScenario(s.id); }}
+                        disabled={loading}
+                        className={cn(
+                          "group relative text-left rounded-lg border p-3 transition-all",
+                          "bg-muted/20 hover:bg-primary/5 hover:border-primary/50",
+                          "hover:shadow-[0_0_18px_-6px_hsl(var(--primary)/0.6)]",
+                          "active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed",
+                          isLast ? "border-primary/60 bg-primary/5" : "border-border",
+                        )}
+                        title={s.description}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <span className="font-display text-[11px] tracking-[0.2em] uppercase text-foreground">
+                            {s.label}
+                          </span>
+                          {isLast && (
+                            <span className="font-display text-[8px] tracking-[0.2em] uppercase text-primary px-1.5 py-0.5 rounded bg-primary/10 border border-primary/30">
+                              Last
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground leading-snug mb-2 font-sans">
+                          {s.description}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                          <span className="px-1.5 py-0.5 rounded bg-background/60 border border-border">
+                            {s.facility}
+                          </span>
+                          <span className="tabular-nums">{s.frequency}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Live-mode in-session frequency chips: tap to tune instantly */}
+          {isLiveMode && liveAirport && (
+            <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-display text-[9px] tracking-[0.25em] uppercase text-primary">
+                  {liveAirport.icao} Frequencies — tap to tune
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                  Active: {activeFreq}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {liveAirport.facilities.map((f, i) => {
+                  const tuned = Math.abs(parseFloat(activeFreq) - f.freq) <= 0.015;
                   return (
                     <button
-                      key={s.id}
+                      key={i}
                       type="button"
-                      onClick={() => { void startScenario(s.id); }}
-                      disabled={loading}
+                      onClick={() => tuneToFacility(f)}
+                      disabled={tuned || loading || speaking}
                       className={cn(
-                        "group relative text-left rounded-lg border p-3 transition-all",
-                        "bg-muted/20 hover:bg-primary/5 hover:border-primary/50",
-                        "hover:shadow-[0_0_18px_-6px_hsl(var(--primary)/0.6)]",
-                        "active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed",
-                        isLast ? "border-primary/60 bg-primary/5" : "border-border",
+                        "px-2 py-1 rounded border text-[10px] font-display tracking-[0.15em] uppercase transition-colors",
+                        tuned
+                          ? "border-primary bg-primary/15 text-primary cursor-default"
+                          : "border-border bg-background/60 hover:border-primary/60 hover:bg-primary/5 text-foreground",
                       )}
-                      title={s.description}
+                      title={`${f.name} · ${formatFreq(f.freq)}`}
                     >
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <span className="font-display text-[11px] tracking-[0.2em] uppercase text-foreground">
-                          {s.label}
-                        </span>
-                        {isLast && (
-                          <span className="font-display text-[8px] tracking-[0.2em] uppercase text-primary px-1.5 py-0.5 rounded bg-primary/10 border border-primary/30">
-                            Last
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground leading-snug mb-2 font-sans">
-                        {s.description}
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
-                        <span className="px-1.5 py-0.5 rounded bg-background/60 border border-border">
-                          {s.facility}
-                        </span>
-                        <span className="tabular-nums">{s.frequency}</span>
-                      </div>
+                      <span className="text-muted-foreground mr-1">{f.kind}</span>
+                      <span className="tabular-nums font-mono">{formatFreq(f.freq)}</span>
                     </button>
                   );
                 })}
               </div>
+              {liveContext && !liveContext.facility && (
+                <div className="mt-2 text-[10px] text-amber-500 font-sans flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  No facility on {activeFreq} at {liveAirport.icao} — dead air. Tune a published frequency.
+                </div>
+              )}
             </div>
           )}
+
           {messages.map((msg) => {
             if (msg.role === "system") {
               return (
