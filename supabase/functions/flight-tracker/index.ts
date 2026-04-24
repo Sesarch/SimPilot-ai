@@ -24,8 +24,16 @@ async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax
 
   try {
     // Bounding box query: -latlong "minLat minLon maxLat maxLon"
-    const query = `-latlong "${lamin} ${lomin} ${lamax} ${lomax}"`;
-    const url = `${FLIGHTAWARE_API}/flights/search/positions?query=${encodeURIComponent(query)}&max_pages=1`;
+    // Latitudes/longitudes must be plain numbers (no extra spaces/precision issues).
+    const minLat = Number(lamin).toFixed(4);
+    const maxLat = Number(lamax).toFixed(4);
+    const minLon = Number(lomin).toFixed(4);
+    const maxLon = Number(lomax).toFixed(4);
+    const query = `-latlong "${minLat} ${minLon} ${maxLat} ${maxLon}"`;
+    const params = new URLSearchParams({ query, max_pages: "1" });
+    const url = `${FLIGHTAWARE_API}/flights/search/positions?${params.toString()}`;
+
+    console.log(`FlightAware: requesting ${url}`);
 
     const res = await fetch(url, {
       headers: {
@@ -38,7 +46,7 @@ async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax
 
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      console.log(`FlightAware returned ${res.status}: ${body.slice(0, 200)}`);
+      console.log(`FlightAware returned ${res.status} for query='${query}': ${body.slice(0, 400)}`);
       return null;
     }
 
