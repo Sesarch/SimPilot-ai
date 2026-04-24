@@ -24,11 +24,13 @@ async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax
 
   try {
     // Bounding box query: -latlong "minLat minLon maxLat maxLon"
-    // Latitudes/longitudes must be plain numbers (no extra spaces/precision issues).
-    const minLat = Number(lamin).toFixed(4);
-    const maxLat = Number(lamax).toFixed(4);
-    const minLon = Number(lomin).toFixed(4);
-    const maxLon = Number(lomax).toFixed(4);
+    // FlightAware requires lat ∈ [-90,90] and lon ∈ [-180,180]; clamp to avoid 400 errors
+    // when the map viewport wraps the antimeridian (e.g. lon < -180 or > 180).
+    const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
+    const minLat = clamp(Number(lamin), -90, 90).toFixed(4);
+    const maxLat = clamp(Number(lamax), -90, 90).toFixed(4);
+    const minLon = clamp(Number(lomin), -180, 180).toFixed(4);
+    const maxLon = clamp(Number(lomax), -180, 180).toFixed(4);
     const query = `-latlong "${minLat} ${minLon} ${maxLat} ${maxLon}"`;
     const params = new URLSearchParams({ query, max_pages: "1" });
     const url = `${FLIGHTAWARE_API}/flights/search/positions?${params.toString()}`;
