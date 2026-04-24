@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -12,9 +12,58 @@ const BRIDGE_VERSION = "1.0.1";
 const INSTALLER_FILENAME = `SimPilot Bridge Setup ${BRIDGE_VERSION}.exe`;
 const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/SimPilot%20Bridge%20Setup%20${BRIDGE_VERSION}.exe`;
 
+type InstallerCheck =
+  | { status: "checking" }
+  | { status: "ok"; resolvedUrl?: string }
+  | { status: "error"; message: string };
+
 export default function BridgeSetupPage() {
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [installerCheck, setInstallerCheck] = useState<InstallerCheck>({ status: "checking" });
+
+  useEffect(() => {
+    let cancelled = false;
+    const verifyInstaller = async () => {
+      try {
+        const res = await fetch(INSTALLER_DIRECT_URL, { method: "HEAD", redirect: "follow", mode: "cors" });
+        if (cancelled) return;
+        if (!res.ok) {
+          setInstallerCheck({
+            status: "error",
+            message: `Installer not reachable (HTTP ${res.status}). Expected ${INSTALLER_FILENAME} on the v${BRIDGE_VERSION} release.`,
+          });
+          return;
+        }
+        const url = res.url || "";
+        const matchesVersion = url.includes(`v${BRIDGE_VERSION}`) || url.includes(BRIDGE_VERSION);
+        const matchesFile =
+          url.includes(encodeURIComponent(INSTALLER_FILENAME)) ||
+          url.includes(INSTALLER_FILENAME) ||
+          url.includes(INSTALLER_FILENAME.replace(/ /g, "+"));
+        if (url && (!matchesVersion || !matchesFile)) {
+          setInstallerCheck({
+            status: "error",
+            message: `Installer URL responded but did not resolve to v${BRIDGE_VERSION} (${INSTALLER_FILENAME}).`,
+          });
+          return;
+        }
+        setInstallerCheck({ status: "ok", resolvedUrl: url });
+      } catch (err) {
+        if (cancelled) return;
+        setInstallerCheck({
+          status: "error",
+          message:
+            (err as Error).message ||
+            `Could not verify the installer URL. Confirm ${INSTALLER_FILENAME} is attached to the v${BRIDGE_VERSION} GitHub release.`,
+        });
+      }
+    };
+    verifyInstaller();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handlePairBridge = async () => {
     setPairing(true);
@@ -115,6 +164,48 @@ export default function BridgeSetupPage() {
                 <Lock className="h-4 w-4" />
                 Linux · Windows Only
               </span>
+            </div>
+
+            {/* Installer availability check */}
+            <div
+              role="status"
+              aria-live="polite"
+              className={`flex items-start gap-2 rounded-md border px-3 py-2 text-xs ${
+                installerCheck.status === "ok"
+                  ? "border-primary/30 bg-primary/5 text-primary"
+                  : installerCheck.status === "error"
+                    ? "border-destructive/40 bg-destructive/10 text-destructive"
+                    : "border-border bg-muted/30 text-muted-foreground"
+              }`}
+            >
+              {installerCheck.status === "checking" && (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mt-0.5" />
+                  <span>Verifying installer at <span className="font-mono">{INSTALLER_FILENAME}</span>…</span>
+                </>
+              )}
+              {installerCheck.status === "ok" && (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mt-0.5" />
+                  <span>Verified · v{BRIDGE_VERSION} installer is reachable.</span>
+                </>
+              )}
+              {installerCheck.status === "error" && (
+                <>
+                  <AlertTriangle className="h-4 w-4 mt-0.5" />
+                  <span>
+                    Installer check failed: {installerCheck.message}{" "}
+                    <a
+                      href={`https://github.com/Sesarch/SimPilot-ai/releases/tag/v${BRIDGE_VERSION}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      View release
+                    </a>
+                  </span>
+                </>
+              )}
             </div>
 
             <p className="text-xs text-muted-foreground">
