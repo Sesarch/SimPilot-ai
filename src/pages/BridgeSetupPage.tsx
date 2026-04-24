@@ -96,25 +96,61 @@ export default function BridgeSetupPage() {
   };
 
   const handleDownload = async () => {
-    if (download.status === "downloading" || download.status === "starting" || download.status === "saving") {
-      return;
-    }
-    // Direct download — bypass proxy and installer check. Browser handles the file save.
+    if (isBusy) return;
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const proxyUrl = `https://${projectId}.supabase.co/functions/v1/bridge-download?platform=windows&version=${BRIDGE_VERSION}`;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setDownload({ status: "starting" });
     try {
-      const a = document.createElement("a");
-      a.href = INSTALLER_DOWNLOAD_URL;
-      a.download = INSTALLER_FILENAME;
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const res = await fetch(proxyUrl, { signal: controller.signal });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        const { message, hint } = describeDownloadError(res.status, body);
+        setDownload({ status: "error", message, hint });
+        return;
+      }
+      const totalHeader = res.headers.get("content-length");
+      const total = totalHeader ? parseInt(totalHeader, 10) : null;
+      const startedAt = Date.now();
+      setDownload({ status: "downloading", received: 0, total, startedAt });
+
+      if (!res.body) {
+        const blob = await res.blob();
+        setDownload({ status: "saving" });
+        triggerSave(blob);
+        setDownload({ status: "done" });
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.byteLength;
+          setDownload({ status: "downloading", received, total, startedAt });
+        }
+      }
+      setDownload({ status: "saving" });
+      const blob = new Blob(chunks as BlobPart[], { type: "application/octet-stream" });
+      triggerSave(blob);
       setDownload({ status: "done" });
     } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        setDownload({ status: "cancelled" });
+        return;
+      }
       setDownload({
         status: "error",
         message: (err as Error).message || "Could not start download.",
-        hint: `If your browser blocked it, download manually: ${INSTALLER_DOWNLOAD_URL}`,
+        hint: `If this keeps failing, try the direct link: ${INSTALLER_DOWNLOAD_URL}`,
       });
+    } finally {
+      abortRef.current = null;
     }
   };
 
