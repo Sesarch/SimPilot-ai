@@ -1264,7 +1264,7 @@ ${transcript}`;
                 Resume Last
               </Button>
             )}
-            <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setMessages([]); setPhraseologyScore(null); }}>
+            <Button size="sm" variant="ghost" onClick={() => { setSelectedScenario(null); setLiveAirport(null); setMessages([]); setPhraseologyScore(null); }}>
               <RotateCcw className="h-3 w-3 mr-1" /> New Scenario
             </Button>
           </div>
