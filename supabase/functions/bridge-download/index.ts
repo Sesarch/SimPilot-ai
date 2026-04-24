@@ -82,6 +82,26 @@ async function findAsset(
   version: string,
   filenames: string[],
 ): Promise<{ id: number; size: number; name: string } | null> {
+  const pickAsset = (assets: Array<{ id: number; name: string; size: number }>) => {
+    for (const fn of filenames) {
+      const match = assets.find((a) => a.name === fn);
+      if (match) return { id: match.id, size: match.size, name: match.name };
+    }
+
+    const normalizedCandidates = filenames.map(normalizeFilename);
+    const normalizedMatch = assets.find((a) => normalizedCandidates.includes(normalizeFilename(a.name)));
+    if (normalizedMatch) {
+      return { id: normalizedMatch.id, size: normalizedMatch.size, name: normalizedMatch.name };
+    }
+
+    const fuzzyMatch = assets.find((a) => isLikelyPlatformAsset(a.name, platform, version));
+    if (fuzzyMatch) {
+      return { id: fuzzyMatch.id, size: fuzzyMatch.size, name: fuzzyMatch.name };
+    }
+
+    return null;
+  };
+
   for (const tag of releaseTagCandidates(version)) {
     const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/tags/${tag}`;
     const res = await fetch(url, {
@@ -95,22 +115,31 @@ async function findAsset(
     const data = (await res.json()) as {
       assets: Array<{ id: number; name: string; size: number }>;
     };
-    for (const fn of filenames) {
-      const match = data.assets.find((a) => a.name === fn);
-      if (match) return { id: match.id, size: match.size, name: match.name };
-    }
-
-    const normalizedCandidates = filenames.map(normalizeFilename);
-    const normalizedMatch = data.assets.find((a) => normalizedCandidates.includes(normalizeFilename(a.name)));
-    if (normalizedMatch) {
-      return { id: normalizedMatch.id, size: normalizedMatch.size, name: normalizedMatch.name };
-    }
-
-    const fuzzyMatch = data.assets.find((a) => isLikelyPlatformAsset(a.name, platform, version));
-    if (fuzzyMatch) {
-      return { id: fuzzyMatch.id, size: fuzzyMatch.size, name: fuzzyMatch.name };
-    }
+    const match = pickAsset(data.assets);
+    if (match) return match;
   }
+
+  const releasesUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=20`;
+  const releasesRes = await fetch(releasesUrl, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${token}`,
+      "User-Agent": "simpilot-bridge-download-proxy",
+    },
+  });
+  if (!releasesRes.ok) return null;
+
+  const releases = (await releasesRes.json()) as Array<{
+    tag_name?: string;
+    assets: Array<{ id: number; name: string; size: number }>;
+  }>;
+  for (const tag of releaseTagCandidates(version)) {
+    const release = releases.find((entry) => entry.tag_name === tag);
+    if (!release) continue;
+    const match = pickAsset(release.assets ?? []);
+    if (match) return match;
+  }
+
   return null;
 }
 
