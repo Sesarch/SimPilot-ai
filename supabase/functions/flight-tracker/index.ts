@@ -292,7 +292,7 @@ async function tryADSBExchange(lamin: string, lamax: string, lomin: string, loma
     const data = await res.json();
     if (!data.ac || data.ac.length === 0) return null;
 
-    // Convert ADS-B Exchange format to OpenSky-compatible states
+    // Convert ADS-B Exchange format to standard states array
     const now = Math.floor(Date.now() / 1000);
     const states = data.ac
       .filter((ac: any) => ac.lat != null && ac.lon != null)
