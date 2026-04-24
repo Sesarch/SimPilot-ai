@@ -3,7 +3,7 @@
  *
  * Used by both /flight-deck/bridge (full setup page) and the homepage Hero
  * CTA so behavior stays identical:
- *   1. Resolve the pinned release (v1.0.0) — fall back to "latest" if the
+ *   1. Resolve the pinned release (v1.0.1) — fall back to "latest" if the
  *      pinned tag isn't published yet.
  *   2. Fetch the .exe as a blob.
  *   3. Verify SHA-512 against the checksum published in `latest.yml`.
@@ -20,7 +20,7 @@ import { trackBridgeDownloadEvent } from "@/lib/bridgeDownloadAnalytics";
 // always look for this exact tag first; if the upstream returns 404 (e.g. the
 // tag hasn't been published yet) it transparently falls back to /latest so
 // the button never goes dead.
-export const PINNED_BRIDGE_VERSION = "1.0.0";
+export const PINNED_BRIDGE_VERSION = "1.0.1";
 const PINNED_TAG = `v${PINNED_BRIDGE_VERSION}`;
 
 const RELEASE_SOURCES = [
@@ -112,7 +112,7 @@ const HARD_FALLBACK_SOURCE: ReleaseSource = { owner: "Sesarch", repo: "SimPilot-
  * trusted GitHub release asset, so `validateResolvedRelease` will accept it.
  */
 function buildHardFallbackRelease(): ResolvedBridgeRelease {
-  const installerName = `SimPilotBridge-Setup-${PINNED_BRIDGE_VERSION}.exe`;
+  const installerName = `SimPilot.Bridge.Setup.${PINNED_BRIDGE_VERSION}.exe`;
   return {
     tagName: PINNED_TAG,
     publishedAt: null,
@@ -194,7 +194,7 @@ async function fetchReleaseFromApi(
     assets: Array<{ name: string; browser_download_url: string; size: number }>;
   };
   const installerAsset =
-    data.assets.find((a) => /SimPilotBridge-Setup-.*\.exe$/i.test(a.name)) ?? null;
+    data.assets.find((a) => /SimPilot(?:[ .])Bridge(?:[ .])Setup[ .].*\.exe$/i.test(a.name)) ?? null;
   const ymlAsset = data.assets.find((a) => a.name === "latest.yml");
   let sha512: string | null = null;
   if (ymlAsset) {
@@ -239,7 +239,7 @@ export function buildPinnedBridgeAssetUrl(filename: string): string {
 }
 
 async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<ResolvedBridgeRelease | null> {
-  const installerName = `SimPilotBridge-Setup-${PINNED_BRIDGE_VERSION}.exe`;
+  const installerName = `SimPilot.Bridge.Setup.${PINNED_BRIDGE_VERSION}.exe`;
   const installerUrl = buildReleaseAssetUrl(source, installerName);
   const ymlUrl = buildReleaseAssetUrl(source, "latest.yml");
 
@@ -291,7 +291,7 @@ async function fetchReleaseFromDirectAssets(source: ReleaseSource): Promise<Reso
 }
 
 /**
- * Resolves the pinned release (v1.0.0) with a transparent fallback to the
+ * Resolves the pinned release (v1.0.1) with a transparent fallback to the
  * latest published release. Cached in localStorage for 10 minutes.
  */
 export async function resolveBridgeRelease(
@@ -352,9 +352,9 @@ export async function resolveBridgeRelease(
 }
 
 /**
- * Runtime guard: ensures the resolved release is the pinned v1.0.0 build and
+ * Runtime guard: ensures the resolved release is the pinned v1.0.1 build and
  * that its installer asset is a valid direct GitHub release download URL
- * matching the expected `SimPilotBridge-Setup-<version>.exe` filename. Any
+ * matching the expected `SimPilot.Bridge.Setup.<version>.exe` filename. Any
  * mismatch (missing asset, wrong tag, non-GitHub host) surfaces a clear,
  * user-facing error instead of silently downloading the wrong file.
  */
@@ -387,7 +387,7 @@ export function validateResolvedRelease(
     };
   }
   const { downloadUrl, name } = release.installer;
-  const expectedName = `SimPilotBridge-Setup-${PINNED_BRIDGE_VERSION}.exe`;
+  const expectedName = `SimPilot.Bridge.Setup.${PINNED_BRIDGE_VERSION}.exe`;
   if (name !== expectedName) {
     return {
       ok: false,
