@@ -112,6 +112,8 @@ const FlightTrackerMap = () => {
   const [altRange, setAltRange] = useState<[number, number]>([0, 60000]);
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
+  const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
+  const traceAbortRef = useRef<AbortController | null>(null);
 
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
@@ -138,6 +140,30 @@ const FlightTrackerMap = () => {
     setSelectedAircraft(ac);
     setSelectedAirport(null);
     setPositionHistory([{ lat: ac.latitude, lng: ac.longitude, alt: ac.altitude, time: new Date() }]);
+    // Fetch the full historical trace so the polyline shows the entire flight,
+    // not only points captured after the click.
+    traceAbortRef.current?.abort();
+    const controller = new AbortController();
+    traceAbortRef.current = controller;
+    setHistoricalTrack([]);
+    (async () => {
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+        const res = await fetch(
+          `${supabaseUrl}/functions/v1/flight-tracker?action=trace&hex=${encodeURIComponent(ac.icao24)}`,
+          { headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey }, signal: controller.signal },
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as { points?: Array<{ lat: number; lon: number }> };
+        const pts = (data.points ?? [])
+          .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon))
+          .map(p => [p.lat, p.lon] as [number, number]);
+        if (!controller.signal.aborted) setHistoricalTrack(pts);
+      } catch {
+        /* aborted or offline — fall back to live-only trail */
+      }
+    })();
   }, []);
 
   const handleSelectAirport = useCallback((ap: MajorAirport) => {
@@ -152,12 +178,22 @@ const FlightTrackerMap = () => {
     setSelectedAircraft(null);
     setSelectedAirport(null);
     setPositionHistory([]);
+    setHistoricalTrack([]);
+    traceAbortRef.current?.abort();
   }, []);
 
   const trailPositions = useMemo(
     () => positionHistory.map(p => [p.lat, p.lng] as [number, number]),
     [positionHistory]
   );
+
+  // Combine the historical trace with live points captured since selection.
+  const fullTrack = useMemo<[number, number][]>(() => {
+    if (historicalTrack.length === 0) return trailPositions;
+    const combined: [number, number][] = [...historicalTrack];
+    for (const p of trailPositions) combined.push(p);
+    return combined;
+  }, [historicalTrack, trailPositions]);
 
   const filteredAircraft = useMemo(() => {
     let list = aircraft;
@@ -465,8 +501,8 @@ const FlightTrackerMap = () => {
               </Popup>
             </Marker>
           ))}
-          {trailPositions.length > 1 && (
-            <Polyline positions={trailPositions} pathOptions={{ color: "#f59e0b", weight: 2, opacity: 0.7, dashArray: "6 4" }} />
+          {fullTrack.length > 1 && (
+            <Polyline positions={fullTrack} pathOptions={{ color: "#f59e0b", weight: 2, opacity: 0.8 }} />
           )}
         </MapContainer>
       </div>
