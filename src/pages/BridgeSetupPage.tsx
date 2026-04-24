@@ -166,6 +166,48 @@ export default function BridgeSetupPage() {
               </span>
             </div>
 
+            {/* Installer availability check */}
+            <div
+              role="status"
+              aria-live="polite"
+              className={`flex items-start gap-2 rounded-md border px-3 py-2 text-xs ${
+                installerCheck.status === "ok"
+                  ? "border-primary/30 bg-primary/5 text-primary"
+                  : installerCheck.status === "error"
+                    ? "border-destructive/40 bg-destructive/10 text-destructive"
+                    : "border-border bg-muted/30 text-muted-foreground"
+              }`}
+            >
+              {installerCheck.status === "checking" && (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mt-0.5" />
+                  <span>Verifying installer at <span className="font-mono">{INSTALLER_FILENAME}</span>…</span>
+                </>
+              )}
+              {installerCheck.status === "ok" && (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mt-0.5" />
+                  <span>Verified · v{BRIDGE_VERSION} installer is reachable.</span>
+                </>
+              )}
+              {installerCheck.status === "error" && (
+                <>
+                  <AlertTriangle className="h-4 w-4 mt-0.5" />
+                  <span>
+                    Installer check failed: {installerCheck.message}{" "}
+                    <a
+                      href={`https://github.com/Sesarch/SimPilot-ai/releases/tag/v${BRIDGE_VERSION}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      View release
+                    </a>
+                  </span>
+                </>
+              )}
+            </div>
+
             <p className="text-xs text-muted-foreground">
               Pinned to v{BRIDGE_VERSION} · Windows: {INSTALLER_FILENAME} · macOS &amp; Linux are disabled for this Windows-only launch.
             </p>
