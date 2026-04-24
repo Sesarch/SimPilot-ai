@@ -281,13 +281,35 @@ export default function BridgeSetupPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <a
-                href={INSTALLER_DOWNLOAD_URL}
-                className="inline-flex items-center gap-2 h-11 rounded-md px-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm"
+              <Button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloadDisabled}
+                className="h-11 px-8 gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm disabled:opacity-60 disabled:hover:scale-100"
               >
-                <Download className="h-5 w-5" />
-                Download for Windows
-              </a>
+                {download.status === "starting" || download.status === "saving" ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : download.status === "downloading" ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Download className="h-5 w-5" />
+                )}
+                {download.status === "starting"
+                  ? "Connecting…"
+                  : download.status === "downloading"
+                    ? `Downloading… ${progressPct}%`
+                    : download.status === "saving"
+                      ? "Saving…"
+                      : download.status === "done"
+                        ? "Download complete · Re-download"
+                        : "Download for Windows"}
+              </Button>
+              {isBusy && (
+                <Button type="button" variant="outline" className="h-11 gap-2" onClick={cancelDownload}>
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+              )}
               <span
                 title="Windows Only"
                 aria-disabled="true"
@@ -305,6 +327,61 @@ export default function BridgeSetupPage() {
                 Linux · Windows Only
               </span>
             </div>
+
+            {/* Download progress */}
+            {(isBusy || download.status === "done" || download.status === "cancelled") && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="rounded-md border border-border bg-muted/30 px-3 py-2.5 space-y-1.5"
+              >
+                <Progress value={progressPct} className="h-2" />
+                <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
+                  <span>
+                    {download.status === "downloading" && download.total
+                      ? `${formatBytes(download.received)} / ${formatBytes(download.total)}`
+                      : download.status === "downloading"
+                        ? `${formatBytes(download.received)} received`
+                        : download.status === "starting"
+                          ? "Contacting download proxy…"
+                          : download.status === "saving"
+                            ? "Writing file to disk…"
+                            : download.status === "done"
+                              ? `Saved ${INSTALLER_FILENAME}`
+                              : "Download cancelled"}
+                  </span>
+                  <span>
+                    {download.status === "downloading" && speedKbps > 0
+                      ? speedKbps > 1024
+                        ? `${(speedKbps / 1024).toFixed(2)} MB/s`
+                        : `${speedKbps.toFixed(0)} KB/s`
+                      : ""}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Download error */}
+            {download.status === "error" && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+              >
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-semibold">Download failed</p>
+                  <p>{download.message}</p>
+                  {download.hint && <p className="text-destructive/80">{download.hint}</p>}
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    className="underline font-semibold hover:text-destructive/80"
+                  >
+                    Retry download
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Installer availability check */}
             <div
