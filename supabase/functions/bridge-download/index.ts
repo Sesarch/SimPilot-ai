@@ -95,9 +95,9 @@ Deno.serve(async (req) => {
       const platforms = ["windows", "macos", "linux"] as const;
       const results = await Promise.all(
         platforms.map(async (p) => {
-          const fn = filenameFor(p, version);
-          if (!fn) return [p, false] as const;
-          const a = await findAsset(token, version, fn);
+          const fns = filenameCandidatesFor(p, version);
+          if (fns.length === 0) return [p, false] as const;
+          const a = await findAsset(token, version, fns);
           return [p, a !== null] as const;
         }),
       );
@@ -112,21 +112,21 @@ Deno.serve(async (req) => {
     }
   }
 
-  const filename = filenameFor(platform, version);
-  if (!filename) {
+  const candidates = filenameCandidatesFor(platform, version);
+  if (candidates.length === 0) {
     return jsonError(400, "Invalid platform. Use windows, macos, or linux.");
   }
 
-  let asset: { id: number; size: number } | null = null;
+  let asset: { id: number; size: number; name: string } | null = null;
   try {
-    asset = await findAsset(token, version, filename);
+    asset = await findAsset(token, version, candidates);
   } catch (err) {
     return jsonError(502, `Failed to query GitHub release: ${(err as Error).message}`);
   }
   if (!asset) {
     return jsonError(
       404,
-      `Asset ${filename} for v${version} is not published in ${REPO_OWNER}/${REPO_NAME}.`,
+      `No installer matching ${candidates.join(" or ")} for v${version} in ${REPO_OWNER}/${REPO_NAME}.`,
     );
   }
 
@@ -142,12 +142,12 @@ Deno.serve(async (req) => {
     },
   });
   if (!upstream.ok && upstream.status !== 206) {
-    return jsonError(upstream.status, `Upstream returned ${upstream.status} fetching ${filename}.`);
+    return jsonError(upstream.status, `Upstream returned ${upstream.status} fetching ${asset.name}.`);
   }
 
   const headers = new Headers(corsHeaders);
   headers.set("Content-Type", "application/octet-stream");
-  headers.set("Content-Disposition", `attachment; filename="${filename}"`);
+  headers.set("Content-Disposition", `attachment; filename="${asset.name}"`);
   headers.set("Accept-Ranges", "bytes");
   const len = upstream.headers.get("content-length");
   if (len) headers.set("Content-Length", len);
