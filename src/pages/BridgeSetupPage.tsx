@@ -99,59 +99,22 @@ export default function BridgeSetupPage() {
     if (download.status === "downloading" || download.status === "starting" || download.status === "saving") {
       return;
     }
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setDownload({ status: "starting" });
+    // Direct download — bypass proxy and installer check. Browser handles the file save.
     try {
-      const res = await fetch(INSTALLER_DOWNLOAD_URL, { method: "GET", signal: controller.signal });
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        const { message, hint } = describeDownloadError(res.status, body);
-        setDownload({ status: "error", message, hint });
-        return;
-      }
-      const lenHeader = res.headers.get("content-length");
-      const total = lenHeader ? Number(lenHeader) : null;
-      const startedAt = Date.now();
-      setDownload({ status: "downloading", received: 0, total, startedAt });
-
-      if (!res.body) {
-        // Browser doesn't expose a stream — fall back to blob() with no progress.
-        const blob = await res.blob();
-        triggerSave(blob);
-        setDownload({ status: "done" });
-        return;
-      }
-
-      const reader = res.body.getReader();
-      const chunks: Uint8Array[] = [];
-      let received = 0;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) {
-          chunks.push(value);
-          received += value.byteLength;
-          setDownload({ status: "downloading", received, total, startedAt });
-        }
-      }
-      setDownload({ status: "saving" });
-      const blob = new Blob(chunks as BlobPart[], { type: "application/octet-stream" });
-      triggerSave(blob);
+      const a = document.createElement("a");
+      a.href = INSTALLER_DOWNLOAD_URL;
+      a.download = INSTALLER_FILENAME;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       setDownload({ status: "done" });
     } catch (err) {
-      if ((err as Error).name === "AbortError") {
-        setDownload({ status: "cancelled" });
-        return;
-      }
-      const msg = (err as Error).message || "Network error during download.";
       setDownload({
         status: "error",
-        message: msg,
-        hint: "Check your connection and retry. If you're on a corporate network, the proxy may be blocked.",
+        message: (err as Error).message || "Could not start download.",
+        hint: `If your browser blocked it, download manually: ${INSTALLER_DOWNLOAD_URL}`,
       });
-    } finally {
-      abortRef.current = null;
     }
   };
 
