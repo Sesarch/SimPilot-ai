@@ -3,6 +3,7 @@ name: Build SimPilot Bridge Installer (Windows)
 on:
   push:
     tags:
+      - "v*"
       - "bridge-v*"
   workflow_dispatch:
 
