@@ -8,9 +8,146 @@ const corsHeaders = {
 const OPENSKY_API = "https://opensky-network.org/api/states/all";
 const ADSBEX_RAPID_API = "https://adsbexchange-com1.p.rapidapi.com/v2/lat/";
 const ADSB_LOL_API = "https://api.adsb.lol/v2/lat/";
+const ADSB_LOL_TRACE_BASE = "https://adsb.lol/data/traces";
+const ADSBDB_API = "https://api.adsbdb.com/v0";
 
 function getErrorMessage(err: unknown) {
   return err instanceof Error ? err.message : String(err);
+}
+
+// --- Aircraft metadata + recent flight ---------------------------------------
+// Combines adsbdb.com (registration → type / owner / photo) with adsb.lol
+// callsign + registration live lookup so the search bar can show a meaningful
+// result even when the aircraft is not currently airborne.
+async function lookupAircraft(query: string): Promise<Response> {
+  const q = query.trim().toUpperCase();
+  if (!q) {
+    return new Response(JSON.stringify({ error: "Empty query" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const result: Record<string, unknown> = { query: q };
+
+  const safe = async <T,>(p: Promise<T>): Promise<T | null> => {
+    try { return await p; } catch { return null; }
+  };
+
+  // Try adsbdb registration / mode-s endpoints in parallel.
+  const [byRegistration, byModeS, liveByCallsign, liveByRegistration, liveByHex] = await Promise.all([
+    safe(fetch(`${ADSBDB_API}/aircraft/${encodeURIComponent(q)}`).then(r => r.ok ? r.json() : null)),
+    safe(fetch(`${ADSBDB_API}/mode-s/${encodeURIComponent(q)}`).then(r => r.ok ? r.json() : null)),
+    safe(fetch(`https://api.adsb.lol/v2/callsign/${encodeURIComponent(q)}`).then(r => r.ok ? r.json() : null)),
+    safe(fetch(`https://api.adsb.lol/v2/registration/${encodeURIComponent(q)}`).then(r => r.ok ? r.json() : null)),
+    safe(fetch(`https://api.adsb.lol/v2/icao/${encodeURIComponent(q.toLowerCase())}`).then(r => r.ok ? r.json() : null)),
+  ]);
+
+  const meta = (byRegistration as any)?.response?.aircraft || (byModeS as any)?.response?.aircraft || null;
+  if (meta) {
+    result.registration = meta.registration || null;
+    result.icao24 = (meta.mode_s || "").toLowerCase() || null;
+    result.type = meta.type || null;
+    result.icaoType = meta.icao_type || null;
+    result.manufacturer = meta.manufacturer || null;
+    result.owner = meta.registered_owner || null;
+    result.country = meta.registered_owner_country_name || null;
+    result.photo = meta.url_photo || null;
+    result.photoThumb = meta.url_photo_thumbnail || null;
+  }
+
+  const liveSources = [liveByCallsign, liveByRegistration, liveByHex] as any[];
+  for (const src of liveSources) {
+    const list = src?.ac;
+    if (Array.isArray(list) && list.length) {
+      const ac = list[0];
+      result.live = {
+        hex: ac.hex,
+        flight: (ac.flight || "").trim() || null,
+        registration: ac.r || null,
+        type: ac.t || null,
+        description: ac.desc || null,
+        owner: ac.ownOp || null,
+        lat: ac.lat ?? null,
+        lon: ac.lon ?? null,
+        altBaroFt: ac.alt_baro === "ground" ? 0 : (ac.alt_baro ?? null),
+        gsKts: ac.gs ?? null,
+        track: ac.track ?? null,
+        squawk: ac.squawk ?? null,
+        seen: ac.seen ?? null,
+      };
+      if (!result.icao24 && ac.hex) result.icao24 = String(ac.hex).toLowerCase();
+      if (!result.registration && ac.r) result.registration = ac.r;
+      if (!result.type && ac.t) result.type = ac.t;
+      if (!result.owner && ac.ownOp) result.owner = ac.ownOp;
+      if (!result.manufacturer && ac.desc) result.manufacturer = ac.desc;
+      break;
+    }
+  }
+
+  return new Response(JSON.stringify(result), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+// --- Historical track -------------------------------------------------------
+// adsb.lol mirrors a CDN of full traces under /data/traces/<lastTwo>/trace_full_<hex>.json.
+// Returned shape: [seconds_after_timestamp, lat, lon, alt|"ground", gs, track, ...]
+async function lookupTrace(hex: string): Promise<Response> {
+  const h = hex.trim().toLowerCase();
+  if (!/^[a-f0-9]{6}$/.test(h)) {
+    return new Response(JSON.stringify({ error: "Invalid ICAO24 hex" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const lastTwo = h.slice(-2);
+  const url = `${ADSB_LOL_TRACE_BASE}/${lastTwo}/trace_full_${h}.json`;
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Lovable-FlightTracker/1.0", "Accept-Encoding": "gzip" },
+    });
+    if (!res.ok) {
+      return new Response(JSON.stringify({ trace: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const data = await res.json();
+    const baseTs = Number(data?.timestamp ?? 0);
+    const trace = Array.isArray(data?.trace) ? data.trace : [];
+    // Down-sample large traces to keep the polyline fast.
+    const stride = trace.length > 1500 ? Math.ceil(trace.length / 1500) : 1;
+    const points = [] as Array<{ t: number; lat: number; lon: number; alt: number | null; gs: number | null }>;
+    for (let i = 0; i < trace.length; i += stride) {
+      const p = trace[i];
+      if (!p || p.length < 3) continue;
+      const altRaw = p[3];
+      points.push({
+        t: Math.round(baseTs + Number(p[0] || 0)),
+        lat: Number(p[1]),
+        lon: Number(p[2]),
+        alt: altRaw === "ground" ? 0 : (typeof altRaw === "number" ? altRaw : null),
+        gs: typeof p[4] === "number" ? p[4] : null,
+      });
+    }
+    return new Response(
+      JSON.stringify({
+        hex: h,
+        registration: data?.r ?? null,
+        type: data?.t ?? null,
+        description: data?.desc ?? null,
+        owner: data?.ownOp ?? null,
+        timestamp: baseTs,
+        points,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: getErrorMessage(err), trace: [] }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
 }
 
 // Realistic mock flight data
@@ -285,6 +422,14 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
+    const action = url.searchParams.get("action");
+    if (action === "lookup") {
+      return await lookupAircraft(url.searchParams.get("q") || "");
+    }
+    if (action === "trace") {
+      return await lookupTrace(url.searchParams.get("hex") || "");
+    }
+
     const lamin = url.searchParams.get("lamin") || "25";
     const lamax = url.searchParams.get("lamax") || "50";
     const lomin = url.searchParams.get("lomin") || "-130";

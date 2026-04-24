@@ -81,17 +81,19 @@ const weatherColors: Record<string, string> = {
 };
 
 const createAirportIcon = (category?: FlightCategory) => {
-  const color = (category && weatherColors[category]) || "#a78bfa";
-  const glow = category ? `filter: drop-shadow(0 0 4px ${color});` : "";
+  const color = (category && weatherColors[category]) || "#fbbf24";
+  // Always render a strong glow + dark outline so the marker pops against the basemap.
+  const glow = `filter: drop-shadow(0 0 6px ${color}) drop-shadow(0 0 2px rgba(0,0,0,0.9));`;
   return L.divIcon({
     className: "airport-marker",
-    html: `<div style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; ${glow}">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2v20M2 12h20M6 6l12 12M18 6L6 18"/>
+    html: `<div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; ${glow}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="${color}" stroke="rgba(0,0,0,0.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="6.5" />
+        <circle cx="12" cy="12" r="2.2" fill="rgba(0,0,0,0.85)" stroke="none" />
       </svg>
     </div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
   });
 };
 
@@ -110,6 +112,8 @@ const FlightTrackerMap = () => {
   const [altRange, setAltRange] = useState<[number, number]>([0, 60000]);
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
+  const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
+  const traceAbortRef = useRef<AbortController | null>(null);
 
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
@@ -136,6 +140,30 @@ const FlightTrackerMap = () => {
     setSelectedAircraft(ac);
     setSelectedAirport(null);
     setPositionHistory([{ lat: ac.latitude, lng: ac.longitude, alt: ac.altitude, time: new Date() }]);
+    // Fetch the full historical trace so the polyline shows the entire flight,
+    // not only points captured after the click.
+    traceAbortRef.current?.abort();
+    const controller = new AbortController();
+    traceAbortRef.current = controller;
+    setHistoricalTrack([]);
+    (async () => {
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+        const res = await fetch(
+          `${supabaseUrl}/functions/v1/flight-tracker?action=trace&hex=${encodeURIComponent(ac.icao24)}`,
+          { headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey }, signal: controller.signal },
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as { points?: Array<{ lat: number; lon: number }> };
+        const pts = (data.points ?? [])
+          .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon))
+          .map(p => [p.lat, p.lon] as [number, number]);
+        if (!controller.signal.aborted) setHistoricalTrack(pts);
+      } catch {
+        /* aborted or offline — fall back to live-only trail */
+      }
+    })();
   }, []);
 
   const handleSelectAirport = useCallback((ap: MajorAirport) => {
@@ -150,12 +178,22 @@ const FlightTrackerMap = () => {
     setSelectedAircraft(null);
     setSelectedAirport(null);
     setPositionHistory([]);
+    setHistoricalTrack([]);
+    traceAbortRef.current?.abort();
   }, []);
 
   const trailPositions = useMemo(
     () => positionHistory.map(p => [p.lat, p.lng] as [number, number]),
     [positionHistory]
   );
+
+  // Combine the historical trace with live points captured since selection.
+  const fullTrack = useMemo<[number, number][]>(() => {
+    if (historicalTrack.length === 0) return trailPositions;
+    const combined: [number, number][] = [...historicalTrack];
+    for (const p of trailPositions) combined.push(p);
+    return combined;
+  }, [historicalTrack, trailPositions]);
 
   const filteredAircraft = useMemo(() => {
     let list = aircraft;
@@ -439,7 +477,13 @@ const FlightTrackerMap = () => {
         <MapContainer center={[39, -98]} zoom={5} style={{ width: "100%", height: "100%" }} zoomControl={true}>
           <TileLayer
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
+          />
+          {/* Brighter labels overlay so airport names + codes stay readable
+              against the darker base. */}
+          <TileLayer
+            attribution=''
+            url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
           />
           <BoundsTracker onBoundsChange={setBounds} />
           {flyTo && <FlyToLocation lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
@@ -457,8 +501,8 @@ const FlightTrackerMap = () => {
               </Popup>
             </Marker>
           ))}
-          {trailPositions.length > 1 && (
-            <Polyline positions={trailPositions} pathOptions={{ color: "#f59e0b", weight: 2, opacity: 0.7, dashArray: "6 4" }} />
+          {fullTrack.length > 1 && (
+            <Polyline positions={fullTrack} pathOptions={{ color: "#f59e0b", weight: 2, opacity: 0.8 }} />
           )}
         </MapContainer>
       </div>
