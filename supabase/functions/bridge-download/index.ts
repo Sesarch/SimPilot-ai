@@ -53,8 +53,8 @@ function jsonError(status: number, message: string): Response {
 async function findAsset(
   token: string,
   version: string,
-  filename: string,
-): Promise<{ id: number; size: number } | null> {
+  filenames: string[],
+): Promise<{ id: number; size: number; name: string } | null> {
   const tag = `v${version}`;
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/tags/${tag}`;
   const res = await fetch(url, {
@@ -68,8 +68,11 @@ async function findAsset(
   const data = (await res.json()) as {
     assets: Array<{ id: number; name: string; size: number }>;
   };
-  const match = data.assets.find((a) => a.name === filename);
-  return match ? { id: match.id, size: match.size } : null;
+  for (const fn of filenames) {
+    const match = data.assets.find((a) => a.name === fn);
+    if (match) return { id: match.id, size: match.size, name: match.name };
+  }
+  return null;
 }
 
 Deno.serve(async (req) => {
