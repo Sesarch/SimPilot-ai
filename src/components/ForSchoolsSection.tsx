@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { GraduationCap, Users, KeyRound, BarChart3, ShieldCheck, Loader2, CheckCircle2 } from "lucide-react";
+import { GraduationCap, Users, KeyRound, BarChart3, ShieldCheck, Loader2, CheckCircle2, CalendarIcon } from "lucide-react";
 import { z } from "zod";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const inquirySchema = z.object({
   school_name: z.string().trim().min(2, "School name is required").max(150),
