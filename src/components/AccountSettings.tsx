@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink } from "lucide-react";
 import { usePilotContext } from "@/hooks/usePilotContext";
+import RedeemSchoolCode from "@/components/RedeemSchoolCode";
 
 const TRACK_OPTIONS = [
   { value: "PPL", label: "PPL — Private Pilot" },
@@ -130,7 +131,11 @@ const AccountSettings = () => {
 
   return (
     <div className="space-y-6">
-      {/* Study Track */}
+      {/* School Code Redemption */}
+      <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <RedeemSchoolCode />
+      </div>
+
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
           <GraduationCap className="w-4 h-4 text-primary" /> Study Track

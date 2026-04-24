@@ -35,6 +35,8 @@ import MobileChatPage from "./pages/MobileChatPage.tsx";
 import PublicProfilePage from "./pages/PublicProfilePage.tsx";
 import WeatherBriefingPage from "./pages/WeatherBriefingPage.tsx";
 import LiveToolsPage from "./pages/LiveToolsPage.tsx";
+import ForSchoolsPage from "./pages/ForSchoolsPage.tsx";
+import ForSchoolsSuccessPage from "./pages/ForSchoolsSuccessPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
@@ -85,6 +87,8 @@ const App = () => (
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/why-simpilot" element={<WhySimPilotPage />} />
               <Route path="/competitors" element={<CompetitorsPage />} />
+              <Route path="/for-schools" element={<ForSchoolsPage />} />
+              <Route path="/for-schools/success" element={<ForSchoolsSuccessPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route path="/pilot/:userId" element={<PublicProfilePage />} />

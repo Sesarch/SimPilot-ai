@@ -424,6 +424,9 @@ export type Database = {
           profile_public: boolean
           rating_focus: string | null
           region: string | null
+          school_seat_code_id: string | null
+          subscription_expires_at: string | null
+          subscription_source: string | null
           terms_agreed_at: string | null
           updated_at: string
           user_id: string
@@ -440,6 +443,9 @@ export type Database = {
           profile_public?: boolean
           rating_focus?: string | null
           region?: string | null
+          school_seat_code_id?: string | null
+          subscription_expires_at?: string | null
+          subscription_source?: string | null
           terms_agreed_at?: string | null
           updated_at?: string
           user_id: string
@@ -456,11 +462,108 @@ export type Database = {
           profile_public?: boolean
           rating_focus?: string | null
           region?: string | null
+          school_seat_code_id?: string | null
+          subscription_expires_at?: string | null
+          subscription_source?: string | null
           terms_agreed_at?: string | null
           updated_at?: string
           user_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_school_seat_code_id_fkey"
+            columns: ["school_seat_code_id"]
+            isOneToOne: false
+            referencedRelation: "school_seat_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_purchases: {
+        Row: {
+          amount_paid_cents: number
+          contact_email: string
+          contact_name: string | null
+          created_at: string
+          currency: string
+          discount_percent: number
+          expires_at: string
+          id: string
+          school_name: string
+          seats_purchased: number
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_paid_cents: number
+          contact_email: string
+          contact_name?: string | null
+          created_at?: string
+          currency?: string
+          discount_percent?: number
+          expires_at: string
+          id?: string
+          school_name: string
+          seats_purchased: number
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_paid_cents?: number
+          contact_email?: string
+          contact_name?: string | null
+          created_at?: string
+          currency?: string
+          discount_percent?: number
+          expires_at?: string
+          id?: string
+          school_name?: string
+          seats_purchased?: number
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
         Relationships: []
+      }
+      school_seat_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          purchase_id: string
+          redeemed_at: string | null
+          redeemed_by_user_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          purchase_id: string
+          redeemed_at?: string | null
+          redeemed_by_user_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          purchase_id?: string
+          redeemed_at?: string | null
+          redeemed_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_seat_codes_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "school_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
@@ -760,6 +863,15 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      validate_seat_code: {
+        Args: { _code: string }
+        Returns: {
+          expires_at: string
+          reason: string
+          school_name: string
+          valid: boolean
         }[]
       }
     }
