@@ -10,7 +10,7 @@ import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 
 const BRIDGE_VERSION = "1.0.1";
-const INSTALLER_FILENAME = `SimPilot Bridge Setup ${BRIDGE_VERSION}.exe`;
+const INSTALLER_FILENAME = `SimPilot.Bridge.Setup.${BRIDGE_VERSION}.exe`;
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const INSTALLER_DOWNLOAD_URL = `${SUPABASE_URL}/functions/v1/bridge-download?platform=windows&version=${BRIDGE_VERSION}`;
 const INSTALLER_CHECK_URL = `${SUPABASE_URL}/functions/v1/bridge-download?check=1&version=${BRIDGE_VERSION}`;
