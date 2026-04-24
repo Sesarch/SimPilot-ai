@@ -7,6 +7,29 @@ const DEFAULT_SEND_DELAY_MS = 200
 const DEFAULT_AUTH_TTL_MINUTES = 15
 const DEFAULT_TRANSACTIONAL_TTL_MINUTES = 60
 
+type EmailQueuePayload = {
+  message_id?: string
+  label?: string
+  to?: string
+  queued_at?: string
+  run_id?: string
+  from?: string
+  sender_domain?: string
+  subject?: string
+  html?: string
+  text?: string
+  purpose?: string
+  idempotency_key?: string
+  unsubscribe_token?: string
+  [key: string]: unknown
+}
+
+type EmailQueueMessage = {
+  msg_id: number
+  read_ct: number
+  message: EmailQueuePayload
+}
+
 // Check if an error is a rate-limit (429) response.
 // Uses EmailAPIError.status when available (email-js >=0.x with structured errors),
 // falls back to parsing the error message for older versions.
@@ -54,9 +77,9 @@ function parseJwtClaims(token: string): Record<string, unknown> | null {
 
 // Move a message to the dead letter queue and log the reason.
 async function moveToDlq(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   queue: string,
-  msg: { msg_id: number; message: Record<string, unknown> },
+  msg: EmailQueueMessage,
   reason: string
 ): Promise<void> {
   const payload = msg.message
