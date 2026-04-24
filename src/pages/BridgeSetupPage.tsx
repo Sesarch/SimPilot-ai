@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, XCircle, Loader2, Radio, Link2, Sparkles, Lock, AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,10 +20,63 @@ type InstallerCheck =
   | { status: "ok" }
   | { status: "error"; message: string };
 
+type DownloadState =
+  | { status: "idle" }
+  | { status: "starting" }
+  | { status: "downloading"; received: number; total: number | null; startedAt: number }
+  | { status: "saving" }
+  | { status: "done" }
+  | { status: "cancelled" }
+  | { status: "error"; message: string; hint?: string };
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function describeDownloadError(status: number, body: string): { message: string; hint?: string } {
+  const trimmed = body.trim().slice(0, 240);
+  switch (status) {
+    case 401:
+    case 403:
+      return {
+        message: "The download server rejected the request (auth).",
+        hint: "Refresh the page or sign in again, then retry.",
+      };
+    case 404:
+      return {
+        message: `${INSTALLER_FILENAME} is not attached to the v${BRIDGE_VERSION} GitHub release yet.`,
+        hint: "Wait for the release workflow to finish, then retry.",
+      };
+    case 429:
+      return {
+        message: "GitHub rate-limited the download proxy.",
+        hint: "Wait a minute and try again.",
+      };
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return {
+        message: `Download proxy is temporarily unavailable (HTTP ${status}).`,
+        hint: "Try again in a moment. If it persists, contact support.",
+      };
+    default:
+      return {
+        message: `Download failed with HTTP ${status}.`,
+        hint: trimmed || undefined,
+      };
+  }
+}
+
 export default function BridgeSetupPage() {
   const [pairing, setPairing] = useState(false);
   const [pairResult, setPairResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [installerCheck, setInstallerCheck] = useState<InstallerCheck>({ status: "checking" });
+  const [download, setDownload] = useState<DownloadState>({ status: "idle" });
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let cancelled = false;
