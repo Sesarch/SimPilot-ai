@@ -260,41 +260,6 @@ function generateMockStates(): any[][] {
   });
 }
 
-// Try OpenSky with optional credentials
-async function tryOpenSky(params: URLSearchParams): Promise<Response | null> {
-  const username = Deno.env.get("OPENSKY_USERNAME");
-  const password = Deno.env.get("OPENSKY_PASSWORD");
-
-  const apiUrl = `${OPENSKY_API}${params.toString() ? `?${params}` : ""}`;
-  const headers: Record<string, string> = {};
-
-  const hasAuth = !!(username && password);
-  console.log(`OpenSky request: auth=${hasAuth}, url=${apiUrl}`);
-
-  if (hasAuth) {
-    headers["Authorization"] = `Basic ${btoa(`${username}:${password}`)}`;
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-  try {
-    const res = await fetch(apiUrl, { headers, signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (res.ok) {
-      console.log(`OpenSky success: status=${res.status}`);
-      return res;
-    }
-    const body = await res.text().catch(() => "");
-    console.log(`OpenSky returned ${res.status}: ${body.slice(0, 200)}`);
-    return null;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    console.log(`OpenSky fetch failed: ${getErrorMessage(err)}`);
-    return null;
-  }
-}
-
 // Try ADS-B Exchange via RapidAPI (if key is configured)
 async function tryADSBExchange(lamin: string, lamax: string, lomin: string, lomax: string): Promise<any | null> {
   const rapidApiKey = Deno.env.get("RAPIDAPI_KEY");
