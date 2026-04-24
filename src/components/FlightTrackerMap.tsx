@@ -118,7 +118,7 @@ const FlightTrackerMap = () => {
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
 
-  const { aircraft, loading, error, lastUpdated, refresh, dataSource } = useFlightTracker(bounds);
+  const { aircraft, loading, error, lastUpdated, refresh, dataSource, provider } = useFlightTracker(bounds);
 
 
   // Update selected aircraft data and track history
