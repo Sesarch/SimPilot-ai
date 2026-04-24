@@ -17,21 +17,30 @@ const corsHeaders = {
   "Access-Control-Expose-Headers": "content-length, content-type, content-disposition, accept-ranges",
 };
 
-const DEFAULT_VERSION = "1.0.0";
+const DEFAULT_VERSION = "1.0.1";
 const REPO_OWNER = Deno.env.get("BRIDGE_RELEASE_OWNER") ?? "Sesarch";
 const REPO_NAME = Deno.env.get("BRIDGE_RELEASE_REPO") ?? "SimPilot-ai";
 
-function filenameFor(platform: string, version: string): string | null {
+function filenameCandidatesFor(platform: string, version: string): string[] {
   switch (platform) {
     case "windows":
-      return `SimPilotBridge-Setup-${version}.exe`;
+      // electron-builder default output uses spaces; keep the legacy hyphenated
+      // name as a fallback in case an older release is still pinned.
+      return [
+        `SimPilot Bridge Setup ${version}.exe`,
+        `SimPilotBridge-Setup-${version}.exe`,
+      ];
     case "macos":
-      return `SimPilotBridge-${version}-mac-universal.zip`;
+      return [`SimPilotBridge-${version}-mac-universal.zip`];
     case "linux":
-      return `SimPilotBridge-${version}-linux-x64.tar.gz`;
+      return [`SimPilotBridge-${version}-linux-x64.tar.gz`];
     default:
-      return null;
+      return [];
   }
+}
+
+function filenameFor(platform: string, version: string): string | null {
+  return filenameCandidatesFor(platform, version)[0] ?? null;
 }
 
 function jsonError(status: number, message: string): Response {
@@ -44,8 +53,8 @@ function jsonError(status: number, message: string): Response {
 async function findAsset(
   token: string,
   version: string,
-  filename: string,
-): Promise<{ id: number; size: number } | null> {
+  filenames: string[],
+): Promise<{ id: number; size: number; name: string } | null> {
   const tag = `v${version}`;
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/tags/${tag}`;
   const res = await fetch(url, {
@@ -59,8 +68,11 @@ async function findAsset(
   const data = (await res.json()) as {
     assets: Array<{ id: number; name: string; size: number }>;
   };
-  const match = data.assets.find((a) => a.name === filename);
-  return match ? { id: match.id, size: match.size } : null;
+  for (const fn of filenames) {
+    const match = data.assets.find((a) => a.name === fn);
+    if (match) return { id: match.id, size: match.size, name: match.name };
+  }
+  return null;
 }
 
 Deno.serve(async (req) => {
@@ -83,9 +95,9 @@ Deno.serve(async (req) => {
       const platforms = ["windows", "macos", "linux"] as const;
       const results = await Promise.all(
         platforms.map(async (p) => {
-          const fn = filenameFor(p, version);
-          if (!fn) return [p, false] as const;
-          const a = await findAsset(token, version, fn);
+          const fns = filenameCandidatesFor(p, version);
+          if (fns.length === 0) return [p, false] as const;
+          const a = await findAsset(token, version, fns);
           return [p, a !== null] as const;
         }),
       );
@@ -100,21 +112,21 @@ Deno.serve(async (req) => {
     }
   }
 
-  const filename = filenameFor(platform, version);
-  if (!filename) {
+  const candidates = filenameCandidatesFor(platform, version);
+  if (candidates.length === 0) {
     return jsonError(400, "Invalid platform. Use windows, macos, or linux.");
   }
 
-  let asset: { id: number; size: number } | null = null;
+  let asset: { id: number; size: number; name: string } | null = null;
   try {
-    asset = await findAsset(token, version, filename);
+    asset = await findAsset(token, version, candidates);
   } catch (err) {
     return jsonError(502, `Failed to query GitHub release: ${(err as Error).message}`);
   }
   if (!asset) {
     return jsonError(
       404,
-      `Asset ${filename} for v${version} is not published in ${REPO_OWNER}/${REPO_NAME}.`,
+      `No installer matching ${candidates.join(" or ")} for v${version} in ${REPO_OWNER}/${REPO_NAME}.`,
     );
   }
 
@@ -130,12 +142,12 @@ Deno.serve(async (req) => {
     },
   });
   if (!upstream.ok && upstream.status !== 206) {
-    return jsonError(upstream.status, `Upstream returned ${upstream.status} fetching ${filename}.`);
+    return jsonError(upstream.status, `Upstream returned ${upstream.status} fetching ${asset.name}.`);
   }
 
   const headers = new Headers(corsHeaders);
   headers.set("Content-Type", "application/octet-stream");
-  headers.set("Content-Disposition", `attachment; filename="${filename}"`);
+  headers.set("Content-Disposition", `attachment; filename="${asset.name}"`);
   headers.set("Accept-Ranges", "bytes");
   const len = upstream.headers.get("content-length");
   if (len) headers.set("Content-Length", len);

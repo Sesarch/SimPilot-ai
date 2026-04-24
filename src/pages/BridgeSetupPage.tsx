@@ -10,11 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 const BRIDGE_VERSION = "1.0.1";
 const INSTALLER_FILENAME = `SimPilot Bridge Setup ${BRIDGE_VERSION}.exe`;
-const INSTALLER_DIRECT_URL = `https://github.com/Sesarch/SimPilot-ai/releases/download/v${BRIDGE_VERSION}/SimPilot%20Bridge%20Setup%20${BRIDGE_VERSION}.exe`;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const INSTALLER_DOWNLOAD_URL = `${SUPABASE_URL}/functions/v1/bridge-download?platform=windows&version=${BRIDGE_VERSION}`;
+const INSTALLER_CHECK_URL = `${SUPABASE_URL}/functions/v1/bridge-download?check=1&version=${BRIDGE_VERSION}`;
 
 type InstallerCheck =
   | { status: "checking" }
-  | { status: "ok"; resolvedUrl?: string }
+  | { status: "ok" }
   | { status: "error"; message: string };
 
 export default function BridgeSetupPage() {
@@ -26,36 +28,32 @@ export default function BridgeSetupPage() {
     let cancelled = false;
     const verifyInstaller = async () => {
       try {
-        const res = await fetch(INSTALLER_DIRECT_URL, { method: "HEAD", redirect: "follow", mode: "cors" });
+        const res = await fetch(INSTALLER_CHECK_URL, { method: "GET" });
         if (cancelled) return;
         if (!res.ok) {
+          const text = await res.text().catch(() => "");
           setInstallerCheck({
             status: "error",
-            message: `Installer not reachable (HTTP ${res.status}). Expected ${INSTALLER_FILENAME} on the v${BRIDGE_VERSION} release.`,
+            message: `Installer check returned HTTP ${res.status}. ${text.slice(0, 160)}`,
           });
           return;
         }
-        const url = res.url || "";
-        const matchesVersion = url.includes(`v${BRIDGE_VERSION}`) || url.includes(BRIDGE_VERSION);
-        const matchesFile =
-          url.includes(encodeURIComponent(INSTALLER_FILENAME)) ||
-          url.includes(INSTALLER_FILENAME) ||
-          url.includes(INSTALLER_FILENAME.replace(/ /g, "+"));
-        if (url && (!matchesVersion || !matchesFile)) {
+        const data = (await res.json()) as { windows?: boolean; version?: string };
+        if (!data.windows) {
           setInstallerCheck({
             status: "error",
-            message: `Installer URL responded but did not resolve to v${BRIDGE_VERSION} (${INSTALLER_FILENAME}).`,
+            message: `${INSTALLER_FILENAME} is not attached to the v${BRIDGE_VERSION} GitHub release.`,
           });
           return;
         }
-        setInstallerCheck({ status: "ok", resolvedUrl: url });
+        setInstallerCheck({ status: "ok" });
       } catch (err) {
         if (cancelled) return;
         setInstallerCheck({
           status: "error",
           message:
             (err as Error).message ||
-            `Could not verify the installer URL. Confirm ${INSTALLER_FILENAME} is attached to the v${BRIDGE_VERSION} GitHub release.`,
+            `Could not verify the installer. Confirm ${INSTALLER_FILENAME} is attached to the v${BRIDGE_VERSION} GitHub release.`,
         });
       }
     };
@@ -142,7 +140,7 @@ export default function BridgeSetupPage() {
 
             <div className="flex flex-wrap gap-3">
               <a
-                href={INSTALLER_DIRECT_URL}
+                href={INSTALLER_DOWNLOAD_URL}
                 className="inline-flex items-center gap-2 h-11 rounded-md px-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm"
               >
                 <Download className="h-5 w-5" />
