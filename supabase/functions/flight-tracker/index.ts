@@ -10,6 +10,78 @@ const ADSBEX_RAPID_API = "https://adsbexchange-com1.p.rapidapi.com/v2/lat/";
 const ADSB_LOL_API = "https://api.adsb.lol/v2/lat/";
 const ADSB_LOL_TRACE_BASE = "https://adsb.lol/data/traces";
 const ADSBDB_API = "https://api.adsbdb.com/v0";
+const FLIGHTAWARE_API = "https://aeroapi.flightaware.com/aeroapi";
+
+// FlightAware AeroAPI — premium live data for authenticated users.
+// Uses the /flights/search endpoint with a bounding box query.
+// Cost: ~$0.005/query (search) — much cheaper than per-position polling.
+async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax: string): Promise<any | null> {
+  const apiKey = Deno.env.get("FLIGHTAWARE_API_KEY");
+  if (!apiKey) return null;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    // Bounding box query: -latlong "minLat minLon maxLat maxLon"
+    const query = `-latlong "${lamin} ${lomin} ${lamax} ${lomax}"`;
+    const url = `${FLIGHTAWARE_API}/flights/search/positions?query=${encodeURIComponent(query)}&max_pages=1`;
+
+    const res = await fetch(url, {
+      headers: {
+        "x-apikey": apiKey,
+        "Accept": "application/json",
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.log(`FlightAware returned ${res.status}: ${body.slice(0, 200)}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const positions = Array.isArray(data?.positions) ? data.positions : [];
+    if (positions.length === 0) return null;
+
+    const now = Math.floor(Date.now() / 1000);
+    const states = positions
+      .filter((p: any) => p.latitude != null && p.longitude != null)
+      .slice(0, 600)
+      .map((p: any) => {
+        const altFeet = (p.altitude || 0) * 100; // FlightAware altitude is in 100s of ft
+        const gsKnots = p.groundspeed || 0;
+        return [
+          (p.fa_flight_id || p.ident || "").toLowerCase().slice(0, 6),
+          (p.ident || "").padEnd(8),
+          p.origin?.code_iata || p.origin?.code || "",
+          now,
+          now,
+          p.longitude,
+          p.latitude,
+          altFeet * 0.3048,                  // ft → m
+          altFeet === 0,                     // on ground if altitude is 0
+          gsKnots * 0.514444,                // knots → m/s
+          p.heading || 0,
+          (p.update_type === "P" ? 0 : 0),   // FA doesn't expose vertical rate here
+          null,
+          altFeet * 0.3048,
+          null,                              // squawk not in this endpoint
+          false,
+          0,
+        ];
+      });
+
+    console.log(`FlightAware: returning ${states.length} aircraft`);
+    return { time: now, states, _source: "live", _provider: "flightaware" };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.log(`FlightAware fetch failed: ${getErrorMessage(err)}`);
+    return null;
+  }
+}
 
 function getErrorMessage(err: unknown) {
   return err instanceof Error ? err.message : String(err);
