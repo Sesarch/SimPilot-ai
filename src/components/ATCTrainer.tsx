@@ -290,6 +290,19 @@ const ATCTrainer = () => {
       return saved === "female" || saved === "male" ? saved : "male";
     } catch { return "male"; }
   });
+  // Display style for the Current Facility badge.
+  // - "long":  "KMYF Tower"        (published name with ICAO prefix)
+  // - "short": "KMYF TWR"          (ICAO + 3-letter abbreviation)
+  // - "kind":  "KMYF TOWER"        (ICAO + raw facility kind)
+  const [facilityLabelStyle, setFacilityLabelStyle] = useState<"long" | "short" | "kind">(() => {
+    try {
+      const saved = localStorage.getItem("atc_facility_label_style");
+      return saved === "short" || saved === "kind" || saved === "long" ? saved : "long";
+    } catch { return "long"; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_facility_label_style", facilityLabelStyle); } catch {}
+  }, [facilityLabelStyle]);
   // Last-used scenario id (for "Resume last scenario" UX). Read once at mount.
   const initialLastScenarioId = (() => {
     try {
