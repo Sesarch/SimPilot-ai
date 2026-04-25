@@ -455,6 +455,11 @@ const ATCTrainer = () => {
   // the controller persona is derived from the airport's published facilities.
   const [liveAirport, setLiveAirport] = useState<AirportFrequencies | null>(null);
   const [airportSearch, setAirportSearch] = useState("");
+  // Real-world ATIS state — set when the pilot tunes an ATIS frequency.
+  // `info` is the phonetic letter ("Bravo"), `text` is the broadcast string.
+  const [currentAtis, setCurrentAtis] = useState<{ icao: string; info: string; text: string; source: string } | null>(null);
+  const [atisLoading, setAtisLoading] = useState(false);
+  const lastAtisFetchRef = useRef<{ icao: string; freq: string } | null>(null);
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
       setStandbyFreq(prevA);
