@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { PercentileSparkline } from "@/components/PercentileSparkline";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
+import { generateATCTranscriptPDF } from "@/lib/atcTranscriptReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
@@ -541,6 +542,24 @@ const ATCTrainer = () => {
       facility: lookup.facility,
     };
   })();
+
+  const exportTranscript = useCallback(() => {
+    if (messages.length === 0) {
+      toast.info("No transmissions to export yet.");
+      return;
+    }
+    const scenario = scenarios.find((s) => s.id === selectedScenario);
+    generateATCTranscriptPDF({
+      scenarioLabel: scenario?.label ?? "ATC Scenario",
+      callsign: "N123AB",
+      voice: voice === "male" ? "Male" : "Female",
+      airportIcao: liveAirport?.icao,
+      facilityName: liveContext?.facility?.name,
+      frequency: selectedScenario === "live" ? activeFreq : (scenario?.frequency ?? undefined),
+      transcript: messages.map((m) => ({ role: m.role, content: m.content })),
+    });
+    toast.success("Transcript PDF downloaded");
+  }, [messages, selectedScenario, voice, liveAirport, liveContext, activeFreq]);
 
   /** Build the system prompt for the current session (live or preset). */
   const buildSystemPrompt = useCallback((): string => {
@@ -1511,6 +1530,16 @@ ${transcript}`;
             })()}
           </div>
           <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={exportTranscript}
+              disabled={messages.length === 0 || scoring}
+              title="Export the full conversation transcript as a PDF"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Export PDF
+            </Button>
             <Button
               size="sm"
               variant="ghost"
