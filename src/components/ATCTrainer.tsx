@@ -994,16 +994,7 @@ const ATCTrainer = () => {
       if (correction) {
         setPendingCorrection({ ...correction, msgId: atcMsg.id, attempted: userMsg.content });
         // Append to the rolling Last Attempts panel (cap at 5, newest first).
-        const said = (userMsg.content ?? "").toLowerCase();
-        let action = "transmission";
-        if (/\btaxi\b/.test(said)) action = "taxi clearance";
-        else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b|\bdeparture\b/.test(said)) action = "takeoff clearance";
-        else if (/\bcleared?\s+to\s+land|\blanding\b|\bfull\s+stop\b/.test(said)) action = "landing clearance";
-        else if (/\bifr\s+clearance|\bclearance\b|\bifr\b/.test(said)) action = "IFR clearance";
-        else if (/\bvfr\s+departure|\bvfr\b/.test(said)) action = "VFR request";
-        else if (/\bready\s+to\s+copy|\brequest\b/.test(said)) action = "request";
-        else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) action = "radio check";
-        else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) action = "check-in";
+        const action = inferAction(userMsg.content);
         setBlockedHistory((prev) => [
           {
             id: atcMsg.id,
