@@ -1956,6 +1956,38 @@ ${transcript}`;
                   </span>
                   .
                 </div>
+                {/* Blocked request type chip — infers the action the pilot
+                    attempted (e.g., "Tower clearance", "Taxi clearance") from
+                    keywords in the attempted transmission, falling back to a
+                    sensible default for the expected facility. */}
+                {(() => {
+                  const KIND_NICE: Record<string, string> = {
+                    TOWER: "Tower", GROUND: "Ground", CLEARANCE: "Clearance Delivery",
+                    APPROACH: "Approach", DEPARTURE: "Departure", CENTER: "Center",
+                    ATIS: "ATIS", AWOS: "AWOS", CTAF: "CTAF", UNICOM: "UNICOM", GUARD: "Guard",
+                  };
+                  const facNice = KIND_NICE[pendingCorrection.facility] ?? pendingCorrection.facility;
+                  const said = (pendingCorrection.attempted ?? "").toLowerCase();
+                  let action = "transmission";
+                  if (/\btaxi\b/.test(said)) action = "taxi clearance";
+                  else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b|\bdeparture\b/.test(said)) action = "takeoff clearance";
+                  else if (/\bcleared?\s+to\s+land|\blanding\b|\bfull\s+stop\b/.test(said)) action = "landing clearance";
+                  else if (/\bifr\s+clearance|\bclearance\b|\bifr\b/.test(said)) action = "IFR clearance";
+                  else if (/\bvfr\s+departure|\bvfr\b/.test(said)) action = "VFR request";
+                  else if (/\bready\s+to\s+copy|\brequest\b/.test(said)) action = "request";
+                  else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) action = "radio check";
+                  else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) action = "check-in";
+                  return (
+                    <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                      <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                        Blocked request
+                      </span>
+                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-amber-500 border border-amber-500/50 bg-amber-500/10 rounded px-1.5 py-0.5">
+                        {facNice} {action}
+                      </span>
+                    </div>
+                  );
+                })()}
                 {/* Short reason line — explains exactly why transmissions are
                     being blocked: shows the pilot's current freq vs. the
                     expected station so the fix is obvious at a glance. */}
