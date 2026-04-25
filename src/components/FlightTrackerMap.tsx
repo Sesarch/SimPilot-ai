@@ -115,6 +115,23 @@ const FlightTrackerMap = () => {
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
   const traceAbortRef = useRef<AbortController | null>(null);
 
+  type AttributionMode = "tiny" | "standard" | "hover";
+  const [attributionMode, setAttributionMode] = useState<AttributionMode>(() => {
+    if (typeof window === "undefined") return "tiny";
+    const saved = window.localStorage.getItem("simpilot.mapAttributionMode");
+    return saved === "standard" || saved === "hover" || saved === "tiny" ? saved : "tiny";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("simpilot.mapAttributionMode", attributionMode); } catch { /* noop */ }
+  }, [attributionMode]);
+  const cycleAttributionMode = () =>
+    setAttributionMode(m => (m === "tiny" ? "standard" : m === "standard" ? "hover" : "tiny"));
+  const attributionLabel: Record<AttributionMode, string> = {
+    tiny: "Tiny",
+    standard: "Standard",
+    hover: "Hover",
+  };
+
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
 
