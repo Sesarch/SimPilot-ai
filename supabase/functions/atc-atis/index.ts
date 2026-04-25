@@ -171,23 +171,39 @@ Deno.serve(async (req) => {
     }
     icao = icao.toUpperCase();
 
-    const vatsim = await tryVatsim(icao);
-    if (vatsim) {
-      return new Response(JSON.stringify({ source: "vatsim", icao, freq, info: vatsim.info, text: vatsim.text }), {
+    // Probe LiveATC for a real audio stream in parallel with text lookups.
+    const audioPromise = probeLiveAtcAtis(icao);
+
+    // 1) FAA D-ATIS — official US text broadcast.
+    const datis = await tryDatis(icao);
+    if (datis) {
+      const audioUrl = await audioPromise;
+      return new Response(JSON.stringify({ source: "datis", icao, freq, info: datis.info, text: datis.text, audioUrl }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // 2) VATSIM ATIS (online controllers).
+    const vatsim = await tryVatsim(icao);
+    if (vatsim) {
+      const audioUrl = await audioPromise;
+      return new Response(JSON.stringify({ source: "vatsim", icao, freq, info: vatsim.info, text: vatsim.text, audioUrl }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 3) Synthesize from METAR (worldwide fallback).
     const metar = await fetchMetar(icao);
     const info = infoLetterFromTime();
+    const audioUrl = await audioPromise;
     if (!metar) {
       const text = `${airportName || icao} information ${info}, weather not available. Advise on initial contact you have information ${info}.`;
-      return new Response(JSON.stringify({ source: "synth", icao, freq, info, text }), {
+      return new Response(JSON.stringify({ source: "synth", icao, freq, info, text, audioUrl }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const text = await synthAtisFromMetar(icao, metar, info, airportName);
-    return new Response(JSON.stringify({ source: "synth", icao, freq, info, text, metar }), {
+    return new Response(JSON.stringify({ source: "synth", icao, freq, info, text, metar, audioUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
