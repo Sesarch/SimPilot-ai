@@ -195,6 +195,24 @@ const FlightTrackerMap = () => {
   };
   const themeLabel: Record<MapTheme, string> = { voyager: "Voyager", light: "Light", dark: "Dark" };
 
+  // Per-theme saved center/zoom (so switching themes preserves the view).
+  const themeViewKey = useCallback((t: string) => `simpilot.mapView.${t}`, []);
+  const initialView = useMemo(() => {
+    const fallback = { center: [39, -98] as [number, number], zoom: 5 };
+    if (typeof window === "undefined") return fallback;
+    try {
+      const raw = window.localStorage.getItem(themeViewKey(mapTheme));
+      if (!raw) return fallback;
+      const v = JSON.parse(raw) as { lat?: number; lng?: number; zoom?: number };
+      if (typeof v.lat === "number" && typeof v.lng === "number" && typeof v.zoom === "number") {
+        return { center: [v.lat, v.lng] as [number, number], zoom: v.zoom };
+      }
+    } catch { /* noop */ }
+    return fallback;
+    // Only compute on mount — runtime theme changes are handled by ThemeViewPersister.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   type AttributionMode = "tiny" | "standard" | "hover";
   const [attributionMode, setAttributionMode] = useState<AttributionMode>(() => {
     if (typeof window === "undefined") return "tiny";
