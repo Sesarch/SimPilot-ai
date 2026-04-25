@@ -818,6 +818,9 @@ ${transcript}`;
             setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: raw.length });
           }
         }
+        // Stream finished — past the cancellable window. Hide Stop / Cancel
+        // immediately so the user can't click them while we parse + save.
+        setCanCancelGrading(false);
         setGradingProgress({ phase: "parsing", attempt: attemptNum, chars: raw.length });
         if (!raw.trim()) {
           const err: any = new Error("Grader returned empty stream");
