@@ -1399,6 +1399,20 @@ ${transcript}`;
                     : "Grading…")
                 : "End & Score"}
             </Button>
+            {/* Stop is only shown while the SSE request is still cancellable. */}
+            {canCancelGrading && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={cancelGrading}
+                disabled={!canCancelGrading}
+                title="Stop the grading request"
+                className="text-destructive hover:text-destructive"
+              >
+                <Square className="h-3 w-3 mr-1 fill-current" />
+                Stop
+              </Button>
+            )}
             {lastScenarioId && lastScenarioId !== selectedScenario && (
               <Button
                 size="sm"
