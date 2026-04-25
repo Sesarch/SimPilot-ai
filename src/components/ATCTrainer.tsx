@@ -20,6 +20,7 @@ import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
 
 interface ATCMessage {
   id: string;
@@ -1860,7 +1861,20 @@ ${transcript}`;
                 );
               })()}
 
-              <div className="flex items-center justify-between mb-1.5">
+              {/* Manual frequency entry — accepts "119.2", normalizes to "119.200",
+                  warns when freq doesn't belong to the selected airport. */}
+              <FrequencyEntry
+                airport={liveAirport}
+                activeFreq={activeFreq}
+                disabled={loading || speaking}
+                onTune={(mhz) => {
+                  const freqStr = formatFreq(mhz);
+                  setStandbyFreq(activeFreq);
+                  setActiveFreq(freqStr);
+                }}
+              />
+
+              <div className="flex items-center justify-between mb-1.5 mt-2">
                 <span className="font-display text-[9px] tracking-[0.25em] uppercase text-primary">
                   {liveAirport.icao} Frequencies — tap to tune
                 </span>
