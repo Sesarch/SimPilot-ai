@@ -115,6 +115,31 @@ const FlightTrackerMap = () => {
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
   const traceAbortRef = useRef<AbortController | null>(null);
 
+  type MapTheme = "voyager" | "light" | "dark";
+  const [mapTheme, setMapTheme] = useState<MapTheme>(() => {
+    if (typeof window === "undefined") return "voyager";
+    const saved = window.localStorage.getItem("simpilot.mapTheme");
+    return saved === "light" || saved === "dark" || saved === "voyager" ? saved : "voyager";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("simpilot.mapTheme", mapTheme); } catch { /* noop */ }
+  }, [mapTheme]);
+  const themeTiles: Record<MapTheme, { base: string; labels: string }> = {
+    voyager: {
+      base: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+      labels: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png",
+    },
+    light: {
+      base: "https://{s}.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}{r}.png",
+      labels: "https://{s}.basemaps.cartocdn.com/rastertiles/light_only_labels/{z}/{x}/{y}{r}.png",
+    },
+    dark: {
+      base: "https://{s}.basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}{r}.png",
+      labels: "https://{s}.basemaps.cartocdn.com/rastertiles/dark_only_labels/{z}/{x}/{y}{r}.png",
+    },
+  };
+  const themeLabel: Record<MapTheme, string> = { voyager: "Voyager", light: "Light", dark: "Dark" };
+
   type AttributionMode = "tiny" | "standard" | "hover";
   const [attributionMode, setAttributionMode] = useState<AttributionMode>(() => {
     if (typeof window === "undefined") return "tiny";
