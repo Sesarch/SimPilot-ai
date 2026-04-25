@@ -976,15 +976,27 @@ ${transcript}`;
       }
       // Notify Flight Deck / Recent Activity to refresh instantly
       emitDashboardRefresh({ source: "atc" });
-    } catch (e) {
-      console.error("Phraseology scoring failed", e);
-      toast.error("Couldn't score this scenario. Try again.");
-      setError("Phraseology grading failed. Please try again.");
+    } catch (e: any) {
+      if (gradingCancelledRef.current || e?.name === "AbortError") {
+        toast.message("Grading cancelled.");
+      } else {
+        console.error("Phraseology scoring failed", e);
+        toast.error("Couldn't score this scenario. Try again.");
+        setError("Phraseology grading failed. Please try again.");
+      }
     } finally {
       setScoring(false);
       setGradingProgress(null);
+      gradingAbortRef.current = null;
+      gradingCancelledRef.current = false;
     }
   }, [messages, selectedScenario, scoring, user, voice]);
+
+  const cancelGrading = useCallback(() => {
+    if (!gradingAbortRef.current) return;
+    gradingCancelledRef.current = true;
+    try { gradingAbortRef.current.abort(); } catch { /* noop */ }
+  }, []);
 
   // Records ~2s of mic audio then plays it back so users can verify their mic works.
   const runMicTest = async () => {
