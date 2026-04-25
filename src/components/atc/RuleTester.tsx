@@ -129,6 +129,29 @@ export function RuleTester({
     };
   }, [transmission, draftPhrase, draftAction, savedRules]);
 
+  const [touched, setTouched] = useState(false);
+
+  const validation = useMemo(() => {
+    const phrase = draftPhrase.trim();
+    if (!phrase) return { ok: false, error: "Phrase can't be empty." };
+    if (phrase.length < 2) return { ok: false, error: "Phrase must be at least 2 characters." };
+    if (phrase.length > 60) return { ok: false, error: "Phrase must be 60 characters or fewer." };
+    if (!ACTION_OPTIONS.includes(draftAction)) {
+      return { ok: false, error: "Pick a valid action label." };
+    }
+    const dup = savedRules.find(
+      (r) => r.phrase.trim().toLowerCase() === phrase.toLowerCase(),
+    );
+    if (dup) return { ok: false, error: `Phrase "${phrase}" is already saved.` };
+    if (!transmission.trim()) {
+      return { ok: false, error: "Type a transmission above to test the rule first." };
+    }
+    if (!transmission.toLowerCase().includes(phrase.toLowerCase())) {
+      return { ok: false, error: "Phrase must appear in the transmission to verify the match." };
+    }
+    return { ok: true as const, error: null };
+  }, [draftPhrase, draftAction, savedRules, transmission]);
+
   const sourceLabel =
     result?.source === "draft" ? "Draft rule"
       : result?.source === "saved" ? "Saved rule"
