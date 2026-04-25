@@ -546,6 +546,7 @@ const ATCTrainer = () => {
     setMessages([]);
     setError(null);
     setPhraseologyScore(null);
+    setPendingDraft("");
     setLoading(true);
 
     const scenario = scenarios.find((s) => s.id === scenarioId)!;
