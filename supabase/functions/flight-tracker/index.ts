@@ -15,9 +15,36 @@ const FLIGHTAWARE_API = "https://aeroapi.flightaware.com/aeroapi";
 // FlightAware AeroAPI — premium live data for authenticated users.
 // Uses the /flights/search endpoint with a bounding box query.
 // Cost: ~$0.005/query (search) — much cheaper than per-position polling.
+type FaDiagnostics = {
+  configured: boolean;
+  status: number | null;
+  ok: boolean;
+  error: string | null;
+  message: string | null;
+  durationMs: number | null;
+  endpoint: string;
+  checkedAt: number;
+};
+
+const FA_DIAG: { last: FaDiagnostics } = {
+  last: {
+    configured: false, status: null, ok: false, error: null, message: null,
+    durationMs: null, endpoint: "/flights/search/positions", checkedAt: 0,
+  },
+};
+
 async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax: string): Promise<any | null> {
   const apiKey = Deno.env.get("FLIGHTAWARE_API_KEY");
-  if (!apiKey) return null;
+  const startedAt = Date.now();
+  if (!apiKey) {
+    FA_DIAG.last = {
+      configured: false, status: null, ok: false,
+      error: "missing_api_key",
+      message: "FLIGHTAWARE_API_KEY secret is not set.",
+      durationMs: null, endpoint: "/flights/search/positions", checkedAt: startedAt,
+    };
+    return null;
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -49,12 +76,38 @@ async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       console.log(`FlightAware returned ${res.status} for query='${query}': ${body.slice(0, 400)}`);
+      let parsedMsg: string | null = null;
+      try { parsedMsg = JSON.parse(body)?.title || JSON.parse(body)?.detail || null; } catch { /* noop */ }
+      FA_DIAG.last = {
+        configured: true,
+        status: res.status,
+        ok: false,
+        error: res.status === 400 ? "plan_or_query_rejected"
+          : res.status === 401 ? "unauthorized"
+          : res.status === 402 ? "payment_required"
+          : res.status === 403 ? "forbidden_plan_tier"
+          : res.status === 429 ? "rate_limited"
+          : `http_${res.status}`,
+        message: parsedMsg || body.slice(0, 240) || `HTTP ${res.status}`,
+        durationMs: Date.now() - startedAt,
+        endpoint: "/flights/search/positions",
+        checkedAt: startedAt,
+      };
       return null;
     }
 
     const data = await res.json();
     const positions = Array.isArray(data?.positions) ? data.positions : [];
-    if (positions.length === 0) return null;
+    const durationMs = Date.now() - startedAt;
+    if (positions.length === 0) {
+      FA_DIAG.last = {
+        configured: true, status: res.status, ok: true,
+        error: "empty_response",
+        message: "FlightAware returned 200 but no aircraft in this bounding box.",
+        durationMs, endpoint: "/flights/search/positions", checkedAt: startedAt,
+      };
+      return null;
+    }
 
     const now = Math.floor(Date.now() / 1000);
     const states = positions
@@ -84,11 +137,25 @@ async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax
         ];
       });
 
+    FA_DIAG.last = {
+      configured: true, status: res.status, ok: true, error: null,
+      message: `OK — ${states.length} aircraft`,
+      durationMs, endpoint: "/flights/search/positions", checkedAt: startedAt,
+    };
     console.log(`FlightAware: returning ${states.length} aircraft`);
     return { time: now, states, _source: "live", _provider: "flightaware" };
   } catch (err) {
     clearTimeout(timeoutId);
-    console.log(`FlightAware fetch failed: ${getErrorMessage(err)}`);
+    const msg = getErrorMessage(err);
+    console.log(`FlightAware fetch failed: ${msg}`);
+    FA_DIAG.last = {
+      configured: true, status: null, ok: false,
+      error: msg.includes("aborted") ? "timeout" : "network_error",
+      message: msg,
+      durationMs: Date.now() - startedAt,
+      endpoint: "/flights/search/positions",
+      checkedAt: startedAt,
+    };
     return null;
   }
 }
@@ -476,6 +543,11 @@ serve(async (req) => {
     if (action === "trace") {
       return await lookupTrace(url.searchParams.get("hex") || "");
     }
+    if (action === "status") {
+      return new Response(JSON.stringify({ flightaware: FA_DIAG.last }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const lamin = url.searchParams.get("lamin") || "25";
     const lamax = url.searchParams.get("lamax") || "50";
@@ -488,45 +560,38 @@ serve(async (req) => {
     params.set("lomin", lomin);
     params.set("lomax", lomax);
 
+    const respond = (payload: any) =>
+      new Response(JSON.stringify({ ...payload, _flightaware: FA_DIAG.last }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
     // Strategy 0 (PREMIUM): FlightAware AeroAPI — tried first whenever the key is configured.
-    // tryFlightAware() returns null on any failure (timeout, non-2xx, parse error),
-    // which lets the chain fall through to adsb.lol automatically.
     const faData = await tryFlightAware(lamin, lamax, lomin, lomax);
     if (faData) {
       console.log(`FlightAware returned ${faData.states?.length || 0} aircraft (premium)`);
-      return new Response(JSON.stringify(faData), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond(faData);
     }
 
     // Strategy 1: Try adsb.lol live feed (no key required)
     const adsbLolData = await tryAdsbLol(lamin, lamax, lomin, lomax);
     if (adsbLolData) {
       console.log(`adsb.lol returned ${adsbLolData.states?.length || 0} aircraft`);
-      return new Response(JSON.stringify(adsbLolData), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond(adsbLolData);
     }
 
     // Strategy 2: Try ADS-B Exchange via RapidAPI
     const adsbData = await tryADSBExchange(lamin, lamax, lomin, lomax);
     if (adsbData) {
       console.log(`ADS-B Exchange returned ${adsbData.states?.length || 0} aircraft`);
-      return new Response(JSON.stringify(adsbData), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return respond(adsbData);
     }
 
     // Strategy 3: Fallback to mock data
     console.log("All live sources unavailable, returning mock flight data");
-    const mockData = {
+    return respond({
       time: Math.floor(Date.now() / 1000),
       states: generateMockStates(),
       _source: "demo",
-    };
-
-    return new Response(JSON.stringify(mockData), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     return new Response(

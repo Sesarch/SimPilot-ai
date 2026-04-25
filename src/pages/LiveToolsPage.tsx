@@ -3,6 +3,7 @@ import FlightTrackerMap from "@/components/FlightTrackerMap";
 import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary";
 import ATCTrainer from "@/components/ATCTrainer";
 import FlightAwareTestButton from "@/components/FlightAwareTestButton";
+import FlightProviderStatusPanel from "@/components/FlightProviderStatusPanel";
 import { Radar, Radio } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
@@ -109,7 +110,10 @@ const LiveToolsPage = () => {
             {/* Content */}
             {activeTab === "tracker" ? (
               <FlightTrackerErrorBoundary>
-                <div className="h-[calc(100vh-220px)] sm:h-[600px] md:h-[700px] rounded-lg overflow-hidden border border-border">
+                <div className="mb-3">
+                  <FlightProviderStatusPanel />
+                </div>
+                <div className="h-[calc(100vh-300px)] sm:h-[600px] md:h-[700px] rounded-lg overflow-hidden border border-border">
                   <FlightTrackerMap />
                 </div>
               </FlightTrackerErrorBoundary>

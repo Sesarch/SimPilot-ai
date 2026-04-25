@@ -57,6 +57,17 @@ function generateMockAircraft(): Aircraft[] {
   }));
 }
 
+export interface FlightAwareDiagnostics {
+  configured: boolean;
+  status: number | null;
+  ok: boolean;
+  error: string | null;
+  message: string | null;
+  durationMs: number | null;
+  endpoint: string;
+  checkedAt: number;
+}
+
 export const useFlightTracker = (bounds?: { north: number; south: number; east: number; west: number }) => {
   const [aircraft, setAircraft] = useState<Aircraft[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,6 +75,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [dataSource, setDataSource] = useState<DataSource>(null);
   const [provider, setProvider] = useState<string | null>(null);
+  const [faDiagnostics, setFaDiagnostics] = useState<FlightAwareDiagnostics | null>(null);
 
   const fetchAircraft = useCallback(async () => {
     setLoading(true);
@@ -99,6 +111,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
       const data = await res.json();
       setDataSource(data._source === "demo" ? "demo" : "live");
       setProvider(data._provider || null);
+      if (data._flightaware) setFaDiagnostics(data._flightaware as FlightAwareDiagnostics);
       if (!data.states) {
         setAircraft([]);
         setLastUpdated(new Date());
@@ -140,5 +153,5 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
     return () => clearInterval(interval);
   }, [fetchAircraft]);
 
-  return { aircraft, loading, error, lastUpdated, refresh: fetchAircraft, dataSource, provider };
+  return { aircraft, loading, error, lastUpdated, refresh: fetchAircraft, dataSource, provider, faDiagnostics };
 };
