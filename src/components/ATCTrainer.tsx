@@ -334,6 +334,40 @@ const ATCTrainer = () => {
     attempted: string;
     action: string;
   }>>([]);
+  /** User-defined phrase → action rules. Persisted so the parser improves
+      over time as the pilot adds their own wording for common requests. */
+  type PhraseRule = { id: string; phrase: string; action: string };
+  const [phraseRules, setPhraseRules] = useState<PhraseRule[]>(() => {
+    try {
+      const saved = localStorage.getItem("atc_phrase_rules");
+      return saved ? (JSON.parse(saved) as PhraseRule[]) : [];
+    } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_phrase_rules", JSON.stringify(phraseRules)); } catch {}
+  }, [phraseRules]);
+  const [showPhraseManager, setShowPhraseManager] = useState(false);
+  const [newPhrase, setNewPhrase] = useState("");
+  const [newAction, setNewAction] = useState("");
+  /** Classify an attempted transmission into a request action label.
+      User-defined phrases are checked FIRST so they override built-ins. */
+  const inferAction = useCallback((text: string): string => {
+    const said = (text ?? "").toLowerCase();
+    if (!said.trim()) return "transmission";
+    for (const r of phraseRules) {
+      const p = r.phrase.trim().toLowerCase();
+      if (p && said.includes(p)) return r.action.trim() || "transmission";
+    }
+    if (/\btaxi\b/.test(said)) return "taxi clearance";
+    if (/\bcleared?\s+for\s+takeoff|\btakeoff\b|\bdeparture\b/.test(said)) return "takeoff clearance";
+    if (/\bcleared?\s+to\s+land|\blanding\b|\bfull\s+stop\b/.test(said)) return "landing clearance";
+    if (/\bifr\s+clearance|\bclearance\b|\bifr\b/.test(said)) return "IFR clearance";
+    if (/\bvfr\s+departure|\bvfr\b/.test(said)) return "VFR request";
+    if (/\bready\s+to\s+copy|\brequest\b/.test(said)) return "request";
+    if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) return "radio check";
+    if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) return "check-in";
+    return "transmission";
+  }, [phraseRules]);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
