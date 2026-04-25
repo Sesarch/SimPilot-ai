@@ -640,7 +640,13 @@ const FlightTrackerMap = () => {
           </div>
         )}
 
-        <MapContainer center={initialView.center} zoom={initialView.zoom} style={{ width: "100%", height: "100%" }} zoomControl={true}>
+        <MapContainer
+          center={initialView.center}
+          zoom={initialView.zoom}
+          style={{ width: "100%", height: "100%" }}
+          zoomControl={true}
+          ref={(instance) => { mapRef.current = instance ?? null; }}
+        >
           <TileLayer
             key={`${mapTheme}-base`}
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
