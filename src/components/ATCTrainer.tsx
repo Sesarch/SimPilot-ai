@@ -598,6 +598,7 @@ const ATCTrainer = () => {
     setError(null);
     setPhraseologyScore(null);
     setPendingDraft("");
+    setPendingCorrection(null);
     // Default tune: tower if present, else first facility.
     const tower = airport.facilities.find((f) => f.kind === "TOWER");
     const first = tower ?? airport.facilities[0];
