@@ -587,6 +587,16 @@ const FlightTrackerMap = () => {
           </div>
           <button
             type="button"
+            onClick={resetThemeView}
+            title={`Reset saved center and zoom for ${themeLabel[mapTheme]} theme`}
+            aria-label={`Reset saved map view for ${themeLabel[mapTheme]} theme`}
+            className="bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors flex items-center gap-1"
+          >
+            <LocateFixed className="h-3 w-3" />
+            <span className="hidden sm:inline">Reset view</span>
+          </button>
+          <button
+            type="button"
             onClick={cycleAttributionMode}
             title={`Map credits: ${attributionLabel[attributionMode]} — click to cycle (Tiny → Standard → Hover)`}
             aria-label={`Map attribution display: ${attributionLabel[attributionMode]}. Click to cycle.`}
