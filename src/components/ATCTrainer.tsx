@@ -291,6 +291,19 @@ const ATCTrainer = () => {
       return saved === "female" || saved === "male" ? saved : "male";
     } catch { return "male"; }
   });
+  // Display style for the Current Facility badge.
+  // - "long":  "KMYF Tower"        (published name with ICAO prefix)
+  // - "short": "KMYF TWR"          (ICAO + 3-letter abbreviation)
+  // - "kind":  "KMYF TOWER"        (ICAO + raw facility kind)
+  const [facilityLabelStyle, setFacilityLabelStyle] = useState<"long" | "short" | "kind">(() => {
+    try {
+      const saved = localStorage.getItem("atc_facility_label_style");
+      return saved === "short" || saved === "kind" || saved === "long" ? saved : "long";
+    } catch { return "long"; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_facility_label_style", facilityLabelStyle); } catch {}
+  }, [facilityLabelStyle]);
   // Last-used scenario id (for "Resume last scenario" UX). Read once at mount.
   const initialLastScenarioId = (() => {
     try {
@@ -1835,9 +1848,25 @@ ${transcript}`;
               {(() => {
                 const fac = liveContext?.facility ?? null;
                 const onFreq = !!fac;
-                const facLabel = fac
-                  ? `${liveAirport.icao} ${fac.name.replace(new RegExp(`^${liveAirport.callName}\\s+`, "i"), "")}`
-                  : "OFF FREQUENCY";
+                const KIND_ABBR: Record<string, string> = {
+                  TOWER: "TWR", GROUND: "GND", CLEARANCE: "CLNC", ATIS: "ATIS",
+                  AWOS: "AWOS", APPROACH: "APP", DEPARTURE: "DEP", CENTER: "CTR",
+                  CTAF: "CTAF", UNICOM: "UNI", GUARD: "GUARD",
+                };
+                let facLabel: string;
+                if (!fac) {
+                  facLabel = "OFF FREQUENCY";
+                } else if (facilityLabelStyle === "short") {
+                  facLabel = `${liveAirport.icao} ${KIND_ABBR[fac.kind] ?? fac.kind}`;
+                } else if (facilityLabelStyle === "kind") {
+                  facLabel = `${liveAirport.icao} ${fac.kind}`;
+                } else {
+                  facLabel = `${liveAirport.icao} ${fac.name.replace(new RegExp(`^${liveAirport.callName}\\s+`, "i"), "")}`;
+                }
+                const cycleStyle = () => {
+                  setFacilityLabelStyle((s) => (s === "long" ? "short" : s === "short" ? "kind" : "long"));
+                };
+                const styleHint = facilityLabelStyle === "long" ? "Long" : facilityLabelStyle === "short" ? "Short" : "Kind";
                 return (
                   <div
                     role="status"
@@ -1868,24 +1897,36 @@ ${transcript}`;
                       <span className="font-display text-[9px] tracking-[0.3em] uppercase text-muted-foreground">
                         Current Facility
                       </span>
-                      <span
+                      <button
+                        type="button"
+                        onClick={cycleStyle}
+                        title={`Display style: ${styleHint} — click to change (Long → Short → Kind)`}
                         className={cn(
-                          "font-display text-[12px] tracking-[0.18em] uppercase truncate",
+                          "font-display text-[12px] tracking-[0.18em] uppercase truncate text-left rounded px-1 -mx-1 hover:bg-foreground/5 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary",
                           onFreq ? "text-foreground" : "text-amber-500",
                         )}
-                        title={fac?.name}
                       >
                         {facLabel}
-                      </span>
+                      </button>
                       {fac && (
                         <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground border border-border rounded px-1.5 py-0.5 hidden sm:inline">
                           {fac.kind}
                         </span>
                       )}
                     </div>
-                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground shrink-0">
-                      {formatFreq(parseFloat(activeFreq) || 0)}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={cycleStyle}
+                        title="Cycle facility label style"
+                        className="font-display text-[8px] tracking-[0.25em] uppercase text-muted-foreground hover:text-foreground border border-border rounded px-1.5 py-0.5"
+                      >
+                        {styleHint}
+                      </button>
+                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                        {formatFreq(parseFloat(activeFreq) || 0)}
+                      </span>
+                    </div>
                   </div>
                 );
               })()}
