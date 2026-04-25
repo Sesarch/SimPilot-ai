@@ -1968,15 +1968,44 @@ ${transcript}`;
                   };
                   const facNice = KIND_NICE[pendingCorrection.facility] ?? pendingCorrection.facility;
                   const said = (pendingCorrection.attempted ?? "").toLowerCase();
+                  // Strong cues = clear FAA-phraseology keyword unambiguously
+                  // tied to a single action. Weak cues = generic words that
+                  // could fit several requests. We use this to derive a
+                  // high/medium/low confidence badge so the pilot knows when
+                  // to trust (or correct) the parser's interpretation.
                   let action = "transmission";
-                  if (/\btaxi\b/.test(said)) action = "taxi clearance";
-                  else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b|\bdeparture\b/.test(said)) action = "takeoff clearance";
-                  else if (/\bcleared?\s+to\s+land|\blanding\b|\bfull\s+stop\b/.test(said)) action = "landing clearance";
-                  else if (/\bifr\s+clearance|\bclearance\b|\bifr\b/.test(said)) action = "IFR clearance";
-                  else if (/\bvfr\s+departure|\bvfr\b/.test(said)) action = "VFR request";
-                  else if (/\bready\s+to\s+copy|\brequest\b/.test(said)) action = "request";
-                  else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) action = "radio check";
-                  else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) action = "check-in";
+                  let strength: "strong" | "weak" | "none" = "none";
+                  let expectedFac: FacilityKind | null = null;
+                  if (/\btaxi\b/.test(said)) { action = "taxi clearance"; strength = "strong"; expectedFac = "GROUND"; }
+                  else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b/.test(said)) { action = "takeoff clearance"; strength = "strong"; expectedFac = "TOWER"; }
+                  else if (/\bdeparture\b/.test(said)) { action = "takeoff clearance"; strength = "weak"; expectedFac = "TOWER"; }
+                  else if (/\bcleared?\s+to\s+land|\bfull\s+stop\b/.test(said)) { action = "landing clearance"; strength = "strong"; expectedFac = "TOWER"; }
+                  else if (/\blanding\b/.test(said)) { action = "landing clearance"; strength = "weak"; expectedFac = "TOWER"; }
+                  else if (/\bifr\s+clearance|\bready\s+to\s+copy\b/.test(said)) { action = "IFR clearance"; strength = "strong"; expectedFac = "CLEARANCE"; }
+                  else if (/\bclearance\b|\bifr\b/.test(said)) { action = "IFR clearance"; strength = "weak"; expectedFac = "CLEARANCE"; }
+                  else if (/\bvfr\s+departure\b/.test(said)) { action = "VFR request"; strength = "strong"; expectedFac = "TOWER"; }
+                  else if (/\bvfr\b/.test(said)) { action = "VFR request"; strength = "weak"; }
+                  else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) { action = "radio check"; strength = "strong"; }
+                  else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) { action = "check-in"; strength = "strong"; }
+                  else if (/\brequest\b/.test(said)) { action = "request"; strength = "weak"; }
+                  // Confidence: strong cue + facility match → HIGH; strong cue
+                  // alone or weak cue + facility match → MEDIUM; everything
+                  // else (no cue, or weak cue with no facility match) → LOW.
+                  const facMatch = expectedFac == null || expectedFac === pendingCorrection.facility;
+                  let confidence: "high" | "medium" | "low";
+                  if (strength === "strong" && facMatch) confidence = "high";
+                  else if (strength === "strong" || (strength === "weak" && facMatch)) confidence = "medium";
+                  else confidence = "low";
+                  const confStyles: Record<typeof confidence, string> = {
+                    high: "text-emerald-500 border-emerald-500/50 bg-emerald-500/10",
+                    medium: "text-amber-500 border-amber-500/50 bg-amber-500/10",
+                    low: "text-rose-500 border-rose-500/50 bg-rose-500/10",
+                  };
+                  const confTitle: Record<typeof confidence, string> = {
+                    high: "High confidence — clear keyword and facility match. Click the quoted text to edit if wrong.",
+                    medium: "Medium confidence — partial match. Click the quoted text to refine.",
+                    low: "Low confidence — couldn't infer the request type. Click the quoted text to correct it.",
+                  };
                   const attemptedRaw = (pendingCorrection.attempted ?? "").trim();
                   return (
                     <div className="mt-1.5 flex items-start gap-2 flex-wrap">
@@ -1984,14 +2013,48 @@ ${transcript}`;
                         Blocked request
                       </span>
                       <span className="font-display text-[10px] tracking-[0.2em] uppercase text-amber-500 border border-amber-500/50 bg-amber-500/10 rounded px-1.5 py-0.5 max-w-full">
-                        <span className="block">{facNice} {action}</span>
-                        {attemptedRaw && (
+                        <span className="flex items-center gap-1.5 flex-wrap">
+                          <span>{facNice} {action}</span>
                           <span
-                            className="block mt-1 normal-case tracking-normal font-sans text-[11px] text-amber-500/90 italic break-words"
-                            title={attemptedRaw}
+                            className={`font-display text-[8px] tracking-[0.25em] uppercase rounded px-1 py-px border ${confStyles[confidence]}`}
+                            title={confTitle[confidence]}
+                            aria-label={`Parser confidence: ${confidence}`}
                           >
-                            “{attemptedRaw}”
+                            {confidence}
                           </span>
+                        </span>
+                        {editingAttempted ? (
+                          <input
+                            autoFocus
+                            value={attemptedDraft}
+                            onChange={(e) => setAttemptedDraft(e.target.value)}
+                            onBlur={() => {
+                              setPendingCorrection((p) => p ? { ...p, attempted: attemptedDraft.trim() } : p);
+                              setEditingAttempted(false);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                setPendingCorrection((p) => p ? { ...p, attempted: attemptedDraft.trim() } : p);
+                                setEditingAttempted(false);
+                              } else if (e.key === "Escape") {
+                                setEditingAttempted(false);
+                              }
+                            }}
+                            placeholder="Type what you meant to say…"
+                            className="block mt-1 w-full normal-case tracking-normal font-sans text-[11px] text-amber-500 italic bg-background/60 border border-amber-500/50 rounded px-1.5 py-0.5 outline-none focus:border-amber-500"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAttemptedDraft(attemptedRaw);
+                              setEditingAttempted(true);
+                            }}
+                            title="Click to edit the interpreted request"
+                            className="block mt-1 w-full text-left normal-case tracking-normal font-sans text-[11px] text-amber-500/90 italic break-words hover:text-amber-500 hover:underline decoration-dotted underline-offset-2 cursor-text"
+                          >
+                            {attemptedRaw ? `“${attemptedRaw}”` : "“(empty — click to add)”"}
+                          </button>
                         )}
                       </span>
                     </div>
