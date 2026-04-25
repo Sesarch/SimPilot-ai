@@ -697,6 +697,7 @@ const ATCTrainer = () => {
 
     const scenario = scenarios.find((s) => s.id === selectedScenario)!;
     setScoring(true);
+    setGradingProgress({ phase: "connecting", attempt: 1, chars: 0 });
     setError(null);
 
     // Build transcript for the grader
