@@ -265,6 +265,10 @@ const ATCTrainer = () => {
   const [interim, setInterim] = useState("");
   const [pttActive, setPttActive] = useState(false);
   const [pttHeld, setPttHeld] = useState(false);
+  // Draft transcript captured from the last PTT release. The pilot must
+  // explicitly press "Transmit" (or Enter) to send it on the air. Editing
+  // the draft is allowed so users can clean up STT mistakes before keying.
+  const [pendingDraft, setPendingDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
@@ -542,6 +546,7 @@ const ATCTrainer = () => {
     setMessages([]);
     setError(null);
     setPhraseologyScore(null);
+    setPendingDraft("");
     setLoading(true);
 
     const scenario = scenarios.find((s) => s.id === scenarioId)!;
@@ -580,6 +585,7 @@ const ATCTrainer = () => {
     setMessages([]);
     setError(null);
     setPhraseologyScore(null);
+    setPendingDraft("");
     // Default tune: tower if present, else first facility.
     const tower = airport.facilities.find((f) => f.kind === "TOWER");
     const first = tower ?? airport.facilities[0];
@@ -1275,7 +1281,10 @@ ${transcript}`;
               fxRef.current?.squelch("up");
               const transcript = finalBufferRef.current.trim();
               finalBufferRef.current = "";
-              if (transcript) void sendPilotTransmission(transcript);
+              if (transcript) {
+                // Stage as a draft — pilot must explicitly press Transmit.
+                setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+              }
               return;
             }
             startRecognizer();
@@ -1287,7 +1296,9 @@ ${transcript}`;
         fxRef.current?.squelch("up");
         const transcript = finalBufferRef.current.trim();
         finalBufferRef.current = "";
-        if (transcript) void sendPilotTransmission(transcript);
+        if (transcript) {
+          setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+        }
       };
       try {
         r.start();
@@ -1312,6 +1323,19 @@ ${transcript}`;
     if (!pttActive) return;
     try { recognizerRef.current?.stop(); } catch { /* noop */ }
   };
+
+  /** Transmit the staged draft on the air. No-op if empty or busy. */
+  const transmitDraft = useCallback(() => {
+    const text = pendingDraft.trim();
+    if (!text || loading || speaking || pttHeld || pttActive) return;
+    setPendingDraft("");
+    void sendPilotTransmission(text);
+  }, [pendingDraft, loading, speaking, pttHeld, pttActive, sendPilotTransmission]);
+
+  /** Discard the staged draft without transmitting. */
+  const clearDraft = useCallback(() => {
+    setPendingDraft("");
+  }, []);
 
   const activeScenario = scenarios.find((s) => s.id === selectedScenario);
   const isLiveMode = selectedScenario === "live" && !!liveAirport;
@@ -1824,6 +1848,65 @@ ${transcript}`;
         )}
       </div>
 
+      {/* Pending transmission draft — captured from PTT, must be Transmitted
+          explicitly so the pilot reviews STT output before keying the mic. */}
+      {selectedScenario && (pendingDraft || micUiActive) && (
+        <div
+          className="border border-primary/40 rounded-lg bg-primary/5 p-3 flex flex-col gap-2"
+          aria-label="Pending pilot transmission draft"
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-display text-[10px] tracking-[0.25em] uppercase text-primary">
+              {micUiActive ? "Capturing…" : "Ready to Transmit"}
+            </span>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              {micUiActive
+                ? "Release PTT to stage the draft"
+                : "Press Transmit (or Enter) to send · Esc to clear"}
+            </span>
+          </div>
+          <textarea
+            value={micUiActive ? (pendingDraft ? `${pendingDraft} ${interim}`.trim() : interim) : pendingDraft}
+            onChange={(e) => setPendingDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                transmitDraft();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                clearDraft();
+              }
+            }}
+            placeholder={micUiActive ? "Listening…" : "Hold PTT and speak — your transmission will appear here for review."}
+            disabled={micUiActive || loading || speaking}
+            rows={2}
+            className="w-full resize-none rounded-md bg-background/60 border border-border px-3 py-2 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40 disabled:opacity-70"
+            aria-label="Pilot transmission draft"
+          />
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={clearDraft}
+              disabled={!pendingDraft || loading || speaking || micUiActive}
+              className="h-7 text-[10px] tracking-[0.2em] uppercase font-display"
+              title="Discard the draft (Esc)"
+            >
+              <X className="h-3 w-3 mr-1" /> Clear
+            </Button>
+            <Button
+              size="sm"
+              onClick={transmitDraft}
+              disabled={!pendingDraft.trim() || loading || speaking || micUiActive}
+              className="h-7 text-[10px] tracking-[0.2em] uppercase font-display bg-[hsl(var(--hud-green))]/20 hover:bg-[hsl(var(--hud-green))]/30 text-[hsl(var(--hud-green))] border border-[hsl(var(--hud-green))]/50"
+              title="Send transmission (Enter)"
+            >
+              <Radio className="h-3 w-3 mr-1" /> Transmit
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* PTT panel */}
       <div className="border border-border rounded-lg bg-card p-4 flex flex-col items-center justify-between gap-4 relative">
         {/* One-time onboarding tooltip — explains mic permission requirement */}
@@ -1869,7 +1952,7 @@ ${transcript}`;
             Push To Talk
           </div>
           <div className="text-xs text-muted-foreground">
-            Hold the button (or hold <kbd className="px-1 py-0.5 rounded bg-muted text-foreground text-[10px]">Space</kbd>) and speak. Release to transmit.
+            Hold the button (or hold <kbd className="px-1 py-0.5 rounded bg-muted text-foreground text-[10px]">Space</kbd>) and speak. Release to stage your draft, then press <span className="text-[hsl(var(--hud-green))] font-display tracking-[0.15em] uppercase">Transmit</span> to send.
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
             <Button
