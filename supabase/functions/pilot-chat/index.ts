@@ -474,9 +474,9 @@ Be specific and thorough — treat the image as if a student pilot brought a cha
           model,
           messages: [
             { role: "system", content: finalSystemPrompt },
-            ...messages,
+            ...chatMessages,
           ],
-          stream: true,
+          stream: !isAtcMode,
         }),
       }
     );
@@ -500,6 +500,15 @@ Be specific and thorough — treat the image as if a student pilot brought a cha
         JSON.stringify({ error: "AI gateway error" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    if (isAtcMode) {
+      // Non-streaming JSON pass-through so ATC Trainer's invoke() can read
+      // data.choices[0].message.content directly.
+      const json = await response.json();
+      return new Response(JSON.stringify(json), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(response.body, {
