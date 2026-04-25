@@ -515,8 +515,13 @@ const ATCTrainer = () => {
   const [airportSearch, setAirportSearch] = useState("");
   // Real-world ATIS state — set when the pilot tunes an ATIS frequency.
   // `info` is the phonetic letter ("Bravo"), `text` is the broadcast string.
-  const [currentAtis, setCurrentAtis] = useState<{ icao: string; info: string; text: string; source: string } | null>(null);
+  const [currentAtis, setCurrentAtis] = useState<{ icao: string; info: string; text: string; source: string; audioUrl?: string | null } | null>(null);
   const [atisLoading, setAtisLoading] = useState(false);
+  // Live ATIS audio stream (LiveATC). When tuned, we attempt to stream the
+  // real broadcast; the <audio> element is held in a ref so we can stop it
+  // when the pilot retunes away from ATIS.
+  const atisAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "failed">("idle");
   const lastAtisFetchRef = useRef<{ icao: string; freq: string } | null>(null);
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
@@ -683,17 +688,71 @@ const ATCTrainer = () => {
           info: data.info ?? "Alpha",
           text: data.text,
           source: data.source ?? "synth",
+          audioUrl: data.audioUrl ?? null,
         });
+        const sourceLabel =
+          data.source === "datis" ? "live FAA D-ATIS"
+          : data.source === "vatsim" ? "live VATSIM feed"
+          : "live weather";
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             role: "system",
-            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${data.source === "vatsim" ? "live VATSIM feed" : "live weather"})`,
+            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${data.audioUrl ? " + live audio" : ""})`,
           },
           { id: crypto.randomUUID(), role: "atc", content: data.text },
         ]);
-        void speakATC(data.text);
+
+        // Try to play the real-world ATIS audio stream first. If it fails
+        // (CORS, geoblock, feed offline), fall back to TTS of the text.
+        let livePlaying = false;
+        if (data.audioUrl) {
+          try {
+            // Tear down any prior stream.
+            if (atisAudioRef.current) {
+              atisAudioRef.current.pause();
+              atisAudioRef.current.src = "";
+              atisAudioRef.current = null;
+            }
+            setAtisAudioState("loading");
+            const audio = new Audio(data.audioUrl);
+            audio.crossOrigin = "anonymous";
+            audio.preload = "none";
+            audio.autoplay = true;
+            audio.volume = 0.9;
+            atisAudioRef.current = audio;
+            await new Promise<void>((resolve, reject) => {
+              const onPlaying = () => { cleanup(); resolve(); };
+              const onErr = () => { cleanup(); reject(new Error("audio error")); };
+              const cleanup = () => {
+                audio.removeEventListener("playing", onPlaying);
+                audio.removeEventListener("error", onErr);
+              };
+              audio.addEventListener("playing", onPlaying, { once: true });
+              audio.addEventListener("error", onErr, { once: true });
+              // Kick off playback (may reject due to autoplay policy).
+              audio.play().catch(onErr);
+              setTimeout(() => { cleanup(); reject(new Error("audio timeout")); }, 6000);
+            });
+            if (cancelled) {
+              audio.pause();
+              return;
+            }
+            livePlaying = true;
+            setAtisAudioState("playing");
+          } catch (err) {
+            console.warn("Live ATIS audio failed, falling back to TTS", err);
+            setAtisAudioState("failed");
+            if (atisAudioRef.current) {
+              try { atisAudioRef.current.pause(); } catch { /* noop */ }
+              atisAudioRef.current = null;
+            }
+          }
+        }
+        if (!livePlaying && !cancelled) {
+          void speakATC(data.text);
+        }
       } catch (e) {
         console.warn("ATIS fetch failed", e);
         if (!cancelled) toast.error("ATIS unavailable for this airport right now.");
@@ -702,7 +761,16 @@ const ATCTrainer = () => {
       }
     };
     void run();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      // Stop the live stream when the pilot retunes away from ATIS.
+      if (atisAudioRef.current) {
+        try { atisAudioRef.current.pause(); } catch { /* noop */ }
+        atisAudioRef.current.src = "";
+        atisAudioRef.current = null;
+      }
+      setAtisAudioState("idle");
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveAirport?.icao, activeFreq, liveContext?.facility?.kind]);
 
@@ -2554,9 +2622,26 @@ ${transcript}`;
                           Updating…
                         </span>
                       )}
+                      {tunedToAtis && atisAudioState === "playing" && (
+                        <span
+                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-red-500/60 bg-red-500/10 text-red-500 px-1.5 py-0.5 animate-pulse"
+                          title="Streaming live ATIS audio from LiveATC"
+                        >
+                          ● LIVE
+                        </span>
+                      )}
+                      {tunedToAtis && atisAudioState === "loading" && (
+                        <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                          Connecting…
+                        </span>
+                      )}
                     </div>
                     <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground shrink-0">
-                      {currentAtis.source === "vatsim" ? "VATSIM" : "SYNTH"}
+                      {currentAtis.source === "datis"
+                        ? "D-ATIS"
+                        : currentAtis.source === "vatsim"
+                        ? "VATSIM"
+                        : "SYNTH"}
                     </span>
                   </div>
                 );
