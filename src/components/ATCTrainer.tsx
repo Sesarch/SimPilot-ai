@@ -2622,9 +2622,26 @@ ${transcript}`;
                           Updating…
                         </span>
                       )}
+                      {tunedToAtis && atisAudioState === "playing" && (
+                        <span
+                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-red-500/60 bg-red-500/10 text-red-500 px-1.5 py-0.5 animate-pulse"
+                          title="Streaming live ATIS audio from LiveATC"
+                        >
+                          ● LIVE
+                        </span>
+                      )}
+                      {tunedToAtis && atisAudioState === "loading" && (
+                        <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                          Connecting…
+                        </span>
+                      )}
                     </div>
                     <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground shrink-0">
-                      {currentAtis.source === "vatsim" ? "VATSIM" : "SYNTH"}
+                      {currentAtis.source === "datis"
+                        ? "D-ATIS"
+                        : currentAtis.source === "vatsim"
+                        ? "VATSIM"
+                        : "SYNTH"}
                     </span>
                   </div>
                 );
