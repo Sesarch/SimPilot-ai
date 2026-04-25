@@ -63,6 +63,15 @@ STRICT RADIO PHRASEOLOGY RULES (FAA AIM 4-2 / Pilot-Controller Glossary):
 - No "okay", "yeah", "alright", "sure", "no problem".
 - Keep transmissions short and crisp — one breath each.
 
+REAL-WORLD CONTROLLER BEHAVIOR (CRITICAL — never violate):
+- ATIS acknowledgement: If the pilot says "with [phonetic letter]" (e.g. "with Bravo", "information Charlie"), they HAVE the current ATIS. NEVER ask them to "check ATIS" or "advise you have information X".
+- VFR taxi requests: NEVER ask the pilot for their destination. Ground does not need it for a VFR taxi. Only ask for destination if the pilot explicitly requested Flight Following or filed IFR.
+- Active runway: NEVER ask the pilot "what is the active runway" or "say active". The Ground/Tower controller ASSIGNS the runway. Pick a sensible one (28R, 27, etc.) and tell them.
+- Taxi clearances use this exact pattern: "<Callsign>, Runway <NN[L/R]>, taxi via <Taxiway letters>." e.g. "Three alpha bravo, Runway two eight right, taxi via Hotel, Juliet, Alpha."
+- Hold short / position: When traffic warrants, issue "hold short of Runway <NN>" or "hold position" or "follow the [type] on [taxiway]". Use these dynamically — do not always give a clean route.
+- Wrong-facility request (CRITICAL): If the pilot asks the WRONG controller for a service (e.g. asks "Tower" for taxi, asks "Ground" for takeoff, asks "Clearance" for taxi), DO NOT play along. Correct them: "<Callsign>, contact <correct facility> on <freq> for <service>." (e.g. "Three alpha bravo, contact Ground on one two one point seven for taxi.")
+- Be concise. Only ask for information required by SOP.
+
 OUTPUT FORMAT (CRITICAL):
 - Respond ONLY with the spoken radio transmission. No labels, no markdown, no prose.
 - ONE transmission per turn.
@@ -86,6 +95,8 @@ const LIVE_FREQ_PROMPT = (opts: {
   facilityName: string;
   frequency: string;
   knownFacilities: { kind: FacilityKind; name: string; freq: string }[];
+  /** Phonetic letter the pilot has already heard from ATIS (if any). */
+  currentAtisInfo?: string | null;
 }) => {
   const facilityList = opts.knownFacilities
     .map((f) => `  • ${f.name} (${f.kind}) — ${f.freq}`)
@@ -98,8 +109,12 @@ Respond with a single short line acknowledging dead air, e.g. "[no response — 
 Do NOT impersonate a controller. Do NOT add [FEEDBACK].`;
   }
 
+  const atisLine = opts.currentAtisInfo
+    ? `\nCURRENT ATIS: Information ${opts.currentAtisInfo} is active. If the pilot says "with ${opts.currentAtisInfo}" or any phonetic letter, treat them as having current ATIS — DO NOT ask them to check ATIS.`
+    : "";
+
   return `You are ${opts.facilityName} at ${opts.airportIcao} (${opts.airportCallName}) on ${opts.frequency} MHz.
-Facility role: ${opts.facilityKind}. The pilot is "November One Two Three Alpha Bravo" (N123AB), a Cessna 172.
+Facility role: ${opts.facilityKind}. The pilot is "November One Two Three Alpha Bravo" (N123AB), a Cessna 172.${atisLine}
 
 OTHER FACILITIES AT ${opts.airportIcao} (for redirection only):
 ${facilityList || "  • (none on file)"}
@@ -120,6 +135,19 @@ CRITICAL ROLE RULES:
    Pick the right frequency to redirect to from the list above.
 4. If the pilot addresses a different airport entirely, say something like:
    "Three alpha bravo, ${opts.facilityName} — verify station called, you are on ${opts.frequency} at ${opts.airportIcao}."
+5. WRONG SERVICE on a real facility (CRITICAL — applies to ALL facilities, not just wrong-name calls):
+   - Pilot asks Tower for taxi → "Three alpha bravo, contact Ground on <ground freq> for taxi."
+   - Pilot asks Ground for takeoff/landing/pattern entry → "Three alpha bravo, contact Tower on <tower freq>."
+   - Pilot asks Ground/Tower for IFR clearance at an airport with Clearance Delivery → redirect to Clearance.
+   Use the OTHER FACILITIES list for the correct frequency.
+
+REAL-WORLD CONTROLLER BEHAVIOR (CRITICAL — never violate):
+- ATIS acknowledgement: If the pilot says "with [phonetic letter]" or "information [letter]" (e.g. "with Bravo"), they HAVE the current ATIS. NEVER ask them to "check ATIS" or "advise you have information X" again.
+- VFR taxi requests: NEVER ask the pilot for their destination. Ground does not need it for a VFR taxi. Only ask for destination if the pilot explicitly requested Flight Following or filed IFR.
+- Active runway: NEVER ask the pilot "what is the active runway" or "say active". The Ground/Tower controller ASSIGNS the runway. Pick a sensible one and tell them.
+- Standard taxi clearance pattern: "<Callsign>, Runway <NN[L/R]>, taxi via <Taxiway letters>." e.g. "Three alpha bravo, Runway two eight right, taxi via Hotel, Juliet, Alpha."
+- Dynamic mid-taxi commands: When traffic warrants, issue "hold short of Runway <NN>", "hold position", or "follow the [type] on [taxiway]". Vary instructions realistically — don't always issue a clean route.
+- Be concise. Only ask for information required by SOP.
 
 STRICT PHRASEOLOGY (FAA AIM 4-2 / Pilot-Controller Glossary):
 - Numbers: pronounce digits individually ("one two three", not "one twenty-three"). "Niner" for 9. Altitudes use "thousand"/"hundred". Frequencies: decimal as "point".
@@ -133,7 +161,7 @@ OUTPUT FORMAT (CRITICAL):
 - After your transmission, on a NEW LINE, append a feedback block ONLY if the pilot's previous call had a phraseology error:
   [FEEDBACK] short specific correction.
 - If the pilot's call was correct, omit the [FEEDBACK] line entirely.
-- WRONG-FACILITY MARKER (CRITICAL): If the pilot addressed the wrong facility (rule 3 above) and you are redirecting them, append on its own NEW LINE a machine-readable marker in EXACTLY this format:
+- WRONG-FACILITY MARKER (CRITICAL): If the pilot addressed the wrong facility OR asked the wrong facility for a service (rule 3 or 5 above) and you are redirecting them, append on its own NEW LINE a machine-readable marker in EXACTLY this format:
   [CORRECTION facility=<KIND> freq=<MHZ>]
   where <KIND> is one of GROUND, TOWER, CLEARANCE, APPROACH, DEPARTURE, ATIS, CTAF, UNICOM, CENTER, GUARD and <MHZ> is the published frequency from the OTHER FACILITIES list (e.g. "[CORRECTION facility=TOWER freq=119.200]"). Do NOT include this marker in any other situation.
 - Never break character.`;
@@ -427,6 +455,11 @@ const ATCTrainer = () => {
   // the controller persona is derived from the airport's published facilities.
   const [liveAirport, setLiveAirport] = useState<AirportFrequencies | null>(null);
   const [airportSearch, setAirportSearch] = useState("");
+  // Real-world ATIS state — set when the pilot tunes an ATIS frequency.
+  // `info` is the phonetic letter ("Bravo"), `text` is the broadcast string.
+  const [currentAtis, setCurrentAtis] = useState<{ icao: string; info: string; text: string; source: string } | null>(null);
+  const [atisLoading, setAtisLoading] = useState(false);
+  const lastAtisFetchRef = useRef<{ icao: string; freq: string } | null>(null);
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
       setStandbyFreq(prevA);
@@ -556,6 +589,65 @@ const ATCTrainer = () => {
     };
   })();
 
+  /**
+   * When the pilot tunes an ATIS frequency, fetch the real-world ATIS for the
+   * airport and TTS-play it through the radio. We avoid re-fetching the same
+   * (icao, freq) pair until the pilot retunes away and back.
+   */
+  useEffect(() => {
+    if (!liveAirport || !liveContext?.facility) return;
+    if (liveContext.facility.kind !== "ATIS") return;
+    const key = { icao: liveAirport.icao, freq: activeFreq };
+    if (
+      lastAtisFetchRef.current?.icao === key.icao &&
+      lastAtisFetchRef.current?.freq === key.freq
+    ) return;
+    lastAtisFetchRef.current = key;
+
+    let cancelled = false;
+    const run = async () => {
+      setAtisLoading(true);
+      try {
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/atc-atis`;
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq, airportName: liveAirport.callName }),
+        });
+        if (!resp.ok) throw new Error(`atis ${resp.status}`);
+        const data = await resp.json();
+        if (cancelled || !data?.text) return;
+        setCurrentAtis({
+          icao: liveAirport.icao,
+          info: data.info ?? "Alpha",
+          text: data.text,
+          source: data.source ?? "synth",
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${data.source === "vatsim" ? "live VATSIM feed" : "live weather"})`,
+          },
+          { id: crypto.randomUUID(), role: "atc", content: data.text },
+        ]);
+        void speakATC(data.text);
+      } catch (e) {
+        console.warn("ATIS fetch failed", e);
+        if (!cancelled) toast.error("ATIS unavailable for this airport right now.");
+      } finally {
+        if (!cancelled) setAtisLoading(false);
+      }
+    };
+    void run();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveAirport?.icao, activeFreq, liveContext?.facility?.kind]);
+
   const exportTranscript = useCallback(() => {
     if (messages.length === 0) {
       toast.info("No transmissions to export yet.");
@@ -590,11 +682,12 @@ const ATCTrainer = () => {
           name: f.name,
           freq: formatFreq(f.freq),
         })),
+        currentAtisInfo: currentAtis && currentAtis.icao === liveAirport.icao ? currentAtis.info : null,
       });
     }
     const sc = scenarios.find((s) => s.id === selectedScenario);
     return FAA_PROMPT(sc?.label ?? "ATC Communications");
-  }, [selectedScenario, liveAirport, activeFreq]);
+  }, [selectedScenario, liveAirport, activeFreq, currentAtis]);
 
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
@@ -642,6 +735,8 @@ const ATCTrainer = () => {
     setPhraseologyScore(null);
     setPendingDraft("");
     setPendingCorrection(null);
+    setCurrentAtis(null);
+    lastAtisFetchRef.current = null;
     // Default tune: tower if present, else first facility.
     const tower = airport.facilities.find((f) => f.kind === "TOWER");
     const first = tower ?? airport.facilities[0];
@@ -780,6 +875,39 @@ const ATCTrainer = () => {
   const sendPilotTransmission = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || !selectedScenario) return;
+
+    // ---- Frequency discipline gate -------------------------------------
+    // In live mode: refuse to transmit if no facility is on the active freq
+    // (dead air) or if tuned to ATIS (one-way broadcast).
+    if (selectedScenario === "live" && liveAirport) {
+      const freqMHz = parseFloat(activeFreq);
+      const lookup = lookupFacility(liveAirport.icao, freqMHz);
+      if (!lookup.facility) {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "pilot", content: trimmed },
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            content: `📵 No response — ${activeFreq} is unmonitored at ${liveAirport.icao}. Tune a published frequency.`,
+          },
+        ]);
+        return;
+      }
+      if (lookup.facility.kind === "ATIS" || lookup.facility.kind === "AWOS") {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "pilot", content: trimmed },
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            content: `📵 ${lookup.facility!.kind} is a one-way broadcast. Tune Ground, Tower, or Clearance to talk.`,
+          },
+        ]);
+        return;
+      }
+    }
+
     const userMsg: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
     const updated = [...messages, userMsg];
     setMessages(updated);
@@ -815,7 +943,7 @@ const ATCTrainer = () => {
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, liveAirport, activeFreq]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
