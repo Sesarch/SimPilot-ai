@@ -20,6 +20,7 @@ import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
 
 interface ATCMessage {
   id: string;
