@@ -357,7 +357,26 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    let systemPrompt = MODE_PROMPTS[mode] || MODE_PROMPTS.general;
+    // ATC mode: the caller (ATC Trainer) provides its own system prompt as the
+    // first message and consumes a non-streaming JSON response via
+    // supabase.functions.invoke(). Detect either an explicit mode flag OR a
+    // client-supplied system message at messages[0] and respect it verbatim.
+    const clientSystem =
+      Array.isArray(messages) && messages[0]?.role === "system"
+        ? String(messages[0].content ?? "")
+        : "";
+    const isAtcMode = mode === "atc" || /Air Traffic Controller|FAA-certified Air Traffic|radio drill/i.test(clientSystem);
+
+    let systemPrompt: string;
+    let chatMessages: any[];
+    if (isAtcMode && clientSystem) {
+      // Use the ATC system prompt verbatim — do NOT prepend the CFI persona.
+      systemPrompt = clientSystem;
+      chatMessages = messages.slice(1);
+    } else {
+      systemPrompt = MODE_PROMPTS[mode] || MODE_PROMPTS.general;
+      chatMessages = messages;
+    }
 
     if (mode === "oral_exam" && stressMode) {
       systemPrompt += `\n\n🔥 STRESS MODE ACTIVE 🔥
@@ -455,9 +474,9 @@ Be specific and thorough — treat the image as if a student pilot brought a cha
           model,
           messages: [
             { role: "system", content: finalSystemPrompt },
-            ...messages,
+            ...chatMessages,
           ],
-          stream: true,
+          stream: !isAtcMode,
         }),
       }
     );
@@ -481,6 +500,15 @@ Be specific and thorough — treat the image as if a student pilot brought a cha
         JSON.stringify({ error: "AI gateway error" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    if (isAtcMode) {
+      // Non-streaming JSON pass-through so ATC Trainer's invoke() can read
+      // data.choices[0].message.content directly.
+      const json = await response.json();
+      return new Response(JSON.stringify(json), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(response.body, {
