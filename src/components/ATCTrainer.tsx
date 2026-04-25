@@ -265,6 +265,10 @@ const ATCTrainer = () => {
   const [interim, setInterim] = useState("");
   const [pttActive, setPttActive] = useState(false);
   const [pttHeld, setPttHeld] = useState(false);
+  // Draft transcript captured from the last PTT release. The pilot must
+  // explicitly press "Transmit" (or Enter) to send it on the air. Editing
+  // the draft is allowed so users can clean up STT mistakes before keying.
+  const [pendingDraft, setPendingDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
