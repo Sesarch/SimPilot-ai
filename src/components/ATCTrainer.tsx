@@ -869,7 +869,9 @@ ${transcript}`;
           if (!retryable || attempt === MAX_ATTEMPTS) break;
           const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 250);
           console.warn(`[ATCTrainer] grader attempt ${attempt} failed, retrying in ${delay}ms`, e?.message);
-          setGradingProgress({ phase: "retrying", attempt: attempt + 1, chars: 0 });
+          // Rough ETA during the backoff: delay + a fresh stream's worth (~6s).
+          const retryEta = Math.round(delay / 1000) + 6 + (MAX_ATTEMPTS - (attempt + 1)) * RETRY_PENALTY_SEC;
+          setGradingProgress({ phase: "retrying", attempt: attempt + 1, chars: 0, etaSeconds: retryEta, charsPerSecond: 0 });
           await sleep(delay);
         }
       }
