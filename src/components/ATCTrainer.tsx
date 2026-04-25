@@ -824,12 +824,14 @@ ${transcript}`;
       let raw = "";
       let lastErr: any = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        if (gradingCancelledRef.current) break;
         try {
           raw = await fetchAndParse(attempt);
           lastErr = null;
           break;
         } catch (e: any) {
           lastErr = e;
+          if (gradingCancelledRef.current || e?.name === "AbortError") break;
           const retryable = e?.retryable !== false; // network errors default to retryable
           if (!retryable || attempt === MAX_ATTEMPTS) break;
           const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 250);
@@ -838,6 +840,7 @@ ${transcript}`;
           await sleep(delay);
         }
       }
+      if (gradingCancelledRef.current) return;
       if (lastErr) throw lastErr;
 
       // Pull first {...} block
