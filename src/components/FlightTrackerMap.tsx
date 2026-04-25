@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, Polyline, Popup, useMap 
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useFlightTracker, Aircraft } from "@/hooks/useFlightTracker";
-import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal } from "lucide-react";
+import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
 import { useAirportWeather } from "@/hooks/useAirportWeather";
@@ -169,6 +169,7 @@ const FlightTrackerMap = () => {
   const isMobile = useIsMobile();
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
   const traceAbortRef = useRef<AbortController | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
   type MapTheme = "voyager" | "light" | "dark";
   const [mapTheme, setMapTheme] = useState<MapTheme>(() => {
@@ -197,21 +198,29 @@ const FlightTrackerMap = () => {
 
   // Per-theme saved center/zoom (so switching themes preserves the view).
   const themeViewKey = useCallback((t: string) => `simpilot.mapView.${t}`, []);
+  const DEFAULT_VIEW = useMemo(
+    () => ({ center: [39, -98] as [number, number], zoom: 5 }),
+    [],
+  );
   const initialView = useMemo(() => {
-    const fallback = { center: [39, -98] as [number, number], zoom: 5 };
-    if (typeof window === "undefined") return fallback;
+    if (typeof window === "undefined") return DEFAULT_VIEW;
     try {
       const raw = window.localStorage.getItem(themeViewKey(mapTheme));
-      if (!raw) return fallback;
+      if (!raw) return DEFAULT_VIEW;
       const v = JSON.parse(raw) as { lat?: number; lng?: number; zoom?: number };
       if (typeof v.lat === "number" && typeof v.lng === "number" && typeof v.zoom === "number") {
         return { center: [v.lat, v.lng] as [number, number], zoom: v.zoom };
       }
     } catch { /* noop */ }
-    return fallback;
+    return DEFAULT_VIEW;
     // Only compute on mount — runtime theme changes are handled by ThemeViewPersister.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const resetThemeView = useCallback(() => {
+    try { window.localStorage.removeItem(themeViewKey(mapTheme)); } catch { /* noop */ }
+    mapRef.current?.setView(DEFAULT_VIEW.center, DEFAULT_VIEW.zoom, { animate: true });
+  }, [mapTheme, themeViewKey, DEFAULT_VIEW]);
 
   type AttributionMode = "tiny" | "standard" | "hover";
   const [attributionMode, setAttributionMode] = useState<AttributionMode>(() => {
@@ -578,6 +587,16 @@ const FlightTrackerMap = () => {
           </div>
           <button
             type="button"
+            onClick={resetThemeView}
+            title={`Reset saved center and zoom for ${themeLabel[mapTheme]} theme`}
+            aria-label={`Reset saved map view for ${themeLabel[mapTheme]} theme`}
+            className="bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors flex items-center gap-1"
+          >
+            <LocateFixed className="h-3 w-3" />
+            <span className="hidden sm:inline">Reset view</span>
+          </button>
+          <button
+            type="button"
             onClick={cycleAttributionMode}
             title={`Map credits: ${attributionLabel[attributionMode]} — click to cycle (Tiny → Standard → Hover)`}
             aria-label={`Map attribution display: ${attributionLabel[attributionMode]}. Click to cycle.`}
@@ -631,7 +650,13 @@ const FlightTrackerMap = () => {
           </div>
         )}
 
-        <MapContainer center={initialView.center} zoom={initialView.zoom} style={{ width: "100%", height: "100%" }} zoomControl={true}>
+        <MapContainer
+          center={initialView.center}
+          zoom={initialView.zoom}
+          style={{ width: "100%", height: "100%" }}
+          zoomControl={true}
+          ref={(instance) => { mapRef.current = instance ?? null; }}
+        >
           <TileLayer
             key={`${mapTheme}-base`}
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
