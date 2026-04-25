@@ -289,6 +289,11 @@ const ATCTrainer = () => {
     attempt: number;
     chars: number;
   } | null>(null);
+  // Whether the in-flight grader request can still be cancelled. Set true while
+  // the SSE fetch/stream is active, cleared the moment the stream ends, errors,
+  // or post-processing begins so the Stop button / Cancel link disappear and
+  // can no longer fire after the grading is effectively done.
+  const [canCancelGrading, setCanCancelGrading] = useState(false);
   const gradingAbortRef = useRef<AbortController | null>(null);
   const gradingCancelledRef = useRef(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
@@ -704,6 +709,7 @@ const ATCTrainer = () => {
     gradingCancelledRef.current = false;
     const abortController = new AbortController();
     gradingAbortRef.current = abortController;
+    setCanCancelGrading(true);
 
     // Build transcript for the grader
     const transcript = messages
@@ -812,6 +818,9 @@ ${transcript}`;
             setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: raw.length });
           }
         }
+        // Stream finished — past the cancellable window. Hide Stop / Cancel
+        // immediately so the user can't click them while we parse + save.
+        setCanCancelGrading(false);
         setGradingProgress({ phase: "parsing", attempt: attemptNum, chars: raw.length });
         if (!raw.trim()) {
           const err: any = new Error("Grader returned empty stream");
@@ -977,6 +986,8 @@ ${transcript}`;
       // Notify Flight Deck / Recent Activity to refresh instantly
       emitDashboardRefresh({ source: "atc" });
     } catch (e: any) {
+      // Hide Stop / Cancel immediately on any error path too.
+      setCanCancelGrading(false);
       if (gradingCancelledRef.current || e?.name === "AbortError") {
         toast.message("Grading cancelled.");
       } else {
@@ -987,14 +998,19 @@ ${transcript}`;
     } finally {
       setScoring(false);
       setGradingProgress(null);
+      setCanCancelGrading(false);
       gradingAbortRef.current = null;
       gradingCancelledRef.current = false;
     }
   }, [messages, selectedScenario, scoring, user, voice]);
 
   const cancelGrading = useCallback(() => {
+    // Guard: only fire while there's a live request and the cancellable window
+    // is open. This is the same flag that controls the button visibility, so
+    // even if a stale click slips in we won't abort a no-op.
     if (!gradingAbortRef.current) return;
     gradingCancelledRef.current = true;
+    setCanCancelGrading(false);
     try { gradingAbortRef.current.abort(); } catch { /* noop */ }
   }, []);
 
@@ -1383,11 +1399,13 @@ ${transcript}`;
                     : "Grading…")
                 : "End & Score"}
             </Button>
-            {scoring && (
+            {/* Stop is only shown while the SSE request is still cancellable. */}
+            {canCancelGrading && (
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={cancelGrading}
+                disabled={!canCancelGrading}
                 title="Stop the grading request"
                 className="text-destructive hover:text-destructive"
               >
@@ -1424,13 +1442,17 @@ ${transcript}`;
                   {gradingProgress.phase === "retrying" && `Retrying (attempt ${gradingProgress.attempt})`}
                   {gradingProgress.phase === "parsing" && "Parsing grader output"}
                 </span>
-                <button
-                  type="button"
-                  onClick={cancelGrading}
-                  className="text-destructive hover:underline uppercase tracking-wider"
-                >
-                  Cancel
-                </button>
+                {canCancelGrading ? (
+                  <button
+                    type="button"
+                    onClick={cancelGrading}
+                    className="text-destructive hover:underline uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                ) : (
+                  <span className="text-muted-foreground/70">SSE</span>
+                )}
               </div>
               <div className="mt-1 h-1 rounded bg-muted overflow-hidden">
                 <div
