@@ -2377,6 +2377,11 @@ ${transcript}`;
                   </div>
                 </div>
               )}
+              {blockedHistory.length === 0 ? (
+                <div className="text-[11px] text-muted-foreground italic">
+                  No blocked transmissions yet. Use the “Phrases” editor to teach the parser your wording.
+                </div>
+              ) : (
               <ul className="space-y-1">
                 {blockedHistory.map((h) => {
                   const KIND_ABBR: Record<string, string> = {
