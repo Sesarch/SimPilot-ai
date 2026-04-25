@@ -730,11 +730,57 @@ TRANSCRIPT:
 ${transcript}`;
 
     try {
-      const { data, error: invokeErr } = await supabase.functions.invoke("pilot-chat", {
-        body: { messages: [{ role: "system", content: SCORE_PROMPT }, { role: "user", content: "Grade now. Return only JSON." }] },
+      // pilot-chat returns a streamed SSE response; supabase.functions.invoke
+      // does not parse SSE, so we call the function URL directly and assemble
+      // the streamed text ourselves.
+      const { data: { session } } = await supabase.auth.getSession();
+      const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL;
+      const SUPABASE_ANON = (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/pilot-chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON,
+          Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON}`,
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: "system", content: SCORE_PROMPT },
+            { role: "user", content: "Grade now. Return only JSON." },
+          ],
+        }),
       });
-      if (invokeErr) throw invokeErr;
-      const raw: string = data?.choices?.[0]?.message?.content || data?.reply || "";
+      if (!resp.ok || !resp.body) {
+        const txt = await resp.text().catch(() => "");
+        throw new Error(`Grader request failed (${resp.status}) ${txt}`);
+      }
+
+      // Parse SSE stream → assembled assistant text.
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let raw = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const payload = trimmed.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const evt = JSON.parse(payload);
+            const delta = evt?.choices?.[0]?.delta?.content
+              ?? evt?.choices?.[0]?.message?.content
+              ?? "";
+            if (delta) raw += delta;
+          } catch { /* ignore malformed chunk */ }
+        }
+      }
+
       // Pull first {...} block
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) throw new Error("No JSON in grader reply");
