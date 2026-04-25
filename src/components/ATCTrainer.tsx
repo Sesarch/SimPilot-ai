@@ -622,8 +622,12 @@ const ATCTrainer = () => {
 
 
   const speakATC = async (text: string) => {
-    // Strip [FEEDBACK] line from spoken audio (only spoken radio call).
-    const spoken = text.split(/\n?\[FEEDBACK\]/i)[0].trim();
+    // Strip both the [FEEDBACK] coaching line AND any [CORRECTION ...] marker
+    // so neither is read aloud — they're for the UI only.
+    const spoken = text
+      .split(/\n?\[FEEDBACK\]/i)[0]
+      .replace(/\[CORRECTION[^\]]*\]/gi, "")
+      .trim();
     if (!spoken) return;
 
     try {
