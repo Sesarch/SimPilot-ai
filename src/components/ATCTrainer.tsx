@@ -1279,7 +1279,10 @@ ${transcript}`;
               fxRef.current?.squelch("up");
               const transcript = finalBufferRef.current.trim();
               finalBufferRef.current = "";
-              if (transcript) void sendPilotTransmission(transcript);
+              if (transcript) {
+                // Stage as a draft — pilot must explicitly press Transmit.
+                setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+              }
               return;
             }
             startRecognizer();
@@ -1291,7 +1294,9 @@ ${transcript}`;
         fxRef.current?.squelch("up");
         const transcript = finalBufferRef.current.trim();
         finalBufferRef.current = "";
-        if (transcript) void sendPilotTransmission(transcript);
+        if (transcript) {
+          setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+        }
       };
       try {
         r.start();
