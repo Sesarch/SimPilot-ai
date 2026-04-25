@@ -776,6 +776,7 @@ ${transcript}`;
               { role: "user", content: "Grade now. Return only JSON." },
             ],
           }),
+          signal: abortController.signal,
         });
         if (!resp.ok || !resp.body) {
           const txt = await resp.text().catch(() => "");
