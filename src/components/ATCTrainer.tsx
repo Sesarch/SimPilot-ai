@@ -2282,21 +2282,101 @@ ${transcript}`;
           {/* Last Attempts panel — rolling history of the most recent blocked
               transmissions in this session. Helps the pilot spot patterns
               (e.g. repeatedly calling Tower while tuned to Ground) at a glance. */}
-          {isLiveMode && blockedHistory.length > 0 && (
+          {isLiveMode && (blockedHistory.length > 0 || showPhraseManager) && (
             <div className="rounded-md border border-amber-500/30 bg-amber-500/[0.04] px-3 py-2">
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <div className="font-display text-[10px] tracking-[0.3em] uppercase text-amber-500/90">
                   Last Attempts
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setBlockedHistory([])}
-                  className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground hover:text-foreground"
-                  title="Clear history"
-                >
-                  Clear
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPhraseManager((s) => !s)}
+                    className={`font-display text-[9px] tracking-[0.25em] uppercase hover:text-foreground ${showPhraseManager ? "text-amber-500" : "text-muted-foreground"}`}
+                    title="Add custom phrase → request mappings"
+                  >
+                    Phrases ({phraseRules.length})
+                  </button>
+                  {blockedHistory.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setBlockedHistory([])}
+                      className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground hover:text-foreground"
+                      title="Clear history"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
+              {showPhraseManager && (
+                <div className="mb-2 rounded border border-amber-500/20 bg-background/40 p-2">
+                  <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground mb-1.5">
+                    Custom phrase rules
+                  </div>
+                  {phraseRules.length === 0 ? (
+                    <div className="text-[11px] text-muted-foreground italic mb-2">
+                      No custom rules yet. Add wording you commonly use (e.g. phrase “tower clearance” → request “takeoff clearance”).
+                    </div>
+                  ) : (
+                    <ul className="space-y-1 mb-2">
+                      {phraseRules.map((r) => (
+                        <li key={r.id} className="flex items-center gap-2 text-[11px]">
+                          <span className="font-mono italic text-foreground/80 truncate flex-1 min-w-0" title={r.phrase}>
+                            “{r.phrase}”
+                          </span>
+                          <span className="text-muted-foreground shrink-0">→</span>
+                          <span className="font-display text-[10px] tracking-[0.15em] uppercase text-amber-500 shrink-0">
+                            {r.action}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setPhraseRules((prev) => prev.filter((x) => x.id !== r.id))}
+                            className="text-muted-foreground hover:text-rose-500 shrink-0"
+                            title="Remove rule"
+                            aria-label="Remove rule"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      value={newPhrase}
+                      onChange={(e) => setNewPhrase(e.target.value)}
+                      placeholder="Phrase (e.g. tower clearance)"
+                      className="flex-1 min-w-0 text-[11px] bg-background/60 border border-amber-500/30 rounded px-1.5 py-1 outline-none focus:border-amber-500/70"
+                    />
+                    <span className="text-muted-foreground text-[10px]">→</span>
+                    <input
+                      value={newAction}
+                      onChange={(e) => setNewAction(e.target.value)}
+                      placeholder="Request label"
+                      className="w-32 text-[11px] bg-background/60 border border-amber-500/30 rounded px-1.5 py-1 outline-none focus:border-amber-500/70"
+                    />
+                    <button
+                      type="button"
+                      disabled={!newPhrase.trim() || !newAction.trim()}
+                      onClick={() => {
+                        const p = newPhrase.trim();
+                        const a = newAction.trim();
+                        if (!p || !a) return;
+                        setPhraseRules((prev) => [
+                          ...prev.filter((r) => r.phrase.trim().toLowerCase() !== p.toLowerCase()),
+                          { id: crypto.randomUUID(), phrase: p, action: a },
+                        ]);
+                        setNewPhrase("");
+                        setNewAction("");
+                      }}
+                      className="font-display text-[9px] tracking-[0.25em] uppercase text-amber-500 border border-amber-500/60 rounded px-2 py-1 hover:bg-amber-500/10 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              )}
               <ul className="space-y-1">
                 {blockedHistory.map((h) => {
                   const KIND_ABBR: Record<string, string> = {
