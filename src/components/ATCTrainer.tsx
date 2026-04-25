@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History, Plane, Search } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History, Plane, Search, Square } from "lucide-react";
 import {
   atcFrequencies,
   getAirportFrequencies,
@@ -289,6 +289,8 @@ const ATCTrainer = () => {
     attempt: number;
     chars: number;
   } | null>(null);
+  const gradingAbortRef = useRef<AbortController | null>(null);
+  const gradingCancelledRef = useRef(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
   // Mic-test state: idle | recording | playing
   const [micTestState, setMicTestState] = useState<"idle" | "recording" | "playing">("idle");
@@ -699,6 +701,9 @@ const ATCTrainer = () => {
     setScoring(true);
     setGradingProgress({ phase: "connecting", attempt: 1, chars: 0 });
     setError(null);
+    gradingCancelledRef.current = false;
+    const abortController = new AbortController();
+    gradingAbortRef.current = abortController;
 
     // Build transcript for the grader
     const transcript = messages
@@ -765,6 +770,7 @@ ${transcript}`;
               { role: "user", content: "Grade now. Return only JSON." },
             ],
           }),
+          signal: abortController.signal,
         });
         if (!resp.ok || !resp.body) {
           const txt = await resp.text().catch(() => "");
@@ -818,12 +824,14 @@ ${transcript}`;
       let raw = "";
       let lastErr: any = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        if (gradingCancelledRef.current) break;
         try {
           raw = await fetchAndParse(attempt);
           lastErr = null;
           break;
         } catch (e: any) {
           lastErr = e;
+          if (gradingCancelledRef.current || e?.name === "AbortError") break;
           const retryable = e?.retryable !== false; // network errors default to retryable
           if (!retryable || attempt === MAX_ATTEMPTS) break;
           const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 250);
@@ -832,6 +840,7 @@ ${transcript}`;
           await sleep(delay);
         }
       }
+      if (gradingCancelledRef.current) return;
       if (lastErr) throw lastErr;
 
       // Pull first {...} block
@@ -967,15 +976,27 @@ ${transcript}`;
       }
       // Notify Flight Deck / Recent Activity to refresh instantly
       emitDashboardRefresh({ source: "atc" });
-    } catch (e) {
-      console.error("Phraseology scoring failed", e);
-      toast.error("Couldn't score this scenario. Try again.");
-      setError("Phraseology grading failed. Please try again.");
+    } catch (e: any) {
+      if (gradingCancelledRef.current || e?.name === "AbortError") {
+        toast.message("Grading cancelled.");
+      } else {
+        console.error("Phraseology scoring failed", e);
+        toast.error("Couldn't score this scenario. Try again.");
+        setError("Phraseology grading failed. Please try again.");
+      }
     } finally {
       setScoring(false);
       setGradingProgress(null);
+      gradingAbortRef.current = null;
+      gradingCancelledRef.current = false;
     }
   }, [messages, selectedScenario, scoring, user, voice]);
+
+  const cancelGrading = useCallback(() => {
+    if (!gradingAbortRef.current) return;
+    gradingCancelledRef.current = true;
+    try { gradingAbortRef.current.abort(); } catch { /* noop */ }
+  }, []);
 
   // Records ~2s of mic audio then plays it back so users can verify their mic works.
   const runMicTest = async () => {
@@ -1362,6 +1383,18 @@ ${transcript}`;
                     : "Grading…")
                 : "End & Score"}
             </Button>
+            {scoring && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={cancelGrading}
+                title="Stop the grading request"
+                className="text-destructive hover:text-destructive"
+              >
+                <Square className="h-3 w-3 mr-1 fill-current" />
+                Stop
+              </Button>
+            )}
             {lastScenarioId && lastScenarioId !== selectedScenario && (
               <Button
                 size="sm"
@@ -1391,7 +1424,13 @@ ${transcript}`;
                   {gradingProgress.phase === "retrying" && `Retrying (attempt ${gradingProgress.attempt})`}
                   {gradingProgress.phase === "parsing" && "Parsing grader output"}
                 </span>
-                <span className="text-muted-foreground/70">SSE</span>
+                <button
+                  type="button"
+                  onClick={cancelGrading}
+                  className="text-destructive hover:underline uppercase tracking-wider"
+                >
+                  Cancel
+                </button>
               </div>
               <div className="mt-1 h-1 rounded bg-muted overflow-hidden">
                 <div
