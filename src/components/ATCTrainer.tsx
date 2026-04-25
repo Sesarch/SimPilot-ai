@@ -284,6 +284,11 @@ const ATCTrainer = () => {
   const [sttSupported, setSttSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
+  const [gradingProgress, setGradingProgress] = useState<{
+    phase: "connecting" | "streaming" | "retrying" | "parsing";
+    attempt: number;
+    chars: number;
+  } | null>(null);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
   // Mic-test state: idle | recording | playing
   const [micTestState, setMicTestState] = useState<"idle" | "recording" | "playing">("idle");
@@ -692,6 +697,7 @@ const ATCTrainer = () => {
 
     const scenario = scenarios.find((s) => s.id === selectedScenario)!;
     setScoring(true);
+    setGradingProgress({ phase: "connecting", attempt: 1, chars: 0 });
     setError(null);
 
     // Build transcript for the grader
@@ -744,7 +750,8 @@ ${transcript}`;
       const isRetryableStatus = (s: number) => s === 408 || s === 425 || s === 429 || (s >= 500 && s <= 599);
       const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-      const fetchAndParse = async (): Promise<string> => {
+      const fetchAndParse = async (attemptNum: number): Promise<string> => {
+        setGradingProgress({ phase: "connecting", attempt: attemptNum, chars: 0 });
         const resp = await fetch(`${SUPABASE_URL}/functions/v1/pilot-chat`, {
           method: "POST",
           headers: {
@@ -767,10 +774,12 @@ ${transcript}`;
           throw err;
         }
 
+        setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: 0 });
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
         let raw = "";
+        let lastUiUpdate = 0;
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
@@ -790,7 +799,14 @@ ${transcript}`;
               if (delta) raw += delta;
             } catch { /* ignore malformed chunk */ }
           }
+          // Throttle UI updates so we re-render at most every 100ms.
+          const now = Date.now();
+          if (now - lastUiUpdate > 100) {
+            lastUiUpdate = now;
+            setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: raw.length });
+          }
         }
+        setGradingProgress({ phase: "parsing", attempt: attemptNum, chars: raw.length });
         if (!raw.trim()) {
           const err: any = new Error("Grader returned empty stream");
           err.retryable = true;
@@ -803,7 +819,7 @@ ${transcript}`;
       let lastErr: any = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          raw = await fetchAndParse();
+          raw = await fetchAndParse(attempt);
           lastErr = null;
           break;
         } catch (e: any) {
@@ -812,6 +828,7 @@ ${transcript}`;
           if (!retryable || attempt === MAX_ATTEMPTS) break;
           const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 250);
           console.warn(`[ATCTrainer] grader attempt ${attempt} failed, retrying in ${delay}ms`, e?.message);
+          setGradingProgress({ phase: "retrying", attempt: attempt + 1, chars: 0 });
           await sleep(delay);
         }
       }
@@ -956,6 +973,7 @@ ${transcript}`;
       setError("Phraseology grading failed. Please try again.");
     } finally {
       setScoring(false);
+      setGradingProgress(null);
     }
   }, [messages, selectedScenario, scoring, user, voice]);
 
@@ -1332,7 +1350,17 @@ ${transcript}`;
               ) : (
                 <ClipboardCheck className="h-3 w-3 mr-1" />
               )}
-              {scoring ? "Grading…" : "End & Score"}
+              {scoring
+                ? (gradingProgress
+                    ? (gradingProgress.phase === "connecting"
+                        ? `Connecting${gradingProgress.attempt > 1 ? ` (try ${gradingProgress.attempt})` : ""}…`
+                        : gradingProgress.phase === "streaming"
+                          ? `Grading… ${gradingProgress.chars} chars`
+                          : gradingProgress.phase === "retrying"
+                            ? `Retrying (try ${gradingProgress.attempt})…`
+                            : "Finalizing…")
+                    : "Grading…")
+                : "End & Score"}
             </Button>
             {lastScenarioId && lastScenarioId !== selectedScenario && (
               <Button
@@ -1351,6 +1379,33 @@ ${transcript}`;
             </Button>
           </div>
         </div>
+
+        {scoring && gradingProgress && (
+          <div className="px-4 py-2 border-b bg-muted/40 flex items-center gap-3 text-xs font-mono">
+            <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="uppercase tracking-wider text-muted-foreground">
+                  {gradingProgress.phase === "connecting" && `Connecting to grader${gradingProgress.attempt > 1 ? ` · attempt ${gradingProgress.attempt}` : ""}`}
+                  {gradingProgress.phase === "streaming" && `Receiving grader response · ${gradingProgress.chars.toLocaleString()} chars`}
+                  {gradingProgress.phase === "retrying" && `Retrying (attempt ${gradingProgress.attempt})`}
+                  {gradingProgress.phase === "parsing" && "Parsing grader output"}
+                </span>
+                <span className="text-muted-foreground/70">SSE</span>
+              </div>
+              <div className="mt-1 h-1 rounded bg-muted overflow-hidden">
+                <div
+                  className={`h-full bg-primary transition-all duration-200 ${gradingProgress.phase === "streaming" ? "" : "animate-pulse"}`}
+                  style={{
+                    width: gradingProgress.phase === "streaming"
+                      ? `${Math.min(95, 10 + Math.min(gradingProgress.chars, 1500) / 1500 * 85)}%`
+                      : gradingProgress.phase === "parsing" ? "100%" : "20%",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[13px] leading-relaxed">
           {!selectedScenario && (
