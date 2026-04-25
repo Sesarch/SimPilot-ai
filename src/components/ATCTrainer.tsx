@@ -750,7 +750,8 @@ ${transcript}`;
       const isRetryableStatus = (s: number) => s === 408 || s === 425 || s === 429 || (s >= 500 && s <= 599);
       const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-      const fetchAndParse = async (): Promise<string> => {
+      const fetchAndParse = async (attemptNum: number): Promise<string> => {
+        setGradingProgress({ phase: "connecting", attempt: attemptNum, chars: 0 });
         const resp = await fetch(`${SUPABASE_URL}/functions/v1/pilot-chat`, {
           method: "POST",
           headers: {
@@ -773,10 +774,12 @@ ${transcript}`;
           throw err;
         }
 
+        setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: 0 });
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
         let raw = "";
+        let lastUiUpdate = 0;
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
@@ -796,7 +799,14 @@ ${transcript}`;
               if (delta) raw += delta;
             } catch { /* ignore malformed chunk */ }
           }
+          // Throttle UI updates so we re-render at most every 100ms.
+          const now = Date.now();
+          if (now - lastUiUpdate > 100) {
+            lastUiUpdate = now;
+            setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: raw.length });
+          }
         }
+        setGradingProgress({ phase: "parsing", attempt: attemptNum, chars: raw.length });
         if (!raw.trim()) {
           const err: any = new Error("Grader returned empty stream");
           err.retryable = true;
