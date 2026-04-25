@@ -623,11 +623,12 @@ const ATCTrainer = () => {
           name: f.name,
           freq: formatFreq(f.freq),
         })),
+        currentAtisInfo: currentAtis && currentAtis.icao === liveAirport.icao ? currentAtis.info : null,
       });
     }
     const sc = scenarios.find((s) => s.id === selectedScenario);
     return FAA_PROMPT(sc?.label ?? "ATC Communications");
-  }, [selectedScenario, liveAirport, activeFreq]);
+  }, [selectedScenario, liveAirport, activeFreq, currentAtis]);
 
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
