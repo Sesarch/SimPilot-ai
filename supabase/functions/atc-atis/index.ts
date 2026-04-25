@@ -58,13 +58,15 @@ async function fetchMetar(icao: string): Promise<string | null> {
   }
 }
 
-async function synthAtisFromMetar(icao: string, metar: string, info: string): Promise<string> {
+async function synthAtisFromMetar(icao: string, metar: string, info: string, airportName?: string): Promise<string> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  const displayName = airportName || icao;
   if (!apiKey) {
-    return `${icao} information ${info}, automated weather: ${metar}. Advise on initial contact you have information ${info}.`;
+    return `${displayName} information ${info}, automated weather: ${metar}. Advise on initial contact you have information ${info}.`;
   }
-  const prompt = `Convert this METAR into a SHORT, plain-English ATIS broadcast for ${icao}. Keep it under 90 words.
-Use standard ATIS structure: airport name + "information ${info}" + time (Zulu from METAR), wind, visibility, sky condition, temp/dewpoint, altimeter, runway in use (pick most into-the-wind), notes ("Notice to airmen, none."), and end with: "Advise on initial contact you have information ${info}."
+  const prompt = `Convert this METAR into a SHORT, plain-English ATIS broadcast for ${displayName} (${icao}). Keep it under 90 words.
+Begin with EXACTLY: "${displayName} Airport, information ${info}, " — do NOT invent a different airport name.
+Then include time (Zulu from METAR), wind, visibility, sky condition, temp/dewpoint, altimeter, runway in use (pick most into-the-wind), notes ("Notice to airmen, none."), and end with: "Advise on initial contact you have information ${info}."
 Numbers spoken individually ("two niner point niner two"), "niner" for 9. No markdown, just one paragraph.
 
 METAR: ${metar}`;
