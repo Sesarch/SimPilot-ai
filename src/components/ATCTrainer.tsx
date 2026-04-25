@@ -973,6 +973,7 @@ ${transcript}`;
       setError("Phraseology grading failed. Please try again.");
     } finally {
       setScoring(false);
+      setGradingProgress(null);
     }
   }, [messages, selectedScenario, scoring, user, voice]);
 
