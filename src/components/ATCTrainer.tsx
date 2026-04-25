@@ -2636,13 +2636,50 @@ ${transcript}`;
                         </span>
                       )}
                     </div>
-                    <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground shrink-0">
-                      {currentAtis.source === "datis"
-                        ? "D-ATIS"
+                    {(() => {
+                      // Audio source badge — reflects what the pilot is actually
+                      // hearing (or would hear) on this ATIS frequency.
+                      // Priority: LiveATC stream actively playing > text source.
+                      const isLive = tunedToAtis && atisAudioState === "playing" && !!currentAtis.audioUrl;
+                      type SrcMeta = { label: string; title: string; cls: string };
+                      const meta: SrcMeta = isLive
+                        ? {
+                            label: "LiveATC",
+                            title: "Real-world ATIS audio streaming from LiveATC.net",
+                            cls: "border-red-500/60 bg-red-500/10 text-red-500",
+                          }
+                        : currentAtis.source === "datis"
+                        ? {
+                            label: "D-ATIS",
+                            title: "Official FAA Digital ATIS text (spoken via TTS)",
+                            cls: "border-emerald-500/60 bg-emerald-500/10 text-emerald-500",
+                          }
                         : currentAtis.source === "vatsim"
-                        ? "VATSIM"
-                        : "SYNTH"}
-                    </span>
+                        ? {
+                            label: "VATSIM",
+                            title: "Live VATSIM controller ATIS text (spoken via TTS)",
+                            cls: "border-violet-500/60 bg-violet-500/10 text-violet-500",
+                          }
+                        : {
+                            label: "Synthetic",
+                            title: "Generated from current METAR (no real ATIS available)",
+                            cls: "border-amber-500/60 bg-amber-500/10 text-amber-500",
+                          };
+                      return (
+                        <span
+                          role="status"
+                          aria-label={`ATIS audio source: ${meta.label}`}
+                          title={meta.title}
+                          className={cn(
+                            "font-display text-[9px] tracking-[0.25em] uppercase rounded border px-1.5 py-0.5 shrink-0 flex items-center gap-1",
+                            meta.cls,
+                          )}
+                        >
+                          <span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-current" />
+                          {meta.label}
+                        </span>
+                      );
+                    })()}
                   </div>
                 );
               })()}
