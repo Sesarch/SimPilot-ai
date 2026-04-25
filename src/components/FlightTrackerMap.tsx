@@ -483,6 +483,26 @@ const FlightTrackerMap = () => {
         )}
 
         <div className="absolute bottom-3 right-3 z-[1000] flex items-center gap-1.5">
+          <div
+            className="bg-background/90 backdrop-blur-sm border border-border rounded flex items-center text-[10px] overflow-hidden"
+            title="Map basemap theme"
+          >
+            {(["voyager", "light", "dark"] as const).map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setMapTheme(t)}
+                aria-pressed={mapTheme === t}
+                className={`px-2 py-1 transition-colors ${
+                  mapTheme === t
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {themeLabel[t]}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={cycleAttributionMode}
