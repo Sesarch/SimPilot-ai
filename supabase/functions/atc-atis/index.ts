@@ -98,10 +98,12 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     let icao = url.searchParams.get("icao");
     let freq = url.searchParams.get("freq") ?? undefined;
+    let airportName: string | undefined;
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
       icao = icao ?? body.icao;
       freq = freq ?? body.freq;
+      airportName = body.airportName;
     }
     if (!icao || !/^[A-Z0-9]{3,4}$/i.test(icao)) {
       return new Response(JSON.stringify({ error: "icao required (3–4 chars)" }), {
@@ -120,13 +122,12 @@ Deno.serve(async (req) => {
     const metar = await fetchMetar(icao);
     const info = infoLetterFromTime();
     if (!metar) {
-      // Last-ditch generic ATIS so the radio doesn't go silent.
-      const text = `${icao} information ${info}, weather not available. Advise on initial contact you have information ${info}.`;
+      const text = `${airportName || icao} information ${info}, weather not available. Advise on initial contact you have information ${info}.`;
       return new Response(JSON.stringify({ source: "synth", icao, freq, info, text }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const text = await synthAtisFromMetar(icao, metar, info);
+    const text = await synthAtisFromMetar(icao, metar, info, airportName);
     return new Response(JSON.stringify({ source: "synth", icao, freq, info, text, metar }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
