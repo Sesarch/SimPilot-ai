@@ -272,6 +272,15 @@ const ATCTrainer = () => {
   // explicitly press "Transmit" (or Enter) to send it on the air. Editing
   // the draft is allowed so users can clean up STT mistakes before keying.
   const [pendingDraft, setPendingDraft] = useState("");
+  // When ATC says "wrong facility — call X on Y" the model emits a structured
+  // [CORRECTION ...] tag. We surface the latest one as a banner with one-click
+  // auto-tune. Cleared once the pilot acknowledges or tunes correctly.
+  const [pendingCorrection, setPendingCorrection] = useState<{
+    facility: FacilityKind;
+    freq: number;
+    facilityName: string;
+    msgId: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
