@@ -708,7 +708,7 @@ const ATCTrainer = () => {
 
     const scenario = scenarios.find((s) => s.id === selectedScenario)!;
     setScoring(true);
-    setGradingProgress({ phase: "connecting", attempt: 1, chars: 0 });
+    setGradingProgress({ phase: "connecting", attempt: 1, chars: 0, etaSeconds: null, charsPerSecond: 0 });
     setError(null);
     gradingCancelledRef.current = false;
     const abortController = new AbortController();
