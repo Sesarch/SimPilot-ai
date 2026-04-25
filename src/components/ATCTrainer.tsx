@@ -765,8 +765,22 @@ ${transcript}`;
       const isRetryableStatus = (s: number) => s === 408 || s === 425 || s === 429 || (s >= 500 && s <= 599);
       const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+      // Heuristics for ETA: a typical grader JSON reply is ~700–1000 chars.
+      // We assume 900 as the target output length and add a per-retry penalty
+      // so the estimate doesn't collapse to "0s" right when a retry kicks in.
+      const TARGET_CHARS = 900;
+      const RETRY_PENALTY_SEC = 4; // approx connect + backoff per extra attempt
+      const computeEta = (charsSoFar: number, cps: number, attemptNum: number): number | null => {
+        if (cps <= 0) return null;
+        const remaining = Math.max(0, TARGET_CHARS - charsSoFar);
+        const streamSec = remaining / cps;
+        const retryPenalty = Math.max(0, MAX_ATTEMPTS - attemptNum) * RETRY_PENALTY_SEC * 0.25;
+        // Add a small parsing/save buffer so ETA doesn't hit 0 before the UI updates.
+        return Math.max(1, Math.round(streamSec + retryPenalty + 0.8));
+      };
+
       const fetchAndParse = async (attemptNum: number): Promise<string> => {
-        setGradingProgress({ phase: "connecting", attempt: attemptNum, chars: 0 });
+        setGradingProgress({ phase: "connecting", attempt: attemptNum, chars: 0, etaSeconds: null, charsPerSecond: 0 });
         const resp = await fetch(`${SUPABASE_URL}/functions/v1/pilot-chat`, {
           method: "POST",
           headers: {
@@ -790,7 +804,8 @@ ${transcript}`;
           throw err;
         }
 
-        setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: 0 });
+        const streamStart = performance.now();
+        setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: 0, etaSeconds: null, charsPerSecond: 0 });
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
@@ -819,13 +834,18 @@ ${transcript}`;
           const now = Date.now();
           if (now - lastUiUpdate > 100) {
             lastUiUpdate = now;
-            setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: raw.length });
+            const elapsedSec = Math.max(0.001, (performance.now() - streamStart) / 1000);
+            // Only start estimating once we have at least ~300ms of stream data
+            // so an early burst doesn't produce a wildly optimistic ETA.
+            const cps = elapsedSec >= 0.3 ? raw.length / elapsedSec : 0;
+            const eta = elapsedSec >= 0.3 ? computeEta(raw.length, cps, attemptNum) : null;
+            setGradingProgress({ phase: "streaming", attempt: attemptNum, chars: raw.length, etaSeconds: eta, charsPerSecond: cps });
           }
         }
         // Stream finished — past the cancellable window. Hide Stop / Cancel
         // immediately so the user can't click them while we parse + save.
         setCanCancelGrading(false);
-        setGradingProgress({ phase: "parsing", attempt: attemptNum, chars: raw.length });
+        setGradingProgress({ phase: "parsing", attempt: attemptNum, chars: raw.length, etaSeconds: 1, charsPerSecond: 0 });
         if (!raw.trim()) {
           const err: any = new Error("Grader returned empty stream");
           err.retryable = true;
