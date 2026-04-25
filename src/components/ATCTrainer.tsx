@@ -2049,19 +2049,20 @@ ${transcript}`;
                       break;
                     }
                   }
-                  if (!fromCustom)
-                  if (/\btaxi\b/.test(said)) { action = "taxi clearance"; strength = "strong"; expectedFac = "GROUND"; }
-                  else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b/.test(said)) { action = "takeoff clearance"; strength = "strong"; expectedFac = "TOWER"; }
-                  else if (/\bdeparture\b/.test(said)) { action = "takeoff clearance"; strength = "weak"; expectedFac = "TOWER"; }
-                  else if (/\bcleared?\s+to\s+land|\bfull\s+stop\b/.test(said)) { action = "landing clearance"; strength = "strong"; expectedFac = "TOWER"; }
-                  else if (/\blanding\b/.test(said)) { action = "landing clearance"; strength = "weak"; expectedFac = "TOWER"; }
-                  else if (/\bifr\s+clearance|\bready\s+to\s+copy\b/.test(said)) { action = "IFR clearance"; strength = "strong"; expectedFac = "CLEARANCE"; }
-                  else if (/\bclearance\b|\bifr\b/.test(said)) { action = "IFR clearance"; strength = "weak"; expectedFac = "CLEARANCE"; }
-                  else if (/\bvfr\s+departure\b/.test(said)) { action = "VFR request"; strength = "strong"; expectedFac = "TOWER"; }
-                  else if (/\bvfr\b/.test(said)) { action = "VFR request"; strength = "weak"; }
-                  else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) { action = "radio check"; strength = "strong"; }
-                  else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) { action = "check-in"; strength = "strong"; }
-                  else if (/\brequest\b/.test(said)) { action = "request"; strength = "weak"; }
+                  if (!fromCustom) {
+                    if (/\btaxi\b/.test(said)) { action = "taxi clearance"; strength = "strong"; expectedFac = "GROUND"; }
+                    else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b/.test(said)) { action = "takeoff clearance"; strength = "strong"; expectedFac = "TOWER"; }
+                    else if (/\bdeparture\b/.test(said)) { action = "takeoff clearance"; strength = "weak"; expectedFac = "TOWER"; }
+                    else if (/\bcleared?\s+to\s+land|\bfull\s+stop\b/.test(said)) { action = "landing clearance"; strength = "strong"; expectedFac = "TOWER"; }
+                    else if (/\blanding\b/.test(said)) { action = "landing clearance"; strength = "weak"; expectedFac = "TOWER"; }
+                    else if (/\bifr\s+clearance|\bready\s+to\s+copy\b/.test(said)) { action = "IFR clearance"; strength = "strong"; expectedFac = "CLEARANCE"; }
+                    else if (/\bclearance\b|\bifr\b/.test(said)) { action = "IFR clearance"; strength = "weak"; expectedFac = "CLEARANCE"; }
+                    else if (/\bvfr\s+departure\b/.test(said)) { action = "VFR request"; strength = "strong"; expectedFac = "TOWER"; }
+                    else if (/\bvfr\b/.test(said)) { action = "VFR request"; strength = "weak"; }
+                    else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) { action = "radio check"; strength = "strong"; }
+                    else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) { action = "check-in"; strength = "strong"; }
+                    else if (/\brequest\b/.test(said)) { action = "request"; strength = "weak"; }
+                  }
                   // Confidence: strong cue + facility match → HIGH; strong cue
                   // alone or weak cue + facility match → MEDIUM; everything
                   // else (no cue, or weak cue with no facility match) → LOW.
