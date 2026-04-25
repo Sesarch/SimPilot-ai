@@ -629,6 +629,57 @@ const ATCTrainer = () => {
     ]);
   };
 
+  /**
+   * Parse a `[CORRECTION facility=TOWER freq=119.200]` marker out of an ATC
+   * reply. Resolves the canonical facility name from the current airport's
+   * published list (falls back to the kind label if not found).
+   */
+  const parseCorrection = useCallback(
+    (text: string): { facility: FacilityKind; freq: number; facilityName: string } | null => {
+      const m = text.match(/\[CORRECTION\s+([^\]]+)\]/i);
+      if (!m) return null;
+      const fields = m[1];
+      const facMatch = fields.match(/facility\s*=\s*([A-Z]+)/i);
+      const freqMatch = fields.match(/freq\s*=\s*([0-9.]+)/i);
+      if (!facMatch || !freqMatch) return null;
+      const kind = facMatch[1].toUpperCase() as FacilityKind;
+      const freq = parseFloat(freqMatch[1]);
+      if (!Number.isFinite(freq)) return null;
+      const named = liveAirport?.facilities.find(
+        (f) => Math.abs(f.freq - freq) <= 0.015 && f.kind === kind,
+      );
+      return {
+        facility: kind,
+        freq,
+        facilityName: named?.name ?? `${liveAirport?.callName ?? ""} ${kind}`.trim(),
+      };
+    },
+    [liveAirport],
+  );
+
+  /** Acknowledge the correction by auto-tuning to the suggested facility. */
+  const acceptCorrection = useCallback(() => {
+    if (!pendingCorrection || !liveAirport) return;
+    const target = liveAirport.facilities.find(
+      (f) => f.kind === pendingCorrection.facility && Math.abs(f.freq - pendingCorrection.freq) <= 0.015,
+    );
+    if (target) {
+      tuneToFacility(target);
+    } else {
+      const freqStr = formatFreq(pendingCorrection.freq);
+      setStandbyFreq(activeFreq);
+      setActiveFreq(freqStr);
+      setSwapAnim(true);
+      window.setTimeout(() => setSwapAnim(false), 350);
+    }
+    setPendingCorrection(null);
+  }, [pendingCorrection, liveAirport, activeFreq]);
+
+  /** Dismiss the correction banner without changing the radio. */
+  const dismissCorrection = useCallback(() => {
+    setPendingCorrection(null);
+  }, []);
+
 
   const speakATC = async (text: string) => {
     // Strip both the [FEEDBACK] coaching line AND any [CORRECTION ...] marker
