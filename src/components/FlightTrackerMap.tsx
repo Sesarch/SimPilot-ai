@@ -49,6 +49,61 @@ const FlyToLocation = ({ lat, lng, zoom }: { lat: number; lng: number; zoom: num
   return null;
 };
 
+// Persists the current map center/zoom under a per-theme localStorage key,
+// and restores the saved view whenever the active theme changes.
+const ThemeViewPersister = ({
+  themeKey,
+  storageKey,
+}: {
+  themeKey: string;
+  storageKey: (t: string) => string;
+}) => {
+  const map = useMap();
+  const lastThemeRef = useRef(themeKey);
+
+  // Save view on move/zoom end for the current theme.
+  useMapEvents({
+    moveend: () => {
+      try {
+        const c = map.getCenter();
+        window.localStorage.setItem(
+          storageKey(themeKey),
+          JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }),
+        );
+      } catch { /* noop */ }
+    },
+    zoomend: () => {
+      try {
+        const c = map.getCenter();
+        window.localStorage.setItem(
+          storageKey(themeKey),
+          JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }),
+        );
+      } catch { /* noop */ }
+    },
+  });
+
+  // When the theme changes, restore that theme's saved view (if any).
+  useEffect(() => {
+    if (lastThemeRef.current === themeKey) return;
+    lastThemeRef.current = themeKey;
+    try {
+      const raw = window.localStorage.getItem(storageKey(themeKey));
+      if (!raw) return;
+      const v = JSON.parse(raw) as { lat?: number; lng?: number; zoom?: number };
+      if (
+        typeof v.lat === "number" &&
+        typeof v.lng === "number" &&
+        typeof v.zoom === "number"
+      ) {
+        map.setView([v.lat, v.lng], v.zoom, { animate: true });
+      }
+    } catch { /* noop */ }
+  }, [themeKey, map, storageKey]);
+
+  return null;
+};
+
 // Track position history for selected aircraft
 interface PositionRecord {
   lat: number;
