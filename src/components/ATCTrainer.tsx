@@ -318,6 +318,8 @@ const ATCTrainer = () => {
     freq: number;
     facilityName: string;
     msgId: string;
+    /** What the pilot actually said when the wrong-facility correction fired. */
+    attempted?: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
