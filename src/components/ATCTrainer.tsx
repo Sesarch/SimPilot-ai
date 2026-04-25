@@ -2011,14 +2011,61 @@ ${transcript}`;
                 </div>
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
+                {/* One-click: tune to the expected facility AND pre-fill the
+                    transmit input with a matching FAA-phraseology template
+                    (callsign + facility + inferred request) so the pilot can
+                    just edit details and key the mic. */}
+                {(() => {
+                  const said = (pendingCorrection.attempted ?? "").toLowerCase();
+                  const fac = pendingCorrection.facility;
+                  const facShort: Record<string, string> = {
+                    TOWER: "Tower", GROUND: "Ground", CLEARANCE: "Clearance",
+                    APPROACH: "Approach", DEPARTURE: "Departure", CENTER: "Center",
+                    ATIS: "ATIS", AWOS: "AWOS", CTAF: "Traffic", UNICOM: "UNICOM", GUARD: "Guard",
+                  };
+                  const icao = liveAirport?.icao ?? "";
+                  const station = `${icao} ${facShort[fac] ?? fac}`.trim();
+                  const cs = "November One Two Three Alpha Bravo";
+                  let template = `${station}, ${cs}, request.`;
+                  if (fac === "GROUND" && /\btaxi\b/.test(said))
+                    template = `${station}, ${cs}, ready to taxi with information Alpha.`;
+                  else if (fac === "CLEARANCE" || /\bifr\s+clearance|\bclearance\b|\bifr\b/.test(said))
+                    template = `${station}, ${cs}, IFR to [destination], ready to copy.`;
+                  else if (fac === "TOWER" && /\bcleared?\s+for\s+takeoff|\btakeoff\b|\bdeparture\b/.test(said))
+                    template = `${station}, ${cs}, holding short runway [XX], ready for departure.`;
+                  else if (fac === "TOWER" && /\bcleared?\s+to\s+land|\blanding\b|\bfull\s+stop\b/.test(said))
+                    template = `${station}, ${cs}, [position], full stop.`;
+                  else if (fac === "TOWER")
+                    template = `${station}, ${cs}, [position and request].`;
+                  else if (fac === "APPROACH" || fac === "DEPARTURE" || fac === "CENTER")
+                    template = `${station}, ${cs}, [altitude], with you.`;
+                  else if (fac === "ATIS" || fac === "AWOS")
+                    template = "";
+                  const handleRetuneAndTemplate = () => {
+                    acceptCorrection();
+                    if (template) setPendingDraft(template);
+                  };
+                  return (
+                    <Button
+                      size="sm"
+                      onClick={handleRetuneAndTemplate}
+                      className="h-7 text-[10px] tracking-[0.2em] uppercase font-display bg-amber-500 hover:bg-amber-500/90 text-background border border-amber-500"
+                      title={`Tune to ${fac} on ${formatFreq(pendingCorrection.freq)} and pre-fill transmit template`}
+                    >
+                      <ArrowLeftRight className="h-3 w-3 mr-1" />
+                      Retune for this request
+                    </Button>
+                  );
+                })()}
                 <Button
                   size="sm"
+                  variant="ghost"
                   onClick={acceptCorrection}
-                  className="h-7 text-[10px] tracking-[0.2em] uppercase font-display bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/60"
+                  className="h-7 text-[10px] tracking-[0.2em] uppercase font-display text-amber-500 border border-amber-500/60 hover:bg-amber-500/10"
                   title={`Auto-tune to ${pendingCorrection.facility} on ${formatFreq(pendingCorrection.freq)}`}
                 >
                   <ArrowLeftRight className="h-3 w-3 mr-1" />
-                  Retune to {pendingCorrection.facility}
+                  Retune only
                 </Button>
                 {liveAirport && (() => {
                   // Sort published facilities into the standard pilot priority order.
