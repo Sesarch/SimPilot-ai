@@ -1442,7 +1442,17 @@ ${transcript}`;
                   {gradingProgress.phase === "retrying" && `Retrying (attempt ${gradingProgress.attempt})`}
                   {gradingProgress.phase === "parsing" && "Parsing grader output"}
                 </span>
-                <span className="text-muted-foreground/70">SSE</span>
+                {canCancelGrading ? (
+                  <button
+                    type="button"
+                    onClick={cancelGrading}
+                    className="text-destructive hover:underline uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                ) : (
+                  <span className="text-muted-foreground/70">SSE</span>
+                )}
               </div>
               <div className="mt-1 h-1 rounded bg-muted overflow-hidden">
                 <div
