@@ -760,13 +760,18 @@ const ATCTrainer = () => {
       const reply = data?.choices?.[0]?.message?.content || data?.reply || "";
       const atcMsg: ATCMessage = { id: crypto.randomUUID(), role: "atc", content: reply };
       setMessages((prev) => [...prev, atcMsg]);
+      // Detect a wrong-facility correction and surface the banner.
+      const correction = parseCorrection(reply);
+      if (correction) {
+        setPendingCorrection({ ...correction, msgId: atcMsg.id });
+      }
       void speakATC(reply);
     } catch {
       setError("Connection lost. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
