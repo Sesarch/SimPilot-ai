@@ -357,7 +357,26 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    let systemPrompt = MODE_PROMPTS[mode] || MODE_PROMPTS.general;
+    // ATC mode: the caller (ATC Trainer) provides its own system prompt as the
+    // first message and consumes a non-streaming JSON response via
+    // supabase.functions.invoke(). Detect either an explicit mode flag OR a
+    // client-supplied system message at messages[0] and respect it verbatim.
+    const clientSystem =
+      Array.isArray(messages) && messages[0]?.role === "system"
+        ? String(messages[0].content ?? "")
+        : "";
+    const isAtcMode = mode === "atc" || /Air Traffic Controller|FAA-certified Air Traffic|radio drill/i.test(clientSystem);
+
+    let systemPrompt: string;
+    let chatMessages: any[];
+    if (isAtcMode && clientSystem) {
+      // Use the ATC system prompt verbatim — do NOT prepend the CFI persona.
+      systemPrompt = clientSystem;
+      chatMessages = messages.slice(1);
+    } else {
+      systemPrompt = MODE_PROMPTS[mode] || MODE_PROMPTS.general;
+      chatMessages = messages;
+    }
 
     if (mode === "oral_exam" && stressMode) {
       systemPrompt += `\n\n🔥 STRESS MODE ACTIVE 🔥
