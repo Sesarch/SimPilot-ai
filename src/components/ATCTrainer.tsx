@@ -1325,19 +1325,15 @@ ${transcript}`;
   /** Transmit the staged draft on the air. No-op if empty or busy. */
   const transmitDraft = useCallback(() => {
     const text = pendingDraft.trim();
-    if (!text || loading || speaking || micUiActiveRef.current) return;
+    if (!text || loading || speaking || pttHeld || pttActive) return;
     setPendingDraft("");
     void sendPilotTransmission(text);
-  }, [pendingDraft, loading, speaking, sendPilotTransmission]);
+  }, [pendingDraft, loading, speaking, pttHeld, pttActive, sendPilotTransmission]);
 
   /** Discard the staged draft without transmitting. */
   const clearDraft = useCallback(() => {
     setPendingDraft("");
   }, []);
-
-  // Ref mirror so transmitDraft can check the live mic state without
-  // re-creating the callback every render.
-  const micUiActiveRef = useRef(false);
 
   const activeScenario = scenarios.find((s) => s.id === selectedScenario);
   const isLiveMode = selectedScenario === "live" && !!liveAirport;
