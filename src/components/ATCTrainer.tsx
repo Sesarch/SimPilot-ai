@@ -985,15 +985,34 @@ ${transcript}`;
       }
       // Notify Flight Deck / Recent Activity to refresh instantly
       emitDashboardRefresh({ source: "atc" });
-    } catch (e) {
-      console.error("Phraseology scoring failed", e);
-      toast.error("Couldn't score this scenario. Try again.");
-      setError("Phraseology grading failed. Please try again.");
+    } catch (e: any) {
+      // Hide Stop / Cancel immediately on any error path too.
+      setCanCancelGrading(false);
+      if (gradingCancelledRef.current || e?.name === "AbortError") {
+        toast.message("Grading cancelled.");
+      } else {
+        console.error("Phraseology scoring failed", e);
+        toast.error("Couldn't score this scenario. Try again.");
+        setError("Phraseology grading failed. Please try again.");
+      }
     } finally {
       setScoring(false);
       setGradingProgress(null);
+      setCanCancelGrading(false);
+      gradingAbortRef.current = null;
+      gradingCancelledRef.current = false;
     }
   }, [messages, selectedScenario, scoring, user, voice]);
+
+  const cancelGrading = useCallback(() => {
+    // Guard: only fire while there's a live request and the cancellable window
+    // is open. This is the same flag that controls the button visibility, so
+    // even if a stale click slips in we won't abort a no-op.
+    if (!gradingAbortRef.current) return;
+    gradingCancelledRef.current = true;
+    setCanCancelGrading(false);
+    try { gradingAbortRef.current.abort(); } catch { /* noop */ }
+  }, []);
 
   // Records ~2s of mic audio then plays it back so users can verify their mic works.
   const runMicTest = async () => {
