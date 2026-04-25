@@ -169,6 +169,7 @@ const FlightTrackerMap = () => {
   const isMobile = useIsMobile();
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
   const traceAbortRef = useRef<AbortController | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
   type MapTheme = "voyager" | "light" | "dark";
   const [mapTheme, setMapTheme] = useState<MapTheme>(() => {
