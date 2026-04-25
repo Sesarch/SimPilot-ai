@@ -289,6 +289,13 @@ const ATCTrainer = () => {
     attempt: number;
     chars: number;
   } | null>(null);
+  // Whether the in-flight grader request can still be cancelled. Set true while
+  // the SSE fetch/stream is active, cleared the moment the stream ends, errors,
+  // or post-processing begins so the Stop button / Cancel link disappear and
+  // can no longer fire after the grading is effectively done.
+  const [canCancelGrading, setCanCancelGrading] = useState(false);
+  const gradingAbortRef = useRef<AbortController | null>(null);
+  const gradingCancelledRef = useRef(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
   // Mic-test state: idle | recording | playing
   const [micTestState, setMicTestState] = useState<"idle" | "recording" | "playing">("idle");
