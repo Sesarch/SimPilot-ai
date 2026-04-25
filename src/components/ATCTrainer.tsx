@@ -732,54 +732,90 @@ ${transcript}`;
     try {
       // pilot-chat returns a streamed SSE response; supabase.functions.invoke
       // does not parse SSE, so we call the function URL directly and assemble
-      // the streamed text ourselves.
+      // the streamed text ourselves. Wrapped in a retry-with-backoff helper so
+      // transient network errors / 5xx / rate limits don't strand the user on
+      // "Grading…".
       const { data: { session } } = await supabase.auth.getSession();
       const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL;
       const SUPABASE_ANON = (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/pilot-chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: SUPABASE_ANON,
-          Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON}`,
-        },
-        body: JSON.stringify({
-          messages: [
-            { role: "system", content: SCORE_PROMPT },
-            { role: "user", content: "Grade now. Return only JSON." },
-          ],
-        }),
-      });
-      if (!resp.ok || !resp.body) {
-        const txt = await resp.text().catch(() => "");
-        throw new Error(`Grader request failed (${resp.status}) ${txt}`);
-      }
 
-      // Parse SSE stream → assembled assistant text.
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
+      const MAX_ATTEMPTS = 3;
+      const BASE_DELAY_MS = 800;
+      const isRetryableStatus = (s: number) => s === 408 || s === 425 || s === 429 || (s >= 500 && s <= 599);
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+      const fetchAndParse = async (): Promise<string> => {
+        const resp = await fetch(`${SUPABASE_URL}/functions/v1/pilot-chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON,
+            Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON}`,
+          },
+          body: JSON.stringify({
+            messages: [
+              { role: "system", content: SCORE_PROMPT },
+              { role: "user", content: "Grade now. Return only JSON." },
+            ],
+          }),
+        });
+        if (!resp.ok || !resp.body) {
+          const txt = await resp.text().catch(() => "");
+          const err: any = new Error(`Grader request failed (${resp.status}) ${txt}`);
+          err.status = resp.status;
+          err.retryable = isRetryableStatus(resp.status) || !resp.body;
+          throw err;
+        }
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let raw = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const payload = trimmed.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const evt = JSON.parse(payload);
+              const delta = evt?.choices?.[0]?.delta?.content
+                ?? evt?.choices?.[0]?.message?.content
+                ?? "";
+              if (delta) raw += delta;
+            } catch { /* ignore malformed chunk */ }
+          }
+        }
+        if (!raw.trim()) {
+          const err: any = new Error("Grader returned empty stream");
+          err.retryable = true;
+          throw err;
+        }
+        return raw;
+      };
+
       let raw = "";
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith("data:")) continue;
-          const payload = trimmed.slice(5).trim();
-          if (!payload || payload === "[DONE]") continue;
-          try {
-            const evt = JSON.parse(payload);
-            const delta = evt?.choices?.[0]?.delta?.content
-              ?? evt?.choices?.[0]?.message?.content
-              ?? "";
-            if (delta) raw += delta;
-          } catch { /* ignore malformed chunk */ }
+      let lastErr: any = null;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          raw = await fetchAndParse();
+          lastErr = null;
+          break;
+        } catch (e: any) {
+          lastErr = e;
+          const retryable = e?.retryable !== false; // network errors default to retryable
+          if (!retryable || attempt === MAX_ATTEMPTS) break;
+          const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 250);
+          console.warn(`[ATCTrainer] grader attempt ${attempt} failed, retrying in ${delay}ms`, e?.message);
+          await sleep(delay);
         }
       }
+      if (lastErr) throw lastErr;
 
       // Pull first {...} block
       const match = raw.match(/\{[\s\S]*\}/);
