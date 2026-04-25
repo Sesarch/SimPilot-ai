@@ -819,7 +819,7 @@ ${transcript}`;
       let lastErr: any = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
-          raw = await fetchAndParse();
+          raw = await fetchAndParse(attempt);
           lastErr = null;
           break;
         } catch (e: any) {
@@ -828,6 +828,7 @@ ${transcript}`;
           if (!retryable || attempt === MAX_ATTEMPTS) break;
           const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 250);
           console.warn(`[ATCTrainer] grader attempt ${attempt} failed, retrying in ${delay}ms`, e?.message);
+          setGradingProgress({ phase: "retrying", attempt: attempt + 1, chars: 0 });
           await sleep(delay);
         }
       }
