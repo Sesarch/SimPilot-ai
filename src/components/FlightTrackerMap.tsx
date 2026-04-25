@@ -631,7 +631,7 @@ const FlightTrackerMap = () => {
           </div>
         )}
 
-        <MapContainer center={[39, -98]} zoom={5} style={{ width: "100%", height: "100%" }} zoomControl={true}>
+        <MapContainer center={initialView.center} zoom={initialView.zoom} style={{ width: "100%", height: "100%" }} zoomControl={true}>
           <TileLayer
             key={`${mapTheme}-base`}
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
