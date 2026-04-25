@@ -324,6 +324,16 @@ const ATCTrainer = () => {
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
+  /** Rolling history of the last 5 blocked transmissions for the side panel. */
+  const [blockedHistory, setBlockedHistory] = useState<Array<{
+    id: string;
+    at: number;
+    facility: FacilityKind;
+    facilityName: string;
+    freq: number;
+    attempted: string;
+    action: string;
+  }>>([]);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
@@ -949,6 +959,29 @@ const ATCTrainer = () => {
       const correction = parseCorrection(reply);
       if (correction) {
         setPendingCorrection({ ...correction, msgId: atcMsg.id, attempted: userMsg.content });
+        // Append to the rolling Last Attempts panel (cap at 5, newest first).
+        const said = (userMsg.content ?? "").toLowerCase();
+        let action = "transmission";
+        if (/\btaxi\b/.test(said)) action = "taxi clearance";
+        else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b|\bdeparture\b/.test(said)) action = "takeoff clearance";
+        else if (/\bcleared?\s+to\s+land|\blanding\b|\bfull\s+stop\b/.test(said)) action = "landing clearance";
+        else if (/\bifr\s+clearance|\bclearance\b|\bifr\b/.test(said)) action = "IFR clearance";
+        else if (/\bvfr\s+departure|\bvfr\b/.test(said)) action = "VFR request";
+        else if (/\bready\s+to\s+copy|\brequest\b/.test(said)) action = "request";
+        else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) action = "radio check";
+        else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) action = "check-in";
+        setBlockedHistory((prev) => [
+          {
+            id: atcMsg.id,
+            at: Date.now(),
+            facility: correction.facility,
+            facilityName: correction.facilityName,
+            freq: correction.freq,
+            attempted: userMsg.content,
+            action,
+          },
+          ...prev,
+        ].slice(0, 5));
       }
       void speakATC(reply);
     } catch {
@@ -2204,6 +2237,61 @@ ${transcript}`;
                   <X className="h-3 w-3 mr-1" /> Dismiss
                 </Button>
               </div>
+            </div>
+          )}
+
+          {/* Last Attempts panel — rolling history of the most recent blocked
+              transmissions in this session. Helps the pilot spot patterns
+              (e.g. repeatedly calling Tower while tuned to Ground) at a glance. */}
+          {isLiveMode && blockedHistory.length > 0 && (
+            <div className="rounded-md border border-amber-500/30 bg-amber-500/[0.04] px-3 py-2">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <div className="font-display text-[10px] tracking-[0.3em] uppercase text-amber-500/90">
+                  Last Attempts
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBlockedHistory([])}
+                  className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground hover:text-foreground"
+                  title="Clear history"
+                >
+                  Clear
+                </button>
+              </div>
+              <ul className="space-y-1">
+                {blockedHistory.map((h) => {
+                  const KIND_ABBR: Record<string, string> = {
+                    TOWER: "TWR", GROUND: "GND", CLEARANCE: "CLNC", ATIS: "ATIS",
+                    AWOS: "AWOS", APPROACH: "APP", DEPARTURE: "DEP", CENTER: "CTR",
+                    CTAF: "CTAF", UNICOM: "UNI", GUARD: "GUARD",
+                  };
+                  const ago = Math.max(0, Math.floor((Date.now() - h.at) / 1000));
+                  const agoLabel = ago < 60 ? `${ago}s` : `${Math.floor(ago / 60)}m`;
+                  return (
+                    <li
+                      key={h.id}
+                      className="flex items-center gap-2 text-[11px] leading-snug rounded px-1.5 py-1 hover:bg-amber-500/[0.06]"
+                      title={h.attempted}
+                    >
+                      <span className="font-display text-[9px] tracking-[0.2em] uppercase text-amber-500 border border-amber-500/40 bg-amber-500/10 rounded px-1 py-px shrink-0">
+                        {KIND_ABBR[h.facility] ?? h.facility}
+                      </span>
+                      <span className="font-mono tabular-nums text-[10px] text-muted-foreground shrink-0">
+                        {formatFreq(h.freq)}
+                      </span>
+                      <span className="text-foreground/90 truncate flex-1 min-w-0">
+                        <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground mr-1">
+                          {h.action}
+                        </span>
+                        <span className="italic text-foreground/70">“{h.attempted}”</span>
+                      </span>
+                      <span className="font-mono text-[10px] text-muted-foreground shrink-0">
+                        {agoLabel}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
 
