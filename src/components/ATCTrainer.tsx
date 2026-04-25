@@ -706,6 +706,10 @@ const ATCTrainer = () => {
     setScoring(true);
     setGradingProgress({ phase: "connecting", attempt: 1, chars: 0 });
     setError(null);
+    gradingCancelledRef.current = false;
+    const abortController = new AbortController();
+    gradingAbortRef.current = abortController;
+    setCanCancelGrading(true);
 
     // Build transcript for the grader
     const transcript = messages
