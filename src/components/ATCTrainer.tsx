@@ -514,6 +514,16 @@ const ATCTrainer = () => {
     setStandbyFreq(fac === "GND" ? "118.300" : "121.500");
   }, [selectedScenario]);
 
+  // Auto-dismiss the wrong-facility banner once the pilot tunes to (or close
+  // enough to) the corrected frequency on their own.
+  useEffect(() => {
+    if (!pendingCorrection) return;
+    const cur = parseFloat(activeFreq);
+    if (Number.isFinite(cur) && Math.abs(cur - pendingCorrection.freq) <= 0.015) {
+      setPendingCorrection(null);
+    }
+  }, [activeFreq, pendingCorrection]);
+
   // ---- Live frequency mode helpers ---------------------------------------
   /**
    * Resolve the controller persona for the currently-tuned active frequency
