@@ -540,14 +540,16 @@ const FlightTrackerMap = () => {
 
         <MapContainer center={[39, -98]} zoom={5} style={{ width: "100%", height: "100%" }} zoomControl={true}>
           <TileLayer
+            key={`${mapTheme}-base`}
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
+            url={themeTiles[mapTheme].base}
             crossOrigin
           />
           {/* Labels overlay (place names on top of aircraft tiles for legibility) */}
           <TileLayer
+            key={`${mapTheme}-labels`}
             attribution=''
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
+            url={themeTiles[mapTheme].labels}
           />
           <BoundsTracker onBoundsChange={setBounds} />
           {flyTo && <FlyToLocation lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
