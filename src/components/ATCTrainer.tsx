@@ -334,6 +334,40 @@ const ATCTrainer = () => {
     attempted: string;
     action: string;
   }>>([]);
+  /** User-defined phrase → action rules. Persisted so the parser improves
+      over time as the pilot adds their own wording for common requests. */
+  type PhraseRule = { id: string; phrase: string; action: string };
+  const [phraseRules, setPhraseRules] = useState<PhraseRule[]>(() => {
+    try {
+      const saved = localStorage.getItem("atc_phrase_rules");
+      return saved ? (JSON.parse(saved) as PhraseRule[]) : [];
+    } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_phrase_rules", JSON.stringify(phraseRules)); } catch {}
+  }, [phraseRules]);
+  const [showPhraseManager, setShowPhraseManager] = useState(false);
+  const [newPhrase, setNewPhrase] = useState("");
+  const [newAction, setNewAction] = useState("");
+  /** Classify an attempted transmission into a request action label.
+      User-defined phrases are checked FIRST so they override built-ins. */
+  const inferAction = useCallback((text: string): string => {
+    const said = (text ?? "").toLowerCase();
+    if (!said.trim()) return "transmission";
+    for (const r of phraseRules) {
+      const p = r.phrase.trim().toLowerCase();
+      if (p && said.includes(p)) return r.action.trim() || "transmission";
+    }
+    if (/\btaxi\b/.test(said)) return "taxi clearance";
+    if (/\bcleared?\s+for\s+takeoff|\btakeoff\b|\bdeparture\b/.test(said)) return "takeoff clearance";
+    if (/\bcleared?\s+to\s+land|\blanding\b|\bfull\s+stop\b/.test(said)) return "landing clearance";
+    if (/\bifr\s+clearance|\bclearance\b|\bifr\b/.test(said)) return "IFR clearance";
+    if (/\bvfr\s+departure|\bvfr\b/.test(said)) return "VFR request";
+    if (/\bready\s+to\s+copy|\brequest\b/.test(said)) return "request";
+    if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) return "radio check";
+    if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) return "check-in";
+    return "transmission";
+  }, [phraseRules]);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
@@ -960,16 +994,7 @@ const ATCTrainer = () => {
       if (correction) {
         setPendingCorrection({ ...correction, msgId: atcMsg.id, attempted: userMsg.content });
         // Append to the rolling Last Attempts panel (cap at 5, newest first).
-        const said = (userMsg.content ?? "").toLowerCase();
-        let action = "transmission";
-        if (/\btaxi\b/.test(said)) action = "taxi clearance";
-        else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b|\bdeparture\b/.test(said)) action = "takeoff clearance";
-        else if (/\bcleared?\s+to\s+land|\blanding\b|\bfull\s+stop\b/.test(said)) action = "landing clearance";
-        else if (/\bifr\s+clearance|\bclearance\b|\bifr\b/.test(said)) action = "IFR clearance";
-        else if (/\bvfr\s+departure|\bvfr\b/.test(said)) action = "VFR request";
-        else if (/\bready\s+to\s+copy|\brequest\b/.test(said)) action = "request";
-        else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) action = "radio check";
-        else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) action = "check-in";
+        const action = inferAction(userMsg.content);
         setBlockedHistory((prev) => [
           {
             id: atcMsg.id,
@@ -989,7 +1014,7 @@ const ATCTrainer = () => {
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, liveAirport, activeFreq]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, liveAirport, activeFreq, inferAction]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
@@ -2012,18 +2037,32 @@ ${transcript}`;
                   let action = "transmission";
                   let strength: "strong" | "weak" | "none" = "none";
                   let expectedFac: FacilityKind | null = null;
-                  if (/\btaxi\b/.test(said)) { action = "taxi clearance"; strength = "strong"; expectedFac = "GROUND"; }
-                  else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b/.test(said)) { action = "takeoff clearance"; strength = "strong"; expectedFac = "TOWER"; }
-                  else if (/\bdeparture\b/.test(said)) { action = "takeoff clearance"; strength = "weak"; expectedFac = "TOWER"; }
-                  else if (/\bcleared?\s+to\s+land|\bfull\s+stop\b/.test(said)) { action = "landing clearance"; strength = "strong"; expectedFac = "TOWER"; }
-                  else if (/\blanding\b/.test(said)) { action = "landing clearance"; strength = "weak"; expectedFac = "TOWER"; }
-                  else if (/\bifr\s+clearance|\bready\s+to\s+copy\b/.test(said)) { action = "IFR clearance"; strength = "strong"; expectedFac = "CLEARANCE"; }
-                  else if (/\bclearance\b|\bifr\b/.test(said)) { action = "IFR clearance"; strength = "weak"; expectedFac = "CLEARANCE"; }
-                  else if (/\bvfr\s+departure\b/.test(said)) { action = "VFR request"; strength = "strong"; expectedFac = "TOWER"; }
-                  else if (/\bvfr\b/.test(said)) { action = "VFR request"; strength = "weak"; }
-                  else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) { action = "radio check"; strength = "strong"; }
-                  else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) { action = "check-in"; strength = "strong"; }
-                  else if (/\brequest\b/.test(said)) { action = "request"; strength = "weak"; }
+                  let fromCustom = false;
+                  // User-defined phrase rules take precedence — treated as
+                  // strong matches since the pilot explicitly taught them.
+                  for (const r of phraseRules) {
+                    const p = r.phrase.trim().toLowerCase();
+                    if (p && said.includes(p)) {
+                      action = r.action.trim() || "transmission";
+                      strength = "strong";
+                      fromCustom = true;
+                      break;
+                    }
+                  }
+                  if (!fromCustom) {
+                    if (/\btaxi\b/.test(said)) { action = "taxi clearance"; strength = "strong"; expectedFac = "GROUND"; }
+                    else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b/.test(said)) { action = "takeoff clearance"; strength = "strong"; expectedFac = "TOWER"; }
+                    else if (/\bdeparture\b/.test(said)) { action = "takeoff clearance"; strength = "weak"; expectedFac = "TOWER"; }
+                    else if (/\bcleared?\s+to\s+land|\bfull\s+stop\b/.test(said)) { action = "landing clearance"; strength = "strong"; expectedFac = "TOWER"; }
+                    else if (/\blanding\b/.test(said)) { action = "landing clearance"; strength = "weak"; expectedFac = "TOWER"; }
+                    else if (/\bifr\s+clearance|\bready\s+to\s+copy\b/.test(said)) { action = "IFR clearance"; strength = "strong"; expectedFac = "CLEARANCE"; }
+                    else if (/\bclearance\b|\bifr\b/.test(said)) { action = "IFR clearance"; strength = "weak"; expectedFac = "CLEARANCE"; }
+                    else if (/\bvfr\s+departure\b/.test(said)) { action = "VFR request"; strength = "strong"; expectedFac = "TOWER"; }
+                    else if (/\bvfr\b/.test(said)) { action = "VFR request"; strength = "weak"; }
+                    else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) { action = "radio check"; strength = "strong"; }
+                    else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) { action = "check-in"; strength = "strong"; }
+                    else if (/\brequest\b/.test(said)) { action = "request"; strength = "weak"; }
+                  }
                   // Confidence: strong cue + facility match → HIGH; strong cue
                   // alone or weak cue + facility match → MEDIUM; everything
                   // else (no cue, or weak cue with no facility match) → LOW.
@@ -2243,21 +2282,106 @@ ${transcript}`;
           {/* Last Attempts panel — rolling history of the most recent blocked
               transmissions in this session. Helps the pilot spot patterns
               (e.g. repeatedly calling Tower while tuned to Ground) at a glance. */}
-          {isLiveMode && blockedHistory.length > 0 && (
+          {isLiveMode && (
             <div className="rounded-md border border-amber-500/30 bg-amber-500/[0.04] px-3 py-2">
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <div className="font-display text-[10px] tracking-[0.3em] uppercase text-amber-500/90">
                   Last Attempts
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setBlockedHistory([])}
-                  className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground hover:text-foreground"
-                  title="Clear history"
-                >
-                  Clear
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPhraseManager((s) => !s)}
+                    className={`font-display text-[9px] tracking-[0.25em] uppercase hover:text-foreground ${showPhraseManager ? "text-amber-500" : "text-muted-foreground"}`}
+                    title="Add custom phrase → request mappings"
+                  >
+                    Phrases ({phraseRules.length})
+                  </button>
+                  {blockedHistory.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setBlockedHistory([])}
+                      className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground hover:text-foreground"
+                      title="Clear history"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
+              {showPhraseManager && (
+                <div className="mb-2 rounded border border-amber-500/20 bg-background/40 p-2">
+                  <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground mb-1.5">
+                    Custom phrase rules
+                  </div>
+                  {phraseRules.length === 0 ? (
+                    <div className="text-[11px] text-muted-foreground italic mb-2">
+                      No custom rules yet. Add wording you commonly use (e.g. phrase “tower clearance” → request “takeoff clearance”).
+                    </div>
+                  ) : (
+                    <ul className="space-y-1 mb-2">
+                      {phraseRules.map((r) => (
+                        <li key={r.id} className="flex items-center gap-2 text-[11px]">
+                          <span className="font-mono italic text-foreground/80 truncate flex-1 min-w-0" title={r.phrase}>
+                            “{r.phrase}”
+                          </span>
+                          <span className="text-muted-foreground shrink-0">→</span>
+                          <span className="font-display text-[10px] tracking-[0.15em] uppercase text-amber-500 shrink-0">
+                            {r.action}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setPhraseRules((prev) => prev.filter((x) => x.id !== r.id))}
+                            className="text-muted-foreground hover:text-rose-500 shrink-0"
+                            title="Remove rule"
+                            aria-label="Remove rule"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      value={newPhrase}
+                      onChange={(e) => setNewPhrase(e.target.value)}
+                      placeholder="Phrase (e.g. tower clearance)"
+                      className="flex-1 min-w-0 text-[11px] bg-background/60 border border-amber-500/30 rounded px-1.5 py-1 outline-none focus:border-amber-500/70"
+                    />
+                    <span className="text-muted-foreground text-[10px]">→</span>
+                    <input
+                      value={newAction}
+                      onChange={(e) => setNewAction(e.target.value)}
+                      placeholder="Request label"
+                      className="w-32 text-[11px] bg-background/60 border border-amber-500/30 rounded px-1.5 py-1 outline-none focus:border-amber-500/70"
+                    />
+                    <button
+                      type="button"
+                      disabled={!newPhrase.trim() || !newAction.trim()}
+                      onClick={() => {
+                        const p = newPhrase.trim();
+                        const a = newAction.trim();
+                        if (!p || !a) return;
+                        setPhraseRules((prev) => [
+                          ...prev.filter((r) => r.phrase.trim().toLowerCase() !== p.toLowerCase()),
+                          { id: crypto.randomUUID(), phrase: p, action: a },
+                        ]);
+                        setNewPhrase("");
+                        setNewAction("");
+                      }}
+                      className="font-display text-[9px] tracking-[0.25em] uppercase text-amber-500 border border-amber-500/60 rounded px-2 py-1 hover:bg-amber-500/10 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              )}
+              {blockedHistory.length === 0 ? (
+                <div className="text-[11px] text-muted-foreground italic">
+                  No blocked transmissions yet. Use the “Phrases” editor to teach the parser your wording.
+                </div>
+              ) : (
               <ul className="space-y-1">
                 {blockedHistory.map((h) => {
                   const KIND_ABBR: Record<string, string> = {
@@ -2292,6 +2416,7 @@ ${transcript}`;
                   );
                 })}
               </ul>
+              )}
             </div>
           )}
 
