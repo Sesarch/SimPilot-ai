@@ -283,7 +283,7 @@ const FlightTrackerMap = () => {
   const showDropdown = searchFocused && searchQuery.length >= 2 && (searchResults.aircraft.length > 0 || searchResults.airports.length > 0);
 
   return (
-    <div className="relative w-full h-full rounded-lg overflow-hidden border border-border flex">
+    <div data-attribution-mode={attributionMode} className="relative w-full h-full rounded-lg overflow-hidden border border-border flex">
       {/* Map */}
       <div className="flex-1 relative">
         {/* Search Bar */}
