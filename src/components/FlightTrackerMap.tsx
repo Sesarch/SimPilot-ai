@@ -51,6 +51,10 @@ const FlyToLocation = ({ lat, lng, zoom }: { lat: number; lng: number; zoom: num
 
 // Persists the current map center/zoom under a per-theme localStorage key,
 // and restores the saved view whenever the active theme changes.
+//
+// Writes are throttled: we save 600ms after the last move/zoom event
+// (trailing-edge debounce) but force a flush at most every 2s during
+// continuous interaction, plus on theme change and unmount.
 const ThemeViewPersister = ({
   themeKey,
   storageKey,
@@ -61,31 +65,58 @@ const ThemeViewPersister = ({
   const map = useMap();
   const lastThemeRef = useRef(themeKey);
 
-  // Save view on move/zoom end for the current theme.
+  const debounceTimerRef = useRef<number | null>(null);
+  const maxWaitTimerRef = useRef<number | null>(null);
+  const pendingRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
+  const themeKeyRef = useRef(themeKey);
+  themeKeyRef.current = themeKey;
+
+  const DEBOUNCE_MS = 600;
+  const MAX_WAIT_MS = 2000;
+
+  const writeNow = useCallback(() => {
+    if (debounceTimerRef.current !== null) {
+      window.clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    if (maxWaitTimerRef.current !== null) {
+      window.clearTimeout(maxWaitTimerRef.current);
+      maxWaitTimerRef.current = null;
+    }
+    const v = pendingRef.current;
+    if (!v) return;
+    pendingRef.current = null;
+    try {
+      window.localStorage.setItem(storageKey(themeKeyRef.current), JSON.stringify(v));
+    } catch { /* noop */ }
+  }, [storageKey]);
+
+  const scheduleSave = useCallback(() => {
+    pendingRef.current = {
+      lat: map.getCenter().lat,
+      lng: map.getCenter().lng,
+      zoom: map.getZoom(),
+    };
+    if (debounceTimerRef.current !== null) {
+      window.clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = window.setTimeout(writeNow, DEBOUNCE_MS);
+    if (maxWaitTimerRef.current === null) {
+      maxWaitTimerRef.current = window.setTimeout(writeNow, MAX_WAIT_MS);
+    }
+  }, [map, writeNow]);
+
   useMapEvents({
-    moveend: () => {
-      try {
-        const c = map.getCenter();
-        window.localStorage.setItem(
-          storageKey(themeKey),
-          JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }),
-        );
-      } catch { /* noop */ }
-    },
-    zoomend: () => {
-      try {
-        const c = map.getCenter();
-        window.localStorage.setItem(
-          storageKey(themeKey),
-          JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }),
-        );
-      } catch { /* noop */ }
-    },
+    moveend: scheduleSave,
+    zoomend: scheduleSave,
   });
 
-  // When the theme changes, restore that theme's saved view (if any).
+  // When the theme changes, flush any pending write under the OLD theme,
+  // then restore the new theme's saved view (if any).
   useEffect(() => {
     if (lastThemeRef.current === themeKey) return;
+    // Flush pending save under previous theme key before switching.
+    writeNow();
     lastThemeRef.current = themeKey;
     try {
       const raw = window.localStorage.getItem(storageKey(themeKey));
@@ -99,10 +130,16 @@ const ThemeViewPersister = ({
         map.setView([v.lat, v.lng], v.zoom, { animate: true });
       }
     } catch { /* noop */ }
-  }, [themeKey, map, storageKey]);
+  }, [themeKey, map, storageKey, writeNow]);
+
+  // Flush on unmount so the last view isn't lost if pending.
+  useEffect(() => {
+    return () => { writeNow(); };
+  }, [writeNow]);
 
   return null;
 };
+
 
 // Track position history for selected aircraft
 interface PositionRecord {
