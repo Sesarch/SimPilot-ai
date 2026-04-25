@@ -7,7 +7,11 @@
 // Response: { source: "vatsim" | "synth", info: "B", text: "...", icao, freq }
 // Errors: { error } with appropriate status.
 
-import { corsHeaders } from "../_shared/cors.ts";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 const AWC_METAR = "https://aviationweather.gov/api/data/metar";
 const VATSIM_FEED = "https://data.vatsim.net/v3/vatsim-data.json";
