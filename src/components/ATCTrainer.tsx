@@ -1954,6 +1954,27 @@ ${transcript}`;
                   </span>
                   .
                 </div>
+                {/* Short reason line — explains exactly why transmissions are
+                    being blocked: shows the pilot's current freq vs. the
+                    expected station so the fix is obvious at a glance. */}
+                <div className="mt-1 text-[11px] text-amber-500/90 font-sans leading-snug">
+                  You're on{" "}
+                  <span className="font-mono tabular-nums">{activeFreq}</span>
+                  {liveContext?.facility ? (
+                    <> ({liveContext.facility.kind})</>
+                  ) : (
+                    <> (no station)</>
+                  )}{" "}
+                  but this request is for{" "}
+                  <span className="font-display tracking-[0.15em] uppercase">
+                    {pendingCorrection.facility}
+                  </span>
+                  . Transmissions blocked until you retune to{" "}
+                  <span className="font-mono tabular-nums">
+                    {formatFreq(pendingCorrection.freq)}
+                  </span>
+                  .
+                </div>
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
                 <Button
