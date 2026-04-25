@@ -675,6 +675,7 @@ const ATCTrainer = () => {
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
+          mode: "atc",
           messages: [{ role: "system", content: buildSystemPrompt() }, ...history],
         },
       });
