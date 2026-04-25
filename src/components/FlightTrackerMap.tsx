@@ -457,11 +457,22 @@ const FlightTrackerMap = () => {
           </div>
         )}
 
-        {lastUpdated && (
-          <div className="absolute bottom-3 right-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground">
-            Updated: {lastUpdated.toLocaleTimeString()}
-          </div>
-        )}
+        <div className="absolute bottom-3 right-3 z-[1000] flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={cycleAttributionMode}
+            title={`Map credits: ${attributionLabel[attributionMode]} — click to cycle (Tiny → Standard → Hover)`}
+            aria-label={`Map attribution display: ${attributionLabel[attributionMode]}. Click to cycle.`}
+            className="bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+          >
+            Credits: {attributionLabel[attributionMode]}
+          </button>
+          {lastUpdated && (
+            <div className="bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground">
+              Updated: {lastUpdated.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
 
         {/* Demo data indicator */}
         {dataSource === "demo" && !loading && (
