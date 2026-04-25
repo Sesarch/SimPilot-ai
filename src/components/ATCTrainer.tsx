@@ -289,6 +289,8 @@ const ATCTrainer = () => {
     attempt: number;
     chars: number;
   } | null>(null);
+  const gradingAbortRef = useRef<AbortController | null>(null);
+  const gradingCancelledRef = useRef(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
   // Mic-test state: idle | recording | playing
   const [micTestState, setMicTestState] = useState<"idle" | "recording" | "playing">("idle");
