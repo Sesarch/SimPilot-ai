@@ -131,6 +131,9 @@ OUTPUT FORMAT (CRITICAL):
 - After your transmission, on a NEW LINE, append a feedback block ONLY if the pilot's previous call had a phraseology error:
   [FEEDBACK] short specific correction.
 - If the pilot's call was correct, omit the [FEEDBACK] line entirely.
+- WRONG-FACILITY MARKER (CRITICAL): If the pilot addressed the wrong facility (rule 3 above) and you are redirecting them, append on its own NEW LINE a machine-readable marker in EXACTLY this format:
+  [CORRECTION facility=<KIND> freq=<MHZ>]
+  where <KIND> is one of GROUND, TOWER, CLEARANCE, APPROACH, DEPARTURE, ATIS, CTAF, UNICOM, CENTER, GUARD and <MHZ> is the published frequency from the OTHER FACILITIES list (e.g. "[CORRECTION facility=TOWER freq=119.200]"). Do NOT include this marker in any other situation.
 - Never break character.`;
 };
 
