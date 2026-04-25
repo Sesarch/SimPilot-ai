@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History, Plane, Search, Square } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History, Plane, Search, Square, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import {
   atcFrequencies,
   getAirportFrequencies,
