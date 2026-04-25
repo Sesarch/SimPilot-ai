@@ -1462,23 +1462,39 @@ ${transcript}`;
             <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <span className="uppercase tracking-wider text-muted-foreground">
+                <span className="uppercase tracking-wider text-muted-foreground truncate">
                   {gradingProgress.phase === "connecting" && `Connecting to grader${gradingProgress.attempt > 1 ? ` · attempt ${gradingProgress.attempt}` : ""}`}
                   {gradingProgress.phase === "streaming" && `Receiving grader response · ${gradingProgress.chars.toLocaleString()} chars`}
                   {gradingProgress.phase === "retrying" && `Retrying (attempt ${gradingProgress.attempt})`}
                   {gradingProgress.phase === "parsing" && "Parsing grader output"}
                 </span>
-                {canCancelGrading ? (
-                  <button
-                    type="button"
-                    onClick={cancelGrading}
-                    className="text-destructive hover:underline uppercase tracking-wider"
-                  >
-                    Cancel
-                  </button>
-                ) : (
-                  <span className="text-muted-foreground/70">SSE</span>
-                )}
+                <div className="flex items-center gap-2 shrink-0">
+                  {gradingProgress.etaSeconds !== null && gradingProgress.etaSeconds > 0 && (
+                    <span
+                      className="tabular-nums text-muted-foreground/90"
+                      title={
+                        gradingProgress.charsPerSecond > 0
+                          ? `~${Math.round(gradingProgress.charsPerSecond)} chars/sec`
+                          : "Estimated time remaining"
+                      }
+                    >
+                      ~{gradingProgress.etaSeconds < 60
+                        ? `${gradingProgress.etaSeconds}s`
+                        : `${Math.floor(gradingProgress.etaSeconds / 60)}m ${gradingProgress.etaSeconds % 60}s`} left
+                    </span>
+                  )}
+                  {canCancelGrading ? (
+                    <button
+                      type="button"
+                      onClick={cancelGrading}
+                      className="text-destructive hover:underline uppercase tracking-wider"
+                    >
+                      Cancel
+                    </button>
+                  ) : (
+                    <span className="text-muted-foreground/70">SSE</span>
+                  )}
+                </div>
               </div>
               <div className="mt-1 h-1 rounded bg-muted overflow-hidden">
                 <div
