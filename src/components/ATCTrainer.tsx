@@ -131,6 +131,9 @@ OUTPUT FORMAT (CRITICAL):
 - After your transmission, on a NEW LINE, append a feedback block ONLY if the pilot's previous call had a phraseology error:
   [FEEDBACK] short specific correction.
 - If the pilot's call was correct, omit the [FEEDBACK] line entirely.
+- WRONG-FACILITY MARKER (CRITICAL): If the pilot addressed the wrong facility (rule 3 above) and you are redirecting them, append on its own NEW LINE a machine-readable marker in EXACTLY this format:
+  [CORRECTION facility=<KIND> freq=<MHZ>]
+  where <KIND> is one of GROUND, TOWER, CLEARANCE, APPROACH, DEPARTURE, ATIS, CTAF, UNICOM, CENTER, GUARD and <MHZ> is the published frequency from the OTHER FACILITIES list (e.g. "[CORRECTION facility=TOWER freq=119.200]"). Do NOT include this marker in any other situation.
 - Never break character.`;
 };
 
@@ -269,6 +272,15 @@ const ATCTrainer = () => {
   // explicitly press "Transmit" (or Enter) to send it on the air. Editing
   // the draft is allowed so users can clean up STT mistakes before keying.
   const [pendingDraft, setPendingDraft] = useState("");
+  // When ATC says "wrong facility — call X on Y" the model emits a structured
+  // [CORRECTION ...] tag. We surface the latest one as a banner with one-click
+  // auto-tune. Cleared once the pilot acknowledges or tunes correctly.
+  const [pendingCorrection, setPendingCorrection] = useState<{
+    facility: FacilityKind;
+    freq: number;
+    facilityName: string;
+    msgId: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
@@ -502,6 +514,16 @@ const ATCTrainer = () => {
     setStandbyFreq(fac === "GND" ? "118.300" : "121.500");
   }, [selectedScenario]);
 
+  // Auto-dismiss the wrong-facility banner once the pilot tunes to (or close
+  // enough to) the corrected frequency on their own.
+  useEffect(() => {
+    if (!pendingCorrection) return;
+    const cur = parseFloat(activeFreq);
+    if (Number.isFinite(cur) && Math.abs(cur - pendingCorrection.freq) <= 0.015) {
+      setPendingCorrection(null);
+    }
+  }, [activeFreq, pendingCorrection]);
+
   // ---- Live frequency mode helpers ---------------------------------------
   /**
    * Resolve the controller persona for the currently-tuned active frequency
@@ -547,8 +569,8 @@ const ATCTrainer = () => {
     setError(null);
     setPhraseologyScore(null);
     setPendingDraft("");
+    setPendingCorrection(null);
     setLoading(true);
-
     const scenario = scenarios.find((s) => s.id === scenarioId)!;
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
@@ -586,6 +608,7 @@ const ATCTrainer = () => {
     setError(null);
     setPhraseologyScore(null);
     setPendingDraft("");
+    setPendingCorrection(null);
     // Default tune: tower if present, else first facility.
     const tower = airport.facilities.find((f) => f.kind === "TOWER");
     const first = tower ?? airport.facilities[0];
@@ -617,10 +640,65 @@ const ATCTrainer = () => {
     ]);
   };
 
+  /**
+   * Parse a `[CORRECTION facility=TOWER freq=119.200]` marker out of an ATC
+   * reply. Resolves the canonical facility name from the current airport's
+   * published list (falls back to the kind label if not found).
+   */
+  const parseCorrection = useCallback(
+    (text: string): { facility: FacilityKind; freq: number; facilityName: string } | null => {
+      const m = text.match(/\[CORRECTION\s+([^\]]+)\]/i);
+      if (!m) return null;
+      const fields = m[1];
+      const facMatch = fields.match(/facility\s*=\s*([A-Z]+)/i);
+      const freqMatch = fields.match(/freq\s*=\s*([0-9.]+)/i);
+      if (!facMatch || !freqMatch) return null;
+      const kind = facMatch[1].toUpperCase() as FacilityKind;
+      const freq = parseFloat(freqMatch[1]);
+      if (!Number.isFinite(freq)) return null;
+      const named = liveAirport?.facilities.find(
+        (f) => Math.abs(f.freq - freq) <= 0.015 && f.kind === kind,
+      );
+      return {
+        facility: kind,
+        freq,
+        facilityName: named?.name ?? `${liveAirport?.callName ?? ""} ${kind}`.trim(),
+      };
+    },
+    [liveAirport],
+  );
+
+  /** Acknowledge the correction by auto-tuning to the suggested facility. */
+  const acceptCorrection = useCallback(() => {
+    if (!pendingCorrection || !liveAirport) return;
+    const target = liveAirport.facilities.find(
+      (f) => f.kind === pendingCorrection.facility && Math.abs(f.freq - pendingCorrection.freq) <= 0.015,
+    );
+    if (target) {
+      tuneToFacility(target);
+    } else {
+      const freqStr = formatFreq(pendingCorrection.freq);
+      setStandbyFreq(activeFreq);
+      setActiveFreq(freqStr);
+      setSwapAnim(true);
+      window.setTimeout(() => setSwapAnim(false), 350);
+    }
+    setPendingCorrection(null);
+  }, [pendingCorrection, liveAirport, activeFreq]);
+
+  /** Dismiss the correction banner without changing the radio. */
+  const dismissCorrection = useCallback(() => {
+    setPendingCorrection(null);
+  }, []);
+
 
   const speakATC = async (text: string) => {
-    // Strip [FEEDBACK] line from spoken audio (only spoken radio call).
-    const spoken = text.split(/\n?\[FEEDBACK\]/i)[0].trim();
+    // Strip both the [FEEDBACK] coaching line AND any [CORRECTION ...] marker
+    // so neither is read aloud — they're for the UI only.
+    const spoken = text
+      .split(/\n?\[FEEDBACK\]/i)[0]
+      .replace(/\[CORRECTION[^\]]*\]/gi, "")
+      .trim();
     if (!spoken) return;
 
     try {
@@ -693,13 +771,18 @@ const ATCTrainer = () => {
       const reply = data?.choices?.[0]?.message?.content || data?.reply || "";
       const atcMsg: ATCMessage = { id: crypto.randomUUID(), role: "atc", content: reply };
       setMessages((prev) => [...prev, atcMsg]);
+      // Detect a wrong-facility correction and surface the banner.
+      const correction = parseCorrection(reply);
+      if (correction) {
+        setPendingCorrection({ ...correction, msgId: atcMsg.id });
+      }
       void speakATC(reply);
     } catch {
       setError("Connection lost. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
@@ -726,7 +809,7 @@ const ATCTrainer = () => {
     // Build transcript for the grader
     const transcript = messages
       .filter((m) => m.role !== "system")
-      .map((m) => `${m.role === "atc" ? "ATC" : "PILOT"}: ${m.content.split(/\n?\[FEEDBACK\]/i)[0].trim()}`)
+      .map((m) => `${m.role === "atc" ? "ATC" : "PILOT"}: ${m.content.split(/\n?\[FEEDBACK\]/i)[0].replace(/\[CORRECTION[^\]]*\]/gi, "").trim()}`)
       .join("\n");
 
     const SCORE_PROMPT = `You are a FAA Designated Pilot Examiner grading a pilot's RADIO PHRASEOLOGY only (not airmanship).
@@ -1668,6 +1751,53 @@ ${transcript}`;
             </div>
           )}
 
+          {/* Wrong-facility correction banner — appears when ATC has redirected
+              the pilot to a different facility/frequency. One-tap auto-tune. */}
+          {isLiveMode && pendingCorrection && (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="rounded-md border-2 border-amber-500/70 bg-amber-500/10 px-3 py-2.5 flex items-start gap-3 shadow-[0_0_18px_-6px_hsl(45_95%_58%/0.6)]"
+            >
+              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0 animate-pulse" />
+              <div className="flex-1 min-w-0">
+                <div className="font-display text-[10px] tracking-[0.3em] uppercase text-amber-500 mb-0.5">
+                  Wrong Facility — Correction
+                </div>
+                <div className="text-[12px] text-foreground leading-snug">
+                  You called the wrong station. Contact{" "}
+                  <span className="font-display tracking-[0.15em] uppercase">
+                    {pendingCorrection.facilityName}
+                  </span>{" "}
+                  on{" "}
+                  <span className="font-mono tabular-nums text-foreground">
+                    {formatFreq(pendingCorrection.freq)}
+                  </span>
+                  .
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <Button
+                  size="sm"
+                  onClick={acceptCorrection}
+                  className="h-7 text-[10px] tracking-[0.2em] uppercase font-display bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/60"
+                  title={`Tune ${formatFreq(pendingCorrection.freq)} now`}
+                >
+                  <ArrowLeftRight className="h-3 w-3 mr-1" /> Tune Now
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={dismissCorrection}
+                  className="h-6 text-[9px] tracking-[0.2em] uppercase font-display text-muted-foreground"
+                  title="Dismiss"
+                >
+                  <X className="h-3 w-3 mr-1" /> Dismiss
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Live-mode in-session frequency chips: tap to tune instantly */}
           {isLiveMode && liveAirport && (
             <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
@@ -1778,8 +1908,9 @@ ${transcript}`;
                 </div>
               );
             }
-            const [spoken, ...feedbackParts] = msg.content.split(/\n?\[FEEDBACK\]/i);
-            const feedback = feedbackParts.join(" ").trim();
+            const [rawSpoken, ...feedbackParts] = msg.content.split(/\n?\[FEEDBACK\]/i);
+            const spoken = rawSpoken.replace(/\[CORRECTION[^\]]*\]/gi, "");
+            const feedback = feedbackParts.join(" ").replace(/\[CORRECTION[^\]]*\]/gi, "").trim();
             return (
               <div key={msg.id} className={cn("flex", msg.role === "pilot" ? "justify-end" : "justify-start")}>
                 <div className={cn(
