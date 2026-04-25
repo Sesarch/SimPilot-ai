@@ -2059,6 +2059,53 @@ ${transcript}`;
                 );
               })()}
 
+              {/* ATIS information letter badge — visible whenever an ATIS is
+                  loaded for the selected airport. Auto-updates when the pilot
+                  tunes the ATIS frequency (the fetch effect refreshes
+                  `currentAtis`). Highlights when actively tuned. */}
+              {currentAtis && currentAtis.icao === liveAirport.icao && (() => {
+                const tunedFac = liveContext?.facility ?? null;
+                const tunedToAtis = tunedFac?.kind === "ATIS";
+                return (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    aria-label={`Current ATIS information ${currentAtis.info}`}
+                    className={cn(
+                      "mb-2 flex items-center justify-between gap-3 rounded-md border px-3 py-2 transition-colors",
+                      tunedToAtis
+                        ? "border-sky-500/60 bg-sky-500/10"
+                        : "border-border bg-muted/30",
+                    )}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-display text-[9px] tracking-[0.3em] uppercase text-muted-foreground">
+                        ATIS
+                      </span>
+                      <span
+                        className={cn(
+                          "font-display text-[14px] font-bold tracking-[0.18em] uppercase rounded px-2 py-0.5 border",
+                          tunedToAtis
+                            ? "border-sky-500/60 text-sky-500 bg-sky-500/10"
+                            : "border-border text-foreground",
+                        )}
+                        title={`Information ${currentAtis.info} — broadcast on initial contact`}
+                      >
+                        Information {currentAtis.info}
+                      </span>
+                      {atisLoading && (
+                        <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                          Updating…
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground shrink-0">
+                      {currentAtis.source === "vatsim" ? "VATSIM" : "SYNTH"}
+                    </span>
+                  </div>
+                );
+              })()}
+
               {/* Manual frequency entry — accepts "119.2", normalizes to "119.200",
                   warns when freq doesn't belong to the selected airport. */}
               <FrequencyEntry
