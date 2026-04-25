@@ -57,6 +57,17 @@ function generateMockAircraft(): Aircraft[] {
   }));
 }
 
+export interface FlightAwareDiagnostics {
+  configured: boolean;
+  status: number | null;
+  ok: boolean;
+  error: string | null;
+  message: string | null;
+  durationMs: number | null;
+  endpoint: string;
+  checkedAt: number;
+}
+
 export const useFlightTracker = (bounds?: { north: number; south: number; east: number; west: number }) => {
   const [aircraft, setAircraft] = useState<Aircraft[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,6 +75,7 @@ export const useFlightTracker = (bounds?: { north: number; south: number; east: 
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [dataSource, setDataSource] = useState<DataSource>(null);
   const [provider, setProvider] = useState<string | null>(null);
+  const [faDiagnostics, setFaDiagnostics] = useState<FlightAwareDiagnostics | null>(null);
 
   const fetchAircraft = useCallback(async () => {
     setLoading(true);
