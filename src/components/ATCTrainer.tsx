@@ -2159,6 +2159,62 @@ ${transcript}`;
             </div>
           )}
 
+          {/* Prominent "wrong frequency" banner — blocks AI responses until
+              the pilot tunes a two-way controller frequency. Mirrors the gate
+              in sendPilotTransmission so the user knows *why* it's silent. */}
+          {isLiveMode && liveAirport && liveContext && (() => {
+            const fac = liveContext.facility;
+            const oneWay = fac && (fac.kind === "ATIS" || fac.kind === "AWOS");
+            const blocked = !fac || oneWay;
+            if (!blocked) return null;
+            const twoWay = liveAirport.facilities.filter(
+              (f) => f.kind !== "ATIS" && f.kind !== "AWOS",
+            );
+            return (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="rounded-md border-2 border-destructive bg-destructive/10 px-4 py-3"
+              >
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 shrink-0 text-destructive mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-display text-[11px] tracking-[0.3em] uppercase text-destructive font-bold">
+                      Transmissions Blocked
+                    </div>
+                    <div className="mt-1 text-sm text-foreground">
+                      {fac ? (
+                        <>You're tuned to <span className="font-mono tabular-nums">{formatFreq(parseFloat(activeFreq))}</span> — <span className="font-semibold">{fac.kind}</span> is a one-way broadcast. Switch to a two-way controller to talk.</>
+                      ) : (
+                        <>You're tuned to <span className="font-mono tabular-nums">{formatFreq(parseFloat(activeFreq))}</span> — no published station at {liveAirport.icao}. ATC will not respond.</>
+                      )}
+                    </div>
+                    {twoWay.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {twoWay.map((f) => (
+                          <button
+                            key={`${f.kind}-${f.freq}`}
+                            type="button"
+                            onClick={() => {
+                              setStandbyFreq(activeFreq);
+                              setActiveFreq(formatFreq(f.freq));
+                            }}
+                            className="px-2 py-1 rounded border border-destructive/50 bg-background hover:bg-destructive/10 text-[10px] font-display tracking-[0.15em] uppercase text-foreground transition-colors"
+                            title={`Tune ${f.name}`}
+                          >
+                            <Radio className="h-3 w-3 inline mr-1 -mt-0.5" />
+                            <span className="text-muted-foreground mr-1">{f.kind}</span>
+                            <span className="font-mono tabular-nums">{formatFreq(f.freq)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {messages.map((msg) => {
             if (msg.role === "system") {
               return (
