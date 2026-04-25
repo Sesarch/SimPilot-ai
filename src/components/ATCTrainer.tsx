@@ -321,6 +321,9 @@ const ATCTrainer = () => {
     /** What the pilot actually said when the wrong-facility correction fired. */
     attempted?: string;
   } | null>(null);
+  /** Inline editor state for the "interpreted request" chip. */
+  const [editingAttempted, setEditingAttempted] = useState(false);
+  const [attemptedDraft, setAttemptedDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
