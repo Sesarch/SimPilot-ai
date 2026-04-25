@@ -1751,6 +1751,53 @@ ${transcript}`;
             </div>
           )}
 
+          {/* Wrong-facility correction banner — appears when ATC has redirected
+              the pilot to a different facility/frequency. One-tap auto-tune. */}
+          {isLiveMode && pendingCorrection && (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="rounded-md border-2 border-amber-500/70 bg-amber-500/10 px-3 py-2.5 flex items-start gap-3 shadow-[0_0_18px_-6px_hsl(45_95%_58%/0.6)]"
+            >
+              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0 animate-pulse" />
+              <div className="flex-1 min-w-0">
+                <div className="font-display text-[10px] tracking-[0.3em] uppercase text-amber-500 mb-0.5">
+                  Wrong Facility — Correction
+                </div>
+                <div className="text-[12px] text-foreground leading-snug">
+                  You called the wrong station. Contact{" "}
+                  <span className="font-display tracking-[0.15em] uppercase">
+                    {pendingCorrection.facilityName}
+                  </span>{" "}
+                  on{" "}
+                  <span className="font-mono tabular-nums text-foreground">
+                    {formatFreq(pendingCorrection.freq)}
+                  </span>
+                  .
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <Button
+                  size="sm"
+                  onClick={acceptCorrection}
+                  className="h-7 text-[10px] tracking-[0.2em] uppercase font-display bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/60"
+                  title={`Tune ${formatFreq(pendingCorrection.freq)} now`}
+                >
+                  <ArrowLeftRight className="h-3 w-3 mr-1" /> Tune Now
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={dismissCorrection}
+                  className="h-6 text-[9px] tracking-[0.2em] uppercase font-display text-muted-foreground"
+                  title="Dismiss"
+                >
+                  <X className="h-3 w-3 mr-1" /> Dismiss
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Live-mode in-session frequency chips: tap to tune instantly */}
           {isLiveMode && liveAirport && (
             <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
