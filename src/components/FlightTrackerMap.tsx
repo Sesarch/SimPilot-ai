@@ -645,6 +645,7 @@ const FlightTrackerMap = () => {
             url={themeTiles[mapTheme].labels}
           />
           <BoundsTracker onBoundsChange={setBounds} />
+          <ThemeViewPersister themeKey={mapTheme} storageKey={themeViewKey} />
           {flyTo && <FlyToLocation lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
           {markers}
           {showAirports && majorAirports.map(ap => (
