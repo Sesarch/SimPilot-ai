@@ -1350,7 +1350,17 @@ ${transcript}`;
               ) : (
                 <ClipboardCheck className="h-3 w-3 mr-1" />
               )}
-              {scoring ? "Grading…" : "End & Score"}
+              {scoring
+                ? (gradingProgress
+                    ? (gradingProgress.phase === "connecting"
+                        ? `Connecting${gradingProgress.attempt > 1 ? ` (try ${gradingProgress.attempt})` : ""}…`
+                        : gradingProgress.phase === "streaming"
+                          ? `Grading… ${gradingProgress.chars} chars`
+                          : gradingProgress.phase === "retrying"
+                            ? `Retrying (try ${gradingProgress.attempt})…`
+                            : "Finalizing…")
+                    : "Grading…")
+                : "End & Score"}
             </Button>
             {lastScenarioId && lastScenarioId !== selectedScenario && (
               <Button
