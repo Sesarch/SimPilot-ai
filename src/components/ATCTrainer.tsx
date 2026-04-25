@@ -560,7 +560,7 @@ const ATCTrainer = () => {
     setPhraseologyScore(null);
     setPendingDraft("");
     setPendingCorrection(null);
-
+    setLoading(true);
     const scenario = scenarios.find((s) => s.id === scenarioId)!;
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
