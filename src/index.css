@@ -236,3 +236,26 @@
     linear-gradient(90deg, hsl(var(--cyan-glow) / 0.04) 1px, transparent 1px);
   background-size: 32px 32px;
 }
+
+/* Subtle Leaflet attribution (legal requirement, but minimized) */
+.leaflet-control-attribution {
+  background: hsl(var(--background) / 0.4) !important;
+  color: hsl(var(--muted-foreground) / 0.5) !important;
+  font-size: 9px !important;
+  padding: 1px 5px !important;
+  border-radius: 3px 0 0 0 !important;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.2s ease, color 0.2s ease;
+  opacity: 0.4;
+}
+.leaflet-control-attribution:hover {
+  opacity: 1;
+  color: hsl(var(--muted-foreground)) !important;
+}
+.leaflet-control-attribution a {
+  color: hsl(var(--muted-foreground) / 0.6) !important;
+  text-decoration: none !important;
+}
+.leaflet-control-attribution a:hover {
+  color: hsl(var(--primary)) !important;
+}
