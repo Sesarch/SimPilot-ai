@@ -251,25 +251,32 @@ export function RuleTester({
           </div>
 
           {onSaveRule && (
-            <div className="flex justify-end">
-              <Button
-                size="sm"
-                disabled={!draftPhrase.trim() || result?.source !== "draft"}
-                onClick={() => {
-                  const phrase = draftPhrase.trim();
-                  if (!phrase) return;
-                  onSaveRule({ phrase, action: draftAction });
-                  setDraftPhrase("");
-                }}
-                className="h-7 text-[10px] tracking-[0.2em] uppercase font-display"
-                title={
-                  result?.source === "draft"
-                    ? "Save this phrase → action mapping"
-                    : "Draft phrase must match the transmission to save"
-                }
-              >
-                Save rule
-              </Button>
+            <div className="space-y-1.5">
+              {touched && !validation.ok && (
+                <div
+                  role="alert"
+                  className="text-[11px] text-destructive bg-destructive/10 border border-destructive/40 rounded px-2 py-1"
+                >
+                  {validation.error}
+                </div>
+              )}
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  aria-invalid={touched && !validation.ok}
+                  onClick={() => {
+                    setTouched(true);
+                    if (!validation.ok) return;
+                    onSaveRule({ phrase: draftPhrase.trim(), action: draftAction });
+                    setDraftPhrase("");
+                    setTouched(false);
+                  }}
+                  className="h-7 text-[10px] tracking-[0.2em] uppercase font-display"
+                  title={validation.ok ? "Save this phrase → action mapping" : validation.error ?? ""}
+                >
+                  Save rule
+                </Button>
+              </div>
             </div>
           )}
         </div>
