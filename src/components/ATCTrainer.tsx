@@ -284,6 +284,11 @@ const ATCTrainer = () => {
   const [sttSupported, setSttSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
+  const [gradingProgress, setGradingProgress] = useState<{
+    phase: "connecting" | "streaming" | "retrying" | "parsing";
+    attempt: number;
+    chars: number;
+  } | null>(null);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
   // Mic-test state: idle | recording | playing
   const [micTestState, setMicTestState] = useState<"idle" | "recording" | "playing">("idle");
