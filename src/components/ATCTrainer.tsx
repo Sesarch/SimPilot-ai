@@ -1977,13 +1977,22 @@ ${transcript}`;
                   else if (/\bready\s+to\s+copy|\brequest\b/.test(said)) action = "request";
                   else if (/\bradio\s+check|\bcomm\s+check\b/.test(said)) action = "radio check";
                   else if (/\binformation\s+[a-z]\b|\bwith\s+(?:information\s+)?[a-z]\b/.test(said)) action = "check-in";
+                  const attemptedRaw = (pendingCorrection.attempted ?? "").trim();
                   return (
-                    <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-                      <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                    <div className="mt-1.5 flex items-start gap-2 flex-wrap">
+                      <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground pt-0.5">
                         Blocked request
                       </span>
-                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-amber-500 border border-amber-500/50 bg-amber-500/10 rounded px-1.5 py-0.5">
-                        {facNice} {action}
+                      <span className="font-display text-[10px] tracking-[0.2em] uppercase text-amber-500 border border-amber-500/50 bg-amber-500/10 rounded px-1.5 py-0.5 max-w-full">
+                        <span className="block">{facNice} {action}</span>
+                        {attemptedRaw && (
+                          <span
+                            className="block mt-1 normal-case tracking-normal font-sans text-[11px] text-amber-500/90 italic break-words"
+                            title={attemptedRaw}
+                          >
+                            “{attemptedRaw}”
+                          </span>
+                        )}
                       </span>
                     </div>
                   );
