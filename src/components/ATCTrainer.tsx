@@ -288,6 +288,10 @@ const ATCTrainer = () => {
     phase: "connecting" | "streaming" | "retrying" | "parsing";
     attempt: number;
     chars: number;
+    /** Estimated seconds until grading completes; null while we don't have enough data yet. */
+    etaSeconds: number | null;
+    /** Observed streaming throughput in chars/second (0 until measured). */
+    charsPerSecond: number;
   } | null>(null);
   // Whether the in-flight grader request can still be cancelled. Set true while
   // the SSE fetch/stream is active, cleared the moment the stream ends, errors,
