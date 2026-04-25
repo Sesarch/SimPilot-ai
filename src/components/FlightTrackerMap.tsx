@@ -115,6 +115,31 @@ const FlightTrackerMap = () => {
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
   const traceAbortRef = useRef<AbortController | null>(null);
 
+  type MapTheme = "voyager" | "light" | "dark";
+  const [mapTheme, setMapTheme] = useState<MapTheme>(() => {
+    if (typeof window === "undefined") return "voyager";
+    const saved = window.localStorage.getItem("simpilot.mapTheme");
+    return saved === "light" || saved === "dark" || saved === "voyager" ? saved : "voyager";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("simpilot.mapTheme", mapTheme); } catch { /* noop */ }
+  }, [mapTheme]);
+  const themeTiles: Record<MapTheme, { base: string; labels: string }> = {
+    voyager: {
+      base: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+      labels: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png",
+    },
+    light: {
+      base: "https://{s}.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}{r}.png",
+      labels: "https://{s}.basemaps.cartocdn.com/rastertiles/light_only_labels/{z}/{x}/{y}{r}.png",
+    },
+    dark: {
+      base: "https://{s}.basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}{r}.png",
+      labels: "https://{s}.basemaps.cartocdn.com/rastertiles/dark_only_labels/{z}/{x}/{y}{r}.png",
+    },
+  };
+  const themeLabel: Record<MapTheme, string> = { voyager: "Voyager", light: "Light", dark: "Dark" };
+
   type AttributionMode = "tiny" | "standard" | "hover";
   const [attributionMode, setAttributionMode] = useState<AttributionMode>(() => {
     if (typeof window === "undefined") return "tiny";
@@ -458,6 +483,26 @@ const FlightTrackerMap = () => {
         )}
 
         <div className="absolute bottom-3 right-3 z-[1000] flex items-center gap-1.5">
+          <div
+            className="bg-background/90 backdrop-blur-sm border border-border rounded flex items-center text-[10px] overflow-hidden"
+            title="Map basemap theme"
+          >
+            {(["voyager", "light", "dark"] as const).map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setMapTheme(t)}
+                aria-pressed={mapTheme === t}
+                className={`px-2 py-1 transition-colors ${
+                  mapTheme === t
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {themeLabel[t]}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={cycleAttributionMode}
@@ -515,14 +560,16 @@ const FlightTrackerMap = () => {
 
         <MapContainer center={[39, -98]} zoom={5} style={{ width: "100%", height: "100%" }} zoomControl={true}>
           <TileLayer
+            key={`${mapTheme}-base`}
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
+            url={themeTiles[mapTheme].base}
             crossOrigin
           />
           {/* Labels overlay (place names on top of aircraft tiles for legibility) */}
           <TileLayer
+            key={`${mapTheme}-labels`}
             attribution=''
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
+            url={themeTiles[mapTheme].labels}
           />
           <BoundsTracker onBoundsChange={setBounds} />
           {flyTo && <FlyToLocation lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
