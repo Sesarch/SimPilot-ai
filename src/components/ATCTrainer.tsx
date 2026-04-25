@@ -809,7 +809,7 @@ const ATCTrainer = () => {
     // Build transcript for the grader
     const transcript = messages
       .filter((m) => m.role !== "system")
-      .map((m) => `${m.role === "atc" ? "ATC" : "PILOT"}: ${m.content.split(/\n?\[FEEDBACK\]/i)[0].trim()}`)
+      .map((m) => `${m.role === "atc" ? "ATC" : "PILOT"}: ${m.content.split(/\n?\[FEEDBACK\]/i)[0].replace(/\[CORRECTION[^\]]*\]/gi, "").trim()}`)
       .join("\n");
 
     const SCORE_PROMPT = `You are a FAA Designated Pilot Examiner grading a pilot's RADIO PHRASEOLOGY only (not airmanship).
