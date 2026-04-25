@@ -873,6 +873,39 @@ const ATCTrainer = () => {
   const sendPilotTransmission = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || !selectedScenario) return;
+
+    // ---- Frequency discipline gate -------------------------------------
+    // In live mode: refuse to transmit if no facility is on the active freq
+    // (dead air) or if tuned to ATIS (one-way broadcast).
+    if (selectedScenario === "live" && liveAirport) {
+      const freqMHz = parseFloat(activeFreq);
+      const lookup = lookupFacility(liveAirport.icao, freqMHz);
+      if (!lookup.facility) {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "pilot", content: trimmed },
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            content: `📵 No response — ${activeFreq} is unmonitored at ${liveAirport.icao}. Tune a published frequency.`,
+          },
+        ]);
+        return;
+      }
+      if (lookup.facility.kind === "ATIS" || lookup.facility.kind === "AWOS") {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "pilot", content: trimmed },
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            content: `📵 ${lookup.facility!.kind} is a one-way broadcast. Tune Ground, Tower, or Clearance to talk.`,
+          },
+        ]);
+        return;
+      }
+    }
+
     const userMsg: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
     const updated = [...messages, userMsg];
     setMessages(updated);
@@ -908,7 +941,7 @@ const ATCTrainer = () => {
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, liveAirport, activeFreq]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
