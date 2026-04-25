@@ -324,6 +324,16 @@ const ATCTrainer = () => {
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
+  /** Rolling history of the last 5 blocked transmissions for the side panel. */
+  const [blockedHistory, setBlockedHistory] = useState<Array<{
+    id: string;
+    at: number;
+    facility: FacilityKind;
+    facilityName: string;
+    freq: number;
+    attempted: string;
+    action: string;
+  }>>([]);
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<"male" | "female">(() => {
