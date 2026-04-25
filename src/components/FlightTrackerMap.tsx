@@ -115,6 +115,23 @@ const FlightTrackerMap = () => {
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
   const traceAbortRef = useRef<AbortController | null>(null);
 
+  type AttributionMode = "tiny" | "standard" | "hover";
+  const [attributionMode, setAttributionMode] = useState<AttributionMode>(() => {
+    if (typeof window === "undefined") return "tiny";
+    const saved = window.localStorage.getItem("simpilot.mapAttributionMode");
+    return saved === "standard" || saved === "hover" || saved === "tiny" ? saved : "tiny";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("simpilot.mapAttributionMode", attributionMode); } catch { /* noop */ }
+  }, [attributionMode]);
+  const cycleAttributionMode = () =>
+    setAttributionMode(m => (m === "tiny" ? "standard" : m === "standard" ? "hover" : "tiny"));
+  const attributionLabel: Record<AttributionMode, string> = {
+    tiny: "Tiny",
+    standard: "Standard",
+    hover: "Hover",
+  };
+
   const { metar, loading: weatherLoading, error: weatherError } = useAirportWeather(selectedAirport?.icao ?? null);
   const { categories: weatherCategories } = useAirportWeatherBatch();
 
@@ -266,7 +283,7 @@ const FlightTrackerMap = () => {
   const showDropdown = searchFocused && searchQuery.length >= 2 && (searchResults.aircraft.length > 0 || searchResults.airports.length > 0);
 
   return (
-    <div className="relative w-full h-full rounded-lg overflow-hidden border border-border flex">
+    <div data-attribution-mode={attributionMode} className="relative w-full h-full rounded-lg overflow-hidden border border-border flex">
       {/* Map */}
       <div className="flex-1 relative">
         {/* Search Bar */}
@@ -440,11 +457,22 @@ const FlightTrackerMap = () => {
           </div>
         )}
 
-        {lastUpdated && (
-          <div className="absolute bottom-3 right-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground">
-            Updated: {lastUpdated.toLocaleTimeString()}
-          </div>
-        )}
+        <div className="absolute bottom-3 right-3 z-[1000] flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={cycleAttributionMode}
+            title={`Map credits: ${attributionLabel[attributionMode]} — click to cycle (Tiny → Standard → Hover)`}
+            aria-label={`Map attribution display: ${attributionLabel[attributionMode]}. Click to cycle.`}
+            className="bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+          >
+            Credits: {attributionLabel[attributionMode]}
+          </button>
+          {lastUpdated && (
+            <div className="bg-background/90 backdrop-blur-sm border border-border rounded px-2 py-1 text-[10px] text-muted-foreground">
+              Updated: {lastUpdated.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
 
         {/* Demo data indicator */}
         {dataSource === "demo" && !loading && (
