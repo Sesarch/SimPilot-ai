@@ -1952,7 +1952,7 @@ ${transcript}`;
             Push To Talk
           </div>
           <div className="text-xs text-muted-foreground">
-            Hold the button (or hold <kbd className="px-1 py-0.5 rounded bg-muted text-foreground text-[10px]">Space</kbd>) and speak. Release to transmit.
+            Hold the button (or hold <kbd className="px-1 py-0.5 rounded bg-muted text-foreground text-[10px]">Space</kbd>) and speak. Release to stage your draft, then press <span className="text-[hsl(var(--hud-green))] font-display tracking-[0.15em] uppercase">Transmit</span> to send.
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
             <Button
