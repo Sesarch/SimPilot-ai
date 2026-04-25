@@ -1964,6 +1964,58 @@ ${transcript}`;
                 >
                   <ArrowLeftRight className="h-3 w-3 mr-1" /> Tune Now
                 </Button>
+                {liveAirport && (() => {
+                  // Sort published facilities into the standard pilot priority order.
+                  const ORDER: Record<string, number> = {
+                    ATIS: 0, CLEARANCE: 1, GROUND: 2, TOWER: 3,
+                    APPROACH: 4, DEPARTURE: 5, CENTER: 6, CTAF: 7, UNICOM: 8, GUARD: 9, AWOS: 10,
+                  };
+                  const facs = [...liveAirport.facilities].sort(
+                    (a, b) => (ORDER[a.kind] ?? 99) - (ORDER[b.kind] ?? 99),
+                  );
+                  return (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-[10px] tracking-[0.2em] uppercase font-display text-amber-500 border border-amber-500/40 hover:bg-amber-500/10"
+                          title="Pick another published frequency for this airport"
+                        >
+                          <Radio className="h-3 w-3 mr-1" /> All Freqs
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-60">
+                        <DropdownMenuLabel className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                          {liveAirport.icao} — Tune
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {facs.map((f, i) => {
+                          const tuned = Math.abs(parseFloat(activeFreq) - f.freq) <= 0.015;
+                          return (
+                            <DropdownMenuItem
+                              key={i}
+                              onSelect={() => tuneToFacility(f)}
+                              disabled={tuned}
+                              className="flex items-center justify-between gap-3"
+                            >
+                              <span className="flex items-center gap-2 min-w-0">
+                                <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground w-12 shrink-0">
+                                  {f.kind}
+                                </span>
+                                <span className="truncate text-xs">{f.name}</span>
+                              </span>
+                              <span className="font-mono tabular-nums text-[11px] text-foreground shrink-0">
+                                {formatFreq(f.freq)}
+                              </span>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  );
+                })()}
                 <Button
                   size="sm"
                   variant="ghost"
