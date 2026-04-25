@@ -544,6 +544,7 @@ const ATCTrainer = () => {
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
+          mode: "atc",
           messages: [
             { role: "system", content: FAA_PROMPT(scenario.label) },
             { role: "user", content: `Begin scenario. Make your initial transmission to N123AB.` },
