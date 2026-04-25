@@ -589,6 +589,65 @@ const ATCTrainer = () => {
     };
   })();
 
+  /**
+   * When the pilot tunes an ATIS frequency, fetch the real-world ATIS for the
+   * airport and TTS-play it through the radio. We avoid re-fetching the same
+   * (icao, freq) pair until the pilot retunes away and back.
+   */
+  useEffect(() => {
+    if (!liveAirport || !liveContext?.facility) return;
+    if (liveContext.facility.kind !== "ATIS") return;
+    const key = { icao: liveAirport.icao, freq: activeFreq };
+    if (
+      lastAtisFetchRef.current?.icao === key.icao &&
+      lastAtisFetchRef.current?.freq === key.freq
+    ) return;
+    lastAtisFetchRef.current = key;
+
+    let cancelled = false;
+    const run = async () => {
+      setAtisLoading(true);
+      try {
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/atc-atis`;
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq }),
+        });
+        if (!resp.ok) throw new Error(`atis ${resp.status}`);
+        const data = await resp.json();
+        if (cancelled || !data?.text) return;
+        setCurrentAtis({
+          icao: liveAirport.icao,
+          info: data.info ?? "Alpha",
+          text: data.text,
+          source: data.source ?? "synth",
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${data.source === "vatsim" ? "live VATSIM feed" : "live weather"})`,
+          },
+          { id: crypto.randomUUID(), role: "atc", content: data.text },
+        ]);
+        void speakATC(data.text);
+      } catch (e) {
+        console.warn("ATIS fetch failed", e);
+        if (!cancelled) toast.error("ATIS unavailable for this airport right now.");
+      } finally {
+        if (!cancelled) setAtisLoading(false);
+      }
+    };
+    void run();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveAirport?.icao, activeFreq, liveContext?.facility?.kind]);
+
   const exportTranscript = useCallback(() => {
     if (messages.length === 0) {
       toast.info("No transmissions to export yet.");
