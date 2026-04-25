@@ -1,10 +1,14 @@
 // Returns a realistic ATIS broadcast string (and information letter) for an
 // airport. Strategy:
-//   1. Try VATSIM datafeed v3 → look for a text ATIS for this ICAO.
-//   2. Fallback: fetch latest METAR from aviationweather.gov and synthesize a
+//   1. Try FAA D-ATIS (datis.clowd.io) — official US digital ATIS text.
+//   2. Try VATSIM datafeed v3 → look for a text ATIS for this ICAO.
+//   3. Fallback: fetch latest METAR from aviationweather.gov and synthesize a
 //      plain-English ATIS using Lovable AI Gateway (Gemini Flash).
 //
-// Response: { source: "vatsim" | "synth", info: "B", text: "...", icao, freq }
+// We also probe LiveATC for a public ATIS audio stream URL and return it as
+// `audioUrl` when available so the client can play the real broadcast.
+//
+// Response: { source: "datis"|"vatsim"|"synth", info, text, icao, freq, audioUrl? }
 // Errors: { error } with appropriate status.
 
 const corsHeaders = {
