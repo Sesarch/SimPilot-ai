@@ -615,7 +615,7 @@ const ATCTrainer = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq }),
+          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq, airportName: liveAirport.callName }),
         });
         if (!resp.ok) throw new Error(`atis ${resp.status}`);
         const data = await resp.json();
