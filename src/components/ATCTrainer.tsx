@@ -1533,6 +1533,16 @@ ${transcript}`;
             <Button
               size="sm"
               variant="ghost"
+              onClick={exportTranscript}
+              disabled={messages.length === 0 || scoring}
+              title="Export the full conversation transcript as a PDF"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Export PDF
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
               onClick={scoreAndSaveScenario}
               disabled={scoring || loading || speaking || messages.filter(m => m.role === "pilot").length === 0}
               title={user ? "Grade this session and save to your Logbook" : "Sign in to save"}
