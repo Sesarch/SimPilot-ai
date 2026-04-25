@@ -49,6 +49,61 @@ const FlyToLocation = ({ lat, lng, zoom }: { lat: number; lng: number; zoom: num
   return null;
 };
 
+// Persists the current map center/zoom under a per-theme localStorage key,
+// and restores the saved view whenever the active theme changes.
+const ThemeViewPersister = ({
+  themeKey,
+  storageKey,
+}: {
+  themeKey: string;
+  storageKey: (t: string) => string;
+}) => {
+  const map = useMap();
+  const lastThemeRef = useRef(themeKey);
+
+  // Save view on move/zoom end for the current theme.
+  useMapEvents({
+    moveend: () => {
+      try {
+        const c = map.getCenter();
+        window.localStorage.setItem(
+          storageKey(themeKey),
+          JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }),
+        );
+      } catch { /* noop */ }
+    },
+    zoomend: () => {
+      try {
+        const c = map.getCenter();
+        window.localStorage.setItem(
+          storageKey(themeKey),
+          JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }),
+        );
+      } catch { /* noop */ }
+    },
+  });
+
+  // When the theme changes, restore that theme's saved view (if any).
+  useEffect(() => {
+    if (lastThemeRef.current === themeKey) return;
+    lastThemeRef.current = themeKey;
+    try {
+      const raw = window.localStorage.getItem(storageKey(themeKey));
+      if (!raw) return;
+      const v = JSON.parse(raw) as { lat?: number; lng?: number; zoom?: number };
+      if (
+        typeof v.lat === "number" &&
+        typeof v.lng === "number" &&
+        typeof v.zoom === "number"
+      ) {
+        map.setView([v.lat, v.lng], v.zoom, { animate: true });
+      }
+    } catch { /* noop */ }
+  }, [themeKey, map, storageKey]);
+
+  return null;
+};
+
 // Track position history for selected aircraft
 interface PositionRecord {
   lat: number;
@@ -139,6 +194,24 @@ const FlightTrackerMap = () => {
     },
   };
   const themeLabel: Record<MapTheme, string> = { voyager: "Voyager", light: "Light", dark: "Dark" };
+
+  // Per-theme saved center/zoom (so switching themes preserves the view).
+  const themeViewKey = useCallback((t: string) => `simpilot.mapView.${t}`, []);
+  const initialView = useMemo(() => {
+    const fallback = { center: [39, -98] as [number, number], zoom: 5 };
+    if (typeof window === "undefined") return fallback;
+    try {
+      const raw = window.localStorage.getItem(themeViewKey(mapTheme));
+      if (!raw) return fallback;
+      const v = JSON.parse(raw) as { lat?: number; lng?: number; zoom?: number };
+      if (typeof v.lat === "number" && typeof v.lng === "number" && typeof v.zoom === "number") {
+        return { center: [v.lat, v.lng] as [number, number], zoom: v.zoom };
+      }
+    } catch { /* noop */ }
+    return fallback;
+    // Only compute on mount — runtime theme changes are handled by ThemeViewPersister.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   type AttributionMode = "tiny" | "standard" | "hover";
   const [attributionMode, setAttributionMode] = useState<AttributionMode>(() => {
@@ -558,7 +631,7 @@ const FlightTrackerMap = () => {
           </div>
         )}
 
-        <MapContainer center={[39, -98]} zoom={5} style={{ width: "100%", height: "100%" }} zoomControl={true}>
+        <MapContainer center={initialView.center} zoom={initialView.zoom} style={{ width: "100%", height: "100%" }} zoomControl={true}>
           <TileLayer
             key={`${mapTheme}-base`}
             attribution='&copy; <a href="https://carto.com">CARTO</a>'
@@ -572,6 +645,7 @@ const FlightTrackerMap = () => {
             url={themeTiles[mapTheme].labels}
           />
           <BoundsTracker onBoundsChange={setBounds} />
+          <ThemeViewPersister themeKey={mapTheme} storageKey={themeViewKey} />
           {flyTo && <FlyToLocation lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
           {markers}
           {showAirports && majorAirports.map(ap => (
