@@ -15,9 +15,36 @@ const FLIGHTAWARE_API = "https://aeroapi.flightaware.com/aeroapi";
 // FlightAware AeroAPI — premium live data for authenticated users.
 // Uses the /flights/search endpoint with a bounding box query.
 // Cost: ~$0.005/query (search) — much cheaper than per-position polling.
+type FaDiagnostics = {
+  configured: boolean;
+  status: number | null;
+  ok: boolean;
+  error: string | null;
+  message: string | null;
+  durationMs: number | null;
+  endpoint: string;
+  checkedAt: number;
+};
+
+const FA_DIAG: { last: FaDiagnostics } = {
+  last: {
+    configured: false, status: null, ok: false, error: null, message: null,
+    durationMs: null, endpoint: "/flights/search/positions", checkedAt: 0,
+  },
+};
+
 async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax: string): Promise<any | null> {
   const apiKey = Deno.env.get("FLIGHTAWARE_API_KEY");
-  if (!apiKey) return null;
+  const startedAt = Date.now();
+  if (!apiKey) {
+    FA_DIAG.last = {
+      configured: false, status: null, ok: false,
+      error: "missing_api_key",
+      message: "FLIGHTAWARE_API_KEY secret is not set.",
+      durationMs: null, endpoint: "/flights/search/positions", checkedAt: startedAt,
+    };
+    return null;
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -49,6 +76,23 @@ async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       console.log(`FlightAware returned ${res.status} for query='${query}': ${body.slice(0, 400)}`);
+      let parsedMsg: string | null = null;
+      try { parsedMsg = JSON.parse(body)?.title || JSON.parse(body)?.detail || null; } catch { /* noop */ }
+      FA_DIAG.last = {
+        configured: true,
+        status: res.status,
+        ok: false,
+        error: res.status === 400 ? "plan_or_query_rejected"
+          : res.status === 401 ? "unauthorized"
+          : res.status === 402 ? "payment_required"
+          : res.status === 403 ? "forbidden_plan_tier"
+          : res.status === 429 ? "rate_limited"
+          : `http_${res.status}`,
+        message: parsedMsg || body.slice(0, 240) || `HTTP ${res.status}`,
+        durationMs: Date.now() - startedAt,
+        endpoint: "/flights/search/positions",
+        checkedAt: startedAt,
+      };
       return null;
     }
 
