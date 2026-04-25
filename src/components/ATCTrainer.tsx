@@ -2282,7 +2282,7 @@ ${transcript}`;
           {/* Last Attempts panel — rolling history of the most recent blocked
               transmissions in this session. Helps the pilot spot patterns
               (e.g. repeatedly calling Tower while tuned to Ground) at a glance. */}
-          {isLiveMode && (blockedHistory.length > 0 || showPhraseManager) && (
+          {isLiveMode && (
             <div className="rounded-md border border-amber-500/30 bg-amber-500/[0.04] px-3 py-2">
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <div className="font-display text-[10px] tracking-[0.3em] uppercase text-amber-500/90">
