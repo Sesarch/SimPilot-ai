@@ -98,7 +98,16 @@ async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax
 
     const data = await res.json();
     const positions = Array.isArray(data?.positions) ? data.positions : [];
-    if (positions.length === 0) return null;
+    const durationMs = Date.now() - startedAt;
+    if (positions.length === 0) {
+      FA_DIAG.last = {
+        configured: true, status: res.status, ok: true,
+        error: "empty_response",
+        message: "FlightAware returned 200 but no aircraft in this bounding box.",
+        durationMs, endpoint: "/flights/search/positions", checkedAt: startedAt,
+      };
+      return null;
+    }
 
     const now = Math.floor(Date.now() / 1000);
     const states = positions
@@ -128,11 +137,25 @@ async function tryFlightAware(lamin: string, lamax: string, lomin: string, lomax
         ];
       });
 
+    FA_DIAG.last = {
+      configured: true, status: res.status, ok: true, error: null,
+      message: `OK — ${states.length} aircraft`,
+      durationMs, endpoint: "/flights/search/positions", checkedAt: startedAt,
+    };
     console.log(`FlightAware: returning ${states.length} aircraft`);
     return { time: now, states, _source: "live", _provider: "flightaware" };
   } catch (err) {
     clearTimeout(timeoutId);
-    console.log(`FlightAware fetch failed: ${getErrorMessage(err)}`);
+    const msg = getErrorMessage(err);
+    console.log(`FlightAware fetch failed: ${msg}`);
+    FA_DIAG.last = {
+      configured: true, status: null, ok: false,
+      error: msg.includes("aborted") ? "timeout" : "network_error",
+      message: msg,
+      durationMs: Date.now() - startedAt,
+      endpoint: "/flights/search/positions",
+      checkedAt: startedAt,
+    };
     return null;
   }
 }
