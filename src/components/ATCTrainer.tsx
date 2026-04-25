@@ -1981,9 +1981,10 @@ ${transcript}`;
                   size="sm"
                   onClick={acceptCorrection}
                   className="h-7 text-[10px] tracking-[0.2em] uppercase font-display bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/60"
-                  title={`Tune ${formatFreq(pendingCorrection.freq)} now`}
+                  title={`Auto-tune to ${pendingCorrection.facility} on ${formatFreq(pendingCorrection.freq)}`}
                 >
-                  <ArrowLeftRight className="h-3 w-3 mr-1" /> Tune Now
+                  <ArrowLeftRight className="h-3 w-3 mr-1" />
+                  Retune to {pendingCorrection.facility}
                 </Button>
                 {liveAirport && (() => {
                   // Sort published facilities into the standard pilot priority order.
