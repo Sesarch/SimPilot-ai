@@ -1671,6 +1671,65 @@ ${transcript}`;
           {/* Live-mode in-session frequency chips: tap to tune instantly */}
           {isLiveMode && liveAirport && (
             <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2">
+              {/* Current facility badge — live, derived from tuned frequency. */}
+              {(() => {
+                const fac = liveContext?.facility ?? null;
+                const onFreq = !!fac;
+                const facLabel = fac
+                  ? `${liveAirport.icao} ${fac.name.replace(new RegExp(`^${liveAirport.callName}\\s+`, "i"), "")}`
+                  : "OFF FREQUENCY";
+                return (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Current facility"
+                    className={cn(
+                      "mb-2 flex items-center justify-between gap-3 rounded-md border px-3 py-2 transition-colors",
+                      onFreq
+                        ? "border-[hsl(var(--hud-green))]/50 bg-[hsl(var(--hud-green))]/5"
+                        : "border-amber-500/50 bg-amber-500/5",
+                    )}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="relative flex h-2 w-2 shrink-0">
+                        <span
+                          className={cn(
+                            "absolute inline-flex h-full w-full rounded-full opacity-75",
+                            onFreq ? "animate-ping bg-[hsl(var(--hud-green))]" : "bg-amber-500/60",
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "relative inline-flex rounded-full h-2 w-2",
+                            onFreq ? "bg-[hsl(var(--hud-green))]" : "bg-amber-500",
+                          )}
+                        />
+                      </span>
+                      <span className="font-display text-[9px] tracking-[0.3em] uppercase text-muted-foreground">
+                        Current Facility
+                      </span>
+                      <span
+                        className={cn(
+                          "font-display text-[12px] tracking-[0.18em] uppercase truncate",
+                          onFreq ? "text-foreground" : "text-amber-500",
+                        )}
+                        title={fac?.name}
+                      >
+                        {facLabel}
+                      </span>
+                      {fac && (
+                        <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground border border-border rounded px-1.5 py-0.5 hidden sm:inline">
+                          {fac.kind}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground shrink-0">
+                      {formatFreq(parseFloat(activeFreq) || 0)}
+                    </span>
+                  </div>
+                );
+              })()}
+
               <div className="flex items-center justify-between mb-1.5">
                 <span className="font-display text-[9px] tracking-[0.25em] uppercase text-primary">
                   {liveAirport.icao} Frequencies — tap to tune
