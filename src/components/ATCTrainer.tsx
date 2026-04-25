@@ -945,7 +945,7 @@ const ATCTrainer = () => {
       // Detect a wrong-facility correction and surface the banner.
       const correction = parseCorrection(reply);
       if (correction) {
-        setPendingCorrection({ ...correction, msgId: atcMsg.id });
+        setPendingCorrection({ ...correction, msgId: atcMsg.id, attempted: userMsg.content });
       }
       void speakATC(reply);
     } catch {
