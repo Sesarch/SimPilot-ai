@@ -2037,6 +2037,19 @@ ${transcript}`;
                   let action = "transmission";
                   let strength: "strong" | "weak" | "none" = "none";
                   let expectedFac: FacilityKind | null = null;
+                  let fromCustom = false;
+                  // User-defined phrase rules take precedence — treated as
+                  // strong matches since the pilot explicitly taught them.
+                  for (const r of phraseRules) {
+                    const p = r.phrase.trim().toLowerCase();
+                    if (p && said.includes(p)) {
+                      action = r.action.trim() || "transmission";
+                      strength = "strong";
+                      fromCustom = true;
+                      break;
+                    }
+                  }
+                  if (!fromCustom)
                   if (/\btaxi\b/.test(said)) { action = "taxi clearance"; strength = "strong"; expectedFac = "GROUND"; }
                   else if (/\bcleared?\s+for\s+takeoff|\btakeoff\b/.test(said)) { action = "takeoff clearance"; strength = "strong"; expectedFac = "TOWER"; }
                   else if (/\bdeparture\b/.test(said)) { action = "takeoff clearance"; strength = "weak"; expectedFac = "TOWER"; }
