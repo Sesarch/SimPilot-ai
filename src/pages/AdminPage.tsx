@@ -34,6 +34,7 @@ import AdminKnowledgeBase from "@/components/AdminKnowledgeBase";
 import AdminPayments from "@/components/AdminPayments";
 import AdminReports from "@/components/AdminReports";
 import AdminAuditLog from "@/components/AdminAuditLog";
+import AdminSeo from "@/components/AdminSeo";
 
 type AdminUser = {
   id: string;
