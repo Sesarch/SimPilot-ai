@@ -1,0 +1,26 @@
+# Lovable / Netlify-style HTTP security headers for SimPilot.AI
+# Applied to every response served by the static host.
+#
+# Notes for maintainers:
+# - CSP is intentionally NOT set here. Auth (Supabase + Google/Apple OAuth),
+#   Stripe Checkout redirects, Lovable AI gateway streaming, OpenStreetMap /
+#   Carto map tiles, and the admin dashboard all rely on a wide range of
+#   third-party origins. A misconfigured CSP would silently break sign-in,
+#   admin tools, payments, and the Live Sky map. CSP is tracked separately
+#   (see SECURITY.md / report-only rollout) and will be enabled once a full
+#   origin allowlist has been validated against every page in production.
+# - The headers below are safe for SPAs and do not interfere with OAuth or
+#   payment redirects (those are top-level navigations, not framed requests).
+
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(self), geolocation=(self), payment=(self), interest-cohort=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  X-DNS-Prefetch-Control: on
+
+# Long-cache hashed build assets
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
