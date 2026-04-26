@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { resolveOgImage } from "@/lib/ogImages";
 
 interface SEOHeadProps {
   title: string;
@@ -6,6 +7,9 @@ interface SEOHeadProps {
   keywords: string;
   canonical?: string;
   ogType?: string;
+  /** Optional explicit override. When omitted, the OG image is auto-resolved
+   *  from the `canonical` path via src/lib/ogImages.ts, falling back to the
+   *  default site image. */
   ogImage?: string;
   noIndex?: boolean;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
@@ -26,7 +30,7 @@ const SEOHead = ({
 }: SEOHeadProps) => {
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
   const canonicalUrl = canonical ? `${BASE_URL}${canonical}` : undefined;
-  const ogImageUrl = ogImage ? `${BASE_URL}${ogImage}` : `${BASE_URL}/og-image.jpg`;
+  const ogImageUrl = `${BASE_URL}${resolveOgImage(canonical, ogImage)}`;
 
   return (
     <Helmet>
