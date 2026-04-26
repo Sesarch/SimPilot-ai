@@ -205,6 +205,26 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json();
 
+      if (action === "log-load-failure") {
+        const { attempts, error_message, error_code, status, endpoint, occurred_at } = body || {};
+        await logAdminAction(admin, {
+          adminUserId: user.id,
+          adminEmail: user.email,
+          action: "payments.load_failure",
+          targetType: "admin_payments_tab",
+          details: {
+            attempts: typeof attempts === "number" ? attempts : null,
+            error_message: typeof error_message === "string" ? error_message.slice(0, 500) : null,
+            error_code: error_code ?? null,
+            status: status ?? null,
+            endpoint: typeof endpoint === "string" ? endpoint.slice(0, 200) : null,
+            occurred_at: occurred_at ?? new Date().toISOString(),
+          },
+          req,
+        });
+        return json({ logged: true });
+      }
+
       if (action === "refund") {
         const { payment_intent, amount, reason } = body;
         if (!payment_intent) return badReq("payment_intent required");
