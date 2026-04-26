@@ -209,6 +209,15 @@ describe.skipIf(!LIVE)("OG meta — live rendered pages", () => {
       expect(ogImage).toMatch(/^https?:\/\//);
       expect(twImage).toMatch(/^https?:\/\//);
 
+      // For our /og-*.jpg images, OG (large) and Twitter (small) must point
+      // at *different* assets — otherwise the small-variant wiring is broken.
+      if (/\/og-[a-z0-9-]+\.jpg$/i.test(ogImage)) {
+        expect(twImage, `${route}: twitter:image should be the -sm.jpg variant`).toMatch(
+          /-sm\.jpg$/i,
+        );
+        expect(ogImage).not.toBe(twImage);
+      }
+
       for (const imgUrl of new Set([ogImage, twImage])) {
         // HEAD first; some CDNs reject HEAD, so fall back to ranged GET.
         let imgRes = await fetch(imgUrl, { method: "HEAD" });
