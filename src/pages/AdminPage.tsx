@@ -613,6 +613,61 @@ const AdminPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Grant Comp Dialog */}
+      <Dialog open={!!grantDialog} onOpenChange={(o) => !o && setGrantDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-4 h-4 text-amber-500" /> Grant Comp Access
+            </DialogTitle>
+            <DialogDescription>
+              Give {grantDialog?.email} free access to a paid plan tier. This bypasses Stripe and is logged to the audit log.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="grant-tier">Plan Tier</Label>
+              <Select value={grantTier} onValueChange={setGrantTier}>
+                <SelectTrigger id="grant-tier">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="basic">Basic</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="gold_seal">Gold Seal CFI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="grant-reason">Reason (optional)</Label>
+              <Input
+                id="grant-reason"
+                placeholder="Beta tester, partner, support credit…"
+                value={grantReason}
+                onChange={(e) => setGrantReason(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="grant-expires">Expires (optional)</Label>
+              <Input
+                id="grant-expires"
+                type="date"
+                value={grantExpires}
+                onChange={(e) => setGrantExpires(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Leave blank for no expiration.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGrantDialog(null)} disabled={granting}>Cancel</Button>
+            <Button onClick={handleGrant} disabled={granting}>
+              {granting ? "Granting…" : "Grant Access"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
