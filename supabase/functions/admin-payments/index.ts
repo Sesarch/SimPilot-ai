@@ -159,7 +159,21 @@ Deno.serve(async (req) => {
 
     // ---- LIST recent invoices ----
     if (req.method === "GET" && action === "list-invoices") {
-      const page = await stripe.invoices.list({ limit: 50, expand: ["data.customer"] });
+      let page;
+      try {
+        page = await stripe.invoices.list({ limit: 50, expand: ["data.customer"] });
+      } catch (e: any) {
+        // Stripe restricted keys may lack credit_note_read perm, which invoices.list requires.
+        if (e?.statusCode === 403 || e?.type === "StripePermissionError") {
+          console.warn("[admin-payments] list-invoices permission denied:", e?.raw?.message || e?.message);
+          return json({
+            invoices: [],
+            permission_denied: true,
+            message: "Stripe API key is missing required permissions to list invoices (needs Credit Notes: Read and Invoices: Read).",
+          });
+        }
+        throw e;
+      }
       const rows = page.data.map((inv) => {
         const c = inv.customer as Stripe.Customer | string;
         return {
