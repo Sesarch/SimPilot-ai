@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
-  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download,
+  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,9 @@ import AdminMissingAcsCodes from "@/components/AdminMissingAcsCodes";
 import AdminSchoolInquiries from "@/components/AdminSchoolInquiries";
 import AdminModelSettings from "@/components/AdminModelSettings";
 import AdminKnowledgeBase from "@/components/AdminKnowledgeBase";
+import AdminPayments from "@/components/AdminPayments";
+import AdminReports from "@/components/AdminReports";
+import AdminAuditLog from "@/components/AdminAuditLog";
 
 type AdminUser = {
   id: string;
@@ -36,6 +39,9 @@ type AdminUser = {
   roles: string[];
   display_name: string | null;
   terms_agreed_at: string | null;
+  last_transmission_at: string | null;
+  total_sim_hours: number;
+  comp_grant: { plan_tier: string; expires_at: string | null } | null;
 };
 
 type LeadEmail = {
