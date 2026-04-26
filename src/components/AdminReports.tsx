@@ -21,6 +21,27 @@ type Report = {
 
 const fmt = (cents: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format((cents || 0) / 100);
 
+const exportCSV = (data: Report | null) => {
+  if (!data) return;
+  const summary = toCSV([{
+    total_users: data.total_users,
+    signups_last_30d: data.signups_last_30d,
+    dau: data.dau,
+    wau: data.wau,
+    mau: data.mau,
+    exam_pass_rate_pct: data.exam_pass_rate_pct,
+    avg_exam_score_pct: data.avg_exam_score_pct,
+    exams_taken_30d: data.exams_taken_30d,
+    comp_grants_active: data.comp_grants_active,
+  }]);
+  const trend = toCSV(data.signup_trend.map(t => ({ date: t.date, signups: t.signups })));
+  const schools = toCSV(data.top_schools.map(s => ({
+    school: s.name, seats: s.seats, revenue_usd: ((s.revenue_cents || 0) / 100).toFixed(2),
+  })));
+  const csv = `# SimPilot Reports — last 30 days (exported ${new Date().toISOString()})\n\n# Summary\n${summary}\n\n# Signup trend\n${trend}\n\n# Top schools\n${schools}\n`;
+  downloadCSV(`simpilot-reports-${csvDateStamp()}.csv`, csv);
+};
+
 const AdminReports = () => {
   const [data, setData] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
