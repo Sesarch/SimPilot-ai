@@ -106,22 +106,33 @@ const AdminPayments = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    try {
-      const [m, s, i, g, a] = await Promise.all([
-        callFn("admin-payments", "?action=metrics"),
-        callFn("admin-payments", "?action=list-subscriptions"),
-        callFn("admin-payments", "?action=list-invoices"),
-        callFn("admin-payments", "?action=list-comp-grants"),
-        callFn("admin-payments", "?action=audit-log&limit=200"),
-      ]);
-      setMetrics(m);
-      setSubs(s.subscriptions || []);
-      setInvoices(i.invoices || []);
-      setGrants(g.grants || []);
-      setChanges((a.entries || []).filter((e: AuditEntry) => PAYMENT_ACTIONS.has(e.action)));
-    } catch (e: any) {
-      toast.error("Load failed: " + e.message);
+    const maxAttempts = 3;
+    let lastErr: any;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const [m, s, i, g, a] = await Promise.all([
+          callFn("admin-payments", "?action=metrics"),
+          callFn("admin-payments", "?action=list-subscriptions"),
+          callFn("admin-payments", "?action=list-invoices"),
+          callFn("admin-payments", "?action=list-comp-grants"),
+          callFn("admin-payments", "?action=audit-log&limit=200"),
+        ]);
+        setMetrics(m);
+        setSubs(s.subscriptions || []);
+        setInvoices(i.invoices || []);
+        setGrants(g.grants || []);
+        setChanges((a.entries || []).filter((e: AuditEntry) => PAYMENT_ACTIONS.has(e.action)));
+        lastErr = null;
+        break;
+      } catch (e: any) {
+        lastErr = e;
+        if (attempt < maxAttempts) {
+          toast.message(`Load failed, retrying (${attempt}/${maxAttempts - 1})…`);
+          await new Promise((r) => setTimeout(r, 800 * attempt));
+        }
+      }
     }
+    if (lastErr) toast.error("Load failed: " + lastErr.message);
     setLoading(false);
   }, []);
 
