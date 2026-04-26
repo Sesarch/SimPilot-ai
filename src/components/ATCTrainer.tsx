@@ -499,6 +499,8 @@ const ATCTrainer = () => {
   const gradingAbortRef = useRef<AbortController | null>(null);
   const gradingCancelledRef = useRef(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
+  /** Sporty's-style post-flight Session Review modal toggle. */
+  const [showSessionReview, setShowSessionReview] = useState(false);
   // Mic-test state: idle | recording | playing
   const [micTestState, setMicTestState] = useState<"idle" | "recording" | "playing">("idle");
   const micTestRecorderRef = useRef<MediaRecorder | null>(null);
