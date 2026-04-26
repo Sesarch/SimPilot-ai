@@ -4,6 +4,7 @@ import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary"
 import ATCTrainer from "@/components/ATCTrainer";
 import FlightAwareTestButton from "@/components/FlightAwareTestButton";
 import FlightProviderStatusPanel from "@/components/FlightProviderStatusPanel";
+import TailNumberSearch from "@/components/atc/TailNumberSearch";
 import { Radar, Radio } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
@@ -115,6 +116,9 @@ const LiveToolsPage = () => {
                 </div>
                 <div className="h-[calc(100vh-300px)] sm:h-[600px] md:h-[700px] rounded-lg overflow-hidden border border-border">
                   <FlightTrackerMap />
+                </div>
+                <div className="mt-4 sm:mt-6 rounded-lg border border-border bg-card/40 backdrop-blur-sm p-4">
+                  <TailNumberSearch />
                 </div>
               </FlightTrackerErrorBoundary>
             ) : (
