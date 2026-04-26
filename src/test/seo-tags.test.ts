@@ -170,26 +170,29 @@ describe.skipIf(!LIVE)(
         const expectedPath = route.replace(/\/$/, "") || "/";
 
         if (expectedPath === "/") {
-          expect(canonical, `${route}: missing <link rel="canonical">`).toBeTruthy();
-          expect(
-            canonical!.startsWith("https://"),
-            `${route}: canonical must be absolute https — got "${canonical}"`,
-          ).toBe(true);
-          const canonicalPath = new URL(canonical!).pathname.replace(/\/$/, "") || "/";
-          expect(
-            canonicalPath,
-            `${route}: canonical path mismatch ("${canonicalPath}" vs expected "${expectedPath}")`,
-          ).toBe(expectedPath);
-          expect(
-            canonical!.startsWith(SITE_URL),
-            `${route}: canonical should point at ${SITE_URL} — got "${canonical}"`,
-          ).toBe(true);
+          // Root may or may not carry a static canonical (shell intentionally
+          // omits one so the runtime injector is the single source of
+          // truth). If a static canonical IS present, it must be valid.
+          if (canonical) {
+            expect(
+              canonical.startsWith("https://"),
+              `${route}: canonical must be absolute https — got "${canonical}"`,
+            ).toBe(true);
+            const canonicalPath = new URL(canonical).pathname.replace(/\/$/, "") || "/";
+            expect(
+              canonicalPath,
+              `${route}: canonical path mismatch ("${canonicalPath}" vs expected "${expectedPath}")`,
+            ).toBe(expectedPath);
+            expect(
+              canonical.startsWith(SITE_URL),
+              `${route}: canonical should point at ${SITE_URL} — got "${canonical}"`,
+            ).toBe(true);
 
-          // Canonical must resolve 2xx without a redirect hop. Skip when the
-          // preview is on a different origin than the canonical (we can't
-          // assert production routing from a local preview server).
-          if (BASE_URL.startsWith(SITE_URL)) {
-            await canonicalResolvesWithoutRedirect(canonical!, route);
+            // Canonical must resolve 2xx without a redirect hop. Skip when
+            // the preview is on a different origin than the canonical.
+            if (BASE_URL.startsWith(SITE_URL)) {
+              await canonicalResolvesWithoutRedirect(canonical, route);
+            }
           }
         } else {
           expect(
