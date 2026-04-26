@@ -38,17 +38,16 @@ function loadAppRoutes(): string[] {
 }
 
 type RobotsRules = { allows: string[]; disallows: string[]; sitemaps: string[] };
-type RobotsByUA = { byUA: Map<string, RobotsRules>; sitemaps: string[] };
+type RobotsByUA = { byUA: Map<string, { allows: string[]; disallows: string[] }>; sitemaps: string[] };
 
 /**
  * Parses robots.txt with proper per-User-agent scoping. Lines under each
- * `User-agent:` block are attributed to that UA only. `Sitemap:` is always
- * global per spec.
+ * `User-agent:` block are attributed to that UA only; `Sitemap:` is global.
  */
 function parseRobots(text: string): RobotsByUA {
-  const byUA = new Map<string, RobotsRules>();
+  const byUA = new Map<string, { allows: string[]; disallows: string[] }>();
   const sitemaps: string[] = [];
-  let currentUAs: string[] = [];
+  let currentUA = "*";
   for (const raw of text.split("\n")) {
     const line = raw.trim();
     if (!line || line.startsWith("#")) continue;
@@ -58,17 +57,14 @@ function parseRobots(text: string): RobotsByUA {
     const value = line.slice(idx + 1).trim();
     if (!value) continue;
     if (key === "user-agent") {
-      // Consecutive User-agent lines share the next rule block.
-      // If the previous line wasn't a User-agent, start a fresh block.
-      if (currentUAs.length === 0 || /^(allow|disallow)/i.test(text.split("\n").slice(0, text.split("\n").indexOf(raw)).reverse().find((l) => l.trim())?.trim() || "")) {
-        currentUAs = [];
-      }
-      currentUAs.push(value);
-      if (!byUA.has(value)) byUA.set(value, { allows: [], disallows: [], sitemaps: [] });
+      currentUA = value;
+      if (!byUA.has(currentUA)) byUA.set(currentUA, { allows: [], disallows: [] });
     } else if (key === "allow") {
-      for (const ua of currentUAs) byUA.get(ua)!.allows.push(value);
+      if (!byUA.has(currentUA)) byUA.set(currentUA, { allows: [], disallows: [] });
+      byUA.get(currentUA)!.allows.push(value);
     } else if (key === "disallow") {
-      for (const ua of currentUAs) byUA.get(ua)!.disallows.push(value);
+      if (!byUA.has(currentUA)) byUA.set(currentUA, { allows: [], disallows: [] });
+      byUA.get(currentUA)!.disallows.push(value);
     } else if (key === "sitemap") {
       sitemaps.push(value);
     }
@@ -76,7 +72,7 @@ function parseRobots(text: string): RobotsByUA {
   return { byUA, sitemaps };
 }
 
-/** Combine all UAs that should be able to crawl the public site. */
+/** Combine rules for crawlers that should index the public site. */
 function indexableCrawlerRules(robots: RobotsByUA): RobotsRules {
   const uas = ["*", "Googlebot", "Bingbot"];
   const allows: string[] = [];
@@ -121,7 +117,6 @@ function isCoveredByDisallow(route: string, disallows: string[]): boolean {
 const describeOrSkip = ENABLED ? describe : describe.skip;
 
 describeOrSkip(`live SEO check (${BASE || "disabled"})`, () => {
-  let robotsText = "";
   let sitemapXml = "";
   let robots: RobotsRules;
   let appRoutes: string[];
@@ -131,8 +126,8 @@ describeOrSkip(`live SEO check (${BASE || "disabled"})`, () => {
 
     const robotsRes = await fetchWithTimeout(`${BASE}/robots.txt`);
     expect(robotsRes.status, "robots.txt should return 200").toBe(200);
-    robotsText = await robotsRes.text();
-    robots = parseRobots(robotsText);
+    const parsed = parseRobots(await robotsRes.text());
+    robots = indexableCrawlerRules(parsed);
 
     const sitemapRes = await fetchWithTimeout(`${BASE}/sitemap.xml`);
     expect(sitemapRes.status, "sitemap.xml should return 200").toBe(200);
