@@ -305,7 +305,10 @@ const AdminPage = () => {
             </div>
           </TabsContent>
 
-          {/* Users Tab */}
+          <TabsContent value="payments"><AdminPayments /></TabsContent>
+          <TabsContent value="reports"><AdminReports /></TabsContent>
+          <TabsContent value="audit"><AdminAuditLog /></TabsContent>
+
           <TabsContent value="users">
             {/* Invite */}
             <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5 mb-6">
