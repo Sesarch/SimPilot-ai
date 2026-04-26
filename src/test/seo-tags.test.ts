@@ -94,6 +94,19 @@ describe.skipIf(!LIVE)(
       async (route) => {
         const html = await fetchAsCrawler(`${BASE_URL}${route}`);
         const meta = parseMetaTags(html);
+        const metaAll = parseMetaTagsAll(html);
+
+        // ---------- duplicate tag guard ----------
+        // Stale tags from a previous render or double-emission from
+        // index.html + React would confuse scrapers (some use the first
+        // value, some the last). Fail fast if we see any.
+        for (const key of SINGLETON_META_KEYS) {
+          const occurrences = metaAll[key]?.length ?? 0;
+          expect(
+            occurrences,
+            `${route}: <meta ${key}> appears ${occurrences} times (expected 0 or 1)`,
+          ).toBeLessThanOrEqual(1);
+        }
 
         // ---------- canonical ----------
         const canonical = parseCanonical(html);
