@@ -18,7 +18,7 @@
  * test locks that contract in.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 import SEOHead from "../components/SEOHead";
