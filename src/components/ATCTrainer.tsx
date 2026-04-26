@@ -390,6 +390,39 @@ const ATCTrainer = () => {
   useEffect(() => {
     try { localStorage.setItem("atc_facility_label_style", facilityLabelStyle); } catch {}
   }, [facilityLabelStyle]);
+
+  // Release-to-Transmit: when ON, releasing PTT auto-sends the captured text.
+  // When OFF, the captured text is staged in a draft for review (legacy flow).
+  const [autoTransmit, setAutoTransmit] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("atc_auto_transmit");
+      return saved === null ? true : saved === "1";
+    } catch { return true; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_auto_transmit", autoTransmit ? "1" : "0"); } catch {}
+  }, [autoTransmit]);
+
+  // Assignable global PTT hotkey. Stored as a KeyboardEvent.code value
+  // (e.g. "Space", "KeyT", "ShiftLeft"). Defaults to Space.
+  const [pttHotkey, setPttHotkey] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem("atc_ptt_hotkey");
+      return saved && /^[A-Za-z0-9]+$/.test(saved) ? saved : "Space";
+    } catch { return "Space"; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_ptt_hotkey", pttHotkey); } catch {}
+  }, [pttHotkey]);
+  const [capturingHotkey, setCapturingHotkey] = useState(false);
+  // Pretty label for a KeyboardEvent.code (e.g. "KeyT" -> "T", "Space" -> "Space").
+  const hotkeyLabel = useCallback((code: string): string => {
+    if (code === "Space") return "Space";
+    if (code.startsWith("Key")) return code.slice(3);
+    if (code.startsWith("Digit")) return code.slice(5);
+    if (code.startsWith("Arrow")) return code.replace("Arrow", "↑↓←→".charAt(["Up","Down","Left","Right"].indexOf(code.slice(5))) || code);
+    return code;
+  }, []);
   // Last-used scenario id (for "Resume last scenario" UX). Read once at mount.
   const initialLastScenarioId = (() => {
     try {
@@ -1666,8 +1699,13 @@ ${transcript}`;
               const transcript = finalBufferRef.current.trim();
               finalBufferRef.current = "";
               if (transcript) {
-                // Stage as a draft — pilot must explicitly press Transmit.
-                setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+                if (autoTransmit) {
+                  // Release-to-Transmit: send immediately on PTT release.
+                  void sendPilotTransmission(transcript);
+                } else {
+                  // Stage as a draft — pilot must explicitly press Transmit.
+                  setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+                }
               }
               return;
             }
@@ -1681,7 +1719,11 @@ ${transcript}`;
         const transcript = finalBufferRef.current.trim();
         finalBufferRef.current = "";
         if (transcript) {
-          setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+          if (autoTransmit) {
+            void sendPilotTransmission(transcript);
+          } else {
+            setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+          }
         }
       };
       try {
@@ -2793,6 +2835,71 @@ ${transcript}`;
             );
           })()}
 
+          {/* Proactive Frequency Mismatch banner — explains BEFORE transmitting
+              that the pilot's intended request doesn't match the tuned
+              controller (e.g. asking for taxi while on Tower). Driven by the
+              same action inference we use for grading. */}
+          {isLiveMode && liveAirport && liveContext?.facility && pendingDraft.trim() && (() => {
+            const fac = liveContext.facility;
+            if (fac.kind === "ATIS" || fac.kind === "AWOS") return null;
+            const action = inferAction(pendingDraft);
+            const expectByAction: Record<string, string[]> = {
+              "taxi clearance": ["GND"],
+              "takeoff clearance": ["TWR"],
+              "landing clearance": ["TWR"],
+              "IFR clearance": ["CLNC", "GND"],
+              "VFR request": ["TWR", "GND", "CLNC"],
+              "radio check": ["TWR", "GND", "CLNC", "APP", "DEP", "CTR"],
+              "check-in": ["TWR", "APP", "DEP", "CTR", "GND"],
+            };
+            const expected = expectByAction[action];
+            if (!expected || expected.includes(fac.kind)) return null;
+            const expectedFac = liveAirport.facilities.find((f) => expected.includes(f.kind));
+            const KIND_NICE: Record<string, string> = { GND: "Ground", TWR: "Tower", CLNC: "Clearance", APP: "Approach", DEP: "Departure", CTR: "Center" };
+            const wantNice = KIND_NICE[expected[0]] ?? expected[0];
+            const haveNice = KIND_NICE[fac.kind] ?? fac.kind;
+            return (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="rounded-md border-2 border-amber-500/70 bg-amber-500/10 px-4 py-3"
+              >
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-display text-[11px] tracking-[0.3em] uppercase text-amber-500 font-bold">
+                      Frequency Mismatch
+                    </div>
+                    <div className="mt-1 text-sm text-foreground">
+                      You're calling <span className="font-semibold">{wantNice}</span> on a <span className="font-semibold">{haveNice}</span> frequency
+                      (<span className="font-mono tabular-nums">{formatFreq(parseFloat(activeFreq))}</span>).
+                      {expectedFac
+                        ? <> Tune <span className="font-mono tabular-nums">{formatFreq(expectedFac.freq)}</span> for {expectedFac.name}.</>
+                        : <> No published {wantNice} at {liveAirport.icao}.</>}
+                    </div>
+                    {expectedFac && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStandbyFreq(activeFreq);
+                            setActiveFreq(formatFreq(expectedFac.freq));
+                          }}
+                          className="px-2 py-1 rounded border border-amber-500/50 bg-background hover:bg-amber-500/10 text-[10px] font-display tracking-[0.15em] uppercase text-foreground transition-colors"
+                          title={`Tune ${expectedFac.name}`}
+                        >
+                          <Radio className="h-3 w-3 inline mr-1 -mt-0.5" />
+                          <span className="text-muted-foreground mr-1">{expectedFac.kind}</span>
+                          <span className="font-mono tabular-nums">{formatFreq(expectedFac.freq)}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {messages.map((msg) => {
             if (msg.role === "system") {
               return (
@@ -3228,16 +3335,74 @@ ${transcript}`;
               <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
               <span className="text-muted-foreground">Mic Ready — Hold</span>
               <kbd
-                aria-label="Spacebar"
-                title="Hold Spacebar to transmit"
+                aria-label={`PTT hotkey: ${hotkeyLabel(pttHotkey)}`}
+                title={`Hold ${hotkeyLabel(pttHotkey)} to transmit (click PTT settings to rebind)`}
                 className="inline-flex items-center gap-1 rounded border border-border bg-muted/40 px-1.5 py-0.5 font-display text-[9px] tracking-[0.2em] uppercase text-foreground/80 shadow-sm"
               >
                 <span className="inline-block h-[2px] w-3 rounded-full bg-foreground/60" />
-                Space
+                {hotkeyLabel(pttHotkey)}
               </kbd>
             </>
           )}
         </div>
+
+        {/* PTT preferences: Release-to-Transmit toggle + assignable hotkey */}
+        {sttSupported && (
+          <div className="w-full flex flex-col gap-2 border border-border/60 rounded-md bg-background/40 px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                Release-to-Transmit
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={autoTransmit}
+                onClick={() => setAutoTransmit((v) => !v)}
+                title={autoTransmit ? "On: releasing PTT sends immediately" : "Off: review draft, then press Transmit"}
+                className={cn(
+                  "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
+                  autoTransmit ? "bg-[hsl(var(--hud-green))]/70" : "bg-muted",
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-4 w-4 rounded-full bg-background shadow transition-transform",
+                    autoTransmit ? "translate-x-4" : "translate-x-0.5",
+                  )}
+                />
+              </button>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                PTT Hotkey
+              </span>
+              <button
+                type="button"
+                onClick={() => setCapturingHotkey((v) => !v)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded border px-2 py-1 font-display text-[10px] tracking-[0.2em] uppercase transition-colors",
+                  capturingHotkey
+                    ? "border-accent text-accent bg-accent/10 animate-pulse"
+                    : "border-border bg-muted/40 text-foreground/80 hover:border-primary/60",
+                )}
+                title={capturingHotkey ? "Press any key to assign…" : "Click then press any key to rebind"}
+              >
+                <kbd className="font-display tracking-[0.15em]">{capturingHotkey ? "Press a key…" : hotkeyLabel(pttHotkey)}</kbd>
+              </button>
+            </div>
+            {/* Hotkey capture: listen for the next keydown when armed */}
+            {capturingHotkey && (
+              <HotkeyCapture
+                onCapture={(code) => {
+                  setPttHotkey(code);
+                  setCapturingHotkey(false);
+                  toast.success(`PTT hotkey set to ${hotkeyLabel(code)}`);
+                }}
+                onCancel={() => setCapturingHotkey(false)}
+              />
+            )}
+          </div>
+        )}
 
         {/* VU meter — pulses with AI voice + hiss bed */}
         <VUMeter getAnalyser={() => fxRef.current?.analyser ?? null} active={speaking} />
@@ -3285,25 +3450,43 @@ ${transcript}`;
         )}
       </div>
 
-      {/* Spacebar hold for PTT */}
-      <SpaceHoldPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading} />
+      {/* Global PTT hotkey (configurable) */}
+      <HotkeyPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading || capturingHotkey} hotkey={pttHotkey} />
     </div>
     </div>
   );
 };
 
 // Hidden component: hold spacebar = PTT.
-const SpaceHoldPTT = ({ onDown, onUp, disabled }: { onDown: () => void; onUp: () => void; disabled: boolean }) => {
+// One-shot key listener: captures the next non-modifier keydown and reports
+// the KeyboardEvent.code so the parent can persist it as the new PTT hotkey.
+const HotkeyCapture = ({ onCapture, onCancel }: { onCapture: (code: string) => void; onCancel: () => void }) => {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === "Escape") { onCancel(); return; }
+      // Reject bare modifiers — they're useless as solo PTT keys.
+      if (["ShiftLeft", "ShiftRight", "ControlLeft", "ControlRight", "AltLeft", "AltRight", "MetaLeft", "MetaRight"].includes(e.code)) return;
+      onCapture(e.code);
+    };
+    window.addEventListener("keydown", handler, { capture: true });
+    return () => window.removeEventListener("keydown", handler, { capture: true } as any);
+  }, [onCapture, onCancel]);
+  return null;
+};
+
+const HotkeyPTT = ({ onDown, onUp, disabled, hotkey }: { onDown: () => void; onUp: () => void; disabled: boolean; hotkey: string }) => {
   useEffect(() => {
     const isTyping = (t: EventTarget | null) =>
       t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
     const down = (e: KeyboardEvent) => {
-      if (e.code !== "Space" || e.repeat || disabled || isTyping(e.target)) return;
+      if (e.code !== hotkey || e.repeat || disabled || isTyping(e.target)) return;
       e.preventDefault();
       onDown();
     };
     const up = (e: KeyboardEvent) => {
-      if (e.code !== "Space" || isTyping(e.target)) return;
+      if (e.code !== hotkey || isTyping(e.target)) return;
       e.preventDefault();
       onUp();
     };
@@ -3313,7 +3496,7 @@ const SpaceHoldPTT = ({ onDown, onUp, disabled }: { onDown: () => void; onUp: ()
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };
-  }, [onDown, onUp, disabled]);
+  }, [onDown, onUp, disabled, hotkey]);
   return null;
 };
 
