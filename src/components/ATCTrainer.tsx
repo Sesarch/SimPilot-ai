@@ -1006,13 +1006,36 @@ const ATCTrainer = () => {
     setPendingCorrection(null);
   }, []);
 
+  /** Parse a [STATE key=value ...] tag emitted by ATC. Returns a partial state delta. */
+  const parseState = useCallback((text: string): Partial<FlightState> | null => {
+    const m = text.match(/\[STATE\s+([^\]]+)\]/i);
+    if (!m) return null;
+    const out: Partial<FlightState> = {};
+    const re = /([a-z_]+)\s*=\s*([^\s]+)/gi;
+    let kv: RegExpExecArray | null;
+    while ((kv = re.exec(m[1])) !== null) {
+      const k = kv[1].toLowerCase();
+      const v = kv[2];
+      if (k === "phase") out.phase = v;
+      else if (k === "runway") out.runway = v;
+      else if (k === "altitude") out.altitude = v;
+      else if (k === "heading") out.heading = v;
+      else if (k === "squawk") out.squawk = v;
+      else if (k === "handoff_to") out.handoffTo = v;
+      else if (k === "handoff_freq") out.handoffFreq = v;
+      else if (k === "atis") out.atis = v;
+    }
+    return out;
+  }, []);
+
 
   const speakATC = async (text: string) => {
-    // Strip both the [FEEDBACK] coaching line AND any [CORRECTION ...] marker
-    // so neither is read aloud — they're for the UI only.
+    // Strip the [FEEDBACK] coaching line, any [CORRECTION ...] marker, and
+    // any [STATE ...] tag so none are read aloud — they're UI-only.
     const spoken = text
       .split(/\n?\[FEEDBACK\]/i)[0]
       .replace(/\[CORRECTION[^\]]*\]/gi, "")
+      .replace(/\[STATE[^\]]*\]/gi, "")
       .trim();
     if (!spoken) return;
 
