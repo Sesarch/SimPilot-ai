@@ -58,6 +58,23 @@ type CompGrant = {
   created_at: string;
 };
 
+type AuditEntry = {
+  id: string;
+  admin_email: string | null;
+  action: string;
+  target_type: string | null;
+  target_id: string | null;
+  details: Record<string, any> | null;
+  created_at: string;
+};
+
+const PAYMENT_ACTIONS = new Set([
+  "stripe.refund",
+  "stripe.cancel_immediate",
+  "stripe.cancel_at_period_end",
+  "stripe.change_plan",
+]);
+
 const fmt = (cents: number, currency = "usd") =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format((cents || 0) / 100);
 
