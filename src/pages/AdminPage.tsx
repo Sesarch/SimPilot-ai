@@ -313,7 +313,7 @@ const AdminPage = () => {
       </nav>
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="w-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 mb-8">
             <TabsTrigger value="overview" className="font-display text-xs tracking-wider">Overview</TabsTrigger>
             <TabsTrigger value="payments" className="font-display text-xs tracking-wider">Payments</TabsTrigger>
