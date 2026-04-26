@@ -11,10 +11,11 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollText, RefreshCw, Search, CalendarIcon, X } from "lucide-react";
+import { ScrollText, RefreshCw, Search, CalendarIcon, X, Download } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 
 type Entry = {
   id: string;
@@ -120,10 +121,39 @@ const AdminAuditLog = () => {
             {filtered.length}{filtered.length !== entries.length ? ` / ${entries.length}` : ""}
           </Badge>
         </h2>
-        <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+              const rows = filtered
+                .filter(e => new Date(e.created_at).getTime() >= cutoff)
+                .map(e => ({
+                  created_at: e.created_at,
+                  admin_email: e.admin_email,
+                  admin_user_id: e.admin_user_id,
+                  action: e.action,
+                  target_type: e.target_type,
+                  target_id: e.target_id,
+                  details: e.details,
+                  ip_address: e.ip_address,
+                }));
+              if (!rows.length) { toast.info("No audit entries in the last 30 days for current filters."); return; }
+              downloadCSV(
+                `simpilot-audit-${csvDateStamp()}.csv`,
+                toCSV(rows, ["created_at", "admin_email", "admin_user_id", "action", "target_type", "target_id", "details", "ip_address"]),
+              );
+            }}
+            disabled={loading || !entries.length}
+          >
+            <Download className="w-4 h-4 mr-1.5" /> Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Search bar */}

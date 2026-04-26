@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Users, GraduationCap, RefreshCw, Activity, Award, School } from "lucide-react";
+import { TrendingUp, Users, GraduationCap, RefreshCw, Activity, Award, School, Download } from "lucide-react";
 import { toast } from "sonner";
+import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 
 type Report = {
   total_users: number;
@@ -19,6 +20,27 @@ type Report = {
 };
 
 const fmt = (cents: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format((cents || 0) / 100);
+
+const exportCSV = (data: Report | null) => {
+  if (!data) return;
+  const summary = toCSV([{
+    total_users: data.total_users,
+    signups_last_30d: data.signups_last_30d,
+    dau: data.dau,
+    wau: data.wau,
+    mau: data.mau,
+    exam_pass_rate_pct: data.exam_pass_rate_pct,
+    avg_exam_score_pct: data.avg_exam_score_pct,
+    exams_taken_30d: data.exams_taken_30d,
+    comp_grants_active: data.comp_grants_active,
+  }]);
+  const trend = toCSV(data.signup_trend.map(t => ({ date: t.date, signups: t.signups })));
+  const schools = toCSV(data.top_schools.map(s => ({
+    school: s.name, seats: s.seats, revenue_usd: ((s.revenue_cents || 0) / 100).toFixed(2),
+  })));
+  const csv = `# SimPilot Reports — last 30 days (exported ${new Date().toISOString()})\n\n# Summary\n${summary}\n\n# Signup trend\n${trend}\n\n# Top schools\n${schools}\n`;
+  downloadCSV(`simpilot-reports-${csvDateStamp()}.csv`, csv);
+};
 
 const AdminReports = () => {
   const [data, setData] = useState<Report | null>(null);
@@ -52,9 +74,14 @@ const AdminReports = () => {
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-primary" /> Reports & Analytics
         </h2>
-        <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportCSV(data)} disabled={!data}>
+            <Download className="w-4 h-4 mr-1.5" /> Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
