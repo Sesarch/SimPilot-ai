@@ -43,6 +43,7 @@ export const PUBLIC_ROUTES: SitemapRoute[] = [
       caption: "Compare AI-powered pilot training with traditional ground school options",
     },
   },
+  { path: "/for-schools", changefreq: "monthly", priority: 0.8 },
   { path: "/contact", changefreq: "monthly", priority: 0.7 },
   { path: "/terms", changefreq: "yearly", priority: 0.3 },
   { path: "/privacy", changefreq: "yearly", priority: 0.3 },
