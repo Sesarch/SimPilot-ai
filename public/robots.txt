@@ -38,8 +38,6 @@ Disallow: /for-schools/success
 # User-controlled public profiles (per-user privacy, noIndex by default)
 Disallow: /pilot/
 
-# Don't index Supabase edge function endpoints exposed via the same origin
-Disallow: /functions/
 
 # ---------------------------------------------------------------------------
 # Major search & social crawlers — explicitly allowed for the public surface.
@@ -67,7 +65,6 @@ Disallow: /admin
 Disallow: /unsubscribe
 Disallow: /for-schools/success
 Disallow: /pilot/
-Disallow: /functions/
 
 User-agent: Googlebot-Image
 Allow: /og-*.jpg
@@ -95,7 +92,6 @@ Disallow: /admin
 Disallow: /unsubscribe
 Disallow: /for-schools/success
 Disallow: /pilot/
-Disallow: /functions/
 
 # Social link-preview crawlers — must be allowed to fetch OG images & meta.
 User-agent: Twitterbot
