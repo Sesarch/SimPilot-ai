@@ -31,6 +31,8 @@ import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
 import { RuleTester } from "@/components/atc/RuleTester";
+import { SessionReviewModal } from "@/components/atc/SessionReviewModal";
+import { Link } from "react-router-dom";
 
 interface ATCMessage {
   id: string;
@@ -45,6 +47,20 @@ type PhraseologyScore = {
   summary: string;
   weak_areas: { category: string; issue: string; example?: string }[];
   saved_id?: string;
+};
+
+/** Persistent flight state extracted from controller [STATE ...] markers.
+ *  Survives frequency handoffs (Ground → Tower → Departure) so the next
+ *  controller knows what was already cleared / assigned. */
+type FlightState = {
+  phase?: string;
+  runway?: string;
+  altitude?: string;
+  heading?: string;
+  squawk?: string;
+  handoffTo?: string;
+  handoffFreq?: string;
+  atis?: string;
 };
 
 const scenarios = [
@@ -81,12 +97,28 @@ REAL-WORLD CONTROLLER BEHAVIOR (CRITICAL — never violate):
 - Wrong-facility request (CRITICAL): If the pilot asks the WRONG controller for a service (e.g. asks "Tower" for taxi, asks "Ground" for takeoff, asks "Clearance" for taxi), DO NOT play along. Correct them: "<Callsign>, contact <correct facility> on <freq> for <service>." (e.g. "Three alpha bravo, contact Ground on one two one point seven for taxi.")
 - Be concise. Only ask for information required by SOP.
 
+DYNAMIC SCENARIO INJECTIONS (CRITICAL — randomize realistic curveballs):
+- Roughly every 3rd–4th turn, inject ONE unexpected real-world instruction the pilot must respond to. Examples:
+  • "Hold position for crossing traffic, [type] from your right."
+  • "[Callsign], extend your downwind, I'll call your base — traffic is a [type] on a 3-mile final."
+  • "[Callsign], go around, go around, traffic on the runway, fly runway heading, climb and maintain [alt]."
+  • "[Callsign], expedite crossing Runway [NN], traffic on a 2-mile final."
+  • "[Callsign], line up and wait, Runway [NN]." (then later: "cleared for takeoff" or "cancel takeoff clearance")
+  • "[Callsign], traffic, twelve o'clock, two miles, opposite direction, [type], altitude indicates [alt]."
+  • "[Callsign], say intentions" (after a long silence or ambiguous request).
+- Curveballs MUST be appropriate for your facility role (Tower issues go-arounds; Ground issues hold-short/expedite-cross; Approach issues vectors/traffic).
+- Do NOT inject more than one curveball per turn. Do NOT stack them.
+
 OUTPUT FORMAT (CRITICAL):
 - Respond ONLY with the spoken radio transmission. No labels, no markdown, no prose.
 - ONE transmission per turn.
 - After your transmission, on a NEW LINE, append a feedback block in this exact format if (and only if) the pilot's previous call had errors:
   [FEEDBACK] short, specific correction (e.g. "Read back runway and hold-short instruction.")
 - If the pilot's call was correct, omit the [FEEDBACK] line entirely.
+- After [FEEDBACK] (or after your transmission if no feedback), on a NEW LINE you MAY append a flight-state update marker in EXACTLY this format whenever you have just changed the pilot's clearance/runway/altitude/handoff:
+  [STATE key=value key=value ...]
+  Allowed keys: phase (preflight|taxi|hold_short|line_up|takeoff|departure|enroute|arrival|approach|landing|rollout|parked), runway, altitude, heading, squawk, handoff_to, handoff_freq, atis.
+  e.g. "[STATE phase=taxi runway=28R]" or "[STATE phase=departure handoff_to=DEP handoff_freq=125.150 squawk=4271]".
 - Never break character. You are the controller, not a teacher.`;
 
 /**
@@ -158,6 +190,14 @@ REAL-WORLD CONTROLLER BEHAVIOR (CRITICAL — never violate):
 - Dynamic mid-taxi commands: When traffic warrants, issue "hold short of Runway <NN>", "hold position", or "follow the [type] on [taxiway]". Vary instructions realistically — don't always issue a clean route.
 - Be concise. Only ask for information required by SOP.
 
+DYNAMIC SCENARIO INJECTIONS (CRITICAL — randomize realistic curveballs appropriate for ${opts.facilityKind}):
+- Roughly every 3rd–4th turn, inject ONE unexpected real-world instruction the pilot must respond to. Pick from these (only those appropriate to your facility role):
+  • TOWER: "go around, go around, traffic on the runway", "extend your downwind, I'll call your base", "line up and wait Runway <NN>", "expedite departure, traffic on a 2-mile final", "make short approach", "turn base now".
+  • GROUND: "hold position for crossing traffic", "give way to the [type] on your left", "expedite crossing Runway <NN>", "follow the [type] on Alpha".
+  • APPROACH/DEPARTURE: "traffic, twelve o'clock, two miles, opposite direction, [type], altitude indicates [alt]", "vectors for sequencing, fly heading <NNN>", "reduce speed to <NNN> knots", "say intentions".
+  • CLEARANCE: "amended clearance, advise ready to copy", "expect departure delay <NN> minutes due to flow control".
+- Curveballs MUST match your facility role. Do NOT inject more than one per turn. Do NOT stack them.
+
 STRICT PHRASEOLOGY (FAA AIM 4-2 / Pilot-Controller Glossary):
 - Numbers: pronounce digits individually ("one two three", not "one twenty-three"). "Niner" for 9. Altitudes use "thousand"/"hundred". Frequencies: decimal as "point".
 - Sequence: WHO you're calling, WHO you are, WHERE, WHAT.
@@ -173,6 +213,10 @@ OUTPUT FORMAT (CRITICAL):
 - WRONG-FACILITY MARKER (CRITICAL): If the pilot addressed the wrong facility OR asked the wrong facility for a service (rule 3 or 5 above) and you are redirecting them, append on its own NEW LINE a machine-readable marker in EXACTLY this format:
   [CORRECTION facility=<KIND> freq=<MHZ>]
   where <KIND> is one of GROUND, TOWER, CLEARANCE, APPROACH, DEPARTURE, ATIS, CTAF, UNICOM, CENTER, GUARD and <MHZ> is the published frequency from the OTHER FACILITIES list (e.g. "[CORRECTION facility=TOWER freq=119.200]"). Do NOT include this marker in any other situation.
+- FLIGHT-STATE MARKER: After [FEEDBACK]/[CORRECTION] (or after the transmission if neither applies), on a NEW LINE you MAY append a state update in EXACTLY this format whenever you have just changed the pilot's clearance/runway/altitude/handoff:
+  [STATE key=value key=value ...]
+  Allowed keys: phase (preflight|taxi|hold_short|line_up|takeoff|departure|enroute|arrival|approach|landing|rollout|parked), runway, altitude, heading, squawk, handoff_to, handoff_freq, atis.
+  e.g. "[STATE phase=taxi runway=28R]" or "[STATE phase=departure handoff_to=DEP handoff_freq=125.150 squawk=4271]".
 - Never break character.`;
 };
 
@@ -322,6 +366,10 @@ const ATCTrainer = () => {
     /** What the pilot actually said when the wrong-facility correction fired. */
     attempted?: string;
   } | null>(null);
+  /** Persistent flight state across frequency handoffs. Updated whenever ATC
+   *  emits a [STATE ...] marker. Used to inject continuity into every
+   *  subsequent system prompt so e.g. Tower knows you already taxied. */
+  const [flightState, setFlightState] = useState<FlightState>({});
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
@@ -451,6 +499,8 @@ const ATCTrainer = () => {
   const gradingAbortRef = useRef<AbortController | null>(null);
   const gradingCancelledRef = useRef(false);
   const [phraseologyScore, setPhraseologyScore] = useState<PhraseologyScore | null>(null);
+  /** Sporty's-style post-flight Session Review modal toggle. */
+  const [showSessionReview, setShowSessionReview] = useState(false);
   // Mic-test state: idle | recording | playing
   const [micTestState, setMicTestState] = useState<"idle" | "recording" | "playing">("idle");
   const micTestRecorderRef = useRef<MediaRecorder | null>(null);
@@ -827,6 +877,20 @@ const ATCTrainer = () => {
 
   /** Build the system prompt for the current session (live or preset). */
   const buildSystemPrompt = useCallback((): string => {
+    // Continuity block injected into every prompt so the next controller (after
+    // a Ground→Tower→Departure handoff) inherits the running flight state.
+    const stateLines: string[] = [];
+    if (flightState.phase) stateLines.push(`Phase: ${flightState.phase}`);
+    if (flightState.runway) stateLines.push(`Runway assigned: ${flightState.runway}`);
+    if (flightState.altitude) stateLines.push(`Altitude: ${flightState.altitude}`);
+    if (flightState.heading) stateLines.push(`Heading: ${flightState.heading}`);
+    if (flightState.squawk) stateLines.push(`Squawk: ${flightState.squawk}`);
+    if (flightState.handoffTo) stateLines.push(`Last handoff to: ${flightState.handoffTo}${flightState.handoffFreq ? ` on ${flightState.handoffFreq}` : ""}`);
+    if (flightState.atis) stateLines.push(`ATIS in hand: Information ${flightState.atis}`);
+    const continuityBlock = stateLines.length
+      ? `\n\nFLIGHT STATE (carry-over from prior controllers — DO NOT re-issue what is already assigned, DO NOT ask for ATIS again, DO NOT ask the runway, DO NOT re-clear taxi if already taxiing):\n${stateLines.map((l) => `  • ${l}`).join("\n")}`
+      : "";
+
     if (selectedScenario === "live" && liveAirport) {
       const freqMHz = parseFloat(activeFreq);
       const lookup = lookupFacility(liveAirport.icao, freqMHz);
@@ -842,11 +906,11 @@ const ATCTrainer = () => {
           freq: formatFreq(f.freq),
         })),
         currentAtisInfo: currentAtis && currentAtis.icao === liveAirport.icao ? currentAtis.info : null,
-      });
+      }) + continuityBlock;
     }
     const sc = scenarios.find((s) => s.id === selectedScenario);
-    return FAA_PROMPT(sc?.label ?? "ATC Communications");
-  }, [selectedScenario, liveAirport, activeFreq, currentAtis]);
+    return FAA_PROMPT(sc?.label ?? "ATC Communications") + continuityBlock;
+  }, [selectedScenario, liveAirport, activeFreq, currentAtis, flightState]);
 
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
@@ -855,6 +919,7 @@ const ATCTrainer = () => {
     setPhraseologyScore(null);
     setPendingDraft("");
     setPendingCorrection(null);
+    setFlightState({});
     setLoading(true);
     const scenario = scenarios.find((s) => s.id === scenarioId)!;
     try {
@@ -894,6 +959,7 @@ const ATCTrainer = () => {
     setPhraseologyScore(null);
     setPendingDraft("");
     setPendingCorrection(null);
+    setFlightState({});
     setCurrentAtis(null);
     lastAtisFetchRef.current = null;
     // Default tune: tower if present, else first facility.
@@ -978,13 +1044,36 @@ const ATCTrainer = () => {
     setPendingCorrection(null);
   }, []);
 
+  /** Parse a [STATE key=value ...] tag emitted by ATC. Returns a partial state delta. */
+  const parseState = useCallback((text: string): Partial<FlightState> | null => {
+    const m = text.match(/\[STATE\s+([^\]]+)\]/i);
+    if (!m) return null;
+    const out: Partial<FlightState> = {};
+    const re = /([a-z_]+)\s*=\s*([^\s]+)/gi;
+    let kv: RegExpExecArray | null;
+    while ((kv = re.exec(m[1])) !== null) {
+      const k = kv[1].toLowerCase();
+      const v = kv[2];
+      if (k === "phase") out.phase = v;
+      else if (k === "runway") out.runway = v;
+      else if (k === "altitude") out.altitude = v;
+      else if (k === "heading") out.heading = v;
+      else if (k === "squawk") out.squawk = v;
+      else if (k === "handoff_to") out.handoffTo = v;
+      else if (k === "handoff_freq") out.handoffFreq = v;
+      else if (k === "atis") out.atis = v;
+    }
+    return out;
+  }, []);
+
 
   const speakATC = async (text: string) => {
-    // Strip both the [FEEDBACK] coaching line AND any [CORRECTION ...] marker
-    // so neither is read aloud — they're for the UI only.
+    // Strip the [FEEDBACK] coaching line, any [CORRECTION ...] marker, and
+    // any [STATE ...] tag so none are read aloud — they're UI-only.
     const spoken = text
       .split(/\n?\[FEEDBACK\]/i)[0]
       .replace(/\[CORRECTION[^\]]*\]/gi, "")
+      .replace(/\[STATE[^\]]*\]/gi, "")
       .trim();
     if (!spoken) return;
 
@@ -1110,13 +1199,19 @@ const ATCTrainer = () => {
           ...prev,
         ].slice(0, 5));
       }
+      // Continuous logic: merge any [STATE ...] delta the controller emitted
+      // so subsequent turns (and frequency handoffs) inherit the new state.
+      const stateDelta = parseState(reply);
+      if (stateDelta) {
+        setFlightState((prev) => ({ ...prev, ...stateDelta }));
+      }
       void speakATC(reply);
     } catch {
       setError("Connection lost. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, liveAirport, activeFreq, inferAction]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, parseState, liveAirport, activeFreq, inferAction]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
@@ -1143,7 +1238,7 @@ const ATCTrainer = () => {
     // Build transcript for the grader
     const transcript = messages
       .filter((m) => m.role !== "system")
-      .map((m) => `${m.role === "atc" ? "ATC" : "PILOT"}: ${m.content.split(/\n?\[FEEDBACK\]/i)[0].replace(/\[CORRECTION[^\]]*\]/gi, "").trim()}`)
+      .map((m) => `${m.role === "atc" ? "ATC" : "PILOT"}: ${m.content.split(/\n?\[FEEDBACK\]/i)[0].replace(/\[CORRECTION[^\]]*\]/gi, "").replace(/\[STATE[^\]]*\]/gi, "").trim()}`)
       .join("\n");
 
     const SCORE_PROMPT = `You are a FAA Designated Pilot Examiner grading a pilot's RADIO PHRASEOLOGY only (not airmanship).
@@ -1341,6 +1436,7 @@ ${transcript}`;
 
       const final: PhraseologyScore = { score, total, result, summary, weak_areas, saved_id: inserted?.id };
       setPhraseologyScore(final);
+      setShowSessionReview(true);
       const pct = total > 0 ? Math.round((score / total) * 100) : 0;
       toast.success(`Phraseology ${result} · ${score}/${total} · saved to Logbook`);
 
@@ -2100,6 +2196,31 @@ ${transcript}`;
                     );
                   })}
                 </div>
+              </div>
+
+              {/* ========= CHECKRIDE ORAL EXAM MODE ========= */}
+              <div className="border-t border-border pt-4">
+                <Link
+                  to="/oral-exam?exam=ppl"
+                  className="group block rounded-lg border-2 border-dashed border-primary/40 hover:border-primary/70 hover:bg-primary/5 p-4 transition-all"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-xl shrink-0">
+                        🎓
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-display text-[11px] tracking-[0.25em] uppercase text-primary font-bold">
+                          Switch to Checkride Oral Exam
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          DPE-style oral based on the Private Pilot ACS — voice or text.
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 -rotate-90 text-primary/70 group-hover:text-primary shrink-0" />
+                  </div>
+                </Link>
               </div>
             </div>
           )}
@@ -2909,8 +3030,13 @@ ${transcript}`;
               );
             }
             const [rawSpoken, ...feedbackParts] = msg.content.split(/\n?\[FEEDBACK\]/i);
-            const spoken = rawSpoken.replace(/\[CORRECTION[^\]]*\]/gi, "");
-            const feedback = feedbackParts.join(" ").replace(/\[CORRECTION[^\]]*\]/gi, "").trim();
+            const spoken = rawSpoken
+              .replace(/\[CORRECTION[^\]]*\]/gi, "")
+              .replace(/\[STATE[^\]]*\]/gi, "");
+            const feedback = feedbackParts.join(" ")
+              .replace(/\[CORRECTION[^\]]*\]/gi, "")
+              .replace(/\[STATE[^\]]*\]/gi, "")
+              .trim();
             return (
               <div key={msg.id} className={cn("flex", msg.role === "pilot" ? "justify-end" : "justify-start")}>
                 <div className={cn(
@@ -2989,6 +3115,14 @@ ${transcript}`;
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => setShowSessionReview(true)}
+                  className="h-7 text-[10px] tracking-[0.15em] uppercase font-display"
+                >
+                  <ClipboardCheck className="h-3 w-3 mr-1" /> Session Review
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -3452,6 +3586,21 @@ ${transcript}`;
 
       {/* Global PTT hotkey (configurable) */}
       <HotkeyPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading || capturingHotkey} hotkey={pttHotkey} />
+
+      {/* Sporty's-style post-flight Session Review modal */}
+      <SessionReviewModal
+        open={showSessionReview}
+        onOpenChange={setShowSessionReview}
+        messages={messages}
+        score={phraseologyScore}
+        scenarioLabel={
+          selectedScenario === "live" && liveAirport
+            ? `Live · ${liveAirport.icao}`
+            : (scenarios.find((s) => s.id === selectedScenario)?.label ?? "ATC Session")
+        }
+        callsign="N123AB"
+        onDownloadDebrief={phraseologyScore ? downloadDebrief : undefined}
+      />
     </div>
     </div>
   );
