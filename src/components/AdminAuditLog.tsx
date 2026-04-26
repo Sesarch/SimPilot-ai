@@ -11,10 +11,11 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollText, RefreshCw, Search, CalendarIcon, X } from "lucide-react";
+import { ScrollText, RefreshCw, Search, CalendarIcon, X, Download } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 
 type Entry = {
   id: string;
