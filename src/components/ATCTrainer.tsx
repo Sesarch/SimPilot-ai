@@ -1699,8 +1699,13 @@ ${transcript}`;
               const transcript = finalBufferRef.current.trim();
               finalBufferRef.current = "";
               if (transcript) {
-                // Stage as a draft — pilot must explicitly press Transmit.
-                setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+                if (autoTransmit) {
+                  // Release-to-Transmit: send immediately on PTT release.
+                  void sendPilotTransmission(transcript);
+                } else {
+                  // Stage as a draft — pilot must explicitly press Transmit.
+                  setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+                }
               }
               return;
             }
@@ -1714,7 +1719,11 @@ ${transcript}`;
         const transcript = finalBufferRef.current.trim();
         finalBufferRef.current = "";
         if (transcript) {
-          setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+          if (autoTransmit) {
+            void sendPilotTransmission(transcript);
+          } else {
+            setPendingDraft((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+          }
         }
       };
       try {
