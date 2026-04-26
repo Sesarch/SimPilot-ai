@@ -26,6 +26,8 @@ on:
       - "src/test/sitemap-coverage.test.ts"
       - "src/test/og-images.test.ts"
       - "src/test/seo-tags.test.ts"
+      - "src/test/share-copy.test.ts"
+      - "src/lib/shareCopy.ts"
       - "public/og-*.jpg"
       - "public/og-*.png"
       - ".github/workflows/seo-live-check.yml"
