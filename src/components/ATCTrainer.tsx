@@ -873,6 +873,20 @@ const ATCTrainer = () => {
 
   /** Build the system prompt for the current session (live or preset). */
   const buildSystemPrompt = useCallback((): string => {
+    // Continuity block injected into every prompt so the next controller (after
+    // a Ground→Tower→Departure handoff) inherits the running flight state.
+    const stateLines: string[] = [];
+    if (flightState.phase) stateLines.push(`Phase: ${flightState.phase}`);
+    if (flightState.runway) stateLines.push(`Runway assigned: ${flightState.runway}`);
+    if (flightState.altitude) stateLines.push(`Altitude: ${flightState.altitude}`);
+    if (flightState.heading) stateLines.push(`Heading: ${flightState.heading}`);
+    if (flightState.squawk) stateLines.push(`Squawk: ${flightState.squawk}`);
+    if (flightState.handoffTo) stateLines.push(`Last handoff to: ${flightState.handoffTo}${flightState.handoffFreq ? ` on ${flightState.handoffFreq}` : ""}`);
+    if (flightState.atis) stateLines.push(`ATIS in hand: Information ${flightState.atis}`);
+    const continuityBlock = stateLines.length
+      ? `\n\nFLIGHT STATE (carry-over from prior controllers — DO NOT re-issue what is already assigned, DO NOT ask for ATIS again, DO NOT ask the runway, DO NOT re-clear taxi if already taxiing):\n${stateLines.map((l) => `  • ${l}`).join("\n")}`
+      : "";
+
     if (selectedScenario === "live" && liveAirport) {
       const freqMHz = parseFloat(activeFreq);
       const lookup = lookupFacility(liveAirport.icao, freqMHz);
@@ -888,11 +902,11 @@ const ATCTrainer = () => {
           freq: formatFreq(f.freq),
         })),
         currentAtisInfo: currentAtis && currentAtis.icao === liveAirport.icao ? currentAtis.info : null,
-      });
+      }) + continuityBlock;
     }
     const sc = scenarios.find((s) => s.id === selectedScenario);
-    return FAA_PROMPT(sc?.label ?? "ATC Communications");
-  }, [selectedScenario, liveAirport, activeFreq, currentAtis]);
+    return FAA_PROMPT(sc?.label ?? "ATC Communications") + continuityBlock;
+  }, [selectedScenario, liveAirport, activeFreq, currentAtis, flightState]);
 
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
