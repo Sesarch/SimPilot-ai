@@ -23,6 +23,7 @@ import AdminSiteSettings from "@/components/AdminSiteSettings";
 import AdminMissingAcsCodes from "@/components/AdminMissingAcsCodes";
 import AdminSchoolInquiries from "@/components/AdminSchoolInquiries";
 import AdminModelSettings from "@/components/AdminModelSettings";
+import AdminKnowledgeBase from "@/components/AdminKnowledgeBase";
 
 type AdminUser = {
   id: string;
@@ -243,6 +244,7 @@ const AdminPage = () => {
             <TabsTrigger value="schools" className="font-display text-xs tracking-wider">Schools</TabsTrigger>
             <TabsTrigger value="emails" className="font-display text-xs tracking-wider">Emails</TabsTrigger>
             <TabsTrigger value="models" className="font-display text-xs tracking-wider">Models</TabsTrigger>
+            <TabsTrigger value="kb" className="font-display text-xs tracking-wider">Knowledge</TabsTrigger>
             <TabsTrigger value="settings" className="font-display text-xs tracking-wider">Settings</TabsTrigger>
           </TabsList>
 
@@ -498,6 +500,10 @@ const AdminPage = () => {
           {/* Models Tab */}
           <TabsContent value="models">
             <AdminModelSettings />
+          </TabsContent>
+
+          <TabsContent value="kb">
+            <AdminKnowledgeBase />
           </TabsContent>
 
           {/* Settings Tab */}

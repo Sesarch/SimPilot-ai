@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
+import { embedText, toPgVector } from "../_shared/kb-embed.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -187,6 +188,10 @@ Prohibited areas (P-areas), Restricted areas (R-areas), Warning areas (W-areas),
 Defines TERPS criteria for instrument approach procedures, departure procedures (ODP, SID), arrival procedures (STAR). Specifies obstacle clearance, minimum altitudes, visibility requirements.
 
 INSTRUCTION: When answering any question, draw from the specific PHAK, AFH, IFH, AC 00-6B, AC 00-45H, AIM, or FAR (14 CFR) chapter content above. Always cite the handbook, chapter number, and topic — or the specific FAR section number. Examples: "According to 14 CFR 91.155, VFR weather minimums in Class E airspace below 10,000 feet are..." or "Per 14 CFR 61.57(c), instrument currency requires six approaches, holding, and intercepting/tracking within the preceding 6 calendar months."
+
+═══ ATC PROTOCOL CORRECTIONS (MUST FOLLOW) ═══
+- VFR Flight Following can be requested from EITHER Ground Control OR Clearance Delivery before taxi at towered airports (and from Approach/Departure once airborne or at non-towered fields). Both Ground and Clearance are valid initial points of contact for VFR Flight Following — never tell a student that only one of them can provide it. Reference: AIM 4-1-17 (Radar Traffic Information Service).
+- Recognize aircraft "spots", "ramps", "gates", "FBO", "tie-downs", "transient parking", "north/south/east/west ramp", and numbered spots (e.g. "spot 5", "ramp B", "gate 12") as VALID parking/starting locations for taxi requests. Treat them like any other named ramp area — the student does NOT need to convert them to a runway or taxiway identifier. Examples of valid taxi calls: "Cessna 12345 at spot 5 ready to taxi with information Alpha", "N12345 at the south ramp ready to taxi", "N12345 at the FBO with information Bravo, ready to taxi". When you hear one of these, accept it and proceed normally.
 `;
 
 const MODE_PROMPTS: Record<string, string> = {
@@ -481,6 +486,60 @@ ${pohText}`;
 - For weather/NOTAM/chart-current data: state that real-time information must be obtained from official sources (1-800-WX-BRIEF, ForeFlight, AviationWeather.gov, FAA NOTAM Search) before flight.
 - If you are not confident in an answer, say so and recommend the student verify with a CFI or the appropriate FAA publication.
 - Safety always overrides completeness: a partial answer with a "verify in source X" pointer is better than a confident guess.`;
+    }
+
+    // ═══ RAG: Retrieve relevant chunks from the Knowledge Base ═══
+    // Uses the deterministic 384-dim embedding shared with kb-ingest.
+    // Runs for ALL chat modes so the AI can ground every answer in the
+    // admin-uploaded handbooks (AIM, PHAK, POH, etc.).
+    try {
+      const queryParts: string[] = [];
+      for (let i = chatMessages.length - 1; i >= 0 && queryParts.length < 3; i--) {
+        const m = chatMessages[i];
+        if (m.role !== "user") continue;
+        const c = m.content;
+        if (typeof c === "string") queryParts.unshift(c);
+        else if (Array.isArray(c)) {
+          const t = c.find((p: any) => p.type === "text");
+          if (t?.text) queryParts.unshift(t.text);
+        }
+      }
+      const queryText = queryParts.join("\n").slice(0, 1500);
+      if (queryText.trim().length >= 3) {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const sbKb = createClient(supabaseUrl, serviceRoleKey);
+        const qVec = embedText(queryText);
+        const { data: matches, error: matchErr } = await sbKb.rpc("match_kb_chunks", {
+          query_embedding: toPgVector(qVec) as unknown as number[],
+          match_count: 6,
+          similarity_threshold: 0.05,
+        });
+        if (matchErr) {
+          console.warn("kb match error:", matchErr.message);
+        } else if (Array.isArray(matches) && matches.length > 0) {
+          const evidence = matches
+            .map((m: any, idx: number) => {
+              const n = idx + 1;
+              const loc = [m.section, m.page ? `p. ${m.page}` : null].filter(Boolean).join(", ");
+              return `[${n}] ${m.source_label}${loc ? " — " + loc : ""}\n${(m.content || "").slice(0, 700)}`;
+            })
+            .join("\n\n");
+          systemPrompt += `\n\n═══ LIBRARY EVIDENCE (admin-uploaded handbooks) ═══
+The following passages were retrieved from the Pilot Training Knowledge Base because they appear relevant to the student's question. Each is tagged with a citation number [n].
+
+${evidence}
+
+CITATION RULES (mandatory when LIBRARY EVIDENCE is present):
+1. Prefer these passages over your general training when they directly answer the question.
+2. Cite each fact you draw from a passage inline using its bracket number, e.g. "...is required for VFR flight following [1]."
+3. If a passage is irrelevant to the question, do NOT cite it.
+4. End your answer with a "📚 Sources" section that lists ONLY the citation numbers you actually used, e.g. "[1] AIM 4-3-2 — Traffic Patterns (p. 4-3-3)".
+5. If the LIBRARY EVIDENCE doesn't cover the question, answer from your built-in FAA knowledge and clearly say "Not found in uploaded library — drawing from FAA handbooks."`;
+        }
+      }
+    } catch (kbErr) {
+      console.warn("KB retrieval failed:", (kbErr as Error).message);
     }
 
     // Build system prompt with image analysis instructions when images are present

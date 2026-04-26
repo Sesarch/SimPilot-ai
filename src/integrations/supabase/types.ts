@@ -321,6 +321,92 @@ export type Database = {
         }
         Relationships: []
       }
+      kb_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          document_id: string
+          embedding: string | null
+          id: string
+          page: number | null
+          section: string | null
+          source_label: string
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          document_id: string
+          embedding?: string | null
+          id?: string
+          page?: number | null
+          section?: string | null
+          source_label: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          document_id?: string
+          embedding?: string | null
+          id?: string
+          page?: number | null
+          section?: string | null
+          source_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "kb_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_documents: {
+        Row: {
+          chunk_count: number
+          created_at: string
+          error_message: string | null
+          file_path: string
+          id: string
+          pages: number
+          source_label: string
+          status: string
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          chunk_count?: number
+          created_at?: string
+          error_message?: string | null
+          file_path: string
+          id?: string
+          pages?: number
+          source_label: string
+          status?: string
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          chunk_count?: number
+          created_at?: string
+          error_message?: string | null
+          file_path?: string
+          id?: string
+          pages?: number
+          source_label?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       lead_emails: {
         Row: {
           created_at: string
@@ -920,6 +1006,22 @@ export type Database = {
         Returns: boolean
       }
       log_missing_acs_code: { Args: { _code: string }; Returns: undefined }
+      match_kb_chunks: {
+        Args: {
+          match_count?: number
+          query_embedding: string
+          similarity_threshold?: number
+        }
+        Returns: {
+          content: string
+          document_id: string
+          id: string
+          page: number
+          section: string
+          similarity: number
+          source_label: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
