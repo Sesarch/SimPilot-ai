@@ -53,9 +53,14 @@ const AdminReports = () => {
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-primary" /> Reports & Analytics
         </h2>
-        <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportCSV(data)} disabled={!data}>
+            <Download className="w-4 h-4 mr-1.5" /> Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
