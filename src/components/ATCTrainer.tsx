@@ -2835,6 +2835,71 @@ ${transcript}`;
             );
           })()}
 
+          {/* Proactive Frequency Mismatch banner — explains BEFORE transmitting
+              that the pilot's intended request doesn't match the tuned
+              controller (e.g. asking for taxi while on Tower). Driven by the
+              same action inference we use for grading. */}
+          {isLiveMode && liveAirport && liveContext?.facility && pendingDraft.trim() && (() => {
+            const fac = liveContext.facility;
+            if (fac.kind === "ATIS" || fac.kind === "AWOS") return null;
+            const action = inferAction(pendingDraft);
+            const expectByAction: Record<string, string[]> = {
+              "taxi clearance": ["GND"],
+              "takeoff clearance": ["TWR"],
+              "landing clearance": ["TWR"],
+              "IFR clearance": ["CLNC", "GND"],
+              "VFR request": ["TWR", "GND", "CLNC"],
+              "radio check": ["TWR", "GND", "CLNC", "APP", "DEP", "CTR"],
+              "check-in": ["TWR", "APP", "DEP", "CTR", "GND"],
+            };
+            const expected = expectByAction[action];
+            if (!expected || expected.includes(fac.kind)) return null;
+            const expectedFac = liveAirport.facilities.find((f) => expected.includes(f.kind));
+            const KIND_NICE: Record<string, string> = { GND: "Ground", TWR: "Tower", CLNC: "Clearance", APP: "Approach", DEP: "Departure", CTR: "Center" };
+            const wantNice = KIND_NICE[expected[0]] ?? expected[0];
+            const haveNice = KIND_NICE[fac.kind] ?? fac.kind;
+            return (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="rounded-md border-2 border-amber-500/70 bg-amber-500/10 px-4 py-3"
+              >
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-display text-[11px] tracking-[0.3em] uppercase text-amber-500 font-bold">
+                      Frequency Mismatch
+                    </div>
+                    <div className="mt-1 text-sm text-foreground">
+                      You're calling <span className="font-semibold">{wantNice}</span> on a <span className="font-semibold">{haveNice}</span> frequency
+                      (<span className="font-mono tabular-nums">{formatFreq(parseFloat(activeFreq))}</span>).
+                      {expectedFac
+                        ? <> Tune <span className="font-mono tabular-nums">{formatFreq(expectedFac.freq)}</span> for {expectedFac.name}.</>
+                        : <> No published {wantNice} at {liveAirport.icao}.</>}
+                    </div>
+                    {expectedFac && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStandbyFreq(activeFreq);
+                            setActiveFreq(formatFreq(expectedFac.freq));
+                          }}
+                          className="px-2 py-1 rounded border border-amber-500/50 bg-background hover:bg-amber-500/10 text-[10px] font-display tracking-[0.15em] uppercase text-foreground transition-colors"
+                          title={`Tune ${expectedFac.name}`}
+                        >
+                          <Radio className="h-3 w-3 inline mr-1 -mt-0.5" />
+                          <span className="text-muted-foreground mr-1">{expectedFac.kind}</span>
+                          <span className="font-mono tabular-nums">{formatFreq(expectedFac.freq)}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {messages.map((msg) => {
             if (msg.role === "system") {
               return (
