@@ -146,6 +146,7 @@ describe("OG image registry — static integrity", () => {
     expect(resolveTwitterImage("/", "/custom.jpg")).toBe("/custom.jpg");
   });
 
+  it("resolveOgImage falls back to DEFAULT_OG_IMAGE for unknown paths", () => {
     expect(resolveOgImage("/this-route-does-not-exist")).toBe(DEFAULT_OG_IMAGE);
   });
 
