@@ -628,6 +628,10 @@ const AdminPage = () => {
             <AdminKnowledgeBase />
           </TabsContent>
 
+          <TabsContent value="seo">
+            <AdminSeo />
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings">
             <div className="space-y-6">
