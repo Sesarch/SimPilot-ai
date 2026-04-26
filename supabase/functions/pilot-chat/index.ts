@@ -488,8 +488,62 @@ ${pohText}`;
 - Safety always overrides completeness: a partial answer with a "verify in source X" pointer is better than a confident guess.`;
     }
 
+    // ═══ RAG: Retrieve relevant chunks from the Knowledge Base ═══
+    // Uses the deterministic 384-dim embedding shared with kb-ingest.
+    // Runs for ALL chat modes so the AI can ground every answer in the
+    // admin-uploaded handbooks (AIM, PHAK, POH, etc.).
+    try {
+      const queryParts: string[] = [];
+      for (let i = chatMessages.length - 1; i >= 0 && queryParts.length < 3; i--) {
+        const m = chatMessages[i];
+        if (m.role !== "user") continue;
+        const c = m.content;
+        if (typeof c === "string") queryParts.unshift(c);
+        else if (Array.isArray(c)) {
+          const t = c.find((p: any) => p.type === "text");
+          if (t?.text) queryParts.unshift(t.text);
+        }
+      }
+      const queryText = queryParts.join("\n").slice(0, 1500);
+      if (queryText.trim().length >= 3) {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const sbKb = createClient(supabaseUrl, serviceRoleKey);
+        const qVec = embedText(queryText);
+        const { data: matches, error: matchErr } = await sbKb.rpc("match_kb_chunks", {
+          query_embedding: toPgVector(qVec) as unknown as number[],
+          match_count: 6,
+          similarity_threshold: 0.05,
+        });
+        if (matchErr) {
+          console.warn("kb match error:", matchErr.message);
+        } else if (Array.isArray(matches) && matches.length > 0) {
+          const evidence = matches
+            .map((m: any, idx: number) => {
+              const n = idx + 1;
+              const loc = [m.section, m.page ? `p. ${m.page}` : null].filter(Boolean).join(", ");
+              return `[${n}] ${m.source_label}${loc ? " — " + loc : ""}\n${(m.content || "").slice(0, 700)}`;
+            })
+            .join("\n\n");
+          systemPrompt += `\n\n═══ LIBRARY EVIDENCE (admin-uploaded handbooks) ═══
+The following passages were retrieved from the Pilot Training Knowledge Base because they appear relevant to the student's question. Each is tagged with a citation number [n].
+
+${evidence}
+
+CITATION RULES (mandatory when LIBRARY EVIDENCE is present):
+1. Prefer these passages over your general training when they directly answer the question.
+2. Cite each fact you draw from a passage inline using its bracket number, e.g. "...is required for VFR flight following [1]."
+3. If a passage is irrelevant to the question, do NOT cite it.
+4. End your answer with a "📚 Sources" section that lists ONLY the citation numbers you actually used, e.g. "[1] AIM 4-3-2 — Traffic Patterns (p. 4-3-3)".
+5. If the LIBRARY EVIDENCE doesn't cover the question, answer from your built-in FAA knowledge and clearly say "Not found in uploaded library — drawing from FAA handbooks."`;
+        }
+      }
+    } catch (kbErr) {
+      console.warn("KB retrieval failed:", (kbErr as Error).message);
+    }
+
     // Build system prompt with image analysis instructions when images are present
-    let finalSystemPrompt = systemPrompt;
+
     if (hasImages) {
       finalSystemPrompt += `\n\nIMAGE ANALYSIS CAPABILITY:
 You can analyze aviation charts, sectional charts, VFR/IFR charts, approach plates, airport diagrams, cockpit instruments, and any aviation-related images.
