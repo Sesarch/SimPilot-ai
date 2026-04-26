@@ -46,7 +46,12 @@ describe("SEOHead — twitter:image dimensions", () => {
   beforeEach(() => {
     cleanup();
     // Helmet appends to document.head; clear residual tags between tests.
+    // Keep the original empty <head> structure jsdom provides.
     document.head.innerHTML = "";
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it.each(PUBLIC_ROUTES.map((r) => r.path))(
