@@ -364,6 +364,10 @@ const ATCTrainer = () => {
     /** What the pilot actually said when the wrong-facility correction fired. */
     attempted?: string;
   } | null>(null);
+  /** Persistent flight state across frequency handoffs. Updated whenever ATC
+   *  emits a [STATE ...] marker. Used to inject continuity into every
+   *  subsequent system prompt so e.g. Tower knows you already taxied. */
+  const [flightState, setFlightState] = useState<FlightState>({});
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
