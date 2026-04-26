@@ -25,6 +25,7 @@ import {
   OG_IMAGE_BY_PATH,
   DEFAULT_OG_IMAGE,
   resolveOgImage,
+  resolveTwitterImage,
 } from "../lib/ogImages";
 import { PUBLIC_ROUTES } from "../../scripts/sitemap-routes";
 
