@@ -189,7 +189,41 @@ const AdminPage = () => {
     setConfirmAction(null);
   };
 
-  const filteredUsers = users.filter(
+  const handleGrant = async () => {
+    if (!grantDialog) return;
+    setGranting(true);
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-payments?action=grant-comp`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: grantDialog.userId,
+            plan_tier: grantTier,
+            reason: grantReason.trim() || null,
+            expires_at: grantExpires ? new Date(grantExpires).toISOString() : null,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to grant comp");
+      toast.success(`Granted ${grantTier} access to ${grantDialog.email}`);
+      setGrantDialog(null);
+      setGrantReason("");
+      setGrantExpires("");
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setGranting(false);
+  };
+
     (u) =>
       (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (u.display_name || "").toLowerCase().includes(searchQuery.toLowerCase())
