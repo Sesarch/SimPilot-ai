@@ -78,21 +78,49 @@ const PAYMENT_ACTIONS = new Set([
 const fmt = (cents: number, currency = "usd") =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format((cents || 0) / 100);
 
+class FnError extends Error {
+  status?: number;
+  code?: string;
+  endpoint?: string;
+  constructor(message: string, opts: { status?: number; code?: string; endpoint?: string } = {}) {
+    super(message);
+    this.status = opts.status;
+    this.code = opts.code;
+    this.endpoint = opts.endpoint;
+  }
+}
+
 const callFn = async (fn: string, qs = "", body?: any) => {
   const session = (await supabase.auth.getSession()).data.session;
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${fn}${qs}`;
-  const res = await fetch(url, {
-    method: body ? "POST" : "GET",
-    headers: {
-      Authorization: `Bearer ${session?.access_token}`,
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      "Content-Type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error((await res.json()).error || "Request failed");
+  const endpoint = `${fn}${qs}`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: body ? "POST" : "GET",
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (e: any) {
+    throw new FnError(e?.message || "Network error", { code: "network_error", endpoint });
+  }
+  if (!res.ok) {
+    let errMsg = "Request failed";
+    let errCode: string | undefined;
+    try {
+      const j = await res.json();
+      errMsg = j.error || errMsg;
+      errCode = j.code;
+    } catch { /* ignore */ }
+    throw new FnError(errMsg, { status: res.status, code: errCode, endpoint });
+  }
   return res.json();
 };
+
 
 const AdminPayments = () => {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -140,7 +168,18 @@ const AdminPayments = () => {
         }
       }
     }
-    if (lastErr) toast.error("Load failed: " + lastErr.message, { id: toastId });
+    if (lastErr) {
+      toast.error("Load failed: " + lastErr.message, { id: toastId });
+      // Fire-and-forget audit log so failures are debuggable later.
+      callFn("admin-payments", "?action=log-load-failure", {
+        attempts: maxAttempts,
+        error_message: lastErr?.message ?? String(lastErr),
+        error_code: lastErr?.code ?? null,
+        status: lastErr?.status ?? null,
+        endpoint: lastErr?.endpoint ?? null,
+        occurred_at: new Date().toISOString(),
+      }).catch((e) => console.error("[admin-payments] failed to log load failure:", e));
+    }
     setLoading(false);
   }, []);
 
