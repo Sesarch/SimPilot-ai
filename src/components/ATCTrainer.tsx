@@ -1436,6 +1436,7 @@ ${transcript}`;
 
       const final: PhraseologyScore = { score, total, result, summary, weak_areas, saved_id: inserted?.id };
       setPhraseologyScore(final);
+      setShowSessionReview(true);
       const pct = total > 0 ? Math.round((score / total) * 100) : 0;
       toast.success(`Phraseology ${result} · ${score}/${total} · saved to Logbook`);
 
