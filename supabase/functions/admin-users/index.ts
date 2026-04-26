@@ -169,6 +169,7 @@ Deno.serve(async (req) => {
         }
         const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email);
         if (error) throw error;
+        await audit(adminClient, req, user.id, user.email ?? null, "user.invite", data.user?.id ?? email, { email });
         return new Response(JSON.stringify({ success: true, user: data.user }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -194,6 +195,7 @@ Deno.serve(async (req) => {
           ban_duration: banDuration,
         });
         if (error) throw error;
+        await audit(adminClient, req, user.id, user.email ?? null, "user.ban", userId, { duration: banDuration });
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -211,6 +213,7 @@ Deno.serve(async (req) => {
           ban_duration: "none",
         });
         if (error) throw error;
+        await audit(adminClient, req, user.id, user.email ?? null, "user.unban", userId);
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -232,6 +235,7 @@ Deno.serve(async (req) => {
         }
         const { error } = await adminClient.auth.admin.deleteUser(userId);
         if (error) throw error;
+        await audit(adminClient, req, user.id, user.email ?? null, "user.delete", userId);
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -259,6 +263,7 @@ Deno.serve(async (req) => {
             .insert({ user_id: userId, role });
           if (error) throw error;
         }
+        await audit(adminClient, req, user.id, user.email ?? null, "user.set_role", userId, { role });
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
