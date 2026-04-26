@@ -159,6 +159,21 @@ describe.skipIf(!LIVE)(
         if (twitterImage !== ogImage) {
           await imageReachable(twitterImage, route);
         }
+
+        // ---------- image dimension metadata ----------
+        // These accelerate first-render of social previews (scrapers can
+        // reserve layout space without downloading the image first) and let
+        // platforms reject mis-sized assets cleanly. Required on every route.
+        expect(meta["og:image:width"], `${route}: missing og:image:width`).toBe("1200");
+        expect(meta["og:image:height"], `${route}: missing og:image:height`).toBe("630");
+        expect(
+          meta["twitter:image:width"],
+          `${route}: missing twitter:image:width`,
+        ).toBe("800");
+        expect(
+          meta["twitter:image:height"],
+          `${route}: missing twitter:image:height`,
+        ).toBe("418");
       },
       20_000,
     );
