@@ -67,6 +67,47 @@ async function fetchAsCrawler(url: string): Promise<string> {
   return res.text();
 }
 
+/**
+ * Verify a canonical URL resolves with a 2xx response and is NOT a redirect.
+ *
+ * A canonical that 301/302s — or that 200s only after following a redirect
+ * chain — is a soft SEO bug: search engines may treat the *final* URL as the
+ * true canonical, splitting link equity and undermining the tag's purpose.
+ *
+ * We use `redirect: "manual"` so any 3xx surfaces as a hard failure rather
+ * than being silently followed. HEAD is tried first; some hosts (incl. some
+ * CDNs and Lovable previews) reject HEAD with 405/403, in which case we fall
+ * back to a ranged GET that still avoids downloading the full body.
+ */
+async function canonicalResolvesWithoutRedirect(
+  url: string,
+  route: string,
+): Promise<void> {
+  let res = await fetch(url, {
+    method: "HEAD",
+    redirect: "manual",
+    headers: { "User-Agent": "facebookexternalhit/1.1" },
+  });
+  if (res.status === 405 || res.status === 403) {
+    res = await fetch(url, {
+      method: "GET",
+      redirect: "manual",
+      headers: {
+        "User-Agent": "facebookexternalhit/1.1",
+        Range: "bytes=0-1023",
+      },
+    });
+  }
+  expect(
+    res.status >= 300 && res.status < 400,
+    `${route}: canonical "${url}" is a redirect (status ${res.status} → ${res.headers.get("location") ?? "?"}). Canonicals must point at the final URL.`,
+  ).toBe(false);
+  expect(
+    res.status,
+    `${route}: canonical "${url}" did not resolve 2xx — got ${res.status}`,
+  ).toBeLessThan(400);
+}
+
 async function imageReachable(url: string, route: string): Promise<void> {
   let res = await fetch(url, { method: "HEAD" });
   if (res.status === 405 || res.status === 403) {
@@ -130,6 +171,13 @@ describe.skipIf(!LIVE)(
           canonical!.startsWith(SITE_URL),
           `${route}: canonical should point at ${SITE_URL} — got "${canonical}"`,
         ).toBe(true);
+
+        // Canonical must resolve 2xx without a redirect hop. Skip when the
+        // preview is on a different origin than the canonical (we can't
+        // assert production routing from a local preview server).
+        if (BASE_URL.startsWith(SITE_URL)) {
+          await canonicalResolvesWithoutRedirect(canonical!, route);
+        }
 
         // ---------- og:image ----------
         const ogImage = meta["og:image"];
