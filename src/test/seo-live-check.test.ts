@@ -10,10 +10,10 @@
  *   2. /sitemap.xml returns 200, parses as XML, and lists every PUBLIC_ROUTES path.
  *   3. Every <loc> in the sitemap returns a 2xx status when fetched.
  *   4. Every Disallow: rule corresponds to a real App.tsx route.
- *   5. Every Disallow: route either responds 2xx with a `noindex` meta tag,
- *      or 3xx/4xx (i.e. the page is not exposed for indexing). 5xx fails.
- *   6. No Allow:/Disallow: rule references a path that no longer exists in
- *      App.tsx (catches stale entries when routes are renamed or removed).
+ *   5. Every Disallow: route resolves without 5xx (no infra outages).
+ *   6. The site-wide index.html shell does NOT carry a global noindex meta
+ *      (which would accidentally deindex the entire domain).
+ *   7. No public sitemap path is also covered by a Disallow rule.
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { readFileSync } from "node:fs";
