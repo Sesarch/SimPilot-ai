@@ -90,8 +90,8 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-background">
       <SEOHead
         title="Pilot Dashboard — SimPilot.AI Training Hub"
-        description="Your SimPilot.AI pilot training dashboard."
-        keywords="pilot training dashboard, ground school, oral exam"
+        description="Your personal SimPilot.AI training hub. Track ground school progress, oral exam scores, ACS readiness, and resume your AI flight instructor sessions in one place."
+        keywords="pilot training dashboard, ground school progress, oral exam tracker, ACS readiness, AI CFI dashboard, student pilot hub, checkride preparation"
         canonical="/dashboard"
         noIndex
       />
