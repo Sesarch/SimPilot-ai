@@ -15,6 +15,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import SEOHead from "@/components/SEOHead";
 import AdminEmailDashboard from "@/components/AdminEmailDashboard";
 import AdminSupportChats from "@/components/AdminSupportChats";
@@ -69,6 +76,8 @@ const AdminPage = () => {
   const [grantDialog, setGrantDialog] = useState<{ userId: string; email: string } | null>(null);
   const [grantTier, setGrantTier] = useState("pro");
   const [grantReason, setGrantReason] = useState("");
+  const [grantExpires, setGrantExpires] = useState("");
+  const [granting, setGranting] = useState(false);
   const [leads, setLeads] = useState<LeadEmail[]>([]);
   const [leadsFetching, setLeadsFetching] = useState(false);
 
@@ -185,6 +194,41 @@ const AdminPage = () => {
       fetchUsers();
     } catch (err: any) { toast.error(err.message); }
     setConfirmAction(null);
+  };
+
+  const handleGrant = async () => {
+    if (!grantDialog) return;
+    setGranting(true);
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-payments?action=grant-comp`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: grantDialog.userId,
+            plan_tier: grantTier,
+            reason: grantReason.trim() || null,
+            expires_at: grantExpires ? new Date(grantExpires).toISOString() : null,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to grant comp");
+      toast.success(`Granted ${grantTier} access to ${grantDialog.email}`);
+      setGrantDialog(null);
+      setGrantReason("");
+      setGrantExpires("");
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setGranting(false);
   };
 
   const filteredUsers = users.filter(
@@ -576,6 +620,61 @@ const AdminPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Grant Comp Dialog */}
+      <Dialog open={!!grantDialog} onOpenChange={(o) => !o && setGrantDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-4 h-4 text-amber-500" /> Grant Comp Access
+            </DialogTitle>
+            <DialogDescription>
+              Give {grantDialog?.email} free access to a paid plan tier. This bypasses Stripe and is logged to the audit log.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="grant-tier">Plan Tier</Label>
+              <Select value={grantTier} onValueChange={setGrantTier}>
+                <SelectTrigger id="grant-tier">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="basic">Basic</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="gold_seal">Gold Seal CFI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="grant-reason">Reason (optional)</Label>
+              <Input
+                id="grant-reason"
+                placeholder="Beta tester, partner, support credit…"
+                value={grantReason}
+                onChange={(e) => setGrantReason(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="grant-expires">Expires (optional)</Label>
+              <Input
+                id="grant-expires"
+                type="date"
+                value={grantExpires}
+                onChange={(e) => setGrantExpires(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Leave blank for no expiration.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGrantDialog(null)} disabled={granting}>Cancel</Button>
+            <Button onClick={handleGrant} disabled={granting}>
+              {granting ? "Granting…" : "Grant Access"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
