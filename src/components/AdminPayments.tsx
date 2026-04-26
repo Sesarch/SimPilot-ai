@@ -315,7 +315,53 @@ const AdminPayments = () => {
             </table>
           </div>
         </TabsContent>
-      </Tabs>
+
+        <TabsContent value="changes">
+          <div className="bg-card/50 border border-border rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="text-left p-3">Date</th>
+                  <th className="text-left p-3">Action</th>
+                  <th className="text-left p-3">Target</th>
+                  <th className="text-left p-3">Details</th>
+                  <th className="text-left p-3">Admin</th>
+                </tr>
+              </thead>
+              <tbody>
+                {changes.map((e) => {
+                  const label =
+                    e.action === "stripe.refund" ? { text: "Refund", variant: "destructive" as const } :
+                    e.action === "stripe.cancel_immediate" ? { text: "Canceled", variant: "destructive" as const } :
+                    e.action === "stripe.cancel_at_period_end" ? { text: "Cancel at period end", variant: "secondary" as const } :
+                    e.action === "stripe.change_plan" ? { text: "Plan changed", variant: "default" as const } :
+                    { text: e.action, variant: "secondary" as const };
+                  const amt = e.details?.amount;
+                  const detailText =
+                    e.action === "stripe.refund"
+                      ? amt ? `Amount: ${fmt(amt)}` : "Full refund"
+                      : e.action === "stripe.change_plan"
+                      ? `${e.details?.prev_price_id || "?"} → ${e.details?.new_price_id || "?"}`
+                      : "—";
+                  return (
+                    <tr key={e.id} className="border-t border-border/50 hover:bg-muted/10">
+                      <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
+                        {new Date(e.created_at).toLocaleString()}
+                      </td>
+                      <td className="p-3"><Badge variant={label.variant} className="text-xs">{label.text}</Badge></td>
+                      <td className="p-3 text-xs font-mono">{e.target_id ? `${e.target_id.slice(0, 22)}…` : "—"}</td>
+                      <td className="p-3 text-xs">{detailText}</td>
+                      <td className="p-3 text-xs text-muted-foreground">{e.admin_email || "—"}</td>
+                    </tr>
+                  );
+                })}
+                {!changes.length && (
+                  <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No payment changes recorded yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </TabsContent>
 
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
