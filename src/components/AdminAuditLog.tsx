@@ -1,14 +1,25 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ScrollText, RefreshCw, Search } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollText, RefreshCw, Search, CalendarIcon, X } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type Entry = {
   id: string;
   admin_email: string | null;
+  admin_user_id: string | null;
   action: string;
   target_type: string | null;
   target_id: string | null;
@@ -23,16 +34,25 @@ const actionColor = (a: string) => {
   return "secondary";
 };
 
+const ALL = "__all__";
+
 const AdminAuditLog = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState("");
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [adminFilter, setAdminFilter] = useState<string>(ALL);
+  const [actionFilter, setActionFilter] = useState<string>(ALL);
+  const [targetQuery, setTargetQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const session = (await supabase.auth.getSession()).data.session;
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-payments?action=audit-log&limit=200`, {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-payments?action=audit-log&limit=500`, {
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -49,27 +69,158 @@ const AdminAuditLog = () => {
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = entries.filter(e => {
-    const q = filter.toLowerCase();
-    return !q || e.action.toLowerCase().includes(q) || (e.admin_email || "").toLowerCase().includes(q) || (e.target_id || "").toLowerCase().includes(q);
-  });
+  const adminOptions = useMemo(
+    () => Array.from(new Set(entries.map(e => e.admin_email).filter(Boolean) as string[])).sort(),
+    [entries],
+  );
+  const actionOptions = useMemo(
+    () => Array.from(new Set(entries.map(e => e.action))).sort(),
+    [entries],
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const tq = targetQuery.trim().toLowerCase();
+    const fromMs = dateFrom ? new Date(dateFrom.setHours(0, 0, 0, 0)).getTime() : null;
+    const toMs = dateTo ? new Date(dateTo.setHours(23, 59, 59, 999)).getTime() : null;
+
+    return entries.filter(e => {
+      if (adminFilter !== ALL && e.admin_email !== adminFilter) return false;
+      if (actionFilter !== ALL && e.action !== actionFilter) return false;
+      if (tq && !(e.target_id || "").toLowerCase().includes(tq)) return false;
+      if (q) {
+        const hay = `${e.action} ${e.admin_email || ""} ${e.target_id || ""} ${JSON.stringify(e.details || {})}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (fromMs || toMs) {
+        const t = new Date(e.created_at).getTime();
+        if (fromMs && t < fromMs) return false;
+        if (toMs && t > toMs) return false;
+      }
+      return true;
+    });
+  }, [entries, search, adminFilter, actionFilter, targetQuery, dateFrom, dateTo]);
+
+  const hasFilters = search || adminFilter !== ALL || actionFilter !== ALL || targetQuery || dateFrom || dateTo;
+  const clearFilters = () => {
+    setSearch("");
+    setAdminFilter(ALL);
+    setActionFilter(ALL);
+    setTargetQuery("");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
           <ScrollText className="w-5 h-5 text-primary" /> Audit Log
-          <Badge variant="secondary" className="text-xs ml-2">{entries.length}</Badge>
+          <Badge variant="secondary" className="text-xs ml-2">
+            {filtered.length}{filtered.length !== entries.length ? ` / ${entries.length}` : ""}
+          </Badge>
         </h2>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+          Refresh
         </Button>
       </div>
 
+      {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Filter by action, admin email, or target..." value={filter} onChange={(e) => setFilter(e.target.value)} className="pl-10" />
+        <Input
+          placeholder="Search action, admin, target, or details…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10"
+        />
       </div>
+
+      {/* Filter row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Admin</Label>
+          <Select value={adminFilter} onValueChange={setAdminFilter}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All admins</SelectItem>
+              {adminOptions.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Action</Label>
+          <Select value={actionFilter} onValueChange={setActionFilter}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All actions</SelectItem>
+              {actionOptions.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Target user / ID</Label>
+          <Input
+            placeholder="UUID or partial"
+            value={targetQuery}
+            onChange={(e) => setTargetQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">From</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start font-normal", !dateFrom && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateFrom ? format(dateFrom, "PPP") : "Any"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dateFrom}
+                onSelect={setDateFrom}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">To</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-full justify-start font-normal", !dateTo && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateTo ? format(dateTo, "PPP") : "Any"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dateTo}
+                onSelect={setDateTo}
+                disabled={(d) => (dateFrom ? d < dateFrom : false)}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
+      {hasFilters && (
+        <div className="flex justify-end">
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X className="w-3.5 h-3.5 mr-1" /> Clear filters
+          </Button>
+        </div>
+      )}
 
       <div className="bg-card/50 border border-border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
@@ -102,7 +253,9 @@ const AdminAuditLog = () => {
               </tr>
             ))}
             {!filtered.length && (
-              <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">{loading ? "Loading…" : "No audit entries"}</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">
+                {loading ? "Loading…" : hasFilters ? "No matches — try clearing some filters" : "No audit entries"}
+              </td></tr>
             )}
           </tbody>
         </table>
