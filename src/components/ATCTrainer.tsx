@@ -3092,6 +3092,14 @@ ${transcript}`;
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
+                  variant="default"
+                  onClick={() => setShowSessionReview(true)}
+                  className="h-7 text-[10px] tracking-[0.15em] uppercase font-display"
+                >
+                  <ClipboardCheck className="h-3 w-3 mr-1" /> Session Review
+                </Button>
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={downloadDebrief}
                   className="h-7 text-[10px] tracking-[0.15em] uppercase font-display"
