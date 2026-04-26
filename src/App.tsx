@@ -40,6 +40,7 @@ import ForSchoolsSuccessPage from "./pages/ForSchoolsSuccessPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
+import SiteVerificationTags from "./components/SiteVerificationTags.tsx";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
       <BrowserRouter>
         <ScrollToTop />
         <SiteSettingsProvider>
+        <SiteVerificationTags />
         <AuthProvider>
           <AnnouncementBanner />
           <MaintenanceGate>

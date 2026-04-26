@@ -10,6 +10,9 @@ export type SiteSettings = {
   weather_enabled: boolean;
   live_tools_enabled: boolean;
   bridge_direct_download_enabled: boolean;
+  google_site_verification: string;
+  bing_site_verification: string;
+  google_search_console_property_url: string;
 };
 
 const defaults: SiteSettings = {
@@ -21,6 +24,9 @@ const defaults: SiteSettings = {
   weather_enabled: true,
   live_tools_enabled: true,
   bridge_direct_download_enabled: false,
+  google_site_verification: "",
+  bing_site_verification: "",
+  google_search_console_property_url: "",
 };
 
 type Ctx = { settings: SiteSettings; loading: boolean };
@@ -44,6 +50,9 @@ export const SiteSettingsProvider = ({ children }: { children: ReactNode }) => {
         weather_enabled: Boolean(data.weather_enabled),
         live_tools_enabled: Boolean(data.live_tools_enabled),
         bridge_direct_download_enabled: Boolean(data.bridge_direct_download_enabled),
+        google_site_verification: typeof data.google_site_verification === "string" ? data.google_site_verification : "",
+        bing_site_verification: typeof data.bing_site_verification === "string" ? data.bing_site_verification : "",
+        google_search_console_property_url: typeof data.google_search_console_property_url === "string" ? data.google_search_console_property_url : "",
       });
     };
 
