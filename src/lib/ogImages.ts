@@ -7,9 +7,14 @@
  * Pages may still pass an explicit `ogImage` prop to override.
  *
  * Image conventions:
- *   - 1200×630 (or 1920×1080 downscaled), JPG, < 100 KB
- *   - Live in /public/og-*.jpg so they resolve at https://simpilot.ai/og-*.jpg
- *   - Referenced as a root-relative path ("/og-foo.jpg")
+ *   - Large variant: 1200×630 JPG, < 100 KB → emitted as `og:image`
+ *     (Facebook, LinkedIn, Slack, iMessage, Discord all prefer this).
+ *   - Small variant:   800×418 JPG, < 50 KB → emitted as `twitter:image`
+ *     (Twitter/X `summary_large_image` renders this size natively without
+ *     re-encoding, so previews load faster and stay sharper).
+ *   - Both live in /public/og-*.jpg so they resolve at https://simpilot.ai/og-*.jpg
+ *   - Small variants are auto-generated from the large ones by
+ *     `scripts/generate-og-variants.py` — never hand-author them.
  */
 
 export const DEFAULT_OG_IMAGE = "/og-image.jpg";
@@ -33,9 +38,23 @@ export const OG_IMAGE_BY_PATH: Record<string, string> = {
   "/progress": "/og-progress.jpg",
 };
 
-/** Resolve the OG image for a canonical path, falling back to the default. */
+/** Resolve the large (1200×630) OG image for a canonical path. */
 export function resolveOgImage(canonical?: string, override?: string): string {
   if (override) return override;
   if (canonical && OG_IMAGE_BY_PATH[canonical]) return OG_IMAGE_BY_PATH[canonical];
   return DEFAULT_OG_IMAGE;
+}
+
+/**
+ * Derive the Twitter-sized (800×418) variant path for any large OG image.
+ * Convention: `/og-foo.jpg` → `/og-foo-sm.jpg`. Falls back to the large
+ * image if no `-sm` variant exists (a missing variant is preferable to
+ * emitting a 404 to Twitter's scraper).
+ */
+export function resolveTwitterImage(canonical?: string, override?: string): string {
+  const large = resolveOgImage(canonical, override);
+  // Only auto-derive for our own /og-*.jpg images. External overrides are
+  // returned as-is so callers stay in control.
+  if (!/^\/og-[a-z0-9-]+\.jpg$/i.test(large)) return large;
+  return large.replace(/\.jpg$/i, "-sm.jpg");
 }
