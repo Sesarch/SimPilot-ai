@@ -121,6 +121,21 @@ const callFn = async (fn: string, qs = "", body?: any) => {
   return res.json();
 };
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const withRetry = async <T,>(label: string, task: () => Promise<T>, maxAttempts = 3) => {
+  let lastErr: any;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return { label, data: await task(), attempts: attempt };
+    } catch (e: any) {
+      lastErr = e;
+      if (attempt < maxAttempts) await delay(800 * attempt);
+    }
+  }
+  return { label, error: lastErr, attempts: maxAttempts };
+};
+
 
 const AdminPayments = () => {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -136,49 +151,42 @@ const AdminPayments = () => {
     setLoading(true);
     const maxAttempts = 3;
     const toastId = "admin-payments-load";
-    let lastErr: any;
-    let didRetry = false;
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        const [m, s, i, g, a] = await Promise.all([
-          callFn("admin-payments", "?action=metrics"),
-          callFn("admin-payments", "?action=list-subscriptions"),
-          callFn("admin-payments", "?action=list-invoices"),
-          callFn("admin-payments", "?action=list-comp-grants"),
-          callFn("admin-payments", "?action=audit-log&limit=200"),
-        ]);
-        setMetrics(m);
-        setSubs(s.subscriptions || []);
-        setInvoices(i.invoices || []);
-        setGrants(g.grants || []);
-        setChanges((a.entries || []).filter((e: AuditEntry) => PAYMENT_ACTIONS.has(e.action)));
-        lastErr = null;
-        if (didRetry) {
-          toast.success("Payments loaded", { id: toastId });
-        } else {
-          toast.dismiss(toastId);
-        }
-        break;
-      } catch (e: any) {
-        lastErr = e;
-        if (attempt < maxAttempts) {
-          didRetry = true;
-          toast.loading(`Load failed, retrying (${attempt}/${maxAttempts - 1})…`, { id: toastId });
-          await new Promise((r) => setTimeout(r, 800 * attempt));
-        }
-      }
+    toast.loading("Refreshing payments…", { id: toastId });
+
+    const results = await Promise.all([
+      withRetry("metrics", () => callFn("admin-payments", "?action=metrics"), maxAttempts),
+      withRetry("subscriptions", () => callFn("admin-payments", "?action=list-subscriptions"), maxAttempts),
+      withRetry("invoices", () => callFn("admin-payments", "?action=list-invoices"), maxAttempts),
+      withRetry("comp grants", () => callFn("admin-payments", "?action=list-comp-grants"), maxAttempts),
+      withRetry("audit log", () => callFn("admin-payments", "?action=audit-log&limit=200"), maxAttempts),
+    ]);
+
+    const failures = results.filter((r) => "error" in r);
+    for (const result of results) {
+      if ("error" in result) continue;
+      if (result.label === "metrics") setMetrics(result.data);
+      if (result.label === "subscriptions") setSubs(result.data.subscriptions || []);
+      if (result.label === "invoices") setInvoices(result.data.invoices || []);
+      if (result.label === "comp grants") setGrants(result.data.grants || []);
+      if (result.label === "audit log") setChanges((result.data.entries || []).filter((e: AuditEntry) => PAYMENT_ACTIONS.has(e.action)));
     }
-    if (lastErr) {
-      toast.error("Load failed: " + lastErr.message, { id: toastId });
-      // Fire-and-forget audit log so failures are debuggable later.
-      callFn("admin-payments", "?action=log-load-failure", {
-        attempts: maxAttempts,
-        error_message: lastErr?.message ?? String(lastErr),
-        error_code: lastErr?.code ?? null,
-        status: lastErr?.status ?? null,
-        endpoint: lastErr?.endpoint ?? null,
-        occurred_at: new Date().toISOString(),
-      }).catch((e) => console.error("[admin-payments] failed to log load failure:", e));
+
+    if (failures.length) {
+      const failedLabels = failures.map((r) => r.label).join(", ");
+      toast.error(`Payments partially loaded. Failed: ${failedLabels}.`, { id: toastId });
+      failures.forEach((result) => {
+        const err = result.error;
+        callFn("admin-payments", "?action=log-load-failure", {
+          attempts: result.attempts,
+          error_message: err?.message ?? String(err),
+          error_code: err?.code ?? null,
+          status: err?.status ?? null,
+          endpoint: err?.endpoint ?? result.label,
+          occurred_at: new Date().toISOString(),
+        }).catch((e) => console.error("[admin-payments] failed to log load failure:", e));
+      });
+    } else {
+      toast.dismiss(toastId);
     }
     setLoading(false);
   }, []);
