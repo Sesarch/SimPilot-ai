@@ -915,6 +915,7 @@ const ATCTrainer = () => {
     setPhraseologyScore(null);
     setPendingDraft("");
     setPendingCorrection(null);
+    setFlightState({});
     setLoading(true);
     const scenario = scenarios.find((s) => s.id === scenarioId)!;
     try {
@@ -954,6 +955,7 @@ const ATCTrainer = () => {
     setPhraseologyScore(null);
     setPendingDraft("");
     setPendingCorrection(null);
+    setFlightState({});
     setCurrentAtis(null);
     lastAtisFetchRef.current = null;
     // Default tune: tower if present, else first facility.
