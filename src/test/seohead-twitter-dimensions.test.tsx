@@ -38,7 +38,7 @@ async function renderHead(props: React.ComponentProps<typeof SEOHead>) {
   );
   // Two macrotasks: Helmet schedules a requestAnimationFrame-style flush
   // in jsdom which lands after a setTimeout(0) tick.
-  await new Promise((r) => setTimeout(r, 0));
+  await new Promise((r) => setTimeout(r, 20));
   return document.head.innerHTML;
 }
 
