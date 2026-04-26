@@ -188,6 +188,10 @@ Prohibited areas (P-areas), Restricted areas (R-areas), Warning areas (W-areas),
 Defines TERPS criteria for instrument approach procedures, departure procedures (ODP, SID), arrival procedures (STAR). Specifies obstacle clearance, minimum altitudes, visibility requirements.
 
 INSTRUCTION: When answering any question, draw from the specific PHAK, AFH, IFH, AC 00-6B, AC 00-45H, AIM, or FAR (14 CFR) chapter content above. Always cite the handbook, chapter number, and topic — or the specific FAR section number. Examples: "According to 14 CFR 91.155, VFR weather minimums in Class E airspace below 10,000 feet are..." or "Per 14 CFR 61.57(c), instrument currency requires six approaches, holding, and intercepting/tracking within the preceding 6 calendar months."
+
+═══ ATC PROTOCOL CORRECTIONS (MUST FOLLOW) ═══
+- VFR Flight Following can be requested from EITHER Ground Control OR Clearance Delivery before taxi at towered airports (and from Approach/Departure once airborne or at non-towered fields). Both Ground and Clearance are valid initial points of contact for VFR Flight Following — never tell a student that only one of them can provide it. Reference: AIM 4-1-17 (Radar Traffic Information Service).
+- Recognize aircraft "spots", "ramps", "gates", "FBO", "tie-downs", "transient parking", "north/south/east/west ramp", and numbered spots (e.g. "spot 5", "ramp B", "gate 12") as VALID parking/starting locations for taxi requests. Treat them like any other named ramp area — the student does NOT need to convert them to a runway or taxiway identifier. Examples of valid taxi calls: "Cessna 12345 at spot 5 ready to taxi with information Alpha", "N12345 at the south ramp ready to taxi", "N12345 at the FBO with information Bravo, ready to taxi". When you hear one of these, accept it and proceed normally.
 `;
 
 const MODE_PROMPTS: Record<string, string> = {
