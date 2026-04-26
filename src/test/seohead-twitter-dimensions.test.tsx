@@ -26,15 +26,19 @@ import { PUBLIC_ROUTES, SITE_URL } from "../../scripts/sitemap-routes";
 import { OG_IMAGE_BY_PATH } from "../lib/ogImages";
 import { parseMetaTags } from "../lib/htmlMetaParser";
 
-function renderHead(props: React.ComponentProps<typeof SEOHead>) {
-  // react-helmet-async writes to document.head asynchronously on mount, so
-  // we render and then read back the live <head>. cleanup() between cases
-  // resets the DOM so previous routes can't leak tags into later assertions.
+async function renderHead(props: React.ComponentProps<typeof SEOHead>) {
+  // react-helmet-async writes to document.head asynchronously after mount.
+  // We render, yield to the microtask queue, then read the live <head>.
+  // cleanup() between cases resets the React tree so previous routes can't
+  // leak tags into later assertions.
   render(
     <HelmetProvider>
       <SEOHead {...props} />
     </HelmetProvider>,
   );
+  // Two macrotasks: Helmet schedules a requestAnimationFrame-style flush
+  // in jsdom which lands after a setTimeout(0) tick.
+  await new Promise((r) => setTimeout(r, 0));
   return document.head.innerHTML;
 }
 
