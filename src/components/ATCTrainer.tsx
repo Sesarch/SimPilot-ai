@@ -31,6 +31,8 @@ import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
 import { RuleTester } from "@/components/atc/RuleTester";
+import { SessionReviewModal } from "@/components/atc/SessionReviewModal";
+import { Link } from "react-router-dom";
 
 interface ATCMessage {
   id: string;
