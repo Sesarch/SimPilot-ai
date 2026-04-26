@@ -24,6 +24,9 @@ on:
       - "public/sitemap.xml"
       - "src/test/seo-live-check.test.ts"
       - "src/test/sitemap-coverage.test.ts"
+      - "src/test/og-images.test.ts"
+      - "public/og-*.jpg"
+      - "public/og-*.png"
       - ".github/workflows/seo-live-check.yml"
 
 jobs:
@@ -68,13 +71,13 @@ jobs:
           echo "✗ preview server failed to start"
           exit 1
 
-      # 4. Run the live SEO check against the preview server. The test file
-      #    is auto-skipped unless RUN_LIVE_SEO_CHECK=1 is set.
+      # 4. Run the live SEO check against the preview server. The test files
+      #    are auto-skipped unless RUN_LIVE_SEO_CHECK=1 is set.
       - name: Run live SEO check
         env:
           RUN_LIVE_SEO_CHECK: "1"
           SEO_CHECK_BASE_URL: "http://127.0.0.1:4173"
-        run: bunx vitest run src/test/seo-live-check.test.ts
+        run: bunx vitest run src/test/seo-live-check.test.ts src/test/og-images.test.ts
 
       - name: Stop preview server
         if: always()
