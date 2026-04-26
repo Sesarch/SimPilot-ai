@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Users, GraduationCap, RefreshCw, Activity, Award, School } from "lucide-react";
+import { TrendingUp, Users, GraduationCap, RefreshCw, Activity, Award, School, Download } from "lucide-react";
 import { toast } from "sonner";
+import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 
 type Report = {
   total_users: number;
