@@ -543,7 +543,7 @@ CITATION RULES (mandatory when LIBRARY EVIDENCE is present):
     }
 
     // Build system prompt with image analysis instructions when images are present
-
+    let finalSystemPrompt = systemPrompt;
     if (hasImages) {
       finalSystemPrompt += `\n\nIMAGE ANALYSIS CAPABILITY:
 You can analyze aviation charts, sectional charts, VFR/IFR charts, approach plates, airport diagrams, cockpit instruments, and any aviation-related images.
