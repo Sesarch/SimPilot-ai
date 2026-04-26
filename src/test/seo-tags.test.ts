@@ -175,6 +175,31 @@ describe.skipIf(!LIVE)(
           meta["twitter:image:height"],
           `${route}: missing twitter:image:height`,
         ).toBe("418");
+
+        // ---------- curated share copy ----------
+        // If this route has an entry in SHARE_COPY_BY_PATH, the rendered
+        // og/twitter title and description must contain the curated text.
+        // (We use `.includes` rather than equality because SEOHead appends
+        // " | SimPilot.AI" to titles when the brand isn't already present.)
+        const curated = SHARE_COPY_BY_PATH[route];
+        if (curated) {
+          expect(
+            meta["og:title"],
+            `${route}: og:title should carry curated share title`,
+          ).toContain(curated.title);
+          expect(
+            meta["twitter:title"],
+            `${route}: twitter:title should carry curated share title`,
+          ).toContain(curated.title);
+          expect(
+            meta["og:description"],
+            `${route}: og:description should equal curated share description`,
+          ).toBe(curated.description);
+          expect(
+            meta["twitter:description"],
+            `${route}: twitter:description should equal curated share description`,
+          ).toBe(curated.description);
+        }
       },
       20_000,
     );
