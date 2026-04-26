@@ -25,6 +25,7 @@ import {
   OG_IMAGE_BY_PATH,
   DEFAULT_OG_IMAGE,
   resolveOgImage,
+  resolveTwitterImage,
 } from "../lib/ogImages";
 import { PUBLIC_ROUTES } from "../../scripts/sitemap-routes";
 
@@ -118,6 +119,33 @@ describe("OG image registry — static integrity", () => {
     },
   );
 
+  it.each(Object.entries(OG_IMAGE_BY_PATH))(
+    "registry entry %s has a Twitter-sized -sm.jpg variant beside it",
+    (_route, imagePath) => {
+      const smallPath = imagePath.replace(/\.jpg$/i, "-sm.jpg");
+      const p = publicPathFor(smallPath);
+      expect(existsSync(p), `missing ${smallPath} — run scripts/generate-og-variants.py`).toBe(true);
+      const stats = statSync(p);
+      // Small variants should be < 200 KB; flag if they balloon (indicates a re-encode bug).
+      expect(stats.size).toBeGreaterThan(1024);
+      expect(stats.size).toBeLessThan(200 * 1024);
+      const buf = readFileSync(p);
+      expect(looksLikeImage(buf), `${smallPath} is not a valid image`).toBe(true);
+    },
+  );
+
+  it("resolveTwitterImage maps /og-foo.jpg → /og-foo-sm.jpg", () => {
+    expect(resolveTwitterImage("/")).toBe("/og-image-sm.jpg");
+    expect(resolveTwitterImage("/competitors")).toBe("/og-competitors-sm.jpg");
+  });
+
+  it("resolveTwitterImage passes through external/non-/og overrides untouched", () => {
+    expect(resolveTwitterImage("/", "https://example.com/x.png")).toBe(
+      "https://example.com/x.png",
+    );
+    expect(resolveTwitterImage("/", "/custom.jpg")).toBe("/custom.jpg");
+  });
+
   it("resolveOgImage falls back to DEFAULT_OG_IMAGE for unknown paths", () => {
     expect(resolveOgImage("/this-route-does-not-exist")).toBe(DEFAULT_OG_IMAGE);
   });
@@ -180,6 +208,15 @@ describe.skipIf(!LIVE)("OG meta — live rendered pages", () => {
       const twImage = meta["twitter:image"];
       expect(ogImage).toMatch(/^https?:\/\//);
       expect(twImage).toMatch(/^https?:\/\//);
+
+      // For our /og-*.jpg images, OG (large) and Twitter (small) must point
+      // at *different* assets — otherwise the small-variant wiring is broken.
+      if (/\/og-[a-z0-9-]+\.jpg$/i.test(ogImage)) {
+        expect(twImage, `${route}: twitter:image should be the -sm.jpg variant`).toMatch(
+          /-sm\.jpg$/i,
+        );
+        expect(ogImage).not.toBe(twImage);
+      }
 
       for (const imgUrl of new Set([ogImage, twImage])) {
         // HEAD first; some CDNs reject HEAD, so fall back to ranged GET.
