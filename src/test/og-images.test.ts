@@ -119,7 +119,33 @@ describe("OG image registry — static integrity", () => {
     },
   );
 
-  it("resolveOgImage falls back to DEFAULT_OG_IMAGE for unknown paths", () => {
+  it.each(Object.entries(OG_IMAGE_BY_PATH))(
+    "registry entry %s has a Twitter-sized -sm.jpg variant beside it",
+    (_route, imagePath) => {
+      const smallPath = imagePath.replace(/\.jpg$/i, "-sm.jpg");
+      const p = publicPathFor(smallPath);
+      expect(existsSync(p), `missing ${smallPath} — run scripts/generate-og-variants.py`).toBe(true);
+      const stats = statSync(p);
+      // Small variants should be < 200 KB; flag if they balloon (indicates a re-encode bug).
+      expect(stats.size).toBeGreaterThan(1024);
+      expect(stats.size).toBeLessThan(200 * 1024);
+      const buf = readFileSync(p);
+      expect(looksLikeImage(buf), `${smallPath} is not a valid image`).toBe(true);
+    },
+  );
+
+  it("resolveTwitterImage maps /og-foo.jpg → /og-foo-sm.jpg", () => {
+    expect(resolveTwitterImage("/")).toBe("/og-image-sm.jpg");
+    expect(resolveTwitterImage("/competitors")).toBe("/og-competitors-sm.jpg");
+  });
+
+  it("resolveTwitterImage passes through external/non-/og overrides untouched", () => {
+    expect(resolveTwitterImage("/", "https://example.com/x.png")).toBe(
+      "https://example.com/x.png",
+    );
+    expect(resolveTwitterImage("/", "/custom.jpg")).toBe("/custom.jpg");
+  });
+
     expect(resolveOgImage("/this-route-does-not-exist")).toBe(DEFAULT_OG_IMAGE);
   });
 
