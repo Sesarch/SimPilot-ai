@@ -3327,25 +3327,25 @@ ${transcript}`;
         )}
       </div>
 
-      {/* Spacebar hold for PTT */}
-      <SpaceHoldPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading} />
+      {/* Global PTT hotkey (configurable) */}
+      <HotkeyPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading || capturingHotkey} hotkey={pttHotkey} />
     </div>
     </div>
   );
 };
 
 // Hidden component: hold spacebar = PTT.
-const SpaceHoldPTT = ({ onDown, onUp, disabled }: { onDown: () => void; onUp: () => void; disabled: boolean }) => {
+const HotkeyPTT = ({ onDown, onUp, disabled, hotkey }: { onDown: () => void; onUp: () => void; disabled: boolean; hotkey: string }) => {
   useEffect(() => {
     const isTyping = (t: EventTarget | null) =>
       t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
     const down = (e: KeyboardEvent) => {
-      if (e.code !== "Space" || e.repeat || disabled || isTyping(e.target)) return;
+      if (e.code !== hotkey || e.repeat || disabled || isTyping(e.target)) return;
       e.preventDefault();
       onDown();
     };
     const up = (e: KeyboardEvent) => {
-      if (e.code !== "Space" || isTyping(e.target)) return;
+      if (e.code !== hotkey || isTyping(e.target)) return;
       e.preventDefault();
       onUp();
     };
@@ -3355,7 +3355,7 @@ const SpaceHoldPTT = ({ onDown, onUp, disabled }: { onDown: () => void; onUp: ()
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };
-  }, [onDown, onUp, disabled]);
+  }, [onDown, onUp, disabled, hotkey]);
   return null;
 };
 
