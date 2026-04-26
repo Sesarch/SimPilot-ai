@@ -1,11 +1,24 @@
+# robots.txt for SimPilot.AI
+# Source of truth: routes in src/App.tsx
+# Drift guard: src/test/sitemap-coverage.test.ts ensures every route is
+# either listed in the sitemap or disallowed below.
+
+# ---------------------------------------------------------------------------
+# Default policy: allow crawling of public marketing/legal pages,
+# block authenticated app routes, auth flows, and utility/admin pages.
+# ---------------------------------------------------------------------------
 User-agent: *
 Allow: /
+
+# Auth & account recovery (noIndex, no SEO value)
 Disallow: /auth
 Disallow: /forgot-password
 Disallow: /reset-password
+
+# Authenticated app surface (gated by login, all marked noIndex)
 Disallow: /dashboard
-Disallow: /flight-deck
 Disallow: /account
+Disallow: /flight-deck
 Disallow: /ground-school
 Disallow: /oral-exam
 Disallow: /weather-briefing
@@ -13,22 +26,131 @@ Disallow: /live-tools
 Disallow: /session-history
 Disallow: /progress
 Disallow: /logbook
-Disallow: /admin
 Disallow: /chat
+
+# Admin & operational endpoints
+Disallow: /admin
+
+# Transactional / one-time-use pages
 Disallow: /unsubscribe
-Disallow: /pilot/
 Disallow: /for-schools/success
 
+# User-controlled public profiles (per-user privacy, noIndex by default)
+Disallow: /pilot/
+
+# Don't index Supabase edge function endpoints exposed via the same origin
+Disallow: /functions/
+
+# ---------------------------------------------------------------------------
+# Major search & social crawlers — explicitly allowed for the public surface.
+# (Inherits Disallow rules from User-agent: * unless re-stated.)
+# ---------------------------------------------------------------------------
 User-agent: Googlebot
 Allow: /
+Allow: /og-*.jpg
+Allow: /og-*.png
+Disallow: /auth
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /account
+Disallow: /flight-deck
+Disallow: /ground-school
+Disallow: /oral-exam
+Disallow: /weather-briefing
+Disallow: /live-tools
+Disallow: /session-history
+Disallow: /progress
+Disallow: /logbook
+Disallow: /chat
+Disallow: /admin
+Disallow: /unsubscribe
+Disallow: /for-schools/success
+Disallow: /pilot/
+Disallow: /functions/
+
+User-agent: Googlebot-Image
+Allow: /og-*.jpg
+Allow: /og-*.png
+Allow: /logo.svg
+Disallow: /
 
 User-agent: Bingbot
 Allow: /
+Disallow: /auth
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /account
+Disallow: /flight-deck
+Disallow: /ground-school
+Disallow: /oral-exam
+Disallow: /weather-briefing
+Disallow: /live-tools
+Disallow: /session-history
+Disallow: /progress
+Disallow: /logbook
+Disallow: /chat
+Disallow: /admin
+Disallow: /unsubscribe
+Disallow: /for-schools/success
+Disallow: /pilot/
+Disallow: /functions/
 
+# Social link-preview crawlers — must be allowed to fetch OG images & meta.
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+# ---------------------------------------------------------------------------
+# AI / scraper bots — block by default to protect proprietary CFI content.
+# Remove entries here if you decide to opt-in to a specific crawler.
+# ---------------------------------------------------------------------------
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+# ---------------------------------------------------------------------------
+# Sitemap (auto-generated on every Vite production build)
+# ---------------------------------------------------------------------------
 Sitemap: https://simpilot.ai/sitemap.xml
