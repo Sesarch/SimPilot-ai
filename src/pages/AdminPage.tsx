@@ -81,6 +81,30 @@ const AdminPage = () => {
   const [leads, setLeads] = useState<LeadEmail[]>([]);
   const [leadsFetching, setLeadsFetching] = useState(false);
 
+  const validTabs = ["overview","payments","reports","users","audit","leads","schools","emails","models","kb","settings"];
+  const getInitialTab = () => {
+    if (typeof window === "undefined") return "overview";
+    const h = window.location.hash.replace("#", "");
+    return validTabs.includes(h) ? h : "overview";
+  };
+  const [activeTab, setActiveTab] = useState<string>(getInitialTab);
+
+  useEffect(() => {
+    const onHash = () => {
+      const h = window.location.hash.replace("#", "");
+      if (validTabs.includes(h)) setActiveTab(h);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  const handleTabChange = (v: string) => {
+    setActiveTab(v);
+    if (typeof window !== "undefined") {
+      history.replaceState(null, "", `${window.location.pathname}#${v}`);
+    }
+  };
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth", { state: { redirectTo: "/admin" } });
