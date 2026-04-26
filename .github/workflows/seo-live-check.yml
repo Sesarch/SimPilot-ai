@@ -78,7 +78,7 @@ jobs:
         env:
           RUN_LIVE_SEO_CHECK: "1"
           SEO_CHECK_BASE_URL: "http://127.0.0.1:4173"
-        run: bunx vitest run src/test/seo-live-check.test.ts src/test/og-images.test.ts
+        run: bunx vitest run src/test/seo-live-check.test.ts src/test/og-images.test.ts src/test/seo-tags.test.ts
 
       - name: Stop preview server
         if: always()
