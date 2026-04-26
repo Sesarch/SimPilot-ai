@@ -3561,6 +3561,21 @@ ${transcript}`;
 
       {/* Global PTT hotkey (configurable) */}
       <HotkeyPTT onDown={startPTT} onUp={endPTT} disabled={speaking || loading || capturingHotkey} hotkey={pttHotkey} />
+
+      {/* Sporty's-style post-flight Session Review modal */}
+      <SessionReviewModal
+        open={showSessionReview}
+        onOpenChange={setShowSessionReview}
+        messages={messages}
+        score={phraseologyScore}
+        scenarioLabel={
+          selectedScenario === "live" && liveAirport
+            ? `Live · ${liveAirport.icao}`
+            : (scenarios.find((s) => s.id === selectedScenario)?.label ?? "ATC Session")
+        }
+        callsign="N123AB"
+        onDownloadDebrief={phraseologyScore ? downloadDebrief : undefined}
+      />
     </div>
     </div>
   );
