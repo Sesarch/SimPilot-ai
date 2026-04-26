@@ -6,6 +6,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function getIp(req: Request) {
+  return (
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-real-ip") ||
+    (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+    "unknown"
+  );
+}
+async function audit(client: any, req: Request, adminId: string, adminEmail: string | null, action: string, targetId: string, details: Record<string, unknown> = {}) {
+  try {
+    await client.from("admin_audit_log").insert({
+      admin_user_id: adminId,
+      admin_email: adminEmail,
+      action,
+      target_type: "user",
+      target_id: targetId,
+      details,
+      ip_address: getIp(req),
+      user_agent: req.headers.get("user-agent"),
+    });
+  } catch (e) { console.error("audit fail", e); }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
