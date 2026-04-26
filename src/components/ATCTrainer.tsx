@@ -1195,13 +1195,19 @@ const ATCTrainer = () => {
           ...prev,
         ].slice(0, 5));
       }
+      // Continuous logic: merge any [STATE ...] delta the controller emitted
+      // so subsequent turns (and frequency handoffs) inherit the new state.
+      const stateDelta = parseState(reply);
+      if (stateDelta) {
+        setFlightState((prev) => ({ ...prev, ...stateDelta }));
+      }
       void speakATC(reply);
     } catch {
       setError("Connection lost. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, liveAirport, activeFreq, inferAction]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, parseState, liveAirport, activeFreq, inferAction]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
