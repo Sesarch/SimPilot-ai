@@ -51,8 +51,8 @@ describe("SEOHead — twitter:image dimensions", () => {
 
   it.each(PUBLIC_ROUTES.map((r) => r.path))(
     "%s emits twitter:image:width=800 and height=418",
-    (route) => {
-      const html = renderHead({
+    async (route) => {
+      const html = await renderHead({
         title: `Test page for ${route}`,
         description: "Test description",
         keywords: "test",
@@ -89,9 +89,9 @@ describe("SEOHead — twitter:image dimensions", () => {
     },
   );
 
-  it("custom ogImage override still emits 800×418 dimensions", () => {
+  it("custom ogImage override still emits 800×418 dimensions", async () => {
     const override = "/og-image.jpg";
-    const html = renderHead({
+    const html = await renderHead({
       title: "Custom override page",
       description: "Test description",
       keywords: "test",
@@ -110,9 +110,9 @@ describe("SEOHead — twitter:image dimensions", () => {
     expect(meta["twitter:image"]).toBe(`${SITE_URL}/og-image-sm.jpg`);
   });
 
-  it("external ogImage override is preserved verbatim with dimensions intact", () => {
+  it("external ogImage override is preserved verbatim with dimensions intact", async () => {
     const externalOverride = "https://cdn.example.com/custom-share.png";
-    const html = renderHead({
+    const html = await renderHead({
       title: "External image page",
       description: "Test description",
       keywords: "test",
@@ -132,8 +132,8 @@ describe("SEOHead — twitter:image dimensions", () => {
     expect(meta["twitter:image"]).toContain(externalOverride);
   });
 
-  it("route with no canonical still emits dimension tags", () => {
-    const html = renderHead({
+  it("route with no canonical still emits dimension tags", async () => {
+    const html = await renderHead({
       title: "Anonymous page",
       description: "Test description",
       keywords: "test",
