@@ -117,13 +117,29 @@ Deno.serve(async (req) => {
       const page = await stripe.subscriptions.list({
         status,
         limit: 50,
-        expand: ["data.customer", "data.items.data.price.product"],
+        expand: ["data.customer"],
       });
+      // Fetch products separately to avoid Stripe's 4-level expand limit
+      const productIds = new Set<string>();
+      for (const s of page.data) {
+        const p = s.items.data[0]?.price;
+        if (p && typeof p.product === "string") productIds.add(p.product);
+      }
+      const productMap = new Map<string, Stripe.Product>();
+      await Promise.all(
+        Array.from(productIds).map(async (pid) => {
+          try {
+            const prod = await stripe.products.retrieve(pid);
+            productMap.set(pid, prod);
+          } catch (_) { /* ignore */ }
+        }),
+      );
       const rows = page.data.map((s) => {
         const c = s.customer as Stripe.Customer;
         const item = s.items.data[0];
         const price = item?.price;
-        const product = price?.product as Stripe.Product | undefined;
+        const productId = typeof price?.product === "string" ? price.product : (price?.product as Stripe.Product | undefined)?.id;
+        const product = productId ? productMap.get(productId) : undefined;
         return {
           id: s.id,
           status: s.status,
