@@ -38,24 +38,56 @@ function loadAppRoutes(): string[] {
 }
 
 type RobotsRules = { allows: string[]; disallows: string[]; sitemaps: string[] };
-function parseRobots(text: string): RobotsRules {
-  const allows: string[] = [];
-  const disallows: string[] = [];
+type RobotsByUA = { byUA: Map<string, RobotsRules>; sitemaps: string[] };
+
+/**
+ * Parses robots.txt with proper per-User-agent scoping. Lines under each
+ * `User-agent:` block are attributed to that UA only. `Sitemap:` is always
+ * global per spec.
+ */
+function parseRobots(text: string): RobotsByUA {
+  const byUA = new Map<string, RobotsRules>();
   const sitemaps: string[] = [];
-  // Apply rules from User-agent: * blocks and the global Sitemap: directive.
-  // We are intentionally permissive: any Disallow under any user-agent must
-  // still reference a valid route; we don't need per-UA scoping for the check.
+  let currentUAs: string[] = [];
   for (const raw of text.split("\n")) {
     const line = raw.trim();
     if (!line || line.startsWith("#")) continue;
-    const [k, ...rest] = line.split(":");
-    const value = rest.join(":").trim();
-    const key = k.toLowerCase();
-    if (key === "allow" && value) allows.push(value);
-    else if (key === "disallow" && value) disallows.push(value);
-    else if (key === "sitemap" && value) sitemaps.push(value);
+    const idx = line.indexOf(":");
+    if (idx < 0) continue;
+    const key = line.slice(0, idx).trim().toLowerCase();
+    const value = line.slice(idx + 1).trim();
+    if (!value) continue;
+    if (key === "user-agent") {
+      // Consecutive User-agent lines share the next rule block.
+      // If the previous line wasn't a User-agent, start a fresh block.
+      if (currentUAs.length === 0 || /^(allow|disallow)/i.test(text.split("\n").slice(0, text.split("\n").indexOf(raw)).reverse().find((l) => l.trim())?.trim() || "")) {
+        currentUAs = [];
+      }
+      currentUAs.push(value);
+      if (!byUA.has(value)) byUA.set(value, { allows: [], disallows: [], sitemaps: [] });
+    } else if (key === "allow") {
+      for (const ua of currentUAs) byUA.get(ua)!.allows.push(value);
+    } else if (key === "disallow") {
+      for (const ua of currentUAs) byUA.get(ua)!.disallows.push(value);
+    } else if (key === "sitemap") {
+      sitemaps.push(value);
+    }
   }
-  return { allows, disallows, sitemaps };
+  return { byUA, sitemaps };
+}
+
+/** Combine all UAs that should be able to crawl the public site. */
+function indexableCrawlerRules(robots: RobotsByUA): RobotsRules {
+  const uas = ["*", "Googlebot", "Bingbot"];
+  const allows: string[] = [];
+  const disallows: string[] = [];
+  for (const ua of uas) {
+    const r = robots.byUA.get(ua);
+    if (!r) continue;
+    allows.push(...r.allows);
+    disallows.push(...r.disallows);
+  }
+  return { allows, disallows, sitemaps: robots.sitemaps };
 }
 
 function parseSitemapLocs(xml: string): string[] {
