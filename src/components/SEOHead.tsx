@@ -30,7 +30,10 @@ const SEOHead = ({
 }: SEOHeadProps) => {
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
   const canonicalUrl = canonical ? `${BASE_URL}${canonical}` : undefined;
+  // Large variant (1200×630) → Open Graph (Facebook/LinkedIn/Slack/iMessage)
   const ogImageUrl = `${BASE_URL}${resolveOgImage(canonical, ogImage)}`;
+  // Small variant (800×418) → Twitter/X summary_large_image
+  const twitterImageUrl = `${BASE_URL}${resolveTwitterImage(canonical, ogImage)}`;
 
   return (
     <Helmet>
@@ -48,11 +51,15 @@ const SEOHead = ({
       <meta property="og:image" content={ogImageUrl} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
+      <meta property="og:image:type" content="image/jpeg" />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={ogImageUrl} />
+      <meta name="twitter:image" content={twitterImageUrl} />
+      <meta name="twitter:image:width" content="800" />
+      <meta name="twitter:image:height" content="418" />
+      <meta name="twitter:image:alt" content={fullTitle} />
 
       {jsonLd && (Array.isArray(jsonLd)
         ? jsonLd.map((ld, i) => (
