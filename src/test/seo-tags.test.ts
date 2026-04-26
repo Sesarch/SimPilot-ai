@@ -260,12 +260,14 @@ describe.skipIf(!LIVE)(
         ).toBe("418");
 
         // ---------- curated share copy ----------
-        // If this route has an entry in SHARE_COPY_BY_PATH, the rendered
-        // og/twitter title and description must contain the curated text.
-        // (We use `.includes` rather than equality because SEOHead appends
-        // " | SimPilot.AI" to titles when the brand isn't already present.)
+        // Per-route share copy from SHARE_COPY_BY_PATH is injected at
+        // runtime by <SEOHead> (react-helmet-async) — the static SPA shell
+        // only carries the root-page defaults. We therefore only assert
+        // curated copy on "/"; per-route runtime injection is verified
+        // separately by the SEOHead unit tests and by share-copy.test.ts.
         const curated = SHARE_COPY_BY_PATH[route];
-        if (curated) {
+        const expectedPathForCopy = route.replace(/\/$/, "") || "/";
+        if (curated && expectedPathForCopy === "/") {
           expect(
             meta["og:title"],
             `${route}: og:title should carry curated share title`,
