@@ -3393,6 +3393,24 @@ ${transcript}`;
 };
 
 // Hidden component: hold spacebar = PTT.
+// One-shot key listener: captures the next non-modifier keydown and reports
+// the KeyboardEvent.code so the parent can persist it as the new PTT hotkey.
+const HotkeyCapture = ({ onCapture, onCancel }: { onCapture: (code: string) => void; onCancel: () => void }) => {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === "Escape") { onCancel(); return; }
+      // Reject bare modifiers — they're useless as solo PTT keys.
+      if (["ShiftLeft", "ShiftRight", "ControlLeft", "ControlRight", "AltLeft", "AltRight", "MetaLeft", "MetaRight"].includes(e.code)) return;
+      onCapture(e.code);
+    };
+    window.addEventListener("keydown", handler, { capture: true });
+    return () => window.removeEventListener("keydown", handler, { capture: true } as any);
+  }, [onCapture, onCancel]);
+  return null;
+};
+
 const HotkeyPTT = ({ onDown, onUp, disabled, hotkey }: { onDown: () => void; onUp: () => void; disabled: boolean; hotkey: string }) => {
   useEffect(() => {
     const isTyping = (t: EventTarget | null) =>
