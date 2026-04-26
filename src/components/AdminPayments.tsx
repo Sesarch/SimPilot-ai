@@ -362,6 +362,7 @@ const AdminPayments = () => {
             </table>
           </div>
         </TabsContent>
+      </Tabs>
 
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
