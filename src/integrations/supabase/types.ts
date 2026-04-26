@@ -765,8 +765,11 @@ export type Database = {
       site_settings: {
         Row: {
           announcement: string
+          bing_site_verification: string
           bridge_direct_download_enabled: boolean
           chat_enabled: boolean
+          google_search_console_property_url: string
+          google_site_verification: string
           ground_school_enabled: boolean
           id: number
           live_tools_enabled: boolean
@@ -777,8 +780,11 @@ export type Database = {
         }
         Insert: {
           announcement?: string
+          bing_site_verification?: string
           bridge_direct_download_enabled?: boolean
           chat_enabled?: boolean
+          google_search_console_property_url?: string
+          google_site_verification?: string
           ground_school_enabled?: boolean
           id?: number
           live_tools_enabled?: boolean
@@ -789,8 +795,11 @@ export type Database = {
         }
         Update: {
           announcement?: string
+          bing_site_verification?: string
           bridge_direct_download_enabled?: boolean
           chat_enabled?: boolean
+          google_search_console_property_url?: string
+          google_site_verification?: string
           ground_school_enabled?: boolean
           id?: number
           live_tools_enabled?: boolean
