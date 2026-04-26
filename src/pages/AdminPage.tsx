@@ -112,9 +112,16 @@ const AdminPage = () => {
     setActiveTab(v);
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      const current = params.get("tab");
       params.set("tab", v);
       const newUrl = `${window.location.pathname}?${params.toString()}#${v}`;
-      history.replaceState(null, "", newUrl);
+      // Use pushState on real tab changes so browser back/forward navigates
+      // between tabs; replaceState only when initializing/normalizing the URL.
+      if (current === v) {
+        history.replaceState(null, "", newUrl);
+      } else {
+        history.pushState(null, "", newUrl);
+      }
     }
   };
 
