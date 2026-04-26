@@ -26,6 +26,11 @@
 import { describe, it, expect } from "vitest";
 import { PUBLIC_ROUTES, SITE_URL } from "../../scripts/sitemap-routes";
 import { SHARE_COPY_BY_PATH } from "../lib/shareCopy";
+import {
+  parseMetaTags,
+  parseMetaTagsAll,
+  parseCanonical,
+} from "../lib/htmlMetaParser";
 
 const LIVE = process.env.RUN_LIVE_SEO_CHECK === "1";
 const BASE_URL = (
@@ -39,29 +44,19 @@ const VALID_TWITTER_CARDS = new Set([
   "player",
 ]);
 
-function parseMetaTags(html: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  const re =
-    /<meta\b[^>]*?(?:property|name)\s*=\s*["']([^"']+)["'][^>]*?content\s*=\s*["']([^"']*)["'][^>]*>/gi;
-  const re2 =
-    /<meta\b[^>]*?content\s*=\s*["']([^"']*)["'][^>]*?(?:property|name)\s*=\s*["']([^"']+)["'][^>]*>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html))) out[m[1].toLowerCase()] = m[2];
-  while ((m = re2.exec(html))) {
-    const key = m[2].toLowerCase();
-    if (!(key in out)) out[key] = m[1];
-  }
-  return out;
-}
-
-function parseCanonical(html: string): string | null {
-  // Match <link rel="canonical" href="…"> in either attribute order.
-  const re1 =
-    /<link\b[^>]*?rel\s*=\s*["']canonical["'][^>]*?href\s*=\s*["']([^"']+)["'][^>]*>/i;
-  const re2 =
-    /<link\b[^>]*?href\s*=\s*["']([^"']+)["'][^>]*?rel\s*=\s*["']canonical["'][^>]*>/i;
-  return html.match(re1)?.[1] ?? html.match(re2)?.[1] ?? null;
-}
+// Keys that must appear at most once per page. Duplicates indicate the
+// SEOHead component leaked stale tags from a previous render or that
+// index.html and React are both emitting the same tag without dedupe.
+const SINGLETON_META_KEYS = [
+  "og:title",
+  "og:description",
+  "og:image",
+  "og:url",
+  "twitter:card",
+  "twitter:title",
+  "twitter:description",
+  "twitter:image",
+] as const;
 
 async function fetchAsCrawler(url: string): Promise<string> {
   const res = await fetch(url, {
