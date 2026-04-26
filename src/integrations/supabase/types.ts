@@ -393,6 +393,36 @@ export type Database = {
         }
         Relationships: []
       }
+      model_settings: {
+        Row: {
+          guardrails_enabled: boolean
+          id: number
+          primary_model: string
+          reviewer_enabled: boolean
+          reviewer_model: string
+          reviewer_scope: string
+          updated_at: string
+        }
+        Insert: {
+          guardrails_enabled?: boolean
+          id?: number
+          primary_model?: string
+          reviewer_enabled?: boolean
+          reviewer_model?: string
+          reviewer_scope?: string
+          updated_at?: string
+        }
+        Update: {
+          guardrails_enabled?: boolean
+          id?: number
+          primary_model?: string
+          reviewer_enabled?: boolean
+          reviewer_model?: string
+          reviewer_scope?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           email: string
