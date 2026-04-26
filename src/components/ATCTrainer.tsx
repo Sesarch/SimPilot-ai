@@ -47,6 +47,20 @@ type PhraseologyScore = {
   saved_id?: string;
 };
 
+/** Persistent flight state extracted from controller [STATE ...] markers.
+ *  Survives frequency handoffs (Ground → Tower → Departure) so the next
+ *  controller knows what was already cleared / assigned. */
+type FlightState = {
+  phase?: string;
+  runway?: string;
+  altitude?: string;
+  heading?: string;
+  squawk?: string;
+  handoffTo?: string;
+  handoffFreq?: string;
+  atis?: string;
+};
+
 const scenarios = [
   { id: "departure", label: "Departure Clearance", description: "IFR/VFR clearance delivery & ground", facility: "CLNC DEL", frequency: "121.65" },
   { id: "approach", label: "Approach & Landing", description: "Approach, tower, landing clearance", facility: "TWR", frequency: "118.30" },
