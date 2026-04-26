@@ -84,24 +84,37 @@ const AdminPage = () => {
   const validTabs = ["overview","payments","reports","users","audit","leads","schools","emails","models","kb","settings"];
   const getInitialTab = () => {
     if (typeof window === "undefined") return "overview";
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("tab");
+    if (q && validTabs.includes(q)) return q;
     const h = window.location.hash.replace("#", "");
     return validTabs.includes(h) ? h : "overview";
   };
   const [activeTab, setActiveTab] = useState<string>(getInitialTab);
 
   useEffect(() => {
-    const onHash = () => {
+    const onChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("tab");
+      if (q && validTabs.includes(q)) { setActiveTab(q); return; }
       const h = window.location.hash.replace("#", "");
       if (validTabs.includes(h)) setActiveTab(h);
     };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    window.addEventListener("hashchange", onChange);
+    window.addEventListener("popstate", onChange);
+    return () => {
+      window.removeEventListener("hashchange", onChange);
+      window.removeEventListener("popstate", onChange);
+    };
   }, []);
 
   const handleTabChange = (v: string) => {
     setActiveTab(v);
     if (typeof window !== "undefined") {
-      history.replaceState(null, "", `${window.location.pathname}#${v}`);
+      const params = new URLSearchParams(window.location.search);
+      params.set("tab", v);
+      const newUrl = `${window.location.pathname}?${params.toString()}#${v}`;
+      history.replaceState(null, "", newUrl);
     }
   };
 
