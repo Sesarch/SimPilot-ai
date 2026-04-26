@@ -6,6 +6,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function getIp(req: Request) {
+  return (
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-real-ip") ||
+    (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+    "unknown"
+  );
+}
+async function audit(client: any, req: Request, adminId: string, adminEmail: string | null, action: string, targetId: string, details: Record<string, unknown> = {}) {
+  try {
+    await client.from("admin_audit_log").insert({
+      admin_user_id: adminId,
+      admin_email: adminEmail,
+      action,
+      target_type: "user",
+      target_id: targetId,
+      details,
+      ip_address: getIp(req),
+      user_agent: req.headers.get("user-agent"),
+    });
+  } catch (e) { console.error("audit fail", e); }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -81,6 +104,36 @@ Deno.serve(async (req) => {
         .select("user_id, display_name, terms_agreed_at")
         .in("user_id", userIds);
 
+      // Engagement: last_transmission (latest chat session updated_at)
+      const { data: sessions } = await adminClient
+        .from("chat_sessions")
+        .select("user_id, updated_at")
+        .in("user_id", userIds)
+        .order("updated_at", { ascending: false });
+      const lastTxByUser = new Map<string, string>();
+      (sessions || []).forEach((s: any) => {
+        if (!lastTxByUser.has(s.user_id)) lastTxByUser.set(s.user_id, s.updated_at);
+      });
+
+      // Total sim hours from flight_logs
+      const { data: logs } = await adminClient
+        .from("flight_logs")
+        .select("user_id, total_time")
+        .in("user_id", userIds);
+      const simHoursByUser = new Map<string, number>();
+      (logs || []).forEach((l: any) => {
+        simHoursByUser.set(l.user_id, (simHoursByUser.get(l.user_id) || 0) + Number(l.total_time || 0));
+      });
+
+      // Active comp grants
+      const { data: grants } = await adminClient
+        .from("user_comp_grants")
+        .select("user_id, plan_tier, expires_at")
+        .in("user_id", userIds)
+        .is("revoked_at", null);
+      const grantByUser = new Map<string, { plan_tier: string; expires_at: string | null }>();
+      (grants || []).forEach((g: any) => grantByUser.set(g.user_id, { plan_tier: g.plan_tier, expires_at: g.expires_at }));
+
       const enriched = data.users.map((u: any) => ({
         id: u.id,
         email: u.email,
@@ -92,6 +145,9 @@ Deno.serve(async (req) => {
         roles: (roles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
         display_name: (profiles || []).find((p: any) => p.user_id === u.id)?.display_name || null,
         terms_agreed_at: (profiles || []).find((p: any) => p.user_id === u.id)?.terms_agreed_at || null,
+        last_transmission_at: lastTxByUser.get(u.id) || null,
+        total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
+        comp_grant: grantByUser.get(u.id) || null,
       }));
 
       return new Response(JSON.stringify({ users: enriched, total: data.users.length }), {
@@ -113,6 +169,7 @@ Deno.serve(async (req) => {
         }
         const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email);
         if (error) throw error;
+        await audit(adminClient, req, user.id, user.email ?? null, "user.invite", data.user?.id ?? email, { email });
         return new Response(JSON.stringify({ success: true, user: data.user }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -138,6 +195,7 @@ Deno.serve(async (req) => {
           ban_duration: banDuration,
         });
         if (error) throw error;
+        await audit(adminClient, req, user.id, user.email ?? null, "user.ban", userId, { duration: banDuration });
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -155,6 +213,7 @@ Deno.serve(async (req) => {
           ban_duration: "none",
         });
         if (error) throw error;
+        await audit(adminClient, req, user.id, user.email ?? null, "user.unban", userId);
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -176,6 +235,7 @@ Deno.serve(async (req) => {
         }
         const { error } = await adminClient.auth.admin.deleteUser(userId);
         if (error) throw error;
+        await audit(adminClient, req, user.id, user.email ?? null, "user.delete", userId);
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -203,6 +263,7 @@ Deno.serve(async (req) => {
             .insert({ user_id: userId, role });
           if (error) throw error;
         }
+        await audit(adminClient, req, user.id, user.email ?? null, "user.set_role", userId, { role });
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

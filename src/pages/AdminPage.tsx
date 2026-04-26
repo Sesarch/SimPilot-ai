@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
-  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download,
+  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,9 @@ import AdminMissingAcsCodes from "@/components/AdminMissingAcsCodes";
 import AdminSchoolInquiries from "@/components/AdminSchoolInquiries";
 import AdminModelSettings from "@/components/AdminModelSettings";
 import AdminKnowledgeBase from "@/components/AdminKnowledgeBase";
+import AdminPayments from "@/components/AdminPayments";
+import AdminReports from "@/components/AdminReports";
+import AdminAuditLog from "@/components/AdminAuditLog";
 
 type AdminUser = {
   id: string;
@@ -36,6 +39,9 @@ type AdminUser = {
   roles: string[];
   display_name: string | null;
   terms_agreed_at: string | null;
+  last_transmission_at: string | null;
+  total_sim_hours: number;
+  comp_grant: { plan_tier: string; expires_at: string | null } | null;
 };
 
 type LeadEmail = {
@@ -60,6 +66,9 @@ const AdminPage = () => {
     email: string;
     role?: string;
   } | null>(null);
+  const [grantDialog, setGrantDialog] = useState<{ userId: string; email: string } | null>(null);
+  const [grantTier, setGrantTier] = useState("pro");
+  const [grantReason, setGrantReason] = useState("");
   const [leads, setLeads] = useState<LeadEmail[]>([]);
   const [leadsFetching, setLeadsFetching] = useState(false);
 
@@ -237,9 +246,12 @@ const AdminPage = () => {
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full grid grid-cols-4 sm:grid-cols-7 mb-8">
+          <TabsList className="w-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 mb-8">
             <TabsTrigger value="overview" className="font-display text-xs tracking-wider">Overview</TabsTrigger>
+            <TabsTrigger value="payments" className="font-display text-xs tracking-wider">Payments</TabsTrigger>
+            <TabsTrigger value="reports" className="font-display text-xs tracking-wider">Reports</TabsTrigger>
             <TabsTrigger value="users" className="font-display text-xs tracking-wider">Users</TabsTrigger>
+            <TabsTrigger value="audit" className="font-display text-xs tracking-wider">Audit</TabsTrigger>
             <TabsTrigger value="leads" className="font-display text-xs tracking-wider">Leads</TabsTrigger>
             <TabsTrigger value="schools" className="font-display text-xs tracking-wider">Schools</TabsTrigger>
             <TabsTrigger value="emails" className="font-display text-xs tracking-wider">Emails</TabsTrigger>
@@ -296,7 +308,10 @@ const AdminPage = () => {
             </div>
           </TabsContent>
 
-          {/* Users Tab */}
+          <TabsContent value="payments"><AdminPayments /></TabsContent>
+          <TabsContent value="reports"><AdminReports /></TabsContent>
+          <TabsContent value="audit"><AdminAuditLog /></TabsContent>
+
           <TabsContent value="users">
             {/* Invite */}
             <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5 mb-6">
@@ -342,7 +357,9 @@ const AdminPage = () => {
                     <tr className="border-b border-border bg-muted/30">
                       <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">User</th>
                       <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Status</th>
-                      <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Role</th>
+                      <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Plan/Role</th>
+                      <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Last Tx</th>
+                      <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Sim Hrs</th>
                       <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Joined</th>
                       <th className="text-right p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Actions</th>
                     </tr>
@@ -364,16 +381,27 @@ const AdminPage = () => {
                           )}
                         </td>
                         <td className="p-3">
-                          {u.roles.includes("admin") ? (
-                            <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
-                              <Crown className="w-3 h-3 mr-1" /> Admin
-                            </Badge>
-                          ) : u.roles.includes("moderator") ? (
-                            <Badge variant="secondary" className="text-xs">Moderator</Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">User</span>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            {u.roles.includes("admin") ? (
+                              <Badge className="bg-primary/20 text-primary border-primary/30 text-xs w-fit">
+                                <Crown className="w-3 h-3 mr-1" /> Admin
+                              </Badge>
+                            ) : u.roles.includes("moderator") ? (
+                              <Badge variant="secondary" className="text-xs w-fit">Moderator</Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">User</span>
+                            )}
+                            {u.comp_grant && (
+                              <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px] w-fit">
+                                <Gift className="w-2.5 h-2.5 mr-1" /> Comp: {u.comp_grant.plan_tier}
+                              </Badge>
+                            )}
+                          </div>
                         </td>
+                        <td className="p-3 text-xs text-muted-foreground">
+                          {u.last_transmission_at ? new Date(u.last_transmission_at).toLocaleDateString() : "Never"}
+                        </td>
+                        <td className="p-3 text-xs">{u.total_sim_hours.toFixed(1)}</td>
                         <td className="p-3 text-xs text-muted-foreground">
                           {new Date(u.created_at).toLocaleDateString()}
                         </td>
@@ -403,6 +431,10 @@ const AdminPage = () => {
                                     <Ban className="w-3 h-3" />
                                   </Button>
                                 )}
+                                <Button variant="ghost" size="sm" className="text-xs text-amber-500 h-7" title="Grant comp access"
+                                  onClick={() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); }}>
+                                  <Gift className="w-3 h-3" />
+                                </Button>
                                 <Button variant="ghost" size="sm" className="text-xs text-destructive h-7" title="Delete"
                                   onClick={() => setConfirmAction({ type: "delete", userId: u.id, email: u.email })}>
                                   <Trash2 className="w-3 h-3" />
@@ -417,7 +449,7 @@ const AdminPage = () => {
                     ))}
                     {filteredUsers.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                        <td colSpan={7} className="p-8 text-center text-muted-foreground">
                           {fetching ? "Loading users..." : "No users found"}
                         </td>
                       </tr>
