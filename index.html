@@ -17,7 +17,13 @@
     <meta name="keywords" content="AI pilot training, ground school study, oral exam prep, flight simulator training, checkride preparation, private pilot, instrument rating, commercial pilot, aviation training, AI flight instructor, pilot knowledge test, FAA written exam prep, student pilot, flight school" />
     <meta name="author" content="SimPilot.AI" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://simpilot.ai" />
+    <!--
+      NOTE: No static <link rel="canonical"> here. This is a SPA shell served
+      for every route, so a hard-coded canonical (e.g. "https://simpilot.ai")
+      would mis-canonicalise every non-root page to "/" for crawlers that
+      don't execute JavaScript. The correct per-route canonical is injected
+      at runtime by <SEOHead> via react-helmet-async after hydration.
+    -->
 
     
     
@@ -35,10 +41,17 @@
     <meta name="twitter:image:width" content="800" />
     <meta name="twitter:image:height" content="418" />
     <meta name="twitter:image:alt" content="SimPilot.AI — AI-Powered Pilot Training" />
-    <meta property="og:title" content="SimPilot.AI — AI-Powered Pilot Training | Ground School &amp; Oral Exam Prep">
-  <meta name="twitter:title" content="SimPilot.AI — AI-Powered Pilot Training | Ground School &amp; Oral Exam Prep">
-  <meta property="og:description" content="Train smarter with SimPilot.AI — the AI co-pilot for ground school study, oral exam simulation, and flight knowledge. 24/7 AI flight instructor for student pilots. Not FAA-approved; supplemental training only.">
-  <meta name="twitter:description" content="Train smarter with SimPilot.AI — the AI co-pilot for ground school study, oral exam simulation, and flight knowledge. 24/7 AI flight instructor for student pilots. Not FAA-approved; supplemental training only.">
+    <!--
+      Static shell defaults match SHARE_COPY_BY_PATH["/"] in src/lib/shareCopy.ts
+      so non-JS crawlers landing on the root URL see the same curated link
+      preview that <SEOHead> injects at runtime. Per-route share copy for
+      sub-routes is injected client-side by react-helmet-async.
+    -->
+    <meta property="og:title" content="Train smarter. Pass your checkride.">
+    <meta name="twitter:title" content="Train smarter. Pass your checkride.">
+    <meta property="og:description" content="Your AI co-pilot for ground school, oral exams and FAA written prep — available 24/7. Built by pilots, for pilots.">
+    <meta name="twitter:description" content="Your AI co-pilot for ground school, oral exams and FAA written prep — available 24/7. Built by pilots, for pilots.">
+
 </head>
 
   <body>
