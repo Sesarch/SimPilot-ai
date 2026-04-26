@@ -442,7 +442,46 @@ ${pohText}`;
 
     // Check if any message contains images — use vision-capable model
     const hasImages = messages.some((m: any) => Array.isArray(m.content) && m.content.some((c: any) => c.type === "image_url"));
-    const model = "google/gemini-2.5-flash";
+
+    // Load admin-configured model settings (singleton row, public read)
+    let primaryModel = "google/gemini-2.5-flash";
+    let reviewerModel = "google/gemini-2.5-pro";
+    let reviewerEnabled = true;
+    let reviewerScope = "all"; // 'all' | 'oral_exam' | 'training' | 'off'
+    let guardrailsEnabled = true;
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const sb = createClient(supabaseUrl, serviceRoleKey);
+      const { data: ms } = await sb.from("model_settings").select("*").eq("id", 1).maybeSingle();
+      if (ms) {
+        primaryModel = ms.primary_model || primaryModel;
+        reviewerModel = ms.reviewer_model || reviewerModel;
+        reviewerEnabled = !!ms.reviewer_enabled;
+        reviewerScope = ms.reviewer_scope || reviewerScope;
+        guardrailsEnabled = !!ms.guardrails_enabled;
+      }
+    } catch (e) {
+      console.warn("model_settings load failed, using defaults", e);
+    }
+
+    const model = primaryModel;
+
+    // Decide whether the reviewer should run for this request's mode
+    const scopeAllowsReview =
+      reviewerScope === "all" ||
+      (reviewerScope === "oral_exam" && mode === "oral_exam") ||
+      (reviewerScope === "training" && (mode === "oral_exam" || mode === "ground_school"));
+    const runReviewer = reviewerEnabled && scopeAllowsReview && !isAtcMode;
+
+    if (guardrailsEnabled) {
+      systemPrompt += `\n\n═══ AVIATION GUARDRAILS (MANDATORY) ═══
+- NEVER invent emergency procedures, V-speeds, weight & balance numbers, performance figures, or limitations. If the student's specific aircraft POH is not provided above, say so explicitly and tell them to consult the POH/AFM for their exact aircraft.
+- For regulatory questions, cite the specific 14 CFR / AIM / AC / ACS reference. If you are not certain of the citation, say "verify in current 14 CFR" instead of guessing a section number.
+- For weather/NOTAM/chart-current data: state that real-time information must be obtained from official sources (1-800-WX-BRIEF, ForeFlight, AviationWeather.gov, FAA NOTAM Search) before flight.
+- If you are not confident in an answer, say so and recommend the student verify with a CFI or the appropriate FAA publication.
+- Safety always overrides completeness: a partial answer with a "verify in source X" pointer is better than a confident guess.`;
+    }
 
     // Build system prompt with image analysis instructions when images are present
     let finalSystemPrompt = systemPrompt;
