@@ -141,7 +141,8 @@ const AdminPayments = () => {
           <DollarSign className="w-5 h-5 text-primary" /> Payments & Revenue
         </h2>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+          {loading ? "Refreshing…" : "Refresh"}
         </Button>
       </div>
 
