@@ -164,6 +164,13 @@ describe.skipIf(!LIVE)(
           `${route}: canonical should point at ${SITE_URL} — got "${canonical}"`,
         ).toBe(true);
 
+        // Canonical must resolve 2xx without a redirect hop. Skip when the
+        // preview is on a different origin than the canonical (we can't
+        // assert production routing from a local preview server).
+        if (BASE_URL.startsWith(SITE_URL)) {
+          await canonicalResolvesWithoutRedirect(canonical!, route);
+        }
+
         // ---------- og:image ----------
         const ogImage = meta["og:image"];
         expect(ogImage, `${route}: missing og:image`).toBeTruthy();
