@@ -69,6 +69,8 @@ const AdminPage = () => {
   const [grantDialog, setGrantDialog] = useState<{ userId: string; email: string } | null>(null);
   const [grantTier, setGrantTier] = useState("pro");
   const [grantReason, setGrantReason] = useState("");
+  const [grantExpires, setGrantExpires] = useState("");
+  const [granting, setGranting] = useState(false);
   const [leads, setLeads] = useState<LeadEmail[]>([]);
   const [leadsFetching, setLeadsFetching] = useState(false);
 
