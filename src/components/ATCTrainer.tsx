@@ -3000,8 +3000,13 @@ ${transcript}`;
               );
             }
             const [rawSpoken, ...feedbackParts] = msg.content.split(/\n?\[FEEDBACK\]/i);
-            const spoken = rawSpoken.replace(/\[CORRECTION[^\]]*\]/gi, "");
-            const feedback = feedbackParts.join(" ").replace(/\[CORRECTION[^\]]*\]/gi, "").trim();
+            const spoken = rawSpoken
+              .replace(/\[CORRECTION[^\]]*\]/gi, "")
+              .replace(/\[STATE[^\]]*\]/gi, "");
+            const feedback = feedbackParts.join(" ")
+              .replace(/\[CORRECTION[^\]]*\]/gi, "")
+              .replace(/\[STATE[^\]]*\]/gi, "")
+              .trim();
             return (
               <div key={msg.id} className={cn("flex", msg.role === "pilot" ? "justify-end" : "justify-start")}>
                 <div className={cn(
