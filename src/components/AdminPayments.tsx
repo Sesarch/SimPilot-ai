@@ -207,6 +207,9 @@ const AdminPayments = () => {
           <TabsTrigger value="subs">Subscriptions</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="comps">Comp Grants</TabsTrigger>
+          <TabsTrigger value="changes">
+            Changes {changes.length ? <Badge variant="secondary" className="ml-1.5 text-[10px]">{changes.length}</Badge> : null}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="subs">
