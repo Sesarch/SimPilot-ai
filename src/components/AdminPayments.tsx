@@ -168,7 +168,18 @@ const AdminPayments = () => {
         }
       }
     }
-    if (lastErr) toast.error("Load failed: " + lastErr.message, { id: toastId });
+    if (lastErr) {
+      toast.error("Load failed: " + lastErr.message, { id: toastId });
+      // Fire-and-forget audit log so failures are debuggable later.
+      callFn("admin-payments", "?action=log-load-failure", {
+        attempts: maxAttempts,
+        error_message: lastErr?.message ?? String(lastErr),
+        error_code: lastErr?.code ?? null,
+        status: lastErr?.status ?? null,
+        endpoint: lastErr?.endpoint ?? null,
+        occurred_at: new Date().toISOString(),
+      }).catch((e) => console.error("[admin-payments] failed to log load failure:", e));
+    }
     setLoading(false);
   }, []);
 
