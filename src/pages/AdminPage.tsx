@@ -335,7 +335,7 @@ const AdminPage = () => {
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 mb-8">
+          <TabsList className="w-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 mb-8">
             <TabsTrigger value="overview" className="font-display text-xs tracking-wider">Overview</TabsTrigger>
             <TabsTrigger value="payments" className="font-display text-xs tracking-wider">Payments</TabsTrigger>
             <TabsTrigger value="reports" className="font-display text-xs tracking-wider">Reports</TabsTrigger>
@@ -346,6 +346,7 @@ const AdminPage = () => {
             <TabsTrigger value="emails" className="font-display text-xs tracking-wider">Emails</TabsTrigger>
             <TabsTrigger value="models" className="font-display text-xs tracking-wider">Models</TabsTrigger>
             <TabsTrigger value="kb" className="font-display text-xs tracking-wider">Knowledge</TabsTrigger>
+            <TabsTrigger value="seo" className="font-display text-xs tracking-wider">SEO</TabsTrigger>
             <TabsTrigger value="settings" className="font-display text-xs tracking-wider">Settings</TabsTrigger>
           </TabsList>
 
