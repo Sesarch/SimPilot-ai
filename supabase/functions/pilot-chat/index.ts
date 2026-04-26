@@ -550,7 +550,124 @@ Be specific and thorough — treat the image as if a student pilot brought a cha
       });
     }
 
-    return new Response(response.body, {
+    if (!runReviewer || !response.body) {
+      return new Response(response.body, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
+    // Reviewer-enabled stream: tee the upstream so we can both forward to the
+    // client AND collect the full assistant text for a post-stream FAA audit.
+    const lastUserMsg = (() => {
+      for (let i = chatMessages.length - 1; i >= 0; i--) {
+        if (chatMessages[i].role === "user") {
+          const c = chatMessages[i].content;
+          if (typeof c === "string") return c;
+          if (Array.isArray(c)) {
+            const t = c.find((p: any) => p.type === "text");
+            return t?.text || "";
+          }
+        }
+      }
+      return "";
+    })();
+
+    const upstream = response.body;
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const reader = upstream.getReader();
+        const decoder = new TextDecoder();
+        const encoder = new TextEncoder();
+        let buf = "";
+        let collected = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            // Forward the raw chunk to the client immediately
+            controller.enqueue(value);
+            // Also parse it to collect text for the reviewer
+            buf += decoder.decode(value, { stream: true });
+            let idx: number;
+            while ((idx = buf.indexOf("\n")) !== -1) {
+              let line = buf.slice(0, idx);
+              buf = buf.slice(idx + 1);
+              if (line.endsWith("\r")) line = line.slice(0, -1);
+              if (!line.startsWith("data: ")) continue;
+              const json = line.slice(6).trim();
+              if (json === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(json);
+                const piece = parsed?.choices?.[0]?.delta?.content;
+                if (typeof piece === "string") collected += piece;
+              } catch { /* ignore */ }
+            }
+          }
+
+          // Run reviewer audit on the collected primary answer
+          if (collected.trim().length > 0) {
+            try {
+              const auditPrompt = `You are an FAA flight-instruction quality reviewer. The Primary AI answered the student question below. Audit ONLY for: (1) factual accuracy vs FAA publications (FAR/AIM, ACS, PHAK, AFH, IFH, AC 00-6B), (2) hallucinated regulations or procedures, (3) invented performance/V-speed/emergency numbers, (4) missing safety caveats.
+
+Respond as JSON with keys:
+- "verdict": "ok" | "concerns" | "unsafe"
+- "issues": short array of strings (empty if verdict ok)
+- "note": ONE concise sentence (<= 30 words) the student should see, or empty string if verdict ok.
+
+STUDENT QUESTION:
+${lastUserMsg.slice(0, 2000)}
+
+PRIMARY ANSWER:
+${collected.slice(0, 6000)}`;
+
+              const auditRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: reviewerModel,
+                  messages: [
+                    { role: "system", content: "You are a strict FAA-accuracy auditor for a student pilot training app. Reply with raw JSON only — no markdown fences." },
+                    { role: "user", content: auditPrompt },
+                  ],
+                  stream: false,
+                }),
+              });
+
+              if (auditRes.ok) {
+                const auditJson = await auditRes.json();
+                let raw = auditJson?.choices?.[0]?.message?.content || "";
+                raw = raw.replace(/```json\s*|```\s*/g, "").trim();
+                let parsed: any = null;
+                try { parsed = JSON.parse(raw); } catch { /* ignore */ }
+                if (parsed && parsed.verdict && parsed.verdict !== "ok" && parsed.note) {
+                  const icon = parsed.verdict === "unsafe" ? "⚠️" : "ℹ️";
+                  const footer = `\n\n---\n${icon} **Safety review (${reviewerModel.split("/").pop()}):** ${parsed.note} _Always verify in current FAA publications (FAR/AIM, ACS, POH/AFM) before flight._`;
+                  // Send the footer as additional SSE delta chunks
+                  const sseChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: footer } }] })}\n\n`;
+                  controller.enqueue(encoder.encode(sseChunk));
+                }
+              } else {
+                console.warn("Reviewer non-OK:", auditRes.status);
+              }
+            } catch (revErr) {
+              console.warn("Reviewer failed:", (revErr as Error).message);
+            }
+          }
+
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } catch (e) {
+          console.error("stream tee error", e);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
