@@ -390,6 +390,39 @@ const ATCTrainer = () => {
   useEffect(() => {
     try { localStorage.setItem("atc_facility_label_style", facilityLabelStyle); } catch {}
   }, [facilityLabelStyle]);
+
+  // Release-to-Transmit: when ON, releasing PTT auto-sends the captured text.
+  // When OFF, the captured text is staged in a draft for review (legacy flow).
+  const [autoTransmit, setAutoTransmit] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("atc_auto_transmit");
+      return saved === null ? true : saved === "1";
+    } catch { return true; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_auto_transmit", autoTransmit ? "1" : "0"); } catch {}
+  }, [autoTransmit]);
+
+  // Assignable global PTT hotkey. Stored as a KeyboardEvent.code value
+  // (e.g. "Space", "KeyT", "ShiftLeft"). Defaults to Space.
+  const [pttHotkey, setPttHotkey] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem("atc_ptt_hotkey");
+      return saved && /^[A-Za-z0-9]+$/.test(saved) ? saved : "Space";
+    } catch { return "Space"; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_ptt_hotkey", pttHotkey); } catch {}
+  }, [pttHotkey]);
+  const [capturingHotkey, setCapturingHotkey] = useState(false);
+  // Pretty label for a KeyboardEvent.code (e.g. "KeyT" -> "T", "Space" -> "Space").
+  const hotkeyLabel = useCallback((code: string): string => {
+    if (code === "Space") return "Space";
+    if (code.startsWith("Key")) return code.slice(3);
+    if (code.startsWith("Digit")) return code.slice(5);
+    if (code.startsWith("Arrow")) return code.replace("Arrow", "↑↓←→".charAt(["Up","Down","Left","Right"].indexOf(code.slice(5))) || code);
+    return code;
+  }, []);
   // Last-used scenario id (for "Resume last scenario" UX). Read once at mount.
   const initialLastScenarioId = (() => {
     try {
