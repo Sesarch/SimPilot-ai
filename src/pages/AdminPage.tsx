@@ -357,7 +357,9 @@ const AdminPage = () => {
                     <tr className="border-b border-border bg-muted/30">
                       <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">User</th>
                       <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Status</th>
-                      <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Role</th>
+                      <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Plan/Role</th>
+                      <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Last Tx</th>
+                      <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Sim Hrs</th>
                       <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Joined</th>
                       <th className="text-right p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">Actions</th>
                     </tr>
@@ -379,16 +381,27 @@ const AdminPage = () => {
                           )}
                         </td>
                         <td className="p-3">
-                          {u.roles.includes("admin") ? (
-                            <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
-                              <Crown className="w-3 h-3 mr-1" /> Admin
-                            </Badge>
-                          ) : u.roles.includes("moderator") ? (
-                            <Badge variant="secondary" className="text-xs">Moderator</Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">User</span>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            {u.roles.includes("admin") ? (
+                              <Badge className="bg-primary/20 text-primary border-primary/30 text-xs w-fit">
+                                <Crown className="w-3 h-3 mr-1" /> Admin
+                              </Badge>
+                            ) : u.roles.includes("moderator") ? (
+                              <Badge variant="secondary" className="text-xs w-fit">Moderator</Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">User</span>
+                            )}
+                            {u.comp_grant && (
+                              <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px] w-fit">
+                                <Gift className="w-2.5 h-2.5 mr-1" /> Comp: {u.comp_grant.plan_tier}
+                              </Badge>
+                            )}
+                          </div>
                         </td>
+                        <td className="p-3 text-xs text-muted-foreground">
+                          {u.last_transmission_at ? new Date(u.last_transmission_at).toLocaleDateString() : "Never"}
+                        </td>
+                        <td className="p-3 text-xs">{u.total_sim_hours.toFixed(1)}</td>
                         <td className="p-3 text-xs text-muted-foreground">
                           {new Date(u.created_at).toLocaleDateString()}
                         </td>
@@ -418,6 +431,10 @@ const AdminPage = () => {
                                     <Ban className="w-3 h-3" />
                                   </Button>
                                 )}
+                                <Button variant="ghost" size="sm" className="text-xs text-amber-500 h-7" title="Grant comp access"
+                                  onClick={() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); }}>
+                                  <Gift className="w-3 h-3" />
+                                </Button>
                                 <Button variant="ghost" size="sm" className="text-xs text-destructive h-7" title="Delete"
                                   onClick={() => setConfirmAction({ type: "delete", userId: u.id, email: u.email })}>
                                   <Trash2 className="w-3 h-3" />
@@ -432,7 +449,7 @@ const AdminPage = () => {
                     ))}
                     {filteredUsers.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                        <td colSpan={7} className="p-8 text-center text-muted-foreground">
                           {fetching ? "Loading users..." : "No users found"}
                         </td>
                       </tr>
