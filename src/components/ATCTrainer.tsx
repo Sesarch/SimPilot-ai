@@ -3270,16 +3270,74 @@ ${transcript}`;
               <span className="h-2 w-2 rounded-full bg-muted-foreground/50" />
               <span className="text-muted-foreground">Mic Ready — Hold</span>
               <kbd
-                aria-label="Spacebar"
-                title="Hold Spacebar to transmit"
+                aria-label={`PTT hotkey: ${hotkeyLabel(pttHotkey)}`}
+                title={`Hold ${hotkeyLabel(pttHotkey)} to transmit (click PTT settings to rebind)`}
                 className="inline-flex items-center gap-1 rounded border border-border bg-muted/40 px-1.5 py-0.5 font-display text-[9px] tracking-[0.2em] uppercase text-foreground/80 shadow-sm"
               >
                 <span className="inline-block h-[2px] w-3 rounded-full bg-foreground/60" />
-                Space
+                {hotkeyLabel(pttHotkey)}
               </kbd>
             </>
           )}
         </div>
+
+        {/* PTT preferences: Release-to-Transmit toggle + assignable hotkey */}
+        {sttSupported && (
+          <div className="w-full flex flex-col gap-2 border border-border/60 rounded-md bg-background/40 px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                Release-to-Transmit
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={autoTransmit}
+                onClick={() => setAutoTransmit((v) => !v)}
+                title={autoTransmit ? "On: releasing PTT sends immediately" : "Off: review draft, then press Transmit"}
+                className={cn(
+                  "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
+                  autoTransmit ? "bg-[hsl(var(--hud-green))]/70" : "bg-muted",
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-4 w-4 rounded-full bg-background shadow transition-transform",
+                    autoTransmit ? "translate-x-4" : "translate-x-0.5",
+                  )}
+                />
+              </button>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                PTT Hotkey
+              </span>
+              <button
+                type="button"
+                onClick={() => setCapturingHotkey((v) => !v)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded border px-2 py-1 font-display text-[10px] tracking-[0.2em] uppercase transition-colors",
+                  capturingHotkey
+                    ? "border-accent text-accent bg-accent/10 animate-pulse"
+                    : "border-border bg-muted/40 text-foreground/80 hover:border-primary/60",
+                )}
+                title={capturingHotkey ? "Press any key to assign…" : "Click then press any key to rebind"}
+              >
+                <kbd className="font-display tracking-[0.15em]">{capturingHotkey ? "Press a key…" : hotkeyLabel(pttHotkey)}</kbd>
+              </button>
+            </div>
+            {/* Hotkey capture: listen for the next keydown when armed */}
+            {capturingHotkey && (
+              <HotkeyCapture
+                onCapture={(code) => {
+                  setPttHotkey(code);
+                  setCapturingHotkey(false);
+                  toast.success(`PTT hotkey set to ${hotkeyLabel(code)}`);
+                }}
+                onCancel={() => setCapturingHotkey(false)}
+              />
+            )}
+          </div>
+        )}
 
         {/* VU meter — pulses with AI voice + hiss bed */}
         <VUMeter getAnalyser={() => fxRef.current?.analyser ?? null} active={speaking} />
