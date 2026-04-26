@@ -25,6 +25,7 @@
 
 import { describe, it, expect } from "vitest";
 import { PUBLIC_ROUTES, SITE_URL } from "../../scripts/sitemap-routes";
+import { SHARE_COPY_BY_PATH } from "../lib/shareCopy";
 
 const LIVE = process.env.RUN_LIVE_SEO_CHECK === "1";
 const BASE_URL = (
