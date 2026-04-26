@@ -2197,6 +2197,31 @@ ${transcript}`;
                   })}
                 </div>
               </div>
+
+              {/* ========= CHECKRIDE ORAL EXAM MODE ========= */}
+              <div className="border-t border-border pt-4">
+                <Link
+                  to="/oral-exam?exam=ppl"
+                  className="group block rounded-lg border-2 border-dashed border-primary/40 hover:border-primary/70 hover:bg-primary/5 p-4 transition-all"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center text-xl shrink-0">
+                        🎓
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-display text-[11px] tracking-[0.25em] uppercase text-primary font-bold">
+                          Switch to Checkride Oral Exam
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          DPE-style oral based on the Private Pilot ACS — voice or text.
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 -rotate-90 text-primary/70 group-hover:text-primary shrink-0" />
+                  </div>
+                </Link>
+              </div>
             </div>
           )}
 
