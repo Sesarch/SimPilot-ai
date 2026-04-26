@@ -223,7 +223,7 @@ const PublicProfilePage = () => {
               This pilot profile doesn't exist or hasn't been shared yet.
             </p>
             <Button asChild>
-              <Link to="/">Return Home</Link>
+              <Link to="/" title="Return to SimPilot.AI homepage">Return Home</Link>
             </Button>
           </div>
         )}
@@ -247,7 +247,7 @@ const PublicProfilePage = () => {
               This pilot has set their profile to private. Their training stats and badges aren't publicly visible.
             </p>
             <Button asChild>
-              <Link to="/" className="font-display text-[11px] tracking-[0.25em] uppercase">
+              <Link to="/" title="Start your AI-powered pilot training with SimPilot.AI" className="font-display text-[11px] tracking-[0.25em] uppercase">
                 Start Your Training
               </Link>
             </Button>
@@ -394,7 +394,7 @@ const PublicProfilePage = () => {
                 Train smarter with an AI flight instructor.
               </p>
               <Button asChild>
-                <Link to="/" className="font-display text-[11px] tracking-[0.25em] uppercase">
+                <Link to="/" title="Start your AI-powered pilot training with SimPilot.AI" className="font-display text-[11px] tracking-[0.25em] uppercase">
                   Start Your Training
                 </Link>
               </Button>

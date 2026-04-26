@@ -39,7 +39,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/dashboard" className="flex min-h-14 items-center gap-2.5 px-2 pt-1 pb-2.5 -mt-1">
+        <Link to="/dashboard" title="SimPilot.AI pilot training dashboard" className="flex min-h-14 items-center gap-2.5 px-2 pt-1 pb-2.5 -mt-1">
           {collapsed ? (
             <div className="flex h-9 w-9 items-center justify-center rounded-md border border-primary/30 bg-gradient-to-br from-primary/30 to-accent/20 overflow-hidden">
               <Logo height={20} alt="SimPilot" />

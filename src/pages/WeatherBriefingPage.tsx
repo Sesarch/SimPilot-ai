@@ -89,7 +89,7 @@ const WeatherBriefingPage = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <Link to="/" className="flex items-center">
+            <Link to="/" title="SimPilot.AI — AI-Powered Pilot Training Home" className="flex items-center">
               <Logo height={28} />
             </Link>
           </div>

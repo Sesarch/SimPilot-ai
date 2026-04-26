@@ -63,7 +63,7 @@ const ResetPasswordPage = () => {
               <p className="text-muted-foreground text-sm mb-4">
                 Invalid or expired reset link.
               </p>
-              <Link to="/forgot-password" className="text-primary text-sm hover:underline">
+              <Link to="/forgot-password" title="Request a new password reset link" className="text-primary text-sm hover:underline">
                 Request a new reset link
               </Link>
             </div>

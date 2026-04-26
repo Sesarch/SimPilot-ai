@@ -80,9 +80,9 @@ const MobileChatPage = () => {
   return (
     <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
       <SEOHead
-        title="SimPilot.AI — AI Aviation Chat"
-        description="Your AI aviation copilot. Chat about flying, study for exams, and prepare for your checkride."
-        keywords="aviation chat, pilot training AI, checkride prep"
+        title="AI Aviation Chat — SimPilot.AI Mobile CFI"
+        description="Chat with your SimPilot.AI CFI on mobile. Ask aviation questions, study for the FAA written exam, drill oral exam topics, and prep for your checkride anywhere."
+        keywords="aviation chat, mobile pilot training, AI CFI chat, ground school chat, oral exam practice, checkride prep mobile, FAA written exam help"
         canonical="/chat"
         noIndex
       />

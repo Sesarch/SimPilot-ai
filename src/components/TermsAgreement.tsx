@@ -157,11 +157,11 @@ const TermsAgreement = ({ agreed, onAgreeChange }: TermsAgreementProps) => {
                 <li>AI responses may contain errors and must be verified</li>
                 <li>
                   You have read the{" "}
-                  <Link to="/terms" target="_blank" className="text-primary hover:underline">
+                  <Link to="/terms" target="_blank" title="Open SimPilot.AI Terms & Conditions in a new tab" className="text-primary hover:underline">
                     Terms & Conditions
                   </Link>{" "}
                   and{" "}
-                  <Link to="/privacy" target="_blank" className="text-primary hover:underline">
+                  <Link to="/privacy" target="_blank" title="Open SimPilot.AI Privacy Policy in a new tab" className="text-primary hover:underline">
                     Privacy Policy
                   </Link>
                 </li>

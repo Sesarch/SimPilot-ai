@@ -72,11 +72,11 @@ const CookieConsent = () => {
               <p className="text-sm text-foreground font-medium">We use cookies</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 We use cookies to improve your experience, analyze traffic, and personalize content. Read our{" "}
-                <Link to="/privacy" className="text-primary hover:underline">
+                <Link to="/privacy" title="Read the SimPilot.AI Privacy Policy" className="text-primary hover:underline">
                   Privacy Policy
                 </Link>{" "}
                 for more details. You can also manage your{" "}
-                <Link to="/cookie-preferences" className="text-primary hover:underline">
+                <Link to="/cookie-preferences" title="Manage your SimPilot.AI cookie preferences" className="text-primary hover:underline">
                   cookie preferences
                 </Link>
                 .

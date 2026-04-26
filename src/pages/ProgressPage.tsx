@@ -451,7 +451,7 @@ const ProgressPage = () => {
           {examScores.length === 0 ? (
             <div className="bg-gradient-card rounded-xl border border-border p-8 text-center">
               <p className="text-muted-foreground text-sm">No exam scores yet.</p>
-              <Link to="/oral-exam" className="text-primary text-sm hover:underline mt-2 inline-block">
+              <Link to="/oral-exam" title="Start your first AI oral exam simulation" className="text-primary text-sm hover:underline mt-2 inline-block">
                 Take your first oral exam →
               </Link>
             </div>

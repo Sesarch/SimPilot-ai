@@ -12,9 +12,9 @@ const NotFound = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <SEOHead
-        title="Page Not Found — SimPilot.AI"
+        title="Page Not Found (404) — SimPilot.AI"
         description="The page you're looking for doesn't exist. Return to SimPilot.AI homepage to explore AI-powered pilot training, ground school, and oral exam prep."
-        keywords="404, page not found, SimPilot.AI"
+        keywords="404, page not found, SimPilot.AI, broken link"
         noIndex
       />
       <div className="text-center">
