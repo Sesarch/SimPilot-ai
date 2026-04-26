@@ -59,6 +59,7 @@ const App = () => (
       <BrowserRouter>
         <ScrollToTop />
         <SiteSettingsProvider>
+        <SiteVerificationTags />
         <AuthProvider>
           <AnnouncementBanner />
           <MaintenanceGate>
