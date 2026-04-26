@@ -107,7 +107,9 @@ const AdminPayments = () => {
   const load = useCallback(async () => {
     setLoading(true);
     const maxAttempts = 3;
+    const toastId = "admin-payments-load";
     let lastErr: any;
+    let didRetry = false;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const [m, s, i, g, a] = await Promise.all([
@@ -123,16 +125,22 @@ const AdminPayments = () => {
         setGrants(g.grants || []);
         setChanges((a.entries || []).filter((e: AuditEntry) => PAYMENT_ACTIONS.has(e.action)));
         lastErr = null;
+        if (didRetry) {
+          toast.success("Payments loaded", { id: toastId });
+        } else {
+          toast.dismiss(toastId);
+        }
         break;
       } catch (e: any) {
         lastErr = e;
         if (attempt < maxAttempts) {
-          toast.message(`Load failed, retrying (${attempt}/${maxAttempts - 1})…`);
+          didRetry = true;
+          toast.loading(`Load failed, retrying (${attempt}/${maxAttempts - 1})…`, { id: toastId });
           await new Promise((r) => setTimeout(r, 800 * attempt));
         }
       }
     }
-    if (lastErr) toast.error("Load failed: " + lastErr.message);
+    if (lastErr) toast.error("Load failed: " + lastErr.message, { id: toastId });
     setLoading(false);
   }, []);
 
