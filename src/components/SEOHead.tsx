@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { resolveOgImage } from "@/lib/ogImages";
+import { resolveOgImage, resolveTwitterImage } from "@/lib/ogImages";
 
 interface SEOHeadProps {
   title: string;
