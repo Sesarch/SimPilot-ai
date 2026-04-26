@@ -14,7 +14,7 @@ const FeatureDisabledPage = ({ feature }: { feature: string }) => (
       <p className="text-muted-foreground max-w-md mb-6">
         This feature has been temporarily disabled by the site administrator. Please check back later.
       </p>
-      <Link to="/dashboard" className="text-primary hover:underline text-sm">
+      <Link to="/dashboard" title="Return to your SimPilot.AI pilot training dashboard" className="text-primary hover:underline text-sm">
         ← Back to Dashboard
       </Link>
     </div>

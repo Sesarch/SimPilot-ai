@@ -103,7 +103,7 @@ const ForSchoolsSuccessPage = () => {
               <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
               <h2 className="font-display text-xl font-bold text-destructive mb-2">Something went wrong</h2>
               <p className="text-sm text-muted-foreground mb-4">{error}</p>
-              <Link to="/contact" className="text-sm text-accent hover:underline">Contact support →</Link>
+              <Link to="/contact" title="Contact SimPilot.AI support for help with your bulk purchase" className="text-sm text-accent hover:underline">Contact support →</Link>
             </div>
           )}
 

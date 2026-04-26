@@ -186,9 +186,9 @@ const SessionHistoryPage = () => {
                 <p className="text-muted-foreground">No training sessions yet.</p>
                 <p className="text-sm text-muted-foreground/70 mt-1">
                   Start a{" "}
-                  <Link to="/ground-school" className="text-primary hover:underline">Ground School</Link>{" "}
+                  <Link to="/ground-school" title="Open AI Ground School training" className="text-primary hover:underline">Ground School</Link>{" "}
                   or{" "}
-                  <Link to="/oral-exam" className="text-primary hover:underline">Oral Exam</Link>{" "}
+                  <Link to="/oral-exam" title="Start an AI oral exam simulation" className="text-primary hover:underline">Oral Exam</Link>{" "}
                   session to begin.
                 </p>
               </div>

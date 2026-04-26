@@ -52,7 +52,7 @@ const ForgotPasswordPage = () => {
               <p className="text-muted-foreground text-sm mb-4">
                 We've sent a password reset link to <strong className="text-foreground">{email}</strong>.
               </p>
-              <Link to="/auth" className="text-primary text-sm hover:underline">
+              <Link to="/auth" title="Back to SimPilot.AI sign in" className="text-primary text-sm hover:underline">
                 Back to sign in
               </Link>
             </div>
@@ -82,7 +82,7 @@ const ForgotPasswordPage = () => {
                 </button>
               </form>
               <p className="text-sm text-muted-foreground text-center mt-4">
-                <Link to="/auth" className="text-primary hover:underline">
+                <Link to="/auth" title="Back to SimPilot.AI sign in" className="text-primary hover:underline">
                   Back to sign in
                 </Link>
               </p>

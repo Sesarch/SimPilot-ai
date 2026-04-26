@@ -10,7 +10,7 @@ const MaintenancePage = () => (
     <p className="text-muted-foreground max-w-md mb-6">
       SimPilot.AI is currently undergoing scheduled maintenance. We'll be back online shortly. Thank you for your patience!
     </p>
-    <Link to="/contact" className="text-primary hover:underline text-sm">
+    <Link to="/contact" title="Contact SimPilot.AI support" className="text-primary hover:underline text-sm">
       Need help? Contact us
     </Link>
   </div>

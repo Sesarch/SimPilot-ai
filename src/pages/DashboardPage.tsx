@@ -104,7 +104,7 @@ const DashboardPage = () => {
           </Link>
           <div className="flex items-center gap-3">
             {isAdmin && (
-              <Link to="/admin">
+              <Link to="/admin" title="Open the SimPilot.AI Admin Dashboard">
                 <Button variant="ghost" size="sm" className="text-xs gap-1.5">
                   <Shield className="w-3.5 h-3.5" /> Admin
                 </Button>

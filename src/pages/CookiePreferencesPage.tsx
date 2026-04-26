@@ -117,7 +117,7 @@ const CookiePreferencesPage = () => {
         <p className="text-muted-foreground text-sm leading-relaxed mb-8">
           We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. You
           can customize your preferences below. For more information, please read our{" "}
-          <Link to="/privacy" className="text-primary hover:underline">
+          <Link to="/privacy" title="Read the SimPilot.AI Privacy Policy" className="text-primary hover:underline">
             Privacy Policy
           </Link>
           .
