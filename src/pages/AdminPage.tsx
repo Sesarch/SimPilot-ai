@@ -309,12 +309,12 @@ const AdminPage = () => {
             <Link to="/dashboard" title="Return to your SimPilot.AI pilot training dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <div className="flex items-center gap-3">
+            <Link to="/" title="SimPilot.AI home" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
               <Shield className="w-8 h-8 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)] shrink-0 translate-y-[1px]" />
               <span className="font-display text-3xl font-black leading-[1] text-foreground tracking-[0.18em] drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">
                 ADMIN<span className="text-primary">PANEL</span>
               </span>
-            </div>
+            </Link>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
