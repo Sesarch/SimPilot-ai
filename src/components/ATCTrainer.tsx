@@ -2697,10 +2697,10 @@ ${transcript}`;
               {/* ========= LEGACY GUIDED SCENARIOS ========= */}
               <div className="border-t border-border pt-4">
                 <div className="text-center mb-3">
-                  <div className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+                  <div className="font-display text-sm tracking-[0.3em] uppercase text-muted-foreground/70 font-light">
                     Or pick a guided scenario
                   </div>
-                  <div className="text-xs text-muted-foreground/80 mt-1">
+                  <div className="text-base text-muted-foreground/60 mt-1 font-light">
                     Pre-scripted drill — ATC starts the call.
                   </div>
                 </div>
