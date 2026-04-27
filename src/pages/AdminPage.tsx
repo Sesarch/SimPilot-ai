@@ -775,6 +775,66 @@ const AdminPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Extend Trial Dialog */}
+      <Dialog open={!!extendDialog} onOpenChange={(o) => !o && setExtendDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarClock className="w-4 h-4 text-cyan-500" /> Extend Free Trial
+            </DialogTitle>
+            <DialogDescription>
+              Extend <span className="font-medium text-foreground">{extendDialog?.email}</span>'s
+              free trial by any number of months. While the trial is active, the user has full
+              access (equivalent to Ultra). This bypasses Stripe and is logged to the audit log.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              Current trial ends:{" "}
+              <span className="font-medium text-foreground">
+                {extendDialog?.currentEndsAt
+                  ? new Date(extendDialog.currentEndsAt).toLocaleDateString()
+                  : "—"}
+              </span>
+              {extendDialog?.currentEndsAt &&
+                new Date(extendDialog.currentEndsAt).getTime() < Date.now() && (
+                  <span className="ml-2 text-amber-500">(expired — extension starts from today)</span>
+                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="extend-months">Months to add</Label>
+              <Input
+                id="extend-months"
+                type="number"
+                min={1}
+                max={120}
+                step={1}
+                value={extendMonths}
+                onChange={(e) => setExtendMonths(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Enter any whole number from 1 to 120.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="extend-reason">Reason (optional)</Label>
+              <Input
+                id="extend-reason"
+                placeholder="Beta tester, partner, customer goodwill…"
+                value={extendReason}
+                onChange={(e) => setExtendReason(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExtendDialog(null)} disabled={extending}>
+              Cancel
+            </Button>
+            <Button onClick={handleExtendTrial} disabled={extending}>
+              {extending ? "Extending…" : "Extend Trial"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
