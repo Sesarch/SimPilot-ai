@@ -281,6 +281,47 @@ const AdminPage = () => {
     setGranting(false);
   };
 
+  const handleExtendTrial = async () => {
+    if (!extendDialog) return;
+    const months = Number(extendMonths);
+    if (!Number.isFinite(months) || months <= 0 || months > 120) {
+      toast.error("Enter 1–120 months");
+      return;
+    }
+    setExtending(true);
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-payments?action=extend-trial`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: extendDialog.userId,
+            months,
+            reason: extendReason.trim() || null,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to extend trial");
+      toast.success(
+        `Extended trial for ${extendDialog.email} by ${months} month${months === 1 ? "" : "s"}. New end: ${new Date(data.trial_ends_at).toLocaleDateString()}`
+      );
+      setExtendDialog(null);
+      setExtendReason("");
+      setExtendMonths("1");
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setExtending(false);
+  };
+
   const filteredUsers = users.filter(
     (u) =>
       (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
