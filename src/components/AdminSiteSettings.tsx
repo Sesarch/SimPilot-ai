@@ -148,6 +148,8 @@ const AdminSiteSettings = () => {
               { label: "Ground School", value: groundSchoolEnabled, set: setGroundSchoolEnabled },
               { label: "Weather Briefing", value: weatherEnabled, set: setWeatherEnabled },
               { label: "Live Sky Tools", value: liveToolsEnabled, set: setLiveToolsEnabled },
+              { label: "ATC: Live Frequency Trainer", value: atcLiveFreqEnabled, set: setAtcLiveFreqEnabled },
+              { label: "ATC: Guided Scenarios", value: atcGuidedScenariosEnabled, set: setAtcGuidedScenariosEnabled },
             ].map((toggle) => (
               <div key={toggle.label} className="flex items-center justify-between py-1">
                 <span className="text-sm text-foreground">{toggle.label}</span>
