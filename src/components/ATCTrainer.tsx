@@ -2696,11 +2696,11 @@ ${transcript}`;
 
               {/* ========= LEGACY GUIDED SCENARIOS ========= */}
               <div className="border-t border-border pt-4">
-                <div className="text-center mb-4 space-y-2">
-                  <div className="font-display text-xs sm:text-sm md:text-base tracking-[0.25em] sm:tracking-[0.3em] uppercase text-muted-foreground/80 font-light leading-relaxed">
+                <div className="text-center mb-4 space-y-2 sm:space-y-2.5 px-3 sm:px-4">
+                  <div className="font-display text-xs sm:text-sm md:text-base tracking-[0.2em] sm:tracking-[0.3em] uppercase text-muted-foreground/80 font-light leading-snug sm:leading-relaxed">
                     Or pick a guided scenario
                   </div>
-                  <div className="text-sm sm:text-base md:text-lg text-foreground/75 font-light leading-relaxed tracking-wide max-w-md mx-auto px-2">
+                  <div className="text-sm sm:text-base md:text-lg text-foreground/75 font-light leading-snug sm:leading-relaxed tracking-normal sm:tracking-wide max-w-[18rem] sm:max-w-md mx-auto text-balance">
                     Pre-scripted drill — ATC starts the call.
                   </div>
                 </div>
