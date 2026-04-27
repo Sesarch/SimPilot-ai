@@ -12,6 +12,7 @@ import {
   atcFrequencies,
   getAirportFrequencies,
   lookupFacility,
+  resolveAtisAirport,
   formatFreq,
   parseFreqInput,
   type AirportFrequencies,
@@ -763,9 +764,21 @@ const ATCTrainer = () => {
    * (icao, freq) pair until the pilot retunes away and back.
    */
   useEffect(() => {
-    if (!liveAirport || !liveContext?.facility) return;
-    if (liveContext.facility.kind !== "ATIS") return;
-    const key = { icao: liveAirport.icao, freq: activeFreq };
+    if (!liveAirport) return;
+    const freqMHz = parseFloat(activeFreq);
+    if (!Number.isFinite(freqMHz)) return;
+
+    // Robust mapping: even if the tuned freq isn't in `liveAirport`'s
+    // facility list (pilot is parked at KMYF but tuning a nearby ATIS),
+    // resolve it globally to the correct ICAO + airport so the edge function
+    // fetches the right airport's ATIS and audio feed.
+    const resolved = resolveAtisAirport(freqMHz, liveAirport.icao);
+    if (!resolved) return;
+    const targetIcao = resolved.airport.icao;
+    const targetCallName = resolved.airport.callName;
+    const crossAirport = resolved.crossAirport;
+
+    const key = { icao: targetIcao, freq: activeFreq };
     if (
       lastAtisFetchRef.current?.icao === key.icao &&
       lastAtisFetchRef.current?.freq === key.freq
@@ -783,13 +796,13 @@ const ATCTrainer = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq, airportName: liveAirport.callName }),
+          body: JSON.stringify({ icao: targetIcao, freq: activeFreq, airportName: targetCallName }),
         });
         if (!resp.ok) throw new Error(`atis ${resp.status}`);
         const data = await resp.json();
         if (cancelled || !data?.text) return;
         setCurrentAtis({
-          icao: liveAirport.icao,
+          icao: targetIcao,
           info: data.info ?? "Alpha",
           text: data.text,
           source: data.source ?? "synth",
@@ -801,12 +814,15 @@ const ATCTrainer = () => {
           : data.source === "vatsim" ? "live VATSIM feed"
           : "live weather";
         const hasLiveAudio = !!(data.proxyAudioUrl || data.audioUrl);
+        const crossNote = crossAirport
+          ? ` — resolved from ${liveAirport.icao} via global frequency map`
+          : "";
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             role: "system",
-            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${hasLiveAudio ? " + live audio" : ""})`,
+            content: `📻 ${targetIcao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${hasLiveAudio ? " + live audio" : ""})${crossNote}`,
           },
           { id: crypto.randomUUID(), role: "atc", content: data.text },
         ]);
@@ -903,7 +919,7 @@ const ATCTrainer = () => {
       setAtisLiveSource(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveAirport?.icao, activeFreq, liveContext?.facility?.kind]);
+  }, [liveAirport?.icao, activeFreq]);
 
   /**
    * ATIS update watcher — while the pilot stays tuned to an ATIS frequency,
@@ -913,9 +929,15 @@ const ATCTrainer = () => {
    * Does NOT auto-play the new ATIS — the pilot decides when to re-listen.
    */
   useEffect(() => {
-    if (!liveAirport || !liveContext?.facility) return;
-    if (liveContext.facility.kind !== "ATIS") return;
-    if (!currentAtis || currentAtis.icao !== liveAirport.icao) return;
+    if (!liveAirport) return;
+    if (!currentAtis) return;
+    // Only poll while still tuned to an ATIS frequency (per the global mapping).
+    const freqMHz = parseFloat(activeFreq);
+    if (!Number.isFinite(freqMHz)) return;
+    const resolved = resolveAtisAirport(freqMHz, liveAirport.icao);
+    if (!resolved || resolved.airport.icao !== currentAtis.icao) return;
+    const targetIcao = resolved.airport.icao;
+    const targetCallName = resolved.airport.callName;
 
     let cancelled = false;
     // Fingerprint of the current ATIS text — covers both info-letter changes
@@ -936,7 +958,7 @@ const ATCTrainer = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq, airportName: liveAirport.callName }),
+          body: JSON.stringify({ icao: targetIcao, freq: activeFreq, airportName: targetCallName }),
         });
         if (!resp.ok || cancelled) return;
         const data = await resp.json();
@@ -953,7 +975,7 @@ const ATCTrainer = () => {
           : `ATIS weather updated — Information ${nextInfo}`;
 
         setCurrentAtis({
-          icao: liveAirport.icao,
+          icao: targetIcao,
           info: nextInfo,
           text: nextText,
           source: data.source ?? "synth",
@@ -965,10 +987,10 @@ const ATCTrainer = () => {
           {
             id: crypto.randomUUID(),
             role: "system",
-            content: `🔔 ${liveAirport.icao} ${reason}. Re-tune ATIS or click to listen again.`,
+            content: `🔔 ${targetIcao} ${reason}. Re-tune ATIS or click to listen again.`,
           },
         ]);
-        toast.info(`${liveAirport.icao} ATIS updated · Information ${nextInfo}`, {
+        toast.info(`${targetIcao} ATIS updated · Information ${nextInfo}`, {
           description: letterChanged ? "New letter cycle" : "Updated METAR",
         });
       } catch (e) {
@@ -989,7 +1011,7 @@ const ATCTrainer = () => {
     };
     // Re-arm whenever the tuned ATIS or its current letter changes (so the
     // next change comparison uses the fresh baseline).
-  }, [liveAirport?.icao, liveAirport?.callName, activeFreq, liveContext?.facility?.kind, currentAtis?.info, currentAtis?.text, currentAtis?.icao]);
+  }, [liveAirport?.icao, activeFreq, currentAtis?.info, currentAtis?.text, currentAtis?.icao]);
 
   const exportTranscript = useCallback(() => {
     if (messages.length === 0) {

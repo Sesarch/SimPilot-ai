@@ -260,6 +260,151 @@ export function lookupFacility(
   return { airport, facility: best?.facility ?? null, isUniversal: false };
 }
 
+// ---------------------------------------------------------------------------
+// Global frequency → facility/airport index
+// ---------------------------------------------------------------------------
+// `lookupFacility` is intentionally airport-scoped: at a given ICAO, what's
+// on this freq? But pilots can (and do) tune frequencies that don't belong
+// to the currently-selected airport — most commonly an ATIS for a nearby
+// field while still parked at their home base, or a class B ATIS while
+// transitioning underneath. To handle that without forcing the user to
+// re-pick the airport, we precompute a global index of every published
+// facility frequency keyed to its airport, sorted for fast nearest-neighbor
+// lookup with kHz-level tolerance.
+
+interface FreqIndexEntry {
+  airport: AirportFrequencies;
+  facility: AtcFacility;
+}
+
+// Built once at module load. Sorted ascending by frequency so binary-search
+// + linear scan within a small tolerance window stays cheap even as the
+// airport list grows.
+const freqIndex: FreqIndexEntry[] = (() => {
+  const out: FreqIndexEntry[] = [];
+  for (const airport of atcFrequencies) {
+    for (const facility of airport.facilities) {
+      out.push({ airport, facility });
+    }
+  }
+  out.sort((a, b) => a.facility.freq - b.facility.freq);
+  return out;
+})();
+
+/**
+ * Result of a global frequency lookup. `matches` are sorted by distance
+ * from the requested frequency, then by `preferredIcao` priority. The
+ * first entry is the most likely intent; additional entries are useful
+ * for surfacing ambiguity ("did you mean KMYF or KSAN ATIS?").
+ */
+export interface FreqResolution {
+  matches: Array<FreqIndexEntry & { delta: number }>;
+  best: (FreqIndexEntry & { delta: number }) | null;
+  isUniversal: boolean;
+}
+
+/**
+ * Walk every airport in the dataset and return facilities whose frequency
+ * is within `tolerance` MHz of `freqMHz`. Universal facilities (Guard) are
+ * checked first and short-circuit.
+ *
+ * If `preferredIcao` is supplied, matches at that airport float to the top
+ * within the same delta — so a pilot already at KMYF tuning a frequency
+ * shared with another nearby field still hears their home airport first.
+ */
+export function resolveFacilityByFreq(
+  freqMHz: number,
+  opts?: {
+    preferredIcao?: string;
+    /** Override default ±15 kHz tolerance. */
+    toleranceMHz?: number;
+    /** Restrict to a single facility kind (e.g. only ATIS). */
+    kind?: FacilityKind;
+  },
+): FreqResolution {
+  const tol = opts?.toleranceMHz ?? FREQ_TOLERANCE_MHZ;
+  const preferred = opts?.preferredIcao?.toUpperCase();
+
+  // Universal facilities (Guard) always win regardless of airport.
+  for (const f of universalFacilities) {
+    if (Math.abs(f.freq - freqMHz) <= tol) {
+      const entry = { airport: null as unknown as AirportFrequencies, facility: f, delta: Math.abs(f.freq - freqMHz) };
+      // Synthesize a one-off entry so callers can treat it uniformly.
+      return { matches: [entry], best: entry, isUniversal: true };
+    }
+  }
+
+  // Linear scan — the index is small (<200 entries) and pre-sorted, so a
+  // binary-search optimization isn't worth the complexity yet.
+  const matches: Array<FreqIndexEntry & { delta: number }> = [];
+  for (const e of freqIndex) {
+    if (opts?.kind && e.facility.kind !== opts.kind) continue;
+    const delta = Math.abs(e.facility.freq - freqMHz);
+    if (delta <= tol) matches.push({ ...e, delta });
+  }
+
+  // Sort: closest first; on ties, preferred airport wins.
+  matches.sort((a, b) => {
+    if (a.delta !== b.delta) return a.delta - b.delta;
+    const ap = preferred && a.airport.icao === preferred ? 0 : 1;
+    const bp = preferred && b.airport.icao === preferred ? 0 : 1;
+    return ap - bp;
+  });
+
+  return { matches, best: matches[0] ?? null, isUniversal: false };
+}
+
+/**
+ * ATIS-specific resolver. Pilots who tune an ATIS frequency expect to hear
+ * SOME airport's broadcast even if they haven't pre-selected that airport
+ * in the UI. This helper:
+ *   1. Tries the preferred airport's own ATIS list first (tight tolerance).
+ *   2. Falls back to a global ATIS-only scan (slightly wider tolerance for
+ *      regions that use 8.33 kHz spacing or have small published mismatches).
+ *   3. Returns the resolved ICAO so the caller knows which airport's feed
+ *      to fetch from the ATIS edge function.
+ *
+ * Returns `null` if no published ATIS within the search window.
+ */
+export function resolveAtisAirport(
+  freqMHz: number,
+  preferredIcao?: string,
+): { airport: AirportFrequencies; facility: AtcFacility; delta: number; crossAirport: boolean } | null {
+  const preferred = preferredIcao?.toUpperCase();
+
+  // Step 1 — preferred airport, tight tolerance.
+  if (preferred) {
+    const home = getAirportFrequencies(preferred);
+    if (home) {
+      let best: { facility: AtcFacility; delta: number } | null = null;
+      for (const f of home.facilities) {
+        if (f.kind !== "ATIS") continue;
+        const delta = Math.abs(f.freq - freqMHz);
+        if (delta <= FREQ_TOLERANCE_MHZ && (!best || delta < best.delta)) {
+          best = { facility: f, delta };
+        }
+      }
+      if (best) return { airport: home, facility: best.facility, delta: best.delta, crossAirport: false };
+    }
+  }
+
+  // Step 2 — global ATIS scan, slightly wider tolerance to absorb
+  // 8.33 kHz spacing and minor source mismatches.
+  const wide = Math.max(FREQ_TOLERANCE_MHZ, 0.025);
+  const res = resolveFacilityByFreq(freqMHz, {
+    preferredIcao: preferred,
+    toleranceMHz: wide,
+    kind: "ATIS",
+  });
+  if (!res.best || res.isUniversal) return null;
+  return {
+    airport: res.best.airport,
+    facility: res.best.facility,
+    delta: res.best.delta,
+    crossAirport: !preferred || res.best.airport.icao !== preferred,
+  };
+}
+
 export function formatFreq(freqMHz: number): string {
   // Always 3 decimals: 119.200
   return freqMHz.toFixed(3);
