@@ -348,6 +348,36 @@ function getRecognizer(): any {
   return r;
 }
 
+// ---- Per-airport Live ATIS playback preferences ---------------------------
+// Stored in localStorage as `atc_atis_prefs:<ICAO>` → JSON {volume, muted}.
+// Volume is clamped 0..1, muted is a boolean. Returns null when the pilot has
+// no saved prefs for that airport (so callers can fall back to defaults).
+type AtisPrefs = { volume: number; muted: boolean };
+const ATIS_PREFS_KEY = (icao: string) => `atc_atis_prefs:${icao.toUpperCase()}`;
+const ATIS_PREFS_ENABLED_KEY = "atc_atis_prefs_enabled";
+
+const loadAtisPrefs = (icao: string): AtisPrefs | null => {
+  if (!icao) return null;
+  try {
+    const raw = localStorage.getItem(ATIS_PREFS_KEY(icao));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<AtisPrefs>;
+    const v = typeof parsed.volume === "number" ? Math.min(1, Math.max(0, parsed.volume)) : 0.9;
+    const m = !!parsed.muted;
+    return { volume: v, muted: m };
+  } catch { return null; }
+};
+const saveAtisPrefs = (icao: string, prefs: AtisPrefs): void => {
+  if (!icao) return;
+  try {
+    localStorage.setItem(ATIS_PREFS_KEY(icao), JSON.stringify({
+      volume: Math.min(1, Math.max(0, prefs.volume)),
+      muted: !!prefs.muted,
+    }));
+  } catch { /* private mode / quota */ }
+};
+
+
 /**
  * LiveAtisSeekBar — Compact transport for the live ATIS <audio> element.
  *
