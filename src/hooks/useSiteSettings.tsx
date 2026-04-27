@@ -53,6 +53,8 @@ export const SiteSettingsProvider = ({ children }: { children: ReactNode }) => {
         ground_school_enabled: Boolean(data.ground_school_enabled),
         weather_enabled: Boolean(data.weather_enabled),
         live_tools_enabled: Boolean(data.live_tools_enabled),
+        atc_live_frequency_enabled: data.atc_live_frequency_enabled === undefined ? true : Boolean(data.atc_live_frequency_enabled),
+        atc_guided_scenarios_enabled: data.atc_guided_scenarios_enabled === undefined ? true : Boolean(data.atc_guided_scenarios_enabled),
         bridge_direct_download_enabled: Boolean(data.bridge_direct_download_enabled),
         google_site_verification: typeof data.google_site_verification === "string" ? data.google_site_verification : "",
         bing_site_verification: typeof data.bing_site_verification === "string" ? data.bing_site_verification : "",
