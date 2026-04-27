@@ -308,6 +308,7 @@ const FlightTrackerMap = () => {
     const controller = new AbortController();
     traceAbortRef.current = controller;
     setHistoricalTrack([]);
+    setFlightStatus(null);
     (async () => {
       try {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
@@ -317,11 +318,23 @@ const FlightTrackerMap = () => {
           { headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey }, signal: controller.signal },
         );
         if (!res.ok) return;
-        const data = (await res.json()) as { points?: Array<{ lat: number; lon: number }> };
+        const data = (await res.json()) as {
+          points?: Array<{ lat: number; lon: number }>;
+          is_live?: boolean;
+          flight_start?: number | null;
+          flight_end?: number | null;
+        };
         const pts = (data.points ?? [])
           .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon))
           .map(p => [p.lat, p.lon] as [number, number]);
-        if (!controller.signal.aborted) setHistoricalTrack(pts);
+        if (!controller.signal.aborted) {
+          setHistoricalTrack(pts);
+          setFlightStatus({
+            isLive: !!data.is_live,
+            start: data.flight_start ?? null,
+            end: data.flight_end ?? null,
+          });
+        }
       } catch {
         /* aborted or offline — fall back to live-only trail */
       }
