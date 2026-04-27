@@ -567,6 +567,10 @@ const AdminPage = () => {
                                     <Ban className="w-3 h-3" />
                                   </Button>
                                 )}
+                                <Button variant="ghost" size="sm" className="text-xs text-cyan-500 h-7" title="Extend free trial (full access)"
+                                  onClick={() => { setExtendMonths("1"); setExtendReason(""); setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at }); }}>
+                                  <CalendarClock className="w-3 h-3" />
+                                </Button>
                                 <Button variant="ghost" size="sm" className="text-xs text-amber-500 h-7" title="Grant comp access"
                                   onClick={() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); }}>
                                   <Gift className="w-3 h-3" />
