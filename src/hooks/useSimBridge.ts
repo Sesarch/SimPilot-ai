@@ -455,6 +455,22 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
     }
   }, [source, status]);
 
+  /**
+   * Tell the bridge which OS key to bind for the global PTT hotkey.
+   * Pass an empty string to unbind. The bridge will start emitting
+   * { type:"ptt", phase:"down"|"up", key } frames once bound.
+   */
+  const setPttHotkey = useCallback((key: string) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    try {
+      ws.send(JSON.stringify({ type: "setPttHotkey", key }));
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   return {
     status,
     telemetry,
@@ -462,5 +478,6 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
     isFlightActive,
     isConnected: status === "connected",
     bridgeVersion,
+    setPttHotkey,
   };
 }
