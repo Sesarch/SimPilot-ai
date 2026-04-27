@@ -53,6 +53,29 @@ export type SimBridgeStatus = "disconnected" | "connecting" | "connected";
 export const SIM_FLIGHT_STARTED_EVENT = "simpilot:flight-started";
 export const SIM_FLIGHT_FINISHED_EVENT = "simpilot:flight-finished";
 
+/**
+ * PTT (Push-To-Talk) events emitted by the SimPilot Bridge desktop helper.
+ * The bridge captures a system-wide hotkey (so it works while MSFS/X-Plane is
+ * focused) and forwards both edges of the key press over the WebSocket as:
+ *
+ *   { type: "ptt", phase: "down", key: "Space", t: 1735012345678 }
+ *   { type: "ptt", phase: "up",   key: "Space", t: 1735012346001 }
+ *
+ * We re-broadcast them on `window` so the radio/Comm UI can implement
+ * "Release-to-Transmit": start capturing audio on `down`, stop + send on `up`.
+ */
+export const PTT_DOWN_EVENT = "simpilot:ptt-down";
+export const PTT_UP_EVENT = "simpilot:ptt-up";
+
+export interface PttEventDetail {
+  /** Bridge-reported timestamp (ms since epoch). Falls back to Date.now() if absent. */
+  t: number;
+  /** OS-level key the bridge captured, e.g. "Space", "ControlLeft". May be undefined for legacy bridges. */
+  key?: string;
+  /** Source of the event so the UI can show "Bridge hotkey" vs "in-tab key". */
+  source: "bridge" | "browser";
+}
+
 export interface PmdgEvent {
   /** ms since epoch */
   t: number;
@@ -339,6 +362,23 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
                 setStatus("disconnected");
                 return;
               }
+              // PTT key edge from the desktop bridge's global hotkey capture.
+              // Bridge sends both phases so the radio UI can implement
+              // Release-to-Transmit while MSFS has OS focus.
+              if (raw.type === "ptt" && (raw.phase === "down" || raw.phase === "up")) {
+                const detail: PttEventDetail = {
+                  t: typeof raw.t === "number" ? raw.t : Date.now(),
+                  key: typeof raw.key === "string" ? raw.key : undefined,
+                  source: "bridge",
+                };
+                window.dispatchEvent(
+                  new CustomEvent<PttEventDetail>(
+                    raw.phase === "down" ? PTT_DOWN_EVENT : PTT_UP_EVENT,
+                    { detail },
+                  ),
+                );
+                return;
+              }
             }
 
             const lat =
@@ -415,6 +455,22 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
     }
   }, [source, status]);
 
+  /**
+   * Tell the bridge which OS key to bind for the global PTT hotkey.
+   * Pass an empty string to unbind. The bridge will start emitting
+   * { type:"ptt", phase:"down"|"up", key } frames once bound.
+   */
+  const setPttHotkey = useCallback((key: string) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    try {
+      ws.send(JSON.stringify({ type: "setPttHotkey", key }));
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   return {
     status,
     telemetry,
@@ -422,5 +478,6 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
     isFlightActive,
     isConnected: status === "connected",
     bridgeVersion,
+    setPttHotkey,
   };
 }
