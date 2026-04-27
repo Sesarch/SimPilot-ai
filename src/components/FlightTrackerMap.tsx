@@ -506,20 +506,37 @@ const FlightTrackerMap = () => {
               <span className="font-medium hidden sm:inline">Airports</span>
               {showAirports ? <ToggleRight className="h-3.5 w-3.5 text-primary" /> : <ToggleLeft className="h-3.5 w-3.5 text-muted-foreground" />}
             </button>
-            <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg flex items-center text-xs overflow-hidden">
-              {(["all", "airborne", "ground"] as const).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setStatusFilter(f)}
-                  className={`px-2 sm:px-2.5 py-1.5 capitalize transition-colors ${
-                    statusFilter === f
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {f === "all" ? "All" : f === "airborne" ? "✈ Air" : "⬇ Gnd"}
-                </button>
-              ))}
+            <div
+              className="bg-background/90 backdrop-blur-sm border border-border rounded-lg flex items-center text-xs overflow-hidden"
+              role="group"
+              aria-label="Flight status filter"
+            >
+              {([
+                { key: "all", label: "All", title: "Show all aircraft" },
+                { key: "airborne", label: "● Live", title: "Show only aircraft currently airborne (live flight)" },
+                { key: "ground", label: "⬇ Last", title: "Show only aircraft on the ground (most recent completed flight)" },
+              ] as const).map(f => {
+                const active = statusFilter === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setStatusFilter(f.key)}
+                    title={f.title}
+                    aria-pressed={active}
+                    className={`px-2 sm:px-2.5 py-1.5 transition-colors ${
+                      active
+                        ? f.key === "airborne"
+                          ? "bg-primary text-primary-foreground"
+                          : f.key === "ground"
+                            ? "bg-amber-500 text-background"
+                            : "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
             </div>
             <button
               onClick={() => setShowFilters(v => !v)}
