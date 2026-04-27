@@ -36,6 +36,7 @@ import { RuleTester } from "@/components/atc/RuleTester";
 import { SessionReviewModal } from "@/components/atc/SessionReviewModal";
 import { Link } from "react-router-dom";
 import { useSimBridge, PTT_DOWN_EVENT, PTT_UP_EVENT, type PttEventDetail } from "@/hooks/useSimBridge";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface ATCMessage {
   id: string;
