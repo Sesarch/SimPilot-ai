@@ -1141,10 +1141,22 @@ const ATCTrainer = () => {
                   description: `${targetIcao} · re-tune the ATIS frequency to reconnect.`,
                 });
               };
+              // Persist volume/mute changes per airport (debounced) so they
+              // survive re-tunes and reloads. Only writes when prefs are
+              // enabled — pilots who turn it off get an ephemeral session.
+              let saveTimer: ReturnType<typeof setTimeout> | null = null;
+              const onVolumeChange = () => {
+                if (!atisPrefsEnabledRef.current) return;
+                if (saveTimer) clearTimeout(saveTimer);
+                saveTimer = setTimeout(() => {
+                  saveAtisPrefs(targetIcao, { volume: audio.volume, muted: audio.muted });
+                }, 250);
+              };
               audio.addEventListener("waiting", onWaiting);
               audio.addEventListener("stalled", onStalled);
               audio.addEventListener("playing", onPlayingAgain);
               audio.addEventListener("error", onMidError);
+              audio.addEventListener("volumechange", onVolumeChange);
             }
             break;
           }
