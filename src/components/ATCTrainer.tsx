@@ -33,6 +33,7 @@ import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
 import { RuleTester } from "@/components/atc/RuleTester";
 import { SessionReviewModal } from "@/components/atc/SessionReviewModal";
 import { Link } from "react-router-dom";
+import { useSimBridge, PTT_DOWN_EVENT, PTT_UP_EVENT, type PttEventDetail } from "@/hooks/useSimBridge";
 
 interface ATCMessage {
   id: string;
