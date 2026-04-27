@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Radio, RotateCcw, Mic, MicOff, Volume2, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History, Plane, Search, Square, ChevronDown } from "lucide-react";
+import { Radio, RotateCcw, Mic, MicOff, Volume2, VolumeX, Play, Pause, AlertCircle, ClipboardCheck, Loader2, CheckCircle2, XCircle, Download, ArrowLeftRight, Flame, X, Lock, History, Plane, Search, Square, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -623,6 +623,31 @@ const ATCTrainer = () => {
   // when the pilot retunes away from ATIS.
   const atisAudioRef = useRef<HTMLAudioElement | null>(null);
   const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "failed">("idle");
+  // User-controlled playback state for the Live ATIS stream. Persisted across
+  // sessions so the pilot's preferred volume/mute carries over.
+  const [atisPaused, setAtisPaused] = useState(false);
+  const [atisMuted, setAtisMuted] = useState<boolean>(() => {
+    try { return localStorage.getItem("atc_atis_muted") === "1"; } catch { return false; }
+  });
+  const [atisVolume, setAtisVolume] = useState<number>(() => {
+    try {
+      const v = parseFloat(localStorage.getItem("atc_atis_volume") ?? "0.9");
+      return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.9;
+    } catch { return 0.9; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_atis_muted", atisMuted ? "1" : "0"); } catch {}
+  }, [atisMuted]);
+  useEffect(() => {
+    try { localStorage.setItem("atc_atis_volume", String(atisVolume)); } catch {}
+  }, [atisVolume]);
+  // Apply volume/mute changes to the live audio element whenever they change.
+  useEffect(() => {
+    const el = atisAudioRef.current;
+    if (!el) return;
+    el.volume = atisVolume;
+    el.muted = atisMuted;
+  }, [atisVolume, atisMuted, atisAudioState]);
   const lastAtisFetchRef = useRef<{ icao: string; freq: string } | null>(null);
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
@@ -823,8 +848,14 @@ const ATCTrainer = () => {
           const audio = new Audio(src);
           audio.preload = "none";
           audio.autoplay = true;
-          audio.volume = 0.9;
+          audio.volume = atisVolume;
+          audio.muted = atisMuted;
+          // Sync user-facing pause/play state if the underlying element changes
+          // (e.g. browser autoplay policy auto-pauses, or user uses media keys).
+          audio.addEventListener("pause", () => setAtisPaused(true));
+          audio.addEventListener("play", () => setAtisPaused(false));
           atisAudioRef.current = audio;
+          setAtisPaused(false);
           setAtisAudioState("loading");
           return await new Promise<boolean>((resolve) => {
             let settled = false;
@@ -2851,12 +2882,13 @@ ${transcript}`;
                     aria-live="polite"
                     aria-label={`Current ATIS information ${currentAtis.info}`}
                     className={cn(
-                      "mb-2 flex items-center justify-between gap-3 rounded-md border px-3 py-2 transition-colors",
+                      "mb-2 flex flex-col gap-2 rounded-md border px-3 py-2 transition-colors",
                       tunedToAtis
                         ? "border-sky-500/60 bg-sky-500/10"
                         : "border-border bg-muted/30",
                     )}
                   >
+                    <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="font-display text-[9px] tracking-[0.3em] uppercase text-muted-foreground">
                         ATIS
@@ -2935,6 +2967,70 @@ ${transcript}`;
                         </span>
                       );
                     })()}
+                    </div>
+                    {/* Live ATIS playback controls — visible only while tuned to
+                        ATIS and a real audio stream is available. Controls the
+                        underlying <Audio> element via atisAudioRef. */}
+                    {tunedToAtis && (currentAtis.proxyAudioUrl || currentAtis.audioUrl) && (
+                      <div className="flex items-center gap-2 pt-1.5 border-t border-border/40">
+                        <button
+                          type="button"
+                          aria-label={atisPaused ? "Play live ATIS" : "Pause live ATIS"}
+                          title={atisPaused ? "Play live ATIS" : "Pause live ATIS"}
+                          disabled={atisAudioState !== "playing" && atisAudioState !== "loading" && !atisPaused}
+                          onClick={() => {
+                            const el = atisAudioRef.current;
+                            if (!el) return;
+                            if (el.paused) {
+                              el.play().catch(() => { /* autoplay/play() rejection */ });
+                            } else {
+                              el.pause();
+                            }
+                          }}
+                          className={cn(
+                            "inline-flex items-center justify-center h-7 w-7 rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary",
+                            (atisAudioState !== "playing" && atisAudioState !== "loading" && !atisPaused) && "opacity-40 cursor-not-allowed hover:border-border hover:text-foreground",
+                          )}
+                        >
+                          {atisPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={atisMuted ? "Unmute live ATIS" : "Mute live ATIS"}
+                          aria-pressed={atisMuted}
+                          title={atisMuted ? "Unmute live ATIS" : "Mute live ATIS"}
+                          onClick={() => setAtisMuted((m) => !m)}
+                          className={cn(
+                            "inline-flex items-center justify-center h-7 w-7 rounded-md border transition-colors",
+                            atisMuted
+                              ? "border-amber-500/60 bg-amber-500/10 text-amber-500"
+                              : "border-border bg-background/60 text-foreground hover:border-primary/60 hover:text-primary",
+                          )}
+                        >
+                          {atisMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                        </button>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={atisMuted ? 0 : atisVolume}
+                          aria-label="Live ATIS volume"
+                          title={`Volume ${Math.round((atisMuted ? 0 : atisVolume) * 100)}%`}
+                          onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            setAtisVolume(v);
+                            // Adjusting the slider implicitly unmutes — matches
+                            // behavior of every desktop media player.
+                            if (atisMuted && v > 0) setAtisMuted(false);
+                          }}
+                          className="flex-1 h-1.5 accent-primary cursor-pointer"
+                        />
+                        <span className="font-mono text-[10px] tabular-nums text-muted-foreground w-9 text-right">
+                          {Math.round((atisMuted ? 0 : atisVolume) * 100)}%
+                        </span>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
