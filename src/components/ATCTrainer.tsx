@@ -1841,6 +1841,47 @@ ${transcript}`;
     try { recognizerRef.current?.stop(); } catch { /* noop */ }
   };
 
+  // ---- SimPilot Bridge: OS-global PTT hotkey (works while sim is focused) ----
+  // The bridge captures the chosen key system-wide and forwards down/up frames
+  // over the existing WebSocket. We re-broadcast them as window CustomEvents.
+  // Here we (a) push the current hotkey to the bridge whenever it changes, and
+  // (b) trigger startPTT/endPTT from those bridge-originated events so the
+  // pilot can transmit without alt-tabbing back to the browser.
+  const simBridge = useSimBridge({ enabled: true });
+  const bridgeStatus = simBridge.status;
+  const bridgeSetHotkey = simBridge.setPttHotkey;
+  useEffect(() => {
+    if (bridgeStatus !== "connected") return;
+    try { bridgeSetHotkey(pttHotkey); } catch { /* noop */ }
+  }, [bridgeStatus, bridgeSetHotkey, pttHotkey]);
+
+  // Stable refs so the event listeners don't re-bind on every render.
+  const startPTTRef = useRef<() => void>(() => {});
+  const endPTTRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    startPTTRef.current = () => { void startPTT(); };
+    endPTTRef.current = () => { endPTT(); };
+  });
+  useEffect(() => {
+    const onDown = (e: Event) => {
+      const detail = (e as CustomEvent<PttEventDetail>).detail;
+      if (detail?.source !== "bridge") return; // browser fallback handled by HotkeyPTT
+      if (capturingHotkey || speaking || loading) return;
+      startPTTRef.current();
+    };
+    const onUp = (e: Event) => {
+      const detail = (e as CustomEvent<PttEventDetail>).detail;
+      if (detail?.source !== "bridge") return;
+      endPTTRef.current();
+    };
+    window.addEventListener(PTT_DOWN_EVENT, onDown as EventListener);
+    window.addEventListener(PTT_UP_EVENT, onUp as EventListener);
+    return () => {
+      window.removeEventListener(PTT_DOWN_EVENT, onDown as EventListener);
+      window.removeEventListener(PTT_UP_EVENT, onUp as EventListener);
+    };
+  }, [capturingHotkey, speaking, loading]);
+
   /** Transmit the staged draft on the air. No-op if empty or busy. */
   const transmitDraft = useCallback(() => {
     const text = pendingDraft.trim();
