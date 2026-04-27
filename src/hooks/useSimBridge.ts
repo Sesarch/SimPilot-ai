@@ -362,6 +362,23 @@ export function useSimBridge({ enabled = false, source = "msfs2024" }: UseSimBri
                 setStatus("disconnected");
                 return;
               }
+              // PTT key edge from the desktop bridge's global hotkey capture.
+              // Bridge sends both phases so the radio UI can implement
+              // Release-to-Transmit while MSFS has OS focus.
+              if (raw.type === "ptt" && (raw.phase === "down" || raw.phase === "up")) {
+                const detail: PttEventDetail = {
+                  t: typeof raw.t === "number" ? raw.t : Date.now(),
+                  key: typeof raw.key === "string" ? raw.key : undefined,
+                  source: "bridge",
+                };
+                window.dispatchEvent(
+                  new CustomEvent<PttEventDetail>(
+                    raw.phase === "down" ? PTT_DOWN_EVENT : PTT_UP_EVENT,
+                    { detail },
+                  ),
+                );
+                return;
+              }
             }
 
             const lat =
