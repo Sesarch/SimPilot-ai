@@ -205,6 +205,7 @@ const FlightTrackerMap = () => {
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
+  const [flightStatus, setFlightStatus] = useState<{ isLive: boolean; start: number | null; end: number | null } | null>(null);
   const traceAbortRef = useRef<AbortController | null>(null);
   const mapRef = useRef<L.Map | null>(null);
 
