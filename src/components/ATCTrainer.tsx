@@ -919,7 +919,7 @@ const ATCTrainer = () => {
       setAtisLiveSource(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveAirport?.icao, activeFreq, liveContext?.facility?.kind]);
+  }, [liveAirport?.icao, activeFreq]);
 
   /**
    * ATIS update watcher — while the pilot stays tuned to an ATIS frequency,
