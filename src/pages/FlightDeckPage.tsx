@@ -182,6 +182,17 @@ const FlightDeckPage = () => {
           ))}
         </div>
 
+        {/* Progress tracking + Upcoming mock orals */}
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <ProgressTrackingPanel />
+          <UpcomingMockOralsPanel />
+        </div>
+
+        {/* Recommended modules */}
+        <div className="mt-4">
+          <RecommendedModulesPanel />
+        </div>
+
         {/* Sim Telemetry */}
         <div className="mt-4">
           <SimStatusPanel />
