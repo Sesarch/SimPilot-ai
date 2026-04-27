@@ -879,6 +879,8 @@ export type Database = {
       site_settings: {
         Row: {
           announcement: string
+          atc_guided_scenarios_enabled: boolean
+          atc_live_frequency_enabled: boolean
           bing_site_verification: string
           bridge_direct_download_enabled: boolean
           chat_enabled: boolean
@@ -894,6 +896,8 @@ export type Database = {
         }
         Insert: {
           announcement?: string
+          atc_guided_scenarios_enabled?: boolean
+          atc_live_frequency_enabled?: boolean
           bing_site_verification?: string
           bridge_direct_download_enabled?: boolean
           chat_enabled?: boolean
@@ -909,6 +913,8 @@ export type Database = {
         }
         Update: {
           announcement?: string
+          atc_guided_scenarios_enabled?: boolean
+          atc_live_frequency_enabled?: boolean
           bing_site_verification?: string
           bridge_direct_download_enabled?: boolean
           chat_enabled?: boolean
