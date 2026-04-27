@@ -78,11 +78,6 @@ Deno.serve(async (req) => {
       });
     }
     const ct = upstreamResp.headers.get("content-type") ?? "audio/mpeg";
-    if (!/audio|mpeg|octet-stream/i.test(ct)) {
-      return new Response(JSON.stringify({ error: "non-audio response", contentType: ct }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const respHeaders: Record<string, string> = {
       ...corsHeaders,
