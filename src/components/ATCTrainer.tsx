@@ -593,7 +593,7 @@ const ATCTrainer = () => {
   const [airportSearch, setAirportSearch] = useState("");
   // Real-world ATIS state — set when the pilot tunes an ATIS frequency.
   // `info` is the phonetic letter ("Bravo"), `text` is the broadcast string.
-  const [currentAtis, setCurrentAtis] = useState<{ icao: string; info: string; text: string; source: string; audioUrl?: string | null } | null>(null);
+  const [currentAtis, setCurrentAtis] = useState<{ icao: string; info: string; text: string; source: string; audioUrl?: string | null; proxyAudioUrl?: string | null } | null>(null);
   const [atisLoading, setAtisLoading] = useState(false);
   // Live ATIS audio stream (LiveATC). When tuned, we attempt to stream the
   // real broadcast; the <audio> element is held in a ref so we can stop it
