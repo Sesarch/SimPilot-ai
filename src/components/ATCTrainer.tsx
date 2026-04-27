@@ -3523,6 +3523,29 @@ ${transcript}`;
                 onCancel={() => setCapturingHotkey(false)}
               />
             )}
+            {/* Scope indicator: OS-global via SimPilot Bridge vs browser-only */}
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
+              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                Hotkey Scope
+              </span>
+              {bridgeStatus === "connected" ? (
+                <span
+                  className="inline-flex items-center gap-1.5 font-display text-[10px] tracking-[0.25em] uppercase text-[hsl(var(--hud-green))]"
+                  title="SimPilot Bridge connected — hotkey works system-wide, even when MSFS/X-Plane is focused"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
+                  OS-Global · Bridge
+                </span>
+              ) : (
+                <span
+                  className="inline-flex items-center gap-1.5 font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground"
+                  title="Browser tab only. Install the SimPilot Bridge desktop helper for true OS-global PTT while the sim window is focused."
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+                  Browser Tab Only
+                </span>
+              )}
+            </div>
           </div>
         )}
 
