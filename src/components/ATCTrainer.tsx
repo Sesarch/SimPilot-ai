@@ -33,6 +33,7 @@ import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
 import { RuleTester } from "@/components/atc/RuleTester";
 import { SessionReviewModal } from "@/components/atc/SessionReviewModal";
 import { Link } from "react-router-dom";
+import { useSimBridge, PTT_DOWN_EVENT, PTT_UP_EVENT, type PttEventDetail } from "@/hooks/useSimBridge";
 
 interface ATCMessage {
   id: string;
@@ -1840,6 +1841,47 @@ ${transcript}`;
     try { recognizerRef.current?.stop(); } catch { /* noop */ }
   };
 
+  // ---- SimPilot Bridge: OS-global PTT hotkey (works while sim is focused) ----
+  // The bridge captures the chosen key system-wide and forwards down/up frames
+  // over the existing WebSocket. We re-broadcast them as window CustomEvents.
+  // Here we (a) push the current hotkey to the bridge whenever it changes, and
+  // (b) trigger startPTT/endPTT from those bridge-originated events so the
+  // pilot can transmit without alt-tabbing back to the browser.
+  const simBridge = useSimBridge({ enabled: true });
+  const bridgeStatus = simBridge.status;
+  const bridgeSetHotkey = simBridge.setPttHotkey;
+  useEffect(() => {
+    if (bridgeStatus !== "connected") return;
+    try { bridgeSetHotkey(pttHotkey); } catch { /* noop */ }
+  }, [bridgeStatus, bridgeSetHotkey, pttHotkey]);
+
+  // Stable refs so the event listeners don't re-bind on every render.
+  const startPTTRef = useRef<() => void>(() => {});
+  const endPTTRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    startPTTRef.current = () => { void startPTT(); };
+    endPTTRef.current = () => { endPTT(); };
+  });
+  useEffect(() => {
+    const onDown = (e: Event) => {
+      const detail = (e as CustomEvent<PttEventDetail>).detail;
+      if (detail?.source !== "bridge") return; // browser fallback handled by HotkeyPTT
+      if (capturingHotkey || speaking || loading) return;
+      startPTTRef.current();
+    };
+    const onUp = (e: Event) => {
+      const detail = (e as CustomEvent<PttEventDetail>).detail;
+      if (detail?.source !== "bridge") return;
+      endPTTRef.current();
+    };
+    window.addEventListener(PTT_DOWN_EVENT, onDown as EventListener);
+    window.addEventListener(PTT_UP_EVENT, onUp as EventListener);
+    return () => {
+      window.removeEventListener(PTT_DOWN_EVENT, onDown as EventListener);
+      window.removeEventListener(PTT_UP_EVENT, onUp as EventListener);
+    };
+  }, [capturingHotkey, speaking, loading]);
+
   /** Transmit the staged draft on the air. No-op if empty or busy. */
   const transmitDraft = useCallback(() => {
     const text = pendingDraft.trim();
@@ -3481,6 +3523,29 @@ ${transcript}`;
                 onCancel={() => setCapturingHotkey(false)}
               />
             )}
+            {/* Scope indicator: OS-global via SimPilot Bridge vs browser-only */}
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
+              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                Hotkey Scope
+              </span>
+              {bridgeStatus === "connected" ? (
+                <span
+                  className="inline-flex items-center gap-1.5 font-display text-[10px] tracking-[0.25em] uppercase text-[hsl(var(--hud-green))]"
+                  title="SimPilot Bridge connected — hotkey works system-wide, even when MSFS/X-Plane is focused"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
+                  OS-Global · Bridge
+                </span>
+              ) : (
+                <span
+                  className="inline-flex items-center gap-1.5 font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground"
+                  title="Browser tab only. Install the SimPilot Bridge desktop helper for true OS-global PTT while the sim window is focused."
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+                  Browser Tab Only
+                </span>
+              )}
+            </div>
           </div>
         )}
 
