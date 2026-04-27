@@ -1033,7 +1033,7 @@ const ATCTrainer = () => {
         const sourceLabel =
           data.source === "datis" ? "live FAA D-ATIS"
           : data.source === "vatsim" ? "live VATSIM feed"
-          : "live weather";
+          : "weather-derived summary (not an official broadcast)";
         const hasLiveAudio = !!(data.proxyAudioUrl || data.audioUrl);
         const crossNote = crossAirport
           ? ` — resolved from ${liveAirport.icao} via global frequency map`
