@@ -623,6 +623,10 @@ const ATCTrainer = () => {
   // when the pilot retunes away from ATIS.
   const atisAudioRef = useRef<HTMLAudioElement | null>(null);
   const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "failed">("idle");
+  // Which live source the audio element is actually playing right now.
+  // "proxy" = our edge proxy URL (CORS-safe), "direct" = LiveATC direct URL,
+  // null = no live audio (TTS fallback path).
+  const [atisLiveSource, setAtisLiveSource] = useState<"proxy" | "direct" | null>(null);
   const lastAtisFetchRef = useRef<{ icao: string; freq: string } | null>(null);
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
