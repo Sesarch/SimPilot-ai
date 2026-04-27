@@ -929,9 +929,15 @@ const ATCTrainer = () => {
    * Does NOT auto-play the new ATIS — the pilot decides when to re-listen.
    */
   useEffect(() => {
-    if (!liveAirport || !liveContext?.facility) return;
-    if (liveContext.facility.kind !== "ATIS") return;
-    if (!currentAtis || currentAtis.icao !== liveAirport.icao) return;
+    if (!liveAirport) return;
+    if (!currentAtis) return;
+    // Only poll while still tuned to an ATIS frequency (per the global mapping).
+    const freqMHz = parseFloat(activeFreq);
+    if (!Number.isFinite(freqMHz)) return;
+    const resolved = resolveAtisAirport(freqMHz, liveAirport.icao);
+    if (!resolved || resolved.airport.icao !== currentAtis.icao) return;
+    const targetIcao = resolved.airport.icao;
+    const targetCallName = resolved.airport.callName;
 
     let cancelled = false;
     // Fingerprint of the current ATIS text — covers both info-letter changes
@@ -952,7 +958,7 @@ const ATCTrainer = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq, airportName: liveAirport.callName }),
+          body: JSON.stringify({ icao: targetIcao, freq: activeFreq, airportName: targetCallName }),
         });
         if (!resp.ok || cancelled) return;
         const data = await resp.json();
@@ -969,7 +975,7 @@ const ATCTrainer = () => {
           : `ATIS weather updated — Information ${nextInfo}`;
 
         setCurrentAtis({
-          icao: liveAirport.icao,
+          icao: targetIcao,
           info: nextInfo,
           text: nextText,
           source: data.source ?? "synth",
@@ -981,10 +987,10 @@ const ATCTrainer = () => {
           {
             id: crypto.randomUUID(),
             role: "system",
-            content: `🔔 ${liveAirport.icao} ${reason}. Re-tune ATIS or click to listen again.`,
+            content: `🔔 ${targetIcao} ${reason}. Re-tune ATIS or click to listen again.`,
           },
         ]);
-        toast.info(`${liveAirport.icao} ATIS updated · Information ${nextInfo}`, {
+        toast.info(`${targetIcao} ATIS updated · Information ${nextInfo}`, {
           description: letterChanged ? "New letter cycle" : "Updated METAR",
         });
       } catch (e) {
@@ -1005,7 +1011,7 @@ const ATCTrainer = () => {
     };
     // Re-arm whenever the tuned ATIS or its current letter changes (so the
     // next change comparison uses the fresh baseline).
-  }, [liveAirport?.icao, liveAirport?.callName, activeFreq, liveContext?.facility?.kind, currentAtis?.info, currentAtis?.text, currentAtis?.icao]);
+  }, [liveAirport?.icao, activeFreq, currentAtis?.info, currentAtis?.text, currentAtis?.icao]);
 
   const exportTranscript = useCallback(() => {
     if (messages.length === 0) {
