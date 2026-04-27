@@ -25,6 +25,7 @@ export const OG_IMAGE_BY_PATH: Record<string, string> = {
   "/competitors": "/og-competitors.jpg",
   "/for-schools": "/og-for-schools.jpg",
   "/contact": "/og-contact.jpg",
+  "/intake": "/og-intake.jpg",
   "/terms": "/og-terms.jpg",
   "/privacy": "/og-privacy.jpg",
   // noIndex pages — still get nice previews when shared in DMs/Slack
