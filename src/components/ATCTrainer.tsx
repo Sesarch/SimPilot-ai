@@ -787,7 +787,7 @@ const ATCTrainer = () => {
   // real broadcast; the <audio> element is held in a ref so we can stop it
   // when the pilot retunes away from ATIS.
   const atisAudioRef = useRef<HTMLAudioElement | null>(null);
-  const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "failed">("idle");
+  const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "buffering" | "failed" | "disconnected">("idle");
   // Which live source the audio element is actually playing right now.
   // "proxy" = our edge proxy URL (CORS-safe), "direct" = LiveATC direct URL,
   // null = no live audio (TTS fallback path).
