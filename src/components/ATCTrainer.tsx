@@ -3020,6 +3020,30 @@ ${transcript}`;
                           Connecting…
                         </span>
                       )}
+                      {tunedToAtis && atisAudioState === "reconnecting" && (
+                        <span
+                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-amber-500/60 bg-amber-500/10 text-amber-500 px-1.5 py-0.5"
+                          title="Live stream unavailable — retrying in background"
+                        >
+                          Reconnecting…
+                        </span>
+                      )}
+                      {tunedToAtis && atisAudioState === "tts" && (
+                        <span
+                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-amber-500/60 bg-amber-500/10 text-amber-500 px-1.5 py-0.5"
+                          title="Live stream unavailable — speaking ATIS text via TTS, will switch back to live when stream recovers"
+                        >
+                          TTS Fallback
+                        </span>
+                      )}
+                      {tunedToAtis && atisAudioState === "failed" && (
+                        <span
+                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-destructive/60 bg-destructive/10 text-destructive px-1.5 py-0.5"
+                          title="No ATIS audio available"
+                        >
+                          No Audio
+                        </span>
+                      )}
                     </div>
                     {(() => {
                       // Audio source badge — reflects what the pilot is actually
