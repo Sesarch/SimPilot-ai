@@ -20,6 +20,8 @@ const AdminSiteSettings = () => {
   const [groundSchoolEnabled, setGroundSchoolEnabled] = useState(true);
   const [weatherEnabled, setWeatherEnabled] = useState(true);
   const [liveToolsEnabled, setLiveToolsEnabled] = useState(true);
+  const [atcLiveFreqEnabled, setAtcLiveFreqEnabled] = useState(true);
+  const [atcGuidedScenariosEnabled, setAtcGuidedScenariosEnabled] = useState(true);
   const [bridgeDirectDownload, setBridgeDirectDownload] = useState(false);
 
   const handleBridgeDirectDownloadChange = (next: boolean) => {
