@@ -9,6 +9,8 @@ export type SiteSettings = {
   ground_school_enabled: boolean;
   weather_enabled: boolean;
   live_tools_enabled: boolean;
+  atc_live_frequency_enabled: boolean;
+  atc_guided_scenarios_enabled: boolean;
   bridge_direct_download_enabled: boolean;
   google_site_verification: string;
   bing_site_verification: string;
@@ -23,6 +25,8 @@ const defaults: SiteSettings = {
   ground_school_enabled: true,
   weather_enabled: true,
   live_tools_enabled: true,
+  atc_live_frequency_enabled: true,
+  atc_guided_scenarios_enabled: true,
   bridge_direct_download_enabled: false,
   google_site_verification: "",
   bing_site_verification: "",
