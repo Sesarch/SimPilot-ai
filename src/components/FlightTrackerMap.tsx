@@ -205,6 +205,7 @@ const FlightTrackerMap = () => {
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
+  const [flightStatus, setFlightStatus] = useState<{ isLive: boolean; start: number | null; end: number | null } | null>(null);
   const traceAbortRef = useRef<AbortController | null>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -307,6 +308,7 @@ const FlightTrackerMap = () => {
     const controller = new AbortController();
     traceAbortRef.current = controller;
     setHistoricalTrack([]);
+    setFlightStatus(null);
     (async () => {
       try {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
@@ -316,11 +318,23 @@ const FlightTrackerMap = () => {
           { headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey }, signal: controller.signal },
         );
         if (!res.ok) return;
-        const data = (await res.json()) as { points?: Array<{ lat: number; lon: number }> };
+        const data = (await res.json()) as {
+          points?: Array<{ lat: number; lon: number }>;
+          is_live?: boolean;
+          flight_start?: number | null;
+          flight_end?: number | null;
+        };
         const pts = (data.points ?? [])
           .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon))
           .map(p => [p.lat, p.lon] as [number, number]);
-        if (!controller.signal.aborted) setHistoricalTrack(pts);
+        if (!controller.signal.aborted) {
+          setHistoricalTrack(pts);
+          setFlightStatus({
+            isLive: !!data.is_live,
+            start: data.flight_start ?? null,
+            end: data.flight_end ?? null,
+          });
+        }
       } catch {
         /* aborted or offline — fall back to live-only trail */
       }
@@ -340,6 +354,7 @@ const FlightTrackerMap = () => {
     setSelectedAirport(null);
     setPositionHistory([]);
     setHistoricalTrack([]);
+    setFlightStatus(null);
     traceAbortRef.current?.abort();
   }, []);
 
@@ -777,7 +792,7 @@ const FlightTrackerMap = () => {
                 </DrawerTitle>
               </DrawerHeader>
               <div className="overflow-y-auto px-4 pb-6">
-                <AircraftPanelContent aircraft={selectedAircraft} altFt={altFt} spdKts={spdKts} vsFpm={vsFpm} positionHistory={positionHistory} />
+                <AircraftPanelContent aircraft={selectedAircraft} altFt={altFt} spdKts={spdKts} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
               </div>
             </DrawerContent>
           </Drawer>
@@ -791,7 +806,7 @@ const FlightTrackerMap = () => {
               <Button size="icon" variant="ghost" onClick={handleClose} className="h-7 w-7"><X className="h-4 w-4" /></Button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <AircraftPanelContent aircraft={selectedAircraft} altFt={altFt} spdKts={spdKts} vsFpm={vsFpm} positionHistory={positionHistory} />
+              <AircraftPanelContent aircraft={selectedAircraft} altFt={altFt} spdKts={spdKts} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
             </div>
           </div>
         )
@@ -889,21 +904,50 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
   </>
 );
 
-const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory }: {
+const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory, flightStatus }: {
   aircraft: Aircraft;
   altFt: number;
   spdKts: number;
   vsFpm: number;
   positionHistory: PositionRecord[];
-}) => (
+  flightStatus?: { isLive: boolean; start: number | null; end: number | null } | null;
+}) => {
+  // Format the "last seen" timestamp for completed flights. Trace timestamps
+  // come from the upstream provider in seconds since epoch.
+  const lastSeenLabel = (() => {
+    const t = flightStatus?.end;
+    if (!t) return null;
+    const d = new Date(t * 1000);
+    const diffMs = Date.now() - d.getTime();
+    const mins = Math.round(diffMs / 60000);
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 48) return `${hrs} hr ago`;
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  })();
+  return (
   <>
-    <div className="py-2 flex items-center gap-2">
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-        aircraft.onGround ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"
-      }`}>
-        <span className={`h-1.5 w-1.5 rounded-full ${aircraft.onGround ? "bg-muted-foreground" : "bg-primary animate-pulse"}`} />
-        {aircraft.onGround ? "On Ground" : "Airborne"}
-      </span>
+    <div className="py-2 flex items-center gap-2 flex-wrap">
+      {flightStatus ? (
+        flightStatus.isLive ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-primary/15 text-primary border border-primary/30">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            Live Flight
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-amber-500/15 text-amber-500 border border-amber-500/30">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            Last Flight{lastSeenLabel ? ` · ${lastSeenLabel}` : ""}
+          </span>
+        )
+      ) : (
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+          aircraft.onGround ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"
+        }`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${aircraft.onGround ? "bg-muted-foreground" : "bg-primary animate-pulse"}`} />
+          {aircraft.onGround ? "On Ground" : "Airborne"}
+        </span>
+      )}
       <span className="text-[10px] text-muted-foreground">{aircraft.originCountry}</span>
     </div>
     <div className="grid grid-cols-3 gap-2 py-2">
@@ -966,6 +1010,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory 
       )}
     </div>
   </>
-);
+  );
+};
 
 export default FlightTrackerMap;
