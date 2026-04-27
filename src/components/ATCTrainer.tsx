@@ -622,7 +622,21 @@ const ATCTrainer = () => {
   // real broadcast; the <audio> element is held in a ref so we can stop it
   // when the pilot retunes away from ATIS.
   const atisAudioRef = useRef<HTMLAudioElement | null>(null);
-  const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "failed">("idle");
+  // Annunciation state machine for ATIS playback:
+  //   idle         — not tuned to ATIS / nothing to play
+  //   loading      — attempting initial connect to a live stream
+  //   playing      — live audio actively streaming and healthy
+  //   reconnecting — live stream stalled/errored, attempting recovery in background
+  //   tts          — live unavailable; falling back to TTS of the ATIS text
+  //   failed       — no audio sources worked and TTS also failed
+  const [atisAudioState, setAtisAudioState] = useState<
+    "idle" | "loading" | "playing" | "reconnecting" | "tts" | "failed"
+  >("idle");
+  // Watchdog + reconnect plumbing for live stream health monitoring.
+  const atisWatchdogRef = useRef<number | null>(null);
+  const atisReconnectRef = useRef<number | null>(null);
+  const atisLastTimeRef = useRef<{ t: number; at: number }>({ t: 0, at: 0 });
+  const atisRetryCountRef = useRef(0);
   // User-controlled playback state for the Live ATIS stream. Persisted across
   // sessions so the pilot's preferred volume/mute carries over.
   const [atisPaused, setAtisPaused] = useState(false);
@@ -794,6 +808,26 @@ const ATCTrainer = () => {
     lastAtisFetchRef.current = key;
 
     let cancelled = false;
+
+    // ---- helpers (scoped per-tune so they capture the latest candidates) ----
+    const clearTimers = () => {
+      if (atisWatchdogRef.current != null) {
+        window.clearInterval(atisWatchdogRef.current);
+        atisWatchdogRef.current = null;
+      }
+      if (atisReconnectRef.current != null) {
+        window.clearTimeout(atisReconnectRef.current);
+        atisReconnectRef.current = null;
+      }
+    };
+    const teardownAudio = () => {
+      if (atisAudioRef.current) {
+        try { atisAudioRef.current.pause(); } catch { /* noop */ }
+        try { atisAudioRef.current.src = ""; } catch { /* noop */ }
+        atisAudioRef.current = null;
+      }
+    };
+
     const run = async () => {
       setAtisLoading(true);
       try {
@@ -821,7 +855,10 @@ const ATCTrainer = () => {
           data.source === "datis" ? "live FAA D-ATIS"
           : data.source === "vatsim" ? "live VATSIM feed"
           : "live weather";
-        const hasLiveAudio = !!(data.proxyAudioUrl || data.audioUrl);
+        const candidates: string[] = [data.proxyAudioUrl, data.audioUrl].filter(
+          (u: unknown): u is string => typeof u === "string" && u.length > 0,
+        );
+        const hasLiveAudio = candidates.length > 0;
         setMessages((prev) => [
           ...prev,
           {
@@ -832,16 +869,17 @@ const ATCTrainer = () => {
           { id: crypto.randomUUID(), role: "atc", content: data.text },
         ]);
 
+        // ---- Annunciation playback engine ----
         // Universal Live ATIS playback. Try sources in order:
         //   1. Edge proxy (CORS-safe, works in any browser).
         //   2. Direct LiveATC URL (faster, sometimes blocked by CORS/hotlink).
-        //   3. TTS of the D-ATIS/synth text (always available).
+        // If none come up healthy, fall back to TTS (announciation mode "tts").
+        // Once on TTS, retry the live stream on a backoff schedule so the
+        // pilot is auto-promoted back to live audio when the stream recovers.
+        const atisText: string = data.text;
+
         const tryPlay = async (src: string): Promise<boolean> => {
-          if (atisAudioRef.current) {
-            try { atisAudioRef.current.pause(); } catch { /* noop */ }
-            atisAudioRef.current.src = "";
-            atisAudioRef.current = null;
-          }
+          teardownAudio();
           // NOTE: do NOT set audio.crossOrigin — it forces a CORS preflight
           // that the LiveATC origin rejects. Plain media playback works fine
           // without it (we don't need WebAudio analysis on this stream).
@@ -850,13 +888,10 @@ const ATCTrainer = () => {
           audio.autoplay = true;
           audio.volume = atisVolume;
           audio.muted = atisMuted;
-          // Sync user-facing pause/play state if the underlying element changes
-          // (e.g. browser autoplay policy auto-pauses, or user uses media keys).
           audio.addEventListener("pause", () => setAtisPaused(true));
           audio.addEventListener("play", () => setAtisPaused(false));
           atisAudioRef.current = audio;
           setAtisPaused(false);
-          setAtisAudioState("loading");
           return await new Promise<boolean>((resolve) => {
             let settled = false;
             const finish = (ok: boolean) => {
@@ -876,34 +911,100 @@ const ATCTrainer = () => {
           });
         };
 
-        let livePlaying = false;
-        const candidates: string[] = [data.proxyAudioUrl, data.audioUrl].filter(
-          (u: unknown): u is string => typeof u === "string" && u.length > 0,
-        );
-        for (const src of candidates) {
-          if (cancelled) break;
-          // eslint-disable-next-line no-await-in-loop
-          const ok = await tryPlay(src);
-          if (ok) {
-            if (cancelled) {
-              try { atisAudioRef.current?.pause(); } catch { /* noop */ }
-              break;
+        // Try every candidate; resolve with true if one comes up healthy.
+        const tryAllCandidates = async (): Promise<boolean> => {
+          for (const src of candidates) {
+            if (cancelled) return false;
+            // eslint-disable-next-line no-await-in-loop
+            const ok = await tryPlay(src);
+            if (ok) return true;
+            console.warn("[ATIS] live audio source failed, trying next:", src);
+          }
+          return false;
+        };
+
+        // Health watchdog — if the audio element stops advancing currentTime
+        // for >4s while supposedly playing, treat as a stall and demote to TTS.
+        const startWatchdog = () => {
+          if (atisWatchdogRef.current != null) {
+            window.clearInterval(atisWatchdogRef.current);
+          }
+          atisLastTimeRef.current = { t: atisAudioRef.current?.currentTime ?? 0, at: Date.now() };
+          atisWatchdogRef.current = window.setInterval(() => {
+            const el = atisAudioRef.current;
+            if (!el) return;
+            // User-initiated pause is not a stall — leave alone.
+            if (el.paused) {
+              atisLastTimeRef.current = { t: el.currentTime, at: Date.now() };
+              return;
             }
-            livePlaying = true;
+            const now = Date.now();
+            if (el.currentTime > atisLastTimeRef.current.t + 0.05) {
+              atisLastTimeRef.current = { t: el.currentTime, at: now };
+              return;
+            }
+            if (now - atisLastTimeRef.current.at > 4000) {
+              console.warn("[ATIS] live stream stalled — demoting to TTS");
+              demoteToTts();
+            }
+          }, 1500) as unknown as number;
+        };
+
+        // Schedule a background reconnect attempt while we're on TTS.
+        // Exponential backoff capped at 60s.
+        const scheduleReconnect = () => {
+          if (cancelled) return;
+          if (!candidates.length) return; // nothing to reconnect to
+          const attempt = atisRetryCountRef.current;
+          const delay = Math.min(60000, 8000 * Math.pow(1.5, attempt));
+          atisRetryCountRef.current = attempt + 1;
+          atisReconnectRef.current = window.setTimeout(async () => {
+            if (cancelled) return;
+            const ok = await tryAllCandidates();
+            if (cancelled) { teardownAudio(); return; }
+            if (ok) {
+              atisRetryCountRef.current = 0;
+              setAtisAudioState("playing");
+              startWatchdog();
+            } else {
+              setAtisAudioState((s) => (s === "tts" ? "tts" : "reconnecting"));
+              scheduleReconnect();
+            }
+          }, delay) as unknown as number;
+        };
+
+        const demoteToTts = () => {
+          if (cancelled) return;
+          clearTimers();
+          teardownAudio();
+          setAtisAudioState("tts");
+          void speakATC(atisText);
+          scheduleReconnect();
+        };
+
+        // ---- initial connect ----
+        atisRetryCountRef.current = 0;
+        setAtisAudioState(candidates.length ? "loading" : "tts");
+
+        if (candidates.length === 0) {
+          // No live source at all — speak TTS, no reconnect (nothing to retry).
+          if (!cancelled) void speakATC(atisText);
+        } else {
+          const ok = await tryAllCandidates();
+          if (cancelled) { teardownAudio(); return; }
+          if (ok) {
             setAtisAudioState("playing");
-            break;
+            startWatchdog();
+            // Surface persistent media errors (e.g. proxy returns 5xx mid-stream).
+            atisAudioRef.current?.addEventListener("error", () => {
+              if (cancelled) return;
+              console.warn("[ATIS] live stream errored — demoting to TTS");
+              demoteToTts();
+            });
+          } else {
+            // Initial connect failed → start in TTS mode and keep retrying live.
+            demoteToTts();
           }
-          console.warn("[ATIS] live audio source failed, trying next:", src);
-        }
-        if (!livePlaying) {
-          setAtisAudioState(candidates.length ? "failed" : "idle");
-          if (atisAudioRef.current) {
-            try { atisAudioRef.current.pause(); } catch { /* noop */ }
-            atisAudioRef.current = null;
-          }
-        }
-        if (!livePlaying && !cancelled) {
-          void speakATC(data.text);
         }
       } catch (e) {
         console.warn("ATIS fetch failed", e);
@@ -915,12 +1016,9 @@ const ATCTrainer = () => {
     void run();
     return () => {
       cancelled = true;
-      // Stop the live stream when the pilot retunes away from ATIS.
-      if (atisAudioRef.current) {
-        try { atisAudioRef.current.pause(); } catch { /* noop */ }
-        atisAudioRef.current.src = "";
-        atisAudioRef.current = null;
-      }
+      clearTimers();
+      teardownAudio();
+      atisRetryCountRef.current = 0;
       setAtisAudioState("idle");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2920,6 +3018,30 @@ ${transcript}`;
                       {tunedToAtis && atisAudioState === "loading" && (
                         <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
                           Connecting…
+                        </span>
+                      )}
+                      {tunedToAtis && atisAudioState === "reconnecting" && (
+                        <span
+                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-amber-500/60 bg-amber-500/10 text-amber-500 px-1.5 py-0.5"
+                          title="Live stream unavailable — retrying in background"
+                        >
+                          Reconnecting…
+                        </span>
+                      )}
+                      {tunedToAtis && atisAudioState === "tts" && (
+                        <span
+                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-amber-500/60 bg-amber-500/10 text-amber-500 px-1.5 py-0.5"
+                          title="Live stream unavailable — speaking ATIS text via TTS, will switch back to live when stream recovers"
+                        >
+                          TTS Fallback
+                        </span>
+                      )}
+                      {tunedToAtis && atisAudioState === "failed" && (
+                        <span
+                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-destructive/60 bg-destructive/10 text-destructive px-1.5 py-0.5"
+                          title="No ATIS audio available"
+                        >
+                          No Audio
                         </span>
                       )}
                     </div>
