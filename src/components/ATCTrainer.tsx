@@ -2753,6 +2753,7 @@ ${transcript}`;
                   })}
                 </div>
               </div>
+              )}
 
               {/* ========= CHECKRIDE ORAL EXAM MODE ========= */}
               <div className="border-t border-border pt-4">
