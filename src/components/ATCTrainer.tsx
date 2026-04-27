@@ -1074,7 +1074,11 @@ const ATCTrainer = () => {
           const audio = new Audio(src);
           audio.preload = "none";
           audio.autoplay = true;
-          audio.volume = 0.9;
+          // Apply per-airport saved prefs (when enabled), otherwise default to
+          // 90% volume / unmuted. Saved prefs always win over the default.
+          const saved = atisPrefsEnabledRef.current ? loadAtisPrefs(targetIcao) : null;
+          audio.volume = saved ? saved.volume : 0.9;
+          audio.muted = saved ? saved.muted : false;
           atisAudioRef.current = audio;
           // Route this stream to the pilot's chosen ATIS output device (or
           // fall back to the main ATC output, then system default).
