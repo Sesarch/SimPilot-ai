@@ -787,7 +787,7 @@ const ATCTrainer = () => {
   // real broadcast; the <audio> element is held in a ref so we can stop it
   // when the pilot retunes away from ATIS.
   const atisAudioRef = useRef<HTMLAudioElement | null>(null);
-  const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "failed">("idle");
+  const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "buffering" | "failed" | "disconnected">("idle");
   // Which live source the audio element is actually playing right now.
   // "proxy" = our edge proxy URL (CORS-safe), "direct" = LiveATC direct URL,
   // null = no live audio (TTS fallback path).
@@ -1048,16 +1048,43 @@ const ATCTrainer = () => {
             livePlaying = true;
             setAtisAudioState("playing");
             setAtisLiveSource(c.kind);
+
+            // Attach mid-playback health monitors so the status pill can
+            // distinguish Live / Buffering / Disconnected after the initial
+            // connection succeeded. These listeners live on the same <audio>
+            // element until the cleanup function tears it down.
+            const audio = atisAudioRef.current;
+            if (audio) {
+              const onWaiting = () => setAtisAudioState((s) => (s === "playing" || s === "buffering" ? "buffering" : s));
+              const onStalled = () => setAtisAudioState((s) => (s === "playing" || s === "buffering" ? "buffering" : s));
+              const onPlayingAgain = () => setAtisAudioState((s) => (s === "buffering" || s === "disconnected" ? "playing" : s));
+              const onMidError = () => {
+                setAtisAudioState("disconnected");
+                toast.error("Live ATIS stream disconnected", {
+                  description: `${targetIcao} · re-tune the ATIS frequency to reconnect.`,
+                });
+              };
+              audio.addEventListener("waiting", onWaiting);
+              audio.addEventListener("stalled", onStalled);
+              audio.addEventListener("playing", onPlayingAgain);
+              audio.addEventListener("error", onMidError);
+            }
             break;
           }
           console.warn("[ATIS] live audio source failed, trying next:", c.kind, c.url);
         }
         if (!livePlaying) {
-          setAtisAudioState(candidates.length ? "failed" : "idle");
+          const hadCandidates = candidates.length > 0;
+          setAtisAudioState(hadCandidates ? "failed" : "idle");
           setAtisLiveSource(null);
           if (atisAudioRef.current) {
             try { atisAudioRef.current.pause(); } catch { /* noop */ }
             atisAudioRef.current = null;
+          }
+          if (hadCandidates && !cancelled) {
+            toast.error("Live ATIS stream failed to load", {
+              description: `${targetIcao} · falling back to text-to-speech of the latest ATIS text.`,
+            });
           }
         }
         if (!livePlaying && !cancelled) {
@@ -3236,19 +3263,41 @@ ${transcript}`;
                           Updating…
                         </span>
                       )}
-                      {tunedToAtis && atisAudioState === "playing" && (
-                        <span
-                          className="font-display text-[9px] tracking-[0.25em] uppercase rounded border border-red-500/60 bg-red-500/10 text-red-500 px-1.5 py-0.5 animate-pulse"
-                          title="Streaming live ATIS audio from LiveATC"
-                        >
-                          ● LIVE
-                        </span>
-                      )}
-                      {tunedToAtis && atisAudioState === "loading" && (
-                        <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
-                          Connecting…
-                        </span>
-                      )}
+                      {tunedToAtis && (() => {
+                        // Single status pill — reflects the live <audio>
+                        // health: Connecting → Live → Buffering → Disconnected.
+                        // Hidden entirely when the source is TTS-only (no live
+                        // audio element ever attached) so the row stays clean.
+                        type StatusMeta = { label: string; cls: string; pulse: boolean; title: string };
+                        const status: StatusMeta | null =
+                          atisAudioState === "loading"
+                            ? { label: "Connecting…", cls: "border-amber-500/60 bg-amber-500/10 text-amber-500", pulse: false, title: "Connecting to live ATIS stream" }
+                            : atisAudioState === "playing"
+                            ? { label: "● Live", cls: "border-red-500/60 bg-red-500/10 text-red-500", pulse: true, title: "Streaming live ATIS audio" }
+                            : atisAudioState === "buffering"
+                            ? { label: "Buffering…", cls: "border-amber-500/60 bg-amber-500/10 text-amber-500", pulse: true, title: "Live ATIS stream stalled — rebuffering" }
+                            : atisAudioState === "disconnected"
+                            ? { label: "Disconnected", cls: "border-destructive/60 bg-destructive/10 text-destructive", pulse: false, title: "Live ATIS stream dropped — re-tune to reconnect" }
+                            : atisAudioState === "failed"
+                            ? { label: "Stream Unavailable", cls: "border-destructive/60 bg-destructive/10 text-destructive", pulse: false, title: "Live ATIS stream failed to load — using TTS fallback" }
+                            : null;
+                        if (!status) return null;
+                        return (
+                          <span
+                            role="status"
+                            aria-live="polite"
+                            aria-label={`Live ATIS playback status: ${status.label.replace(/^●\s*/, "")}`}
+                            title={status.title}
+                            className={cn(
+                              "font-display text-[9px] tracking-[0.25em] uppercase rounded border px-1.5 py-0.5",
+                              status.cls,
+                              status.pulse && "animate-pulse",
+                            )}
+                          >
+                            {status.label}
+                          </span>
+                        );
+                      })()}
                     </div>
                     {(() => {
                       // Audio source badge — reflects what the pilot is actually
