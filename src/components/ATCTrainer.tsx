@@ -848,8 +848,14 @@ const ATCTrainer = () => {
           const audio = new Audio(src);
           audio.preload = "none";
           audio.autoplay = true;
-          audio.volume = 0.9;
+          audio.volume = atisVolume;
+          audio.muted = atisMuted;
+          // Sync user-facing pause/play state if the underlying element changes
+          // (e.g. browser autoplay policy auto-pauses, or user uses media keys).
+          audio.addEventListener("pause", () => setAtisPaused(true));
+          audio.addEventListener("play", () => setAtisPaused(false));
           atisAudioRef.current = audio;
+          setAtisPaused(false);
           setAtisAudioState("loading");
           return await new Promise<boolean>((resolve) => {
             let settled = false;
