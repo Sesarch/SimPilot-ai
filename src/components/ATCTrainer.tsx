@@ -3681,6 +3681,7 @@ const HotkeyCapture = ({ onCapture, onCancel }: { onCapture: (code: string) => v
 
 const HotkeyPTT = ({ onDown, onUp, disabled, hotkey }: { onDown: () => void; onUp: () => void; disabled: boolean; hotkey: string }) => {
   useEffect(() => {
+    if (!hotkey) return; // unbound — no listeners
     const isTyping = (t: EventTarget | null) =>
       t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
     const down = (e: KeyboardEvent) => {
