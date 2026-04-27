@@ -1010,6 +1010,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
       )}
     </div>
   </>
-);
+  );
+};
 
 export default FlightTrackerMap;
