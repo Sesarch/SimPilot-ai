@@ -590,6 +590,42 @@ export type Database = {
         }
         Relationships: []
       }
+      mock_oral_sessions: {
+        Row: {
+          created_at: string
+          exam_type: string
+          focus_area: string | null
+          id: string
+          notes: string | null
+          scheduled_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exam_type?: string
+          focus_area?: string | null
+          id?: string
+          notes?: string | null
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exam_type?: string
+          focus_area?: string | null
+          id?: string
+          notes?: string | null
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       model_settings: {
         Row: {
           guardrails_enabled: boolean
