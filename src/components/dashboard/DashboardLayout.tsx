@@ -1,14 +1,38 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import PilotIdentityChip from "./PilotIdentityChip";
 import { useAuth } from "@/hooks/useAuth";
 import { Plane } from "lucide-react";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
+import GraduationModal from "@/components/GraduationModal";
 
 const DashboardLayout = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const trial = useTrialStatus();
+  const [dismissedOnce, setDismissedOnce] = useState(false);
+
+  // Show graduation modal when trial expired AND user has no active subscription.
+  // Account page is exempt so users can still manage billing/log out.
+  const showGraduation =
+    !trial.loading &&
+    trial.trialExpired &&
+    !trial.subscribed &&
+    !dismissedOnce &&
+    typeof window !== "undefined" &&
+    !window.location.pathname.startsWith("/account");
+
+  // Refresh subscription state when returning from successful checkout
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("subscribed") === "1") {
+      trial.refresh();
+    }
+  }, [trial]);
+  void setDismissedOnce; // reserved for future "remind me later" affordance
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -50,6 +74,11 @@ const DashboardLayout = () => {
             </main>
           </div>
         </div>
+        <GraduationModal
+          open={showGraduation}
+          displayName={user?.user_metadata?.full_name ?? user?.email ?? null}
+          activity={trial.activity}
+        />
       </SidebarProvider>
     </div>
   );
