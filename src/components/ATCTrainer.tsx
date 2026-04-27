@@ -439,17 +439,11 @@ const ATCTrainer = () => {
     try { localStorage.setItem("atc_facility_label_style", facilityLabelStyle); } catch {}
   }, [facilityLabelStyle]);
 
-  // Release-to-Transmit: when ON, releasing PTT auto-sends the captured text.
-  // When OFF, the captured text is staged in a draft for review (legacy flow).
-  const [autoTransmit, setAutoTransmit] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem("atc_auto_transmit");
-      return saved === null ? true : saved === "1";
-    } catch { return true; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem("atc_auto_transmit", autoTransmit ? "1" : "0"); } catch {}
-  }, [autoTransmit]);
+  // Release-to-Transmit is the standard cockpit behavior: releasing PTT
+  // immediately sends the captured transmission. This is now always on
+  // (no draft-review intermediate step). Kept as a constant so the existing
+  // recognizer-end logic reads the same and stays easy to revert if needed.
+  const autoTransmit = true as const;
 
   // Assignable global PTT hotkey. Stored as a KeyboardEvent.code value
   // (e.g. "Space", "KeyT", "ShiftLeft"). Defaults to Space.
