@@ -348,36 +348,6 @@ function getRecognizer(): any {
   return r;
 }
 
-// ---- Per-airport Live ATIS playback preferences ---------------------------
-// Stored in localStorage as `atc_atis_prefs:<ICAO>` → JSON {volume, muted}.
-// Volume is clamped 0..1, muted is a boolean. Returns null when the pilot has
-// no saved prefs for that airport (so callers can fall back to defaults).
-type AtisPrefs = { volume: number; muted: boolean };
-const ATIS_PREFS_KEY = (icao: string) => `atc_atis_prefs:${icao.toUpperCase()}`;
-const ATIS_PREFS_ENABLED_KEY = "atc_atis_prefs_enabled";
-
-const loadAtisPrefs = (icao: string): AtisPrefs | null => {
-  if (!icao) return null;
-  try {
-    const raw = localStorage.getItem(ATIS_PREFS_KEY(icao));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<AtisPrefs>;
-    const v = typeof parsed.volume === "number" ? Math.min(1, Math.max(0, parsed.volume)) : 0.9;
-    const m = !!parsed.muted;
-    return { volume: v, muted: m };
-  } catch { return null; }
-};
-const saveAtisPrefs = (icao: string, prefs: AtisPrefs): void => {
-  if (!icao) return;
-  try {
-    localStorage.setItem(ATIS_PREFS_KEY(icao), JSON.stringify({
-      volume: Math.min(1, Math.max(0, prefs.volume)),
-      muted: !!prefs.muted,
-    }));
-  } catch { /* private mode / quota */ }
-};
-
-
 /**
  * LiveAtisSeekBar — Compact transport for the live ATIS <audio> element.
  *
@@ -815,6 +785,34 @@ const ATCTrainer = () => {
       try { void (atisAudioRef.current as any).setSinkId(target); } catch { /* noop */ }
     }
   }, [sinkIdSupported, selectedOutputId]);
+  // Wipe every per-airport Live ATIS preference (volume + mute) from
+  // localStorage. Keys follow the convention `atc_atis_prefs:<ICAO>`. We also
+  // clear the global enable flag so the user starts from a clean slate.
+  const handleClearAllAtisPrefs = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (!window.confirm("Clear saved Live ATIS volume and mute preferences for every airport? This cannot be undone.")) {
+      return;
+    }
+    let removed = 0;
+    try {
+      const toRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith("atc_atis_prefs:") || k === "atc_atis_prefs_enabled")) {
+          toRemove.push(k);
+        }
+      }
+      for (const k of toRemove) {
+        localStorage.removeItem(k);
+        removed++;
+      }
+    } catch { /* private mode */ }
+    toast.success(
+      removed > 0
+        ? `Cleared saved ATIS preferences (${removed} ${removed === 1 ? "entry" : "entries"})`
+        : "No saved ATIS preferences to clear",
+    );
+  }, []);
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
@@ -851,14 +849,6 @@ const ATCTrainer = () => {
   // "proxy" = our edge proxy URL (CORS-safe), "direct" = LiveATC direct URL,
   // null = no live audio (TTS fallback path).
   const [atisLiveSource, setAtisLiveSource] = useState<"proxy" | "direct" | null>(null);
-  // Per-airport playback preferences (volume + mute). When enabled, tuning an
-  // ATIS frequency restores the pilot's saved preferences for that ICAO; user
-  // adjustments (keyboard shortcuts, system media keys) re-save automatically.
-  const [atisPrefsEnabled, setAtisPrefsEnabled] = useState<boolean>(() => {
-    try { return localStorage.getItem(ATIS_PREFS_ENABLED_KEY) !== "0"; } catch { return true; }
-  });
-  const atisPrefsEnabledRef = useRef(atisPrefsEnabled);
-  useEffect(() => { atisPrefsEnabledRef.current = atisPrefsEnabled; }, [atisPrefsEnabled]);
   const lastAtisFetchRef = useRef<{ icao: string; freq: string } | null>(null);
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
@@ -1074,11 +1064,7 @@ const ATCTrainer = () => {
           const audio = new Audio(src);
           audio.preload = "none";
           audio.autoplay = true;
-          // Apply per-airport saved prefs (when enabled), otherwise default to
-          // 90% volume / unmuted. Saved prefs always win over the default.
-          const saved = atisPrefsEnabledRef.current ? loadAtisPrefs(targetIcao) : null;
-          audio.volume = saved ? saved.volume : 0.9;
-          audio.muted = saved ? saved.muted : false;
+          audio.volume = 0.9;
           atisAudioRef.current = audio;
           // Route this stream to the pilot's chosen ATIS output device (or
           // fall back to the main ATC output, then system default).
@@ -1141,22 +1127,10 @@ const ATCTrainer = () => {
                   description: `${targetIcao} · re-tune the ATIS frequency to reconnect.`,
                 });
               };
-              // Persist volume/mute changes per airport (debounced) so they
-              // survive re-tunes and reloads. Only writes when prefs are
-              // enabled — pilots who turn it off get an ephemeral session.
-              let saveTimer: ReturnType<typeof setTimeout> | null = null;
-              const onVolumeChange = () => {
-                if (!atisPrefsEnabledRef.current) return;
-                if (saveTimer) clearTimeout(saveTimer);
-                saveTimer = setTimeout(() => {
-                  saveAtisPrefs(targetIcao, { volume: audio.volume, muted: audio.muted });
-                }, 250);
-              };
               audio.addEventListener("waiting", onWaiting);
               audio.addEventListener("stalled", onStalled);
               audio.addEventListener("playing", onPlayingAgain);
               audio.addEventListener("error", onMidError);
-              audio.addEventListener("volumechange", onVolumeChange);
             }
             break;
           }
@@ -3477,55 +3451,22 @@ ${transcript}`;
                          </SelectContent>
                        </Select>
                      </div>
-                   )}
-                   {tunedToAtis && (() => {
-                     // Per-airport playback prefs toggle. Shown whenever tuned
-                     // to ATIS so the pilot can opt out before adjusting volume.
-                     const icao = currentAtis.icao;
-                     const saved = loadAtisPrefs(icao);
-                     return (
-                       <label
-                         className="mt-1.5 flex items-center justify-between gap-2 rounded border border-border/60 bg-background/40 px-2 py-1.5 cursor-pointer select-none"
-                         title="When on, your volume and mute settings for this airport are remembered and reapplied each time you tune its ATIS"
-                       >
-                         <div className="flex items-center gap-2 min-w-0">
-                           <input
-                             type="checkbox"
-                             className="h-3 w-3 accent-primary cursor-pointer"
-                             checked={atisPrefsEnabled}
-                             onChange={(e) => {
-                               const next = e.target.checked;
-                               setAtisPrefsEnabled(next);
-                               try { localStorage.setItem(ATIS_PREFS_ENABLED_KEY, next ? "1" : "0"); } catch { /* noop */ }
-                               // When turning ON, snapshot current state immediately
-                               // so the pref exists for next tune even if pilot
-                               // doesn't touch the volume.
-                               if (next && atisAudioRef.current) {
-                                 saveAtisPrefs(icao, {
-                                   volume: atisAudioRef.current.volume,
-                                   muted: atisAudioRef.current.muted,
-                                 });
-                               }
-                             }}
-                             aria-label="Remember playback preferences per airport"
-                           />
-                           <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
-                             Remember per airport
-                           </span>
-                         </div>
-                         <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0">
-                           {atisPrefsEnabled && saved
-                             ? `${icao} · ${Math.round(saved.volume * 100)}%${saved.muted ? " · muted" : ""}`
-                             : atisPrefsEnabled
-                             ? `${icao} · no saved prefs`
-                             : "Off"}
-                         </span>
-                       </label>
-                     );
-                   })()}
-                  </div>
-                );
-              })()}
+                    )}
+                    {tunedToAtis && (
+                      <div className="mt-1.5 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleClearAllAtisPrefs}
+                          className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground hover:text-destructive transition-colors underline-offset-4 hover:underline"
+                          title="Wipe stored Live ATIS volume and mute settings for every airport"
+                        >
+                          Clear all saved ATIS prefs
+                        </button>
+                      </div>
+                    )}
+                   </div>
+                 );
+               })()}
 
               {/* Manual frequency entry — accepts "119.2", normalizes to "119.200",
                   warns when freq doesn't belong to the selected airport. */}
