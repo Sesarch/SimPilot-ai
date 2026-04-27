@@ -68,6 +68,8 @@ const AdminSiteSettings = () => {
       ground_school_enabled: groundSchoolEnabled,
       weather_enabled: weatherEnabled,
       live_tools_enabled: liveToolsEnabled,
+      atc_live_frequency_enabled: atcLiveFreqEnabled,
+      atc_guided_scenarios_enabled: atcGuidedScenariosEnabled,
       bridge_direct_download_enabled: bridgeDirectDownload,
     };
     const { error } = await supabase
