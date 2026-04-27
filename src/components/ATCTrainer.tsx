@@ -447,10 +447,11 @@ const ATCTrainer = () => {
   const autoTransmit = true as const;
 
   // Assignable global PTT hotkey. Stored as a KeyboardEvent.code value
-  // (e.g. "Space", "KeyT", "ShiftLeft"). Defaults to Space.
+  // (e.g. "Space", "KeyT", "ShiftLeft"). Defaults to Space. Empty string = unbound.
   const [pttHotkey, setPttHotkey] = useState<string>(() => {
     try {
       const saved = localStorage.getItem("atc_ptt_hotkey");
+      if (saved === "") return ""; // explicitly unbound
       return saved && /^[A-Za-z0-9]+$/.test(saved) ? saved : "Space";
     } catch { return "Space"; }
   });
@@ -460,12 +461,34 @@ const ATCTrainer = () => {
   const [capturingHotkey, setCapturingHotkey] = useState(false);
   // Pretty label for a KeyboardEvent.code (e.g. "KeyT" -> "T", "Space" -> "Space").
   const hotkeyLabel = useCallback((code: string): string => {
+    if (!code) return "Unbound";
     if (code === "Space") return "Space";
+    if (code === "ControlLeft") return "L Ctrl";
+    if (code === "ControlRight") return "R Ctrl";
+    if (code === "AltLeft") return "L Alt";
+    if (code === "AltRight") return "R Alt";
+    if (code === "ShiftLeft") return "L Shift";
+    if (code === "ShiftRight") return "R Shift";
+    if (code === "Backquote") return "`";
+    if (code === "Insert") return "Insert";
     if (code.startsWith("Key")) return code.slice(3);
     if (code.startsWith("Digit")) return code.slice(5);
+    if (code.startsWith("Numpad")) return `Num ${code.slice(6)}`;
     if (code.startsWith("Arrow")) return code.replace("Arrow", "↑↓←→".charAt(["Up","Down","Left","Right"].indexOf(code.slice(5))) || code);
     return code;
   }, []);
+  // Common PTT keys for the quick-pick. Solo modifiers (L Ctrl, R Ctrl) are
+  // allowed here even though they're rejected during free-form key capture —
+  // pilots commonly use a dedicated modifier as PTT.
+  const PTT_PRESETS: Array<{ code: string; label: string }> = [
+    { code: "Space",         label: "Space" },
+    { code: "ControlLeft",   label: "Left Ctrl" },
+    { code: "ControlRight",  label: "Right Ctrl" },
+    { code: "AltLeft",       label: "Left Alt" },
+    { code: "Backquote",     label: "Backtick (`)" },
+    { code: "Insert",        label: "Insert" },
+    { code: "F13",           label: "F13" },
+  ];
   // Last-used scenario id (for "Resume last scenario" UX). Read once at mount.
   const initialLastScenarioId = (() => {
     try {
@@ -3514,10 +3537,50 @@ ${transcript}`;
                 Always On
               </span>
             </div>
+            {/* Quick-pick: common PTT keys. "custom" = whatever the user
+                captured via Rebind that isn't in the preset list. */}
             <div className="flex items-center justify-between gap-2">
               <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
                 PTT Hotkey
               </span>
+              <Select
+                value={
+                  pttHotkey === ""
+                    ? "__unbound__"
+                    : PTT_PRESETS.some((p) => p.code === pttHotkey)
+                      ? pttHotkey
+                      : "__custom__"
+                }
+                onValueChange={(value) => {
+                  if (value === "__unbound__") {
+                    setPttHotkey("");
+                    toast.success("PTT hotkey unbound");
+                    return;
+                  }
+                  if (value === "__custom__") return; // display-only sentinel
+                  setPttHotkey(value);
+                  toast.success(`PTT hotkey set to ${hotkeyLabel(value)}`);
+                }}
+                disabled={capturingHotkey}
+              >
+                <SelectTrigger className="h-7 w-[148px] font-display text-[10px] tracking-[0.2em] uppercase">
+                  <SelectValue placeholder="Pick a key…" />
+                </SelectTrigger>
+                <SelectContent className="font-display text-[10px] tracking-[0.15em] uppercase">
+                  {PTT_PRESETS.map((p) => (
+                    <SelectItem key={p.code} value={p.code}>{p.label}</SelectItem>
+                  ))}
+                  {/* Custom + Unbound sentinels */}
+                  {pttHotkey !== "" && !PTT_PRESETS.some((p) => p.code === pttHotkey) && (
+                    <SelectItem value="__custom__">Custom: {hotkeyLabel(pttHotkey)}</SelectItem>
+                  )}
+                  <SelectItem value="__unbound__">Unbind (no hotkey)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Rebind + Unbind action row */}
+            <div className="flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setCapturingHotkey((v) => !v)}
@@ -3527,11 +3590,28 @@ ${transcript}`;
                     ? "border-accent text-accent bg-accent/10 animate-pulse"
                     : "border-border bg-muted/40 text-foreground/80 hover:border-primary/60",
                 )}
-                title={capturingHotkey ? "Press any key to assign…" : "Click then press any key to rebind"}
+                title={capturingHotkey ? "Press any key to assign…" : "Click then press any key to capture a custom binding"}
               >
-                <kbd className="font-display tracking-[0.15em]">{capturingHotkey ? "Press a key…" : hotkeyLabel(pttHotkey)}</kbd>
+                {capturingHotkey ? "Press a key…" : "Rebind"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPttHotkey("");
+                  setCapturingHotkey(false);
+                  toast.success("PTT hotkey unbound");
+                }}
+                disabled={pttHotkey === ""}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2 py-1 font-display text-[10px] tracking-[0.2em] uppercase text-foreground/80 transition-colors hover:border-destructive/60 hover:text-destructive",
+                  pttHotkey === "" && "opacity-40 cursor-not-allowed hover:border-border hover:text-foreground/80",
+                )}
+                title={pttHotkey === "" ? "Already unbound" : "Remove the PTT hotkey binding"}
+              >
+                Unbind
               </button>
             </div>
+
             {/* Hotkey capture: listen for the next keydown when armed */}
             {capturingHotkey && (
               <HotkeyCapture
@@ -3658,6 +3738,7 @@ const HotkeyCapture = ({ onCapture, onCancel }: { onCapture: (code: string) => v
 
 const HotkeyPTT = ({ onDown, onUp, disabled, hotkey }: { onDown: () => void; onUp: () => void; disabled: boolean; hotkey: string }) => {
   useEffect(() => {
+    if (!hotkey) return; // unbound — no listeners
     const isTyping = (t: EventTarget | null) =>
       t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
     const down = (e: KeyboardEvent) => {
