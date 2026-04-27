@@ -2967,6 +2967,70 @@ ${transcript}`;
                         </span>
                       );
                     })()}
+                    </div>
+                    {/* Live ATIS playback controls — visible only while tuned to
+                        ATIS and a real audio stream is available. Controls the
+                        underlying <Audio> element via atisAudioRef. */}
+                    {tunedToAtis && (currentAtis.proxyAudioUrl || currentAtis.audioUrl) && (
+                      <div className="flex items-center gap-2 pt-1.5 border-t border-border/40">
+                        <button
+                          type="button"
+                          aria-label={atisPaused ? "Play live ATIS" : "Pause live ATIS"}
+                          title={atisPaused ? "Play live ATIS" : "Pause live ATIS"}
+                          disabled={atisAudioState !== "playing" && atisAudioState !== "loading" && !atisPaused}
+                          onClick={() => {
+                            const el = atisAudioRef.current;
+                            if (!el) return;
+                            if (el.paused) {
+                              el.play().catch(() => { /* autoplay/play() rejection */ });
+                            } else {
+                              el.pause();
+                            }
+                          }}
+                          className={cn(
+                            "inline-flex items-center justify-center h-7 w-7 rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary",
+                            (atisAudioState !== "playing" && atisAudioState !== "loading" && !atisPaused) && "opacity-40 cursor-not-allowed hover:border-border hover:text-foreground",
+                          )}
+                        >
+                          {atisPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={atisMuted ? "Unmute live ATIS" : "Mute live ATIS"}
+                          aria-pressed={atisMuted}
+                          title={atisMuted ? "Unmute live ATIS" : "Mute live ATIS"}
+                          onClick={() => setAtisMuted((m) => !m)}
+                          className={cn(
+                            "inline-flex items-center justify-center h-7 w-7 rounded-md border transition-colors",
+                            atisMuted
+                              ? "border-amber-500/60 bg-amber-500/10 text-amber-500"
+                              : "border-border bg-background/60 text-foreground hover:border-primary/60 hover:text-primary",
+                          )}
+                        >
+                          {atisMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                        </button>
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={atisMuted ? 0 : atisVolume}
+                          aria-label="Live ATIS volume"
+                          title={`Volume ${Math.round((atisMuted ? 0 : atisVolume) * 100)}%`}
+                          onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            setAtisVolume(v);
+                            // Adjusting the slider implicitly unmutes — matches
+                            // behavior of every desktop media player.
+                            if (atisMuted && v > 0) setAtisMuted(false);
+                          }}
+                          className="flex-1 h-1.5 accent-primary cursor-pointer"
+                        />
+                        <span className="font-mono text-[10px] tabular-nums text-muted-foreground w-9 text-right">
+                          {Math.round((atisMuted ? 0 : atisVolume) * 100)}%
+                        </span>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
