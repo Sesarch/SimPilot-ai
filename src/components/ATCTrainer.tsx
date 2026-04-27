@@ -1038,6 +1038,12 @@ const ATCTrainer = () => {
           audio.autoplay = true;
           audio.volume = 0.9;
           atisAudioRef.current = audio;
+          // Route this stream to the pilot's chosen ATIS output device (or
+          // fall back to the main ATC output, then system default).
+          if (sinkIdSupported) {
+            const target = selectedAtisOutputId || selectedOutputId || "default";
+            try { void (audio as any).setSinkId(target); } catch { /* noop */ }
+          }
           setAtisAudioState("loading");
           return await new Promise<boolean>((resolve) => {
             let settled = false;
