@@ -904,21 +904,50 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
   </>
 );
 
-const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory }: {
+const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory, flightStatus }: {
   aircraft: Aircraft;
   altFt: number;
   spdKts: number;
   vsFpm: number;
   positionHistory: PositionRecord[];
-}) => (
+  flightStatus?: { isLive: boolean; start: number | null; end: number | null } | null;
+}) => {
+  // Format the "last seen" timestamp for completed flights. Trace timestamps
+  // come from the upstream provider in seconds since epoch.
+  const lastSeenLabel = (() => {
+    const t = flightStatus?.end;
+    if (!t) return null;
+    const d = new Date(t * 1000);
+    const diffMs = Date.now() - d.getTime();
+    const mins = Math.round(diffMs / 60000);
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 48) return `${hrs} hr ago`;
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  })();
+  return (
   <>
-    <div className="py-2 flex items-center gap-2">
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-        aircraft.onGround ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"
-      }`}>
-        <span className={`h-1.5 w-1.5 rounded-full ${aircraft.onGround ? "bg-muted-foreground" : "bg-primary animate-pulse"}`} />
-        {aircraft.onGround ? "On Ground" : "Airborne"}
-      </span>
+    <div className="py-2 flex items-center gap-2 flex-wrap">
+      {flightStatus ? (
+        flightStatus.isLive ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-primary/15 text-primary border border-primary/30">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            Live Flight
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-amber-500/15 text-amber-500 border border-amber-500/30">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            Last Flight{lastSeenLabel ? ` · ${lastSeenLabel}` : ""}
+          </span>
+        )
+      ) : (
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+          aircraft.onGround ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"
+        }`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${aircraft.onGround ? "bg-muted-foreground" : "bg-primary animate-pulse"}`} />
+          {aircraft.onGround ? "On Ground" : "Airborne"}
+        </span>
+      )}
       <span className="text-[10px] text-muted-foreground">{aircraft.originCountry}</span>
     </div>
     <div className="grid grid-cols-3 gap-2 py-2">
