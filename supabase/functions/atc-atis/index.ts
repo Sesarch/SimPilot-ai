@@ -176,8 +176,11 @@ Deno.serve(async (req) => {
 
     // Build a CORS-safe proxy URL the browser can hit even when the direct
     // LiveATC URL is blocked. Always returned when the direct probe succeeds —
-    // the client will prefer this for playback.
-    const origin = new URL(req.url).origin;
+    // the client will prefer this for playback. Force https because the
+    // request to this function arrives over plain http internally even when
+    // the public URL is https.
+    const reqUrl = new URL(req.url);
+    const origin = `https://${reqUrl.host}`;
     const proxyAudioUrlFor = (i: string) =>
       `${origin}/functions/v1/atc-atis-stream?icao=${encodeURIComponent(i)}`;
 
