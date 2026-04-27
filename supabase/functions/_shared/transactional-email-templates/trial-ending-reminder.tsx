@@ -56,7 +56,7 @@ const TrialEndingReminderEmail = ({
     <Html lang="en" dir="ltr">
       <Head />
       <Preview>
-        Your {SITE_NAME} trial ends in ~{hoursRemaining} hours — keep your CFI-AI flying.
+        {`Your ${SITE_NAME} trial ends in ~${hoursRemaining} hours — keep your CFI-AI flying.`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
