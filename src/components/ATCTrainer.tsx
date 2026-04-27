@@ -1048,16 +1048,43 @@ const ATCTrainer = () => {
             livePlaying = true;
             setAtisAudioState("playing");
             setAtisLiveSource(c.kind);
+
+            // Attach mid-playback health monitors so the status pill can
+            // distinguish Live / Buffering / Disconnected after the initial
+            // connection succeeded. These listeners live on the same <audio>
+            // element until the cleanup function tears it down.
+            const audio = atisAudioRef.current;
+            if (audio) {
+              const onWaiting = () => setAtisAudioState((s) => (s === "playing" || s === "buffering" ? "buffering" : s));
+              const onStalled = () => setAtisAudioState((s) => (s === "playing" || s === "buffering" ? "buffering" : s));
+              const onPlayingAgain = () => setAtisAudioState((s) => (s === "buffering" || s === "disconnected" ? "playing" : s));
+              const onMidError = () => {
+                setAtisAudioState("disconnected");
+                toast.error("Live ATIS stream disconnected", {
+                  description: `${targetIcao} · re-tune the ATIS frequency to reconnect.`,
+                });
+              };
+              audio.addEventListener("waiting", onWaiting);
+              audio.addEventListener("stalled", onStalled);
+              audio.addEventListener("playing", onPlayingAgain);
+              audio.addEventListener("error", onMidError);
+            }
             break;
           }
           console.warn("[ATIS] live audio source failed, trying next:", c.kind, c.url);
         }
         if (!livePlaying) {
-          setAtisAudioState(candidates.length ? "failed" : "idle");
+          const hadCandidates = candidates.length > 0;
+          setAtisAudioState(hadCandidates ? "failed" : "idle");
           setAtisLiveSource(null);
           if (atisAudioRef.current) {
             try { atisAudioRef.current.pause(); } catch { /* noop */ }
             atisAudioRef.current = null;
+          }
+          if (hadCandidates && !cancelled) {
+            toast.error("Live ATIS stream failed to load", {
+              description: `${targetIcao} · falling back to text-to-speech of the latest ATIS text.`,
+            });
           }
         }
         if (!livePlaying && !cancelled) {
