@@ -623,6 +623,31 @@ const ATCTrainer = () => {
   // when the pilot retunes away from ATIS.
   const atisAudioRef = useRef<HTMLAudioElement | null>(null);
   const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "failed">("idle");
+  // User-controlled playback state for the Live ATIS stream. Persisted across
+  // sessions so the pilot's preferred volume/mute carries over.
+  const [atisPaused, setAtisPaused] = useState(false);
+  const [atisMuted, setAtisMuted] = useState<boolean>(() => {
+    try { return localStorage.getItem("atc_atis_muted") === "1"; } catch { return false; }
+  });
+  const [atisVolume, setAtisVolume] = useState<number>(() => {
+    try {
+      const v = parseFloat(localStorage.getItem("atc_atis_volume") ?? "0.9");
+      return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.9;
+    } catch { return 0.9; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("atc_atis_muted", atisMuted ? "1" : "0"); } catch {}
+  }, [atisMuted]);
+  useEffect(() => {
+    try { localStorage.setItem("atc_atis_volume", String(atisVolume)); } catch {}
+  }, [atisVolume]);
+  // Apply volume/mute changes to the live audio element whenever they change.
+  useEffect(() => {
+    const el = atisAudioRef.current;
+    if (!el) return;
+    el.volume = atisVolume;
+    el.muted = atisMuted;
+  }, [atisVolume, atisMuted, atisAudioState]);
   const lastAtisFetchRef = useRef<{ icao: string; freq: string } | null>(null);
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
