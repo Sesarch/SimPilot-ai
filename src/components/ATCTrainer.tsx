@@ -447,10 +447,11 @@ const ATCTrainer = () => {
   const autoTransmit = true as const;
 
   // Assignable global PTT hotkey. Stored as a KeyboardEvent.code value
-  // (e.g. "Space", "KeyT", "ShiftLeft"). Defaults to Space.
+  // (e.g. "Space", "KeyT", "ShiftLeft"). Defaults to Space. Empty string = unbound.
   const [pttHotkey, setPttHotkey] = useState<string>(() => {
     try {
       const saved = localStorage.getItem("atc_ptt_hotkey");
+      if (saved === "") return ""; // explicitly unbound
       return saved && /^[A-Za-z0-9]+$/.test(saved) ? saved : "Space";
     } catch { return "Space"; }
   });
@@ -460,12 +461,34 @@ const ATCTrainer = () => {
   const [capturingHotkey, setCapturingHotkey] = useState(false);
   // Pretty label for a KeyboardEvent.code (e.g. "KeyT" -> "T", "Space" -> "Space").
   const hotkeyLabel = useCallback((code: string): string => {
+    if (!code) return "Unbound";
     if (code === "Space") return "Space";
+    if (code === "ControlLeft") return "L Ctrl";
+    if (code === "ControlRight") return "R Ctrl";
+    if (code === "AltLeft") return "L Alt";
+    if (code === "AltRight") return "R Alt";
+    if (code === "ShiftLeft") return "L Shift";
+    if (code === "ShiftRight") return "R Shift";
+    if (code === "Backquote") return "`";
+    if (code === "Insert") return "Insert";
     if (code.startsWith("Key")) return code.slice(3);
     if (code.startsWith("Digit")) return code.slice(5);
+    if (code.startsWith("Numpad")) return `Num ${code.slice(6)}`;
     if (code.startsWith("Arrow")) return code.replace("Arrow", "↑↓←→".charAt(["Up","Down","Left","Right"].indexOf(code.slice(5))) || code);
     return code;
   }, []);
+  // Common PTT keys for the quick-pick. Solo modifiers (L Ctrl, R Ctrl) are
+  // allowed here even though they're rejected during free-form key capture —
+  // pilots commonly use a dedicated modifier as PTT.
+  const PTT_PRESETS: Array<{ code: string; label: string }> = [
+    { code: "Space",         label: "Space" },
+    { code: "ControlLeft",   label: "Left Ctrl" },
+    { code: "ControlRight",  label: "Right Ctrl" },
+    { code: "AltLeft",       label: "Left Alt" },
+    { code: "Backquote",     label: "Backtick (`)" },
+    { code: "Insert",        label: "Insert" },
+    { code: "F13",           label: "F13" },
+  ];
   // Last-used scenario id (for "Resume last scenario" UX). Read once at mount.
   const initialLastScenarioId = (() => {
     try {
