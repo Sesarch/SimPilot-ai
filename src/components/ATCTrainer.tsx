@@ -622,7 +622,21 @@ const ATCTrainer = () => {
   // real broadcast; the <audio> element is held in a ref so we can stop it
   // when the pilot retunes away from ATIS.
   const atisAudioRef = useRef<HTMLAudioElement | null>(null);
-  const [atisAudioState, setAtisAudioState] = useState<"idle" | "loading" | "playing" | "failed">("idle");
+  // Annunciation state machine for ATIS playback:
+  //   idle         — not tuned to ATIS / nothing to play
+  //   loading      — attempting initial connect to a live stream
+  //   playing      — live audio actively streaming and healthy
+  //   reconnecting — live stream stalled/errored, attempting recovery in background
+  //   tts          — live unavailable; falling back to TTS of the ATIS text
+  //   failed       — no audio sources worked and TTS also failed
+  const [atisAudioState, setAtisAudioState] = useState<
+    "idle" | "loading" | "playing" | "reconnecting" | "tts" | "failed"
+  >("idle");
+  // Watchdog + reconnect plumbing for live stream health monitoring.
+  const atisWatchdogRef = useRef<number | null>(null);
+  const atisReconnectRef = useRef<number | null>(null);
+  const atisLastTimeRef = useRef<{ t: number; at: number }>({ t: 0, at: 0 });
+  const atisRetryCountRef = useRef(0);
   // User-controlled playback state for the Live ATIS stream. Persisted across
   // sessions so the pilot's preferred volume/mute carries over.
   const [atisPaused, setAtisPaused] = useState(false);
