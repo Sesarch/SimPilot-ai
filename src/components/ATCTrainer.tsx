@@ -2697,10 +2697,10 @@ ${transcript}`;
               {/* ========= LEGACY GUIDED SCENARIOS ========= */}
               <div className="border-t border-border pt-4">
                 <div className="text-center mb-4 space-y-2 sm:space-y-2.5 px-3 sm:px-4">
-                  <div className="font-display text-xs sm:text-sm md:text-base tracking-[0.2em] sm:tracking-[0.3em] uppercase text-muted-foreground/80 font-light leading-snug sm:leading-relaxed">
+                  <div className="font-display text-xs sm:text-sm md:text-base tracking-[0.2em] sm:tracking-[0.3em] uppercase text-foreground/90 font-medium leading-snug sm:leading-relaxed">
                     Or pick a guided scenario
                   </div>
-                  <div className="text-sm sm:text-base md:text-lg text-foreground/75 font-light leading-snug sm:leading-relaxed tracking-normal sm:tracking-wide max-w-[18rem] sm:max-w-md mx-auto text-balance">
+                  <div className="text-sm sm:text-base md:text-lg text-foreground font-normal leading-snug sm:leading-relaxed tracking-normal sm:tracking-wide max-w-[18rem] sm:max-w-md mx-auto text-balance">
                     Pre-scripted drill — ATC starts the call.
                   </div>
                 </div>
@@ -2715,28 +2715,28 @@ ${transcript}`;
                         disabled={loading}
                         className={cn(
                           "group relative text-left rounded-lg border p-3 transition-all",
-                          "bg-muted/20 hover:bg-primary/5 hover:border-primary/50",
+                          "bg-card hover:bg-primary/10 hover:border-primary",
                           "hover:shadow-[0_0_18px_-6px_hsl(var(--primary)/0.6)]",
                           "active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed",
-                          isLast ? "border-primary/60 bg-primary/5" : "border-border",
+                          isLast ? "border-primary bg-primary/10" : "border-border",
                         )}
                         title={s.description}
                       >
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <span className="font-display text-[11px] tracking-[0.2em] uppercase text-foreground">
+                          <span className="font-display text-[11px] tracking-[0.2em] uppercase text-foreground font-semibold group-hover:text-primary">
                             {s.label}
                           </span>
                           {isLast && (
-                            <span className="font-display text-[8px] tracking-[0.2em] uppercase text-primary px-1.5 py-0.5 rounded bg-primary/10 border border-primary/30">
+                            <span className="font-display text-[8px] tracking-[0.2em] uppercase text-primary px-1.5 py-0.5 rounded bg-primary/15 border border-primary/40">
                               Last
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-muted-foreground leading-snug mb-2 font-sans">
+                        <div className="text-[11px] text-foreground/80 leading-snug mb-2 font-sans">
                           {s.description}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
-                          <span className="px-1.5 py-0.5 rounded bg-background/60 border border-border">
+                        <div className="flex items-center gap-2 text-[10px] font-mono text-foreground/70">
+                          <span className="px-1.5 py-0.5 rounded bg-background border border-border text-foreground/90">
                             {s.facility}
                           </span>
                           <span className="tabular-nums">{s.frequency}</span>
