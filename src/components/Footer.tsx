@@ -31,7 +31,7 @@ const Footer = () => {
             </Link>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
               AI-powered supplemental training for student pilots.
-              Not FAA-approved — for study use only.
+              Not FAA-affiliated — for study use only. AI may produce errors; verify everything against current FAA publications and your POH/AFM.
             </p>
           </div>
 
