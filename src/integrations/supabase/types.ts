@@ -360,6 +360,78 @@ export type Database = {
         }
         Relationships: []
       }
+      intakes: {
+        Row: {
+          aircraft_type: string | null
+          audience: string
+          certificate_type: string | null
+          contact_email: string
+          contact_name: string
+          created_at: string
+          estimated_seats: number | null
+          extras: Json
+          flight_hours: number | null
+          id: string
+          phone: string | null
+          preferred_start_date: string | null
+          proficiency: string | null
+          rating_focus: string | null
+          region: string | null
+          school_name: string | null
+          status: string
+          timeline: string | null
+          training_goals: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          aircraft_type?: string | null
+          audience: string
+          certificate_type?: string | null
+          contact_email: string
+          contact_name: string
+          created_at?: string
+          estimated_seats?: number | null
+          extras?: Json
+          flight_hours?: number | null
+          id?: string
+          phone?: string | null
+          preferred_start_date?: string | null
+          proficiency?: string | null
+          rating_focus?: string | null
+          region?: string | null
+          school_name?: string | null
+          status?: string
+          timeline?: string | null
+          training_goals?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          aircraft_type?: string | null
+          audience?: string
+          certificate_type?: string | null
+          contact_email?: string
+          contact_name?: string
+          created_at?: string
+          estimated_seats?: number | null
+          extras?: Json
+          flight_hours?: number | null
+          id?: string
+          phone?: string | null
+          preferred_start_date?: string | null
+          proficiency?: string | null
+          rating_focus?: string | null
+          region?: string | null
+          school_name?: string | null
+          status?: string
+          timeline?: string | null
+          training_goals?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       kb_chunks: {
         Row: {
           chunk_index: number

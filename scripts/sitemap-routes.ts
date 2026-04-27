@@ -44,6 +44,7 @@ export const PUBLIC_ROUTES: SitemapRoute[] = [
     },
   },
   { path: "/for-schools", changefreq: "monthly", priority: 0.8 },
+  { path: "/intake", changefreq: "monthly", priority: 0.8 },
   { path: "/contact", changefreq: "monthly", priority: 0.7 },
   { path: "/terms", changefreq: "yearly", priority: 0.3 },
   { path: "/privacy", changefreq: "yearly", priority: 0.3 },

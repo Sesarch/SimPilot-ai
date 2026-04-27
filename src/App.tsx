@@ -37,6 +37,7 @@ import WeatherBriefingPage from "./pages/WeatherBriefingPage.tsx";
 import LiveToolsPage from "./pages/LiveToolsPage.tsx";
 import ForSchoolsPage from "./pages/ForSchoolsPage.tsx";
 import ForSchoolsSuccessPage from "./pages/ForSchoolsSuccessPage.tsx";
+import IntakePage from "./pages/IntakePage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/competitors" element={<CompetitorsPage />} />
               <Route path="/for-schools" element={<ForSchoolsPage />} />
               <Route path="/for-schools/success" element={<ForSchoolsSuccessPage />} />
+              <Route path="/intake" element={<IntakePage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route path="/pilot/:userId" element={<PublicProfilePage />} />
