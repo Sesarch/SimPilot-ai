@@ -12,7 +12,7 @@ const navItems = [
   { label: "Ground School", href: "/ground-school" },
   { label: "Oral Exam", href: "/oral-exam" },
   { label: "Live Sky", href: "/live-tools", live: true },
-  { label: "Features", href: "/#features" },
+  { label: "Get Started", href: "/intake" },
   { label: "Pricing", href: "/#pricing" },
 ];
 
