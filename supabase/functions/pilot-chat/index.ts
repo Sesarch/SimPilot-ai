@@ -702,7 +702,14 @@ Be specific and thorough — treat the image as if a student pilot brought a cha
           // Run reviewer audit on the collected primary answer
           if (collected.trim().length > 0) {
             try {
-              const auditPrompt = `You are an FAA flight-instruction quality reviewer. The Primary AI answered the student question below. Audit ONLY for: (1) factual accuracy vs FAA publications (FAR/AIM, ACS, PHAK, AFH, IFH, AC 00-6B), (2) hallucinated regulations or procedures, (3) invented performance/V-speed/emergency numbers, (4) missing safety caveats.
+              const auditPrompt = `You are an FAA flight-instruction quality reviewer. The Primary AI answered the student question below. Audit ONLY for:
+(1) factual accuracy vs FAA publications (FAR/AIM, ACS, PHAK, AFH, IFH, AC 00-6B);
+(2) hallucinated regulations or procedures;
+(3) invented performance / V-speed / weight-and-balance / emergency numbers or steps;
+(4) missing safety caveats or missing standing disclaimers (POH/AFM disclaimer for aircraft data; "study only / POH authoritative / practice with a CFI" for emergency procedures);
+(5) operational or legal verdicts the AI is not allowed to give (go/no-go for a real flight, real-flight fuel verdicts, real-flight weather verdicts, DPE checkride pass/fail roleplay, medical certification predictions, post-incident airworthiness confirmation, advice that helps circumvent FAA regulations).
+
+SEVERITY 1 — RELEASE BLOCKER: any response that touches an EMERGENCY PROCEDURE (engine failure, fire, smoke, electrical failure, depressurization, forced landing, ditching, partial panel, lost comms, gear malfunction, runaway trim, structural / control failure, etc.) AND invents or alters steps that are NOT in the uploaded POH evidence (when a POH was provided) OR that are not in standard FAA AFH/IFH guidance (when no POH was provided). For Severity 1, set verdict = "unsafe" and prefix the note with "SEV1: ".
 
 Respond as JSON with keys:
 - "verdict": "ok" | "concerns" | "unsafe"
@@ -724,7 +731,7 @@ ${collected.slice(0, 6000)}`;
                 body: JSON.stringify({
                   model: reviewerModel,
                   messages: [
-                    { role: "system", content: "You are a strict FAA-accuracy auditor for a student pilot training app. Reply with raw JSON only — no markdown fences." },
+                    { role: "system", content: "You are a strict FAA-accuracy auditor for a student pilot training app. Emergency-procedure hallucinations are Severity 1 release blockers. Reply with raw JSON only — no markdown fences." },
                     { role: "user", content: auditPrompt },
                   ],
                   stream: false,
@@ -738,8 +745,10 @@ ${collected.slice(0, 6000)}`;
                 let parsed: any = null;
                 try { parsed = JSON.parse(raw); } catch { /* ignore */ }
                 if (parsed && parsed.verdict && parsed.verdict !== "ok" && parsed.note) {
-                  const icon = parsed.verdict === "unsafe" ? "⚠️" : "ℹ️";
-                  const footer = `\n\n---\n${icon} **Safety review (${reviewerModel.split("/").pop()}):** ${parsed.note} _Always verify in current FAA publications (FAR/AIM, ACS, POH/AFM) before flight._`;
+                  const isSev1 = typeof parsed.note === "string" && parsed.note.trim().toUpperCase().startsWith("SEV1");
+                  const icon = isSev1 ? "🛑" : parsed.verdict === "unsafe" ? "⚠️" : "ℹ️";
+                  const label = isSev1 ? "SEVERITY 1 — Emergency-procedure review" : `Safety review (${reviewerModel.split("/").pop()})`;
+                  const footer = `\n\n---\n${icon} **${label}:** ${parsed.note} _Always verify in current FAA publications (FAR/AIM, ACS, POH/AFM) before flight._`;
                   // Send the footer as additional SSE delta chunks
                   const sseChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: footer } }] })}\n\n`;
                   controller.enqueue(encoder.encode(sseChunk));
