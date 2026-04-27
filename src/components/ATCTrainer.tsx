@@ -905,6 +905,92 @@ const ATCTrainer = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveAirport?.icao, activeFreq, liveContext?.facility?.kind]);
 
+  /**
+   * ATIS update watcher — while the pilot stays tuned to an ATIS frequency,
+   * silently re-poll the ATIS endpoint every 3 minutes. If the info letter
+   * changes (new ATIS cycle) or the underlying METAR text changes, notify
+   * the pilot via a toast + system message and refresh `currentAtis`.
+   * Does NOT auto-play the new ATIS — the pilot decides when to re-listen.
+   */
+  useEffect(() => {
+    if (!liveAirport || !liveContext?.facility) return;
+    if (liveContext.facility.kind !== "ATIS") return;
+    if (!currentAtis || currentAtis.icao !== liveAirport.icao) return;
+
+    let cancelled = false;
+    // Fingerprint of the current ATIS text — covers both info-letter changes
+    // (e.g. Bravo → Charlie) and silent METAR updates that keep the same
+    // letter (rare, but happens for SPECI updates between hourly cycles).
+    const fingerprint = (info: string, text: string) => `${info}::${text.replace(/\s+/g, " ").trim()}`;
+
+    const POLL_MS = 3 * 60 * 1000; // 3 minutes
+    const tick = async () => {
+      if (cancelled) return;
+      // Skip while the tab is hidden — resume on visibility change below.
+      if (typeof document !== "undefined" && document.hidden) return;
+      try {
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/atc-atis`;
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq, airportName: liveAirport.callName }),
+        });
+        if (!resp.ok || cancelled) return;
+        const data = await resp.json();
+        if (cancelled || !data?.text) return;
+        const nextInfo: string = data.info ?? "Alpha";
+        const nextText: string = data.text;
+        const prevFp = fingerprint(currentAtis.info, currentAtis.text);
+        const nextFp = fingerprint(nextInfo, nextText);
+        if (prevFp === nextFp) return; // unchanged
+
+        const letterChanged = nextInfo !== currentAtis.info;
+        const reason = letterChanged
+          ? `New ATIS cycle — Information ${nextInfo}`
+          : `ATIS weather updated — Information ${nextInfo}`;
+
+        setCurrentAtis({
+          icao: liveAirport.icao,
+          info: nextInfo,
+          text: nextText,
+          source: data.source ?? "synth",
+          audioUrl: data.audioUrl ?? null,
+          proxyAudioUrl: data.proxyAudioUrl ?? null,
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            content: `🔔 ${liveAirport.icao} ${reason}. Re-tune ATIS or click to listen again.`,
+          },
+        ]);
+        toast.info(`${liveAirport.icao} ATIS updated · Information ${nextInfo}`, {
+          description: letterChanged ? "New letter cycle" : "Updated METAR",
+        });
+      } catch (e) {
+        // Silent — polling is best-effort. The initial fetch already surfaces hard errors.
+        console.warn("[ATIS] poll failed", e);
+      }
+    };
+
+    const interval = window.setInterval(tick, POLL_MS);
+    // Also re-check immediately when the user returns to the tab — they may
+    // have been away long enough that a new cycle published.
+    const onVis = () => { if (!document.hidden) void tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+    // Re-arm whenever the tuned ATIS or its current letter changes (so the
+    // next change comparison uses the fresh baseline).
+  }, [liveAirport?.icao, liveAirport?.callName, activeFreq, liveContext?.facility?.kind, currentAtis?.info, currentAtis?.text, currentAtis?.icao]);
+
   const exportTranscript = useCallback(() => {
     if (messages.length === 0) {
       toast.info("No transmissions to export yet.");
