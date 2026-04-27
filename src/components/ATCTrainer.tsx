@@ -764,9 +764,21 @@ const ATCTrainer = () => {
    * (icao, freq) pair until the pilot retunes away and back.
    */
   useEffect(() => {
-    if (!liveAirport || !liveContext?.facility) return;
-    if (liveContext.facility.kind !== "ATIS") return;
-    const key = { icao: liveAirport.icao, freq: activeFreq };
+    if (!liveAirport) return;
+    const freqMHz = parseFloat(activeFreq);
+    if (!Number.isFinite(freqMHz)) return;
+
+    // Robust mapping: even if the tuned freq isn't in `liveAirport`'s
+    // facility list (pilot is parked at KMYF but tuning a nearby ATIS),
+    // resolve it globally to the correct ICAO + airport so the edge function
+    // fetches the right airport's ATIS and audio feed.
+    const resolved = resolveAtisAirport(freqMHz, liveAirport.icao);
+    if (!resolved) return;
+    const targetIcao = resolved.airport.icao;
+    const targetCallName = resolved.airport.callName;
+    const crossAirport = resolved.crossAirport;
+
+    const key = { icao: targetIcao, freq: activeFreq };
     if (
       lastAtisFetchRef.current?.icao === key.icao &&
       lastAtisFetchRef.current?.freq === key.freq
@@ -784,13 +796,13 @@ const ATCTrainer = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ icao: liveAirport.icao, freq: activeFreq, airportName: liveAirport.callName }),
+          body: JSON.stringify({ icao: targetIcao, freq: activeFreq, airportName: targetCallName }),
         });
         if (!resp.ok) throw new Error(`atis ${resp.status}`);
         const data = await resp.json();
         if (cancelled || !data?.text) return;
         setCurrentAtis({
-          icao: liveAirport.icao,
+          icao: targetIcao,
           info: data.info ?? "Alpha",
           text: data.text,
           source: data.source ?? "synth",
@@ -802,12 +814,15 @@ const ATCTrainer = () => {
           : data.source === "vatsim" ? "live VATSIM feed"
           : "live weather";
         const hasLiveAudio = !!(data.proxyAudioUrl || data.audioUrl);
+        const crossNote = crossAirport
+          ? ` — resolved from ${liveAirport.icao} via global frequency map`
+          : "";
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             role: "system",
-            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${hasLiveAudio ? " + live audio" : ""})`,
+            content: `📻 ${targetIcao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${hasLiveAudio ? " + live audio" : ""})${crossNote}`,
           },
           { id: crypto.randomUUID(), role: "atc", content: data.text },
         ]);
