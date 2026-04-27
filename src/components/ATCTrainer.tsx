@@ -3478,6 +3478,51 @@ ${transcript}`;
                        </Select>
                      </div>
                    )}
+                   {tunedToAtis && (() => {
+                     // Per-airport playback prefs toggle. Shown whenever tuned
+                     // to ATIS so the pilot can opt out before adjusting volume.
+                     const icao = currentAtis.icao;
+                     const saved = loadAtisPrefs(icao);
+                     return (
+                       <label
+                         className="mt-1.5 flex items-center justify-between gap-2 rounded border border-border/60 bg-background/40 px-2 py-1.5 cursor-pointer select-none"
+                         title="When on, your volume and mute settings for this airport are remembered and reapplied each time you tune its ATIS"
+                       >
+                         <div className="flex items-center gap-2 min-w-0">
+                           <input
+                             type="checkbox"
+                             className="h-3 w-3 accent-primary cursor-pointer"
+                             checked={atisPrefsEnabled}
+                             onChange={(e) => {
+                               const next = e.target.checked;
+                               setAtisPrefsEnabled(next);
+                               try { localStorage.setItem(ATIS_PREFS_ENABLED_KEY, next ? "1" : "0"); } catch { /* noop */ }
+                               // When turning ON, snapshot current state immediately
+                               // so the pref exists for next tune even if pilot
+                               // doesn't touch the volume.
+                               if (next && atisAudioRef.current) {
+                                 saveAtisPrefs(icao, {
+                                   volume: atisAudioRef.current.volume,
+                                   muted: atisAudioRef.current.muted,
+                                 });
+                               }
+                             }}
+                             aria-label="Remember playback preferences per airport"
+                           />
+                           <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                             Remember per airport
+                           </span>
+                         </div>
+                         <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0">
+                           {atisPrefsEnabled && saved
+                             ? `${icao} · ${Math.round(saved.volume * 100)}%${saved.muted ? " · muted" : ""}`
+                             : atisPrefsEnabled
+                             ? `${icao} · no saved prefs`
+                             : "Off"}
+                         </span>
+                       </label>
+                     );
+                   })()}
                   </div>
                 );
               })()}
