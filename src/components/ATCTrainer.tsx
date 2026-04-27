@@ -439,17 +439,11 @@ const ATCTrainer = () => {
     try { localStorage.setItem("atc_facility_label_style", facilityLabelStyle); } catch {}
   }, [facilityLabelStyle]);
 
-  // Release-to-Transmit: when ON, releasing PTT auto-sends the captured text.
-  // When OFF, the captured text is staged in a draft for review (legacy flow).
-  const [autoTransmit, setAutoTransmit] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem("atc_auto_transmit");
-      return saved === null ? true : saved === "1";
-    } catch { return true; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem("atc_auto_transmit", autoTransmit ? "1" : "0"); } catch {}
-  }, [autoTransmit]);
+  // Release-to-Transmit is the standard cockpit behavior: releasing PTT
+  // immediately sends the captured transmission. This is now always on
+  // (no draft-review intermediate step). Kept as a constant so the existing
+  // recognizer-end logic reads the same and stays easy to revert if needed.
+  const autoTransmit = true as const;
 
   // Assignable global PTT hotkey. Stored as a KeyboardEvent.code value
   // (e.g. "Space", "KeyT", "ShiftLeft"). Defaults to Space.
@@ -3172,61 +3166,25 @@ ${transcript}`;
         )}
       </div>
 
-      {/* Pending transmission draft — captured from PTT, must be Transmitted
-          explicitly so the pilot reviews STT output before keying the mic. */}
-      {selectedScenario && (pendingDraft || micUiActive) && (
+      {/* Live capture indicator — shown only while PTT is held. The captured
+          transcript is auto-transmitted on release (Release-to-Transmit). */}
+      {selectedScenario && micUiActive && (
         <div
-          className="border border-primary/40 rounded-lg bg-primary/5 p-3 flex flex-col gap-2"
-          aria-label="Pending pilot transmission draft"
+          className="border border-primary/40 rounded-lg bg-primary/5 p-3 flex flex-col gap-1"
+          aria-label="Live PTT capture"
+          aria-live="polite"
         >
           <div className="flex items-center justify-between">
-            <span className="font-display text-[10px] tracking-[0.25em] uppercase text-primary">
-              {micUiActive ? "Capturing…" : "Ready to Transmit"}
+            <span className="font-display text-[10px] tracking-[0.25em] uppercase text-primary flex items-center gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              Capturing…
             </span>
             <span className="font-mono text-[10px] text-muted-foreground">
-              {micUiActive
-                ? "Release PTT to stage the draft"
-                : "Press Transmit (or Enter) to send · Esc to clear"}
+              Release PTT to transmit
             </span>
           </div>
-          <textarea
-            value={micUiActive ? (pendingDraft ? `${pendingDraft} ${interim}`.trim() : interim) : pendingDraft}
-            onChange={(e) => setPendingDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                transmitDraft();
-              } else if (e.key === "Escape") {
-                e.preventDefault();
-                clearDraft();
-              }
-            }}
-            placeholder={micUiActive ? "Listening…" : "Hold PTT and speak — your transmission will appear here for review."}
-            disabled={micUiActive || loading || speaking}
-            rows={2}
-            className="w-full resize-none rounded-md bg-background/60 border border-border px-3 py-2 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40 disabled:opacity-70"
-            aria-label="Pilot transmission draft"
-          />
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={clearDraft}
-              disabled={!pendingDraft || loading || speaking || micUiActive}
-              className="h-7 text-[10px] tracking-[0.2em] uppercase font-display"
-              title="Discard the draft (Esc)"
-            >
-              <X className="h-3 w-3 mr-1" /> Clear
-            </Button>
-            <Button
-              size="sm"
-              onClick={transmitDraft}
-              disabled={!pendingDraft.trim() || loading || speaking || micUiActive}
-              className="h-7 text-[10px] tracking-[0.2em] uppercase font-display bg-[hsl(var(--hud-green))]/20 hover:bg-[hsl(var(--hud-green))]/30 text-[hsl(var(--hud-green))] border border-[hsl(var(--hud-green))]/50"
-              title="Send transmission (Enter)"
-            >
-              <Radio className="h-3 w-3 mr-1" /> Transmit
-            </Button>
+          <div className="font-mono text-[13px] leading-relaxed text-foreground/90 min-h-[1.5em]">
+            {interim || <span className="text-muted-foreground/60 italic">Listening…</span>}
           </div>
         </div>
       )}
@@ -3480,31 +3438,19 @@ ${transcript}`;
           )}
         </div>
 
-        {/* PTT preferences: Release-to-Transmit toggle + assignable hotkey */}
+        {/* PTT preferences: assignable hotkey. Release-to-Transmit is always on. */}
         {sttSupported && (
           <div className="w-full flex flex-col gap-2 border border-border/60 rounded-md bg-background/40 px-3 py-2">
             <div className="flex items-center justify-between gap-2">
               <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
                 Release-to-Transmit
               </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={autoTransmit}
-                onClick={() => setAutoTransmit((v) => !v)}
-                title={autoTransmit ? "On: releasing PTT sends immediately" : "Off: review draft, then press Transmit"}
-                className={cn(
-                  "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
-                  autoTransmit ? "bg-[hsl(var(--hud-green))]/70" : "bg-muted",
-                )}
+              <span
+                className="font-display text-[10px] tracking-[0.25em] uppercase text-[hsl(var(--hud-green))]"
+                title="Releasing PTT transmits immediately — standard cockpit behavior"
               >
-                <span
-                  className={cn(
-                    "inline-block h-4 w-4 rounded-full bg-background shadow transition-transform",
-                    autoTransmit ? "translate-x-4" : "translate-x-0.5",
-                  )}
-                />
-              </button>
+                Always On
+              </span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
