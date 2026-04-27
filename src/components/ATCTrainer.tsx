@@ -851,6 +851,14 @@ const ATCTrainer = () => {
   // "proxy" = our edge proxy URL (CORS-safe), "direct" = LiveATC direct URL,
   // null = no live audio (TTS fallback path).
   const [atisLiveSource, setAtisLiveSource] = useState<"proxy" | "direct" | null>(null);
+  // Per-airport playback preferences (volume + mute). When enabled, tuning an
+  // ATIS frequency restores the pilot's saved preferences for that ICAO; user
+  // adjustments (keyboard shortcuts, system media keys) re-save automatically.
+  const [atisPrefsEnabled, setAtisPrefsEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem(ATIS_PREFS_ENABLED_KEY) !== "0"; } catch { return true; }
+  });
+  const atisPrefsEnabledRef = useRef(atisPrefsEnabled);
+  useEffect(() => { atisPrefsEnabledRef.current = atisPrefsEnabled; }, [atisPrefsEnabled]);
   const lastAtisFetchRef = useRef<{ icao: string; freq: string } | null>(null);
   const swapFreqs = useCallback(() => {
     setActiveFreq((prevA) => {
