@@ -766,7 +766,25 @@ const ATCTrainer = () => {
     if (micTestAudioRef.current && sinkIdSupported) {
       try { void (micTestAudioRef.current as any).setSinkId(id || "default"); } catch { /* noop */ }
     }
-  }, [sinkIdSupported]);
+    // If the ATIS feed is currently following the main output (no override),
+    // re-route it too so the change feels immediate.
+    if (!selectedAtisOutputId && atisAudioRef.current && sinkIdSupported) {
+      try { void (atisAudioRef.current as any).setSinkId(id || "default"); } catch { /* noop */ }
+    }
+  }, [sinkIdSupported, selectedAtisOutputId]);
+  const handleSelectAtisOutput = useCallback((id: string) => {
+    setSelectedAtisOutputId(id);
+    try {
+      if (id) localStorage.setItem("atc_atis_output_device_id", id);
+      else localStorage.removeItem("atc_atis_output_device_id");
+    } catch { /* noop */ }
+    // Apply immediately to the active live ATIS audio element. When cleared
+    // ("follow main output"), fall back to whatever the main output is set to.
+    if (atisAudioRef.current && sinkIdSupported) {
+      const target = id || selectedOutputId || "default";
+      try { void (atisAudioRef.current as any).setSinkId(target); } catch { /* noop */ }
+    }
+  }, [sinkIdSupported, selectedOutputId]);
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
