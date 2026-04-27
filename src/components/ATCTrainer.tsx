@@ -2206,6 +2206,82 @@ ${transcript}`;
     };
   }, [capturingHotkey, speaking, loading]);
 
+  // ---- Live ATIS keyboard shortcuts ----
+  // Active only when tuned to an ATIS frequency AND a live audio element is
+  // currently attached. Bindings:
+  //   Space → play/pause   (skipped if Space is the PTT hotkey, to avoid clash)
+  //   M     → mute/unmute
+  //   ↑ / ↓ → volume +/- 5%
+  //   ← / → → volume -/+ 1% (fine adjust)
+  // Ignored when the user is typing in an input/textarea/contenteditable, when
+  // rebinding the PTT hotkey, or when any modifier (Ctrl/Alt/Meta/Shift) is held
+  // (so the shortcuts never hijack browser/OS chords).
+  useEffect(() => {
+    const tunedToAtisLive =
+      liveContext?.facility?.kind === "ATIS" &&
+      !!atisLiveSource &&
+      atisAudioState === "playing";
+    if (!tunedToAtisLive) return;
+
+    const isEditableTarget = (t: EventTarget | null): boolean => {
+      const el = t as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+      if (el.isContentEditable) return true;
+      return false;
+    };
+
+    const adjustVolume = (delta: number) => {
+      const audio = atisAudioRef.current;
+      if (!audio) return;
+      const next = Math.min(1, Math.max(0, (audio.volume || 0) + delta));
+      audio.volume = next;
+      if (audio.muted && next > 0) audio.muted = false;
+      toast.message(`ATIS volume ${Math.round(next * 100)}%`, { duration: 900 });
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (capturingHotkey) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      if (isEditableTarget(e.target)) return;
+      const audio = atisAudioRef.current;
+      if (!audio) return;
+
+      switch (e.code) {
+        case "Space": {
+          if (pttHotkey === "Space") return;
+          if (e.repeat) return;
+          e.preventDefault();
+          if (audio.paused) {
+            void audio.play().catch(() => { /* noop */ });
+            toast.message("ATIS resumed", { duration: 900 });
+          } else {
+            audio.pause();
+            toast.message("ATIS paused", { duration: 900 });
+          }
+          break;
+        }
+        case "KeyM": {
+          if (e.repeat) return;
+          e.preventDefault();
+          audio.muted = !audio.muted;
+          toast.message(audio.muted ? "ATIS muted" : "ATIS unmuted", { duration: 900 });
+          break;
+        }
+        case "ArrowUp":   { e.preventDefault(); adjustVolume(0.05); break; }
+        case "ArrowDown": { e.preventDefault(); adjustVolume(-0.05); break; }
+        case "ArrowRight":{ e.preventDefault(); adjustVolume(0.01); break; }
+        case "ArrowLeft": { e.preventDefault(); adjustVolume(-0.01); break; }
+        default: break;
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [liveContext?.facility?.kind, atisLiveSource, atisAudioState, capturingHotkey, pttHotkey]);
+
+
   /** Transmit the staged draft on the air. No-op if empty or busy. */
   const transmitDraft = useCallback(() => {
     const text = pendingDraft.trim();
