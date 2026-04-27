@@ -3537,10 +3537,50 @@ ${transcript}`;
                 Always On
               </span>
             </div>
+            {/* Quick-pick: common PTT keys. "custom" = whatever the user
+                captured via Rebind that isn't in the preset list. */}
             <div className="flex items-center justify-between gap-2">
               <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
                 PTT Hotkey
               </span>
+              <Select
+                value={
+                  pttHotkey === ""
+                    ? "__unbound__"
+                    : PTT_PRESETS.some((p) => p.code === pttHotkey)
+                      ? pttHotkey
+                      : "__custom__"
+                }
+                onValueChange={(value) => {
+                  if (value === "__unbound__") {
+                    setPttHotkey("");
+                    toast.success("PTT hotkey unbound");
+                    return;
+                  }
+                  if (value === "__custom__") return; // display-only sentinel
+                  setPttHotkey(value);
+                  toast.success(`PTT hotkey set to ${hotkeyLabel(value)}`);
+                }}
+                disabled={capturingHotkey}
+              >
+                <SelectTrigger className="h-7 w-[148px] font-display text-[10px] tracking-[0.2em] uppercase">
+                  <SelectValue placeholder="Pick a key…" />
+                </SelectTrigger>
+                <SelectContent className="font-display text-[10px] tracking-[0.15em] uppercase">
+                  {PTT_PRESETS.map((p) => (
+                    <SelectItem key={p.code} value={p.code}>{p.label}</SelectItem>
+                  ))}
+                  {/* Custom + Unbound sentinels */}
+                  {pttHotkey !== "" && !PTT_PRESETS.some((p) => p.code === pttHotkey) && (
+                    <SelectItem value="__custom__">Custom: {hotkeyLabel(pttHotkey)}</SelectItem>
+                  )}
+                  <SelectItem value="__unbound__">Unbind (no hotkey)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Rebind + Unbind action row */}
+            <div className="flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setCapturingHotkey((v) => !v)}
@@ -3550,11 +3590,28 @@ ${transcript}`;
                     ? "border-accent text-accent bg-accent/10 animate-pulse"
                     : "border-border bg-muted/40 text-foreground/80 hover:border-primary/60",
                 )}
-                title={capturingHotkey ? "Press any key to assign…" : "Click then press any key to rebind"}
+                title={capturingHotkey ? "Press any key to assign…" : "Click then press any key to capture a custom binding"}
               >
-                <kbd className="font-display tracking-[0.15em]">{capturingHotkey ? "Press a key…" : hotkeyLabel(pttHotkey)}</kbd>
+                {capturingHotkey ? "Press a key…" : "Rebind"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPttHotkey("");
+                  setCapturingHotkey(false);
+                  toast.success("PTT hotkey unbound");
+                }}
+                disabled={pttHotkey === ""}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2 py-1 font-display text-[10px] tracking-[0.2em] uppercase text-foreground/80 transition-colors hover:border-destructive/60 hover:text-destructive",
+                  pttHotkey === "" && "opacity-40 cursor-not-allowed hover:border-border hover:text-foreground/80",
+                )}
+                title={pttHotkey === "" ? "Already unbound" : "Remove the PTT hotkey binding"}
+              >
+                Unbind
               </button>
             </div>
+
             {/* Hotkey capture: listen for the next keydown when armed */}
             {capturingHotkey && (
               <HotkeyCapture
