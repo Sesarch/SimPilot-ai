@@ -4,7 +4,7 @@ import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary"
 import ATCTrainer from "@/components/ATCTrainer";
 import FlightAwareTestButton from "@/components/FlightAwareTestButton";
 import FlightProviderStatusPanel from "@/components/FlightProviderStatusPanel";
-import TailNumberSearch from "@/components/atc/TailNumberSearch";
+
 import { Radar, Radio } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 
