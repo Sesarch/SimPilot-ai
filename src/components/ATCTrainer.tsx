@@ -12,6 +12,7 @@ import {
   atcFrequencies,
   getAirportFrequencies,
   lookupFacility,
+  resolveAtisAirport,
   formatFreq,
   parseFreqInput,
   type AirportFrequencies,
