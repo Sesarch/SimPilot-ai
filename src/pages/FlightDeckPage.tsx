@@ -8,6 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RecentActivityPanel from "@/components/dashboard/RecentActivityPanel";
 import AchievementBadges from "@/components/dashboard/AchievementBadges";
 import SimStatusPanel from "@/components/dashboard/SimStatusPanel";
+import RecommendedModulesPanel from "@/components/dashboard/RecommendedModulesPanel";
+import ProgressTrackingPanel from "@/components/dashboard/ProgressTrackingPanel";
+import UpcomingMockOralsPanel from "@/components/dashboard/UpcomingMockOralsPanel";
 import {
   useAutoLogbook,
   PMDG_DEBRIEF_READY_EVENT,
