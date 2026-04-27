@@ -734,8 +734,12 @@ const ATCTrainer = () => {
         setSelectedOutputId("");
         try { localStorage.removeItem("atc_output_device_id"); } catch { /* noop */ }
       }
+      if (selectedAtisOutputId && !outputs.some((d) => d.deviceId === selectedAtisOutputId)) {
+        setSelectedAtisOutputId("");
+        try { localStorage.removeItem("atc_atis_output_device_id"); } catch { /* noop */ }
+      }
     } catch { /* noop */ }
-  }, [selectedDeviceId, selectedOutputId]);
+  }, [selectedDeviceId, selectedOutputId, selectedAtisOutputId]);
   useEffect(() => {
     void refreshAudioDevices();
     const handler = () => { void refreshAudioDevices(); };
