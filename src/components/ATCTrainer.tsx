@@ -3119,12 +3119,13 @@ ${transcript}`;
                     aria-live="polite"
                     aria-label={`Current ATIS information ${currentAtis.info}`}
                     className={cn(
-                      "mb-2 flex items-center justify-between gap-3 rounded-md border px-3 py-2 transition-colors",
+                      "mb-2 rounded-md border px-3 py-2 transition-colors",
                       tunedToAtis
                         ? "border-sky-500/60 bg-sky-500/10"
                         : "border-border bg-muted/30",
                     )}
                   >
+                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="font-display text-[9px] tracking-[0.3em] uppercase text-muted-foreground">
                         ATIS
