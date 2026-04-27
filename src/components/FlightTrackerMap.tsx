@@ -378,6 +378,17 @@ const FlightTrackerMap = () => {
       const onlySelected = aircraft.filter(ac => ac.icao24 === selectedIcaoRef.current);
       return onlySelected.length > 0 ? onlySelected : [selectedAircraft];
     }
+    // While the user is typing a tail/callsign/ICAO in the search box,
+    // narrow the map to only matching aircraft so a tail-number search
+    // shows just that plane (and not the rest of the traffic).
+    const q = searchQuery.trim().toLowerCase();
+    if (q.length >= 2) {
+      const matched = aircraft.filter(ac =>
+        (ac.callsign || "").toLowerCase().includes(q) ||
+        ac.icao24.toLowerCase().includes(q)
+      );
+      if (matched.length > 0) return matched;
+    }
     let list = aircraft;
     if (statusFilter === "airborne") list = list.filter(ac => !ac.onGround);
     else if (statusFilter === "ground") list = list.filter(ac => ac.onGround);
@@ -388,7 +399,7 @@ const FlightTrackerMap = () => {
       });
     }
     return list;
-  }, [aircraft, statusFilter, altRange, selectedAircraft]);
+  }, [aircraft, statusFilter, altRange, selectedAircraft, searchQuery]);
 
   const markers = useMemo(() => filteredAircraft.map((ac) => (
     <Marker
