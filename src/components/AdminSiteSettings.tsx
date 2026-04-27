@@ -48,6 +48,9 @@ const AdminSiteSettings = () => {
         setGroundSchoolEnabled(data.ground_school_enabled);
         setWeatherEnabled(data.weather_enabled);
         setLiveToolsEnabled(data.live_tools_enabled);
+        const d = data as Record<string, unknown>;
+        setAtcLiveFreqEnabled(d.atc_live_frequency_enabled === undefined ? true : Boolean(d.atc_live_frequency_enabled));
+        setAtcGuidedScenariosEnabled(d.atc_guided_scenarios_enabled === undefined ? true : Boolean(d.atc_guided_scenarios_enabled));
         setBridgeDirectDownload(Boolean((data as { bridge_direct_download_enabled?: boolean }).bridge_direct_download_enabled));
       }
       setLoading(false);
