@@ -703,6 +703,13 @@ const ATCTrainer = () => {
   const [selectedOutputId, setSelectedOutputId] = useState<string>(() => {
     try { return localStorage.getItem("atc_output_device_id") || ""; } catch { return ""; }
   });
+  // Independent output device for Live ATIS — lets pilots route the live ATC
+  // broadcast to a dedicated headset while ATC voice + UI sounds stay on the
+  // main output (mirrors a real cockpit's split audio panel). Empty string
+  // means "follow the main ATC output device".
+  const [selectedAtisOutputId, setSelectedAtisOutputId] = useState<string>(() => {
+    try { return localStorage.getItem("atc_atis_output_device_id") || ""; } catch { return ""; }
+  });
   // setSinkId is only on Chromium-family browsers
   const sinkIdSupported = typeof document !== "undefined"
     && typeof (document.createElement("audio") as any).setSinkId === "function";
@@ -727,8 +734,12 @@ const ATCTrainer = () => {
         setSelectedOutputId("");
         try { localStorage.removeItem("atc_output_device_id"); } catch { /* noop */ }
       }
+      if (selectedAtisOutputId && !outputs.some((d) => d.deviceId === selectedAtisOutputId)) {
+        setSelectedAtisOutputId("");
+        try { localStorage.removeItem("atc_atis_output_device_id"); } catch { /* noop */ }
+      }
     } catch { /* noop */ }
-  }, [selectedDeviceId, selectedOutputId]);
+  }, [selectedDeviceId, selectedOutputId, selectedAtisOutputId]);
   useEffect(() => {
     void refreshAudioDevices();
     const handler = () => { void refreshAudioDevices(); };
@@ -755,7 +766,25 @@ const ATCTrainer = () => {
     if (micTestAudioRef.current && sinkIdSupported) {
       try { void (micTestAudioRef.current as any).setSinkId(id || "default"); } catch { /* noop */ }
     }
-  }, [sinkIdSupported]);
+    // If the ATIS feed is currently following the main output (no override),
+    // re-route it too so the change feels immediate.
+    if (!selectedAtisOutputId && atisAudioRef.current && sinkIdSupported) {
+      try { void (atisAudioRef.current as any).setSinkId(id || "default"); } catch { /* noop */ }
+    }
+  }, [sinkIdSupported, selectedAtisOutputId]);
+  const handleSelectAtisOutput = useCallback((id: string) => {
+    setSelectedAtisOutputId(id);
+    try {
+      if (id) localStorage.setItem("atc_atis_output_device_id", id);
+      else localStorage.removeItem("atc_atis_output_device_id");
+    } catch { /* noop */ }
+    // Apply immediately to the active live ATIS audio element. When cleared
+    // ("follow main output"), fall back to whatever the main output is set to.
+    if (atisAudioRef.current && sinkIdSupported) {
+      const target = id || selectedOutputId || "default";
+      try { void (atisAudioRef.current as any).setSinkId(target); } catch { /* noop */ }
+    }
+  }, [sinkIdSupported, selectedOutputId]);
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
@@ -1009,6 +1038,12 @@ const ATCTrainer = () => {
           audio.autoplay = true;
           audio.volume = 0.9;
           atisAudioRef.current = audio;
+          // Route this stream to the pilot's chosen ATIS output device (or
+          // fall back to the main ATC output, then system default).
+          if (sinkIdSupported) {
+            const target = selectedAtisOutputId || selectedOutputId || "default";
+            try { void (audio as any).setSinkId(target); } catch { /* noop */ }
+          }
           setAtisAudioState("loading");
           return await new Promise<boolean>((resolve) => {
             let settled = false;
@@ -3352,6 +3387,42 @@ ${transcript}`;
                    </div>
                    {tunedToAtis && atisAudioState === "playing" && atisLiveSource && (
                      <LiveAtisSeekBar audioRef={atisAudioRef} />
+                   )}
+                   {tunedToAtis && sinkIdSupported && outputDevices.length > 1 && (
+                     <div
+                       className="mt-1.5 flex items-center gap-2 rounded border border-border/60 bg-background/40 px-2 py-1.5"
+                       title="Route the live ATIS stream to a dedicated headset while keeping ATC voice on the main output"
+                     >
+                       <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" aria-hidden />
+                       <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground shrink-0">
+                         ATIS Out
+                       </span>
+                       <Select
+                         value={selectedAtisOutputId || "follow"}
+                         onValueChange={(v) => handleSelectAtisOutput(v === "follow" ? "" : v)}
+                       >
+                         <SelectTrigger
+                           className="h-6 flex-1 text-[10px] tracking-[0.15em] uppercase font-display"
+                           aria-label="Select audio output device for live ATIS"
+                         >
+                           <SelectValue placeholder="Follow main output" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="follow" className="text-xs">
+                             Follow main output
+                           </SelectItem>
+                           {outputDevices.map((d, i) => (
+                             <SelectItem
+                               key={d.deviceId || `atis-out-${i}`}
+                               value={d.deviceId || `atis-out-${i}`}
+                               className="text-xs"
+                             >
+                               {d.label || `Speaker ${i + 1}`}
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
+                     </div>
                    )}
                   </div>
                 );
