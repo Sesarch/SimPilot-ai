@@ -1906,15 +1906,28 @@ ${transcript}`;
     endPTTRef.current = () => { endPTT(); };
   });
   useEffect(() => {
+    // Release-to-Transmit pipeline:
+    //   simpilot:ptt-down → start mic capture (startPTT)
+    //   simpilot:ptt-up   → stop recognizer; the recognizer.onend handler
+    //                       auto-transmits the captured transcript because
+    //                       autoTransmit === true.
+    //
+    // Sources we accept:
+    //   - "bridge"  → SimPilot Bridge desktop helper (OS-global hotkey)
+    //   - anything else (e.g., test harnesses or future integrations)
+    //
+    // Browser keyboard PTT is handled separately by <HotkeyPTT/> below; we
+    // intentionally don't double-handle it here. The pttHoldRef inside
+    // startPTT/endPTT also prevents any accidental double-fire.
     const onDown = (e: Event) => {
       const detail = (e as CustomEvent<PttEventDetail>).detail;
-      if (detail?.source !== "bridge") return; // browser fallback handled by HotkeyPTT
+      if (detail?.source === "browser") return; // local key listener owns this
       if (capturingHotkey || speaking || loading) return;
       startPTTRef.current();
     };
     const onUp = (e: Event) => {
       const detail = (e as CustomEvent<PttEventDetail>).detail;
-      if (detail?.source !== "bridge") return;
+      if (detail?.source === "browser") return;
       endPTTRef.current();
     };
     window.addEventListener(PTT_DOWN_EVENT, onDown as EventListener);
