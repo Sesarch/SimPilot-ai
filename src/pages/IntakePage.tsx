@@ -201,6 +201,7 @@ const IntakePage = () => {
       <SEOHead
         title="Get Started — SimPilot.AI Intake"
         description="Tell us your training goals, aircraft, and proficiency. Tailored AI flight training for individual pilots and flight schools."
+        keywords="pilot intake, flight school onboarding, AI flight training, training goals"
         canonical="/intake"
       />
       <Navbar />
