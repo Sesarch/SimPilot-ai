@@ -8,6 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RecentActivityPanel from "@/components/dashboard/RecentActivityPanel";
 import AchievementBadges from "@/components/dashboard/AchievementBadges";
 import SimStatusPanel from "@/components/dashboard/SimStatusPanel";
+import RecommendedModulesPanel from "@/components/dashboard/RecommendedModulesPanel";
+import ProgressTrackingPanel from "@/components/dashboard/ProgressTrackingPanel";
+import UpcomingMockOralsPanel from "@/components/dashboard/UpcomingMockOralsPanel";
 import {
   useAutoLogbook,
   PMDG_DEBRIEF_READY_EVENT,
@@ -177,6 +180,17 @@ const FlightDeckPage = () => {
               trend={loading ? undefined : categories[c.key].trend || undefined}
             />
           ))}
+        </div>
+
+        {/* Progress tracking + Upcoming mock orals */}
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <ProgressTrackingPanel />
+          <UpcomingMockOralsPanel />
+        </div>
+
+        {/* Recommended modules */}
+        <div className="mt-4">
+          <RecommendedModulesPanel />
         </div>
 
         {/* Sim Telemetry */}
