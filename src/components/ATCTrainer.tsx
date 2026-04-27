@@ -1033,7 +1033,7 @@ const ATCTrainer = () => {
         const sourceLabel =
           data.source === "datis" ? "live FAA D-ATIS"
           : data.source === "vatsim" ? "live VATSIM feed"
-          : "live weather";
+          : "weather-derived summary (not an official broadcast)";
         const hasLiveAudio = !!(data.proxyAudioUrl || data.audioUrl);
         const crossNote = crossAirport
           ? ` — resolved from ${liveAirport.icao} via global frequency map`
@@ -1150,8 +1150,17 @@ const ATCTrainer = () => {
             });
           }
         }
-        if (!livePlaying && !cancelled) {
+        // Only speak TTS when the text comes from a REAL source (FAA D-ATIS or
+        // VATSIM controller). The "synth" source is GPT-generated from a raw
+        // METAR — it is NOT an actual broadcast and would mislead the pilot if
+        // played as audio. In that case we render the text only.
+        const isRealAtis = data.source === "datis" || data.source === "vatsim";
+        if (!livePlaying && !cancelled && isRealAtis) {
           void speakATC(data.text);
+        } else if (!livePlaying && !cancelled) {
+          toast.info("No live ATIS broadcast available for this airport", {
+            description: `${targetIcao} · showing weather-derived summary only (not an official broadcast).`,
+          });
         }
       } catch (e) {
         console.warn("ATIS fetch failed", e);
