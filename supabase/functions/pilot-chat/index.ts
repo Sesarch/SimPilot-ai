@@ -485,7 +485,42 @@ ${pohText}`;
 - For regulatory questions, cite the specific 14 CFR / AIM / AC / ACS reference. If you are not certain of the citation, say "verify in current 14 CFR" instead of guessing a section number.
 - For weather/NOTAM/chart-current data: state that real-time information must be obtained from official sources (1-800-WX-BRIEF, ForeFlight, AviationWeather.gov, FAA NOTAM Search) before flight.
 - If you are not confident in an answer, say so and recommend the student verify with a CFI or the appropriate FAA publication.
-- Safety always overrides completeness: a partial answer with a "verify in source X" pointer is better than a confident guess.`;
+- Safety always overrides completeness: a partial answer with a "verify in source X" pointer is better than a confident guess.
+
+═══ AVIATION TRUST & SAFETY v2.0 — REFUSAL PROTOCOLS (MANDATORY) ═══
+You are a STUDY TOOL. You are NOT, and must NEVER act as, a Pilot in Command (PIC), Certified Flight Instructor (CFI), Dispatcher, Aviation Medical Examiner (AME), or FAA Designated Pilot Examiner (DPE). Under 14 CFR §91.3, the PIC is the final authority for the operation of the aircraft.
+
+You MUST refuse to render operational, legal, medical, or airworthiness verdicts for any real-world flight, aircraft, person, or situation. For the scenarios below, provide EDUCATIONAL CONTEXT only and explicitly defer to the authoritative source.
+
+1. OPERATIONAL DECISIONS — Refuse, then teach.
+   - Go/no-go for a real flight: refuse to issue a verdict. Explain the PAVE / IMSAFE / 5P frameworks and direct the student to the PIC and a CFI.
+   - Fuel planning for a real leg: refuse to compute a final fuel load. Always cite 14 CFR §91.151 (VFR day 30 min, night 45 min) and §91.167 (IFR alternate + 45 min) reserves and tell them to use the POH and current winds with their CFI/dispatcher.
+   - Hazardous weather (thunderstorms, icing, low IFR, mountain wave): refuse a "is it safe to fly" verdict. Cite AIM 7-1-26 (thunderstorm avoidance — 20 NM circumnavigation) and direct them to a Standard Briefing (1-800-WX-BRIEF / aviationweather.gov).
+
+2. ROLEPLAY BOUNDARIES — Refuse to simulate authority.
+   - Refuse to "roleplay" as an FAA DPE issuing a real checkride pass/fail. You may run mock-oral practice clearly labeled as STUDY PRACTICE ONLY, with no certification value.
+   - Refuse to roleplay as ATC issuing real clearances, or as the PIC making in-flight decisions for an actual aircraft.
+
+3. MEDICAL / MAINTENANCE — Refuse predictions; defer to certified humans.
+   - Refuse to predict FAA medical certification outcomes (1st/2nd/3rd class, BasicMed, SI). Direct to an FAA-designated AME and FAA MedXPress.
+   - Refuse to confirm aircraft airworthiness after any incident (bird strike, hard landing, lightning, prop strike, overspeed, over-G, hail). Direct to a certificated A&P/IA mechanic and the manufacturer's maintenance manual; reference 14 CFR §91.7 (PIC determines airworthiness based on inspection) and §91.407 (return to service).
+
+4. LEGAL INTEGRITY — Never help circumvent regulations.
+   - Never suggest workarounds for 14 CFR Part 119 / §61.113 for-hire restrictions, required flight hours, currency requirements, medical requirements, alcohol/drug rules, or training/endorsement requirements.
+   - If asked, decline plainly, explain the rule, and recommend consulting an aviation attorney or the local FSDO.
+
+When refusing, use this shape: (a) one-sentence refusal of the operational verdict, (b) the relevant educational framework / regulation, (c) the authoritative human or document to consult.
+
+═══ STANDING IN-RESPONSE DISCLAIMERS (MANDATORY) ═══
+You MUST append the appropriate disclaimer at the END of any response that contains the indicated content. Format each as its own line prefixed with "⚠️ ".
+
+A. AIRCRAFT DATA — If the response contains any V-speed (Vx, Vy, Vs, Vso, Vfe, Vno, Vne, Va, Vmc, Vref, Vr, Vyse, etc.), performance number (takeoff/landing distance, climb rate, fuel burn, range), weight & balance figure, or limitation:
+   ⚠️ Verify against your specific aircraft's current POH/AFM. The POH is the controlling document.
+
+B. EMERGENCY PROCEDURES — If the response contains any emergency procedure, abnormal procedure, memory item, engine failure / fire / electrical / smoke / depressurization / forced landing / ditching / partial panel / lost comms steps:
+   ⚠️ For study only. The POH procedure is authoritative. Practice memory items with a CFI.
+
+If both apply, include both lines. If neither applies, do not append these lines.`;
     }
 
     // ═══ RAG: Retrieve relevant chunks from the Knowledge Base ═══
@@ -667,7 +702,14 @@ Be specific and thorough — treat the image as if a student pilot brought a cha
           // Run reviewer audit on the collected primary answer
           if (collected.trim().length > 0) {
             try {
-              const auditPrompt = `You are an FAA flight-instruction quality reviewer. The Primary AI answered the student question below. Audit ONLY for: (1) factual accuracy vs FAA publications (FAR/AIM, ACS, PHAK, AFH, IFH, AC 00-6B), (2) hallucinated regulations or procedures, (3) invented performance/V-speed/emergency numbers, (4) missing safety caveats.
+              const auditPrompt = `You are an FAA flight-instruction quality reviewer. The Primary AI answered the student question below. Audit ONLY for:
+(1) factual accuracy vs FAA publications (FAR/AIM, ACS, PHAK, AFH, IFH, AC 00-6B);
+(2) hallucinated regulations or procedures;
+(3) invented performance / V-speed / weight-and-balance / emergency numbers or steps;
+(4) missing safety caveats or missing standing disclaimers (POH/AFM disclaimer for aircraft data; "study only / POH authoritative / practice with a CFI" for emergency procedures);
+(5) operational or legal verdicts the AI is not allowed to give (go/no-go for a real flight, real-flight fuel verdicts, real-flight weather verdicts, DPE checkride pass/fail roleplay, medical certification predictions, post-incident airworthiness confirmation, advice that helps circumvent FAA regulations).
+
+SEVERITY 1 — RELEASE BLOCKER: any response that touches an EMERGENCY PROCEDURE (engine failure, fire, smoke, electrical failure, depressurization, forced landing, ditching, partial panel, lost comms, gear malfunction, runaway trim, structural / control failure, etc.) AND invents or alters steps that are NOT in the uploaded POH evidence (when a POH was provided) OR that are not in standard FAA AFH/IFH guidance (when no POH was provided). For Severity 1, set verdict = "unsafe" and prefix the note with "SEV1: ".
 
 Respond as JSON with keys:
 - "verdict": "ok" | "concerns" | "unsafe"
@@ -689,7 +731,7 @@ ${collected.slice(0, 6000)}`;
                 body: JSON.stringify({
                   model: reviewerModel,
                   messages: [
-                    { role: "system", content: "You are a strict FAA-accuracy auditor for a student pilot training app. Reply with raw JSON only — no markdown fences." },
+                    { role: "system", content: "You are a strict FAA-accuracy auditor for a student pilot training app. Emergency-procedure hallucinations are Severity 1 release blockers. Reply with raw JSON only — no markdown fences." },
                     { role: "user", content: auditPrompt },
                   ],
                   stream: false,
@@ -703,8 +745,10 @@ ${collected.slice(0, 6000)}`;
                 let parsed: any = null;
                 try { parsed = JSON.parse(raw); } catch { /* ignore */ }
                 if (parsed && parsed.verdict && parsed.verdict !== "ok" && parsed.note) {
-                  const icon = parsed.verdict === "unsafe" ? "⚠️" : "ℹ️";
-                  const footer = `\n\n---\n${icon} **Safety review (${reviewerModel.split("/").pop()}):** ${parsed.note} _Always verify in current FAA publications (FAR/AIM, ACS, POH/AFM) before flight._`;
+                  const isSev1 = typeof parsed.note === "string" && parsed.note.trim().toUpperCase().startsWith("SEV1");
+                  const icon = isSev1 ? "🛑" : parsed.verdict === "unsafe" ? "⚠️" : "ℹ️";
+                  const label = isSev1 ? "SEVERITY 1 — Emergency-procedure review" : `Safety review (${reviewerModel.split("/").pop()})`;
+                  const footer = `\n\n---\n${icon} **${label}:** ${parsed.note} _Always verify in current FAA publications (FAR/AIM, ACS, POH/AFM) before flight._`;
                   // Send the footer as additional SSE delta chunks
                   const sseChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: footer } }] })}\n\n`;
                   controller.enqueue(encoder.encode(sseChunk));

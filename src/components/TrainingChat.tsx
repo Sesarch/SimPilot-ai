@@ -297,6 +297,14 @@ export const TrainingChat = ({
         total={celebration?.total ?? 0}
         onDismiss={() => setCelebration(null)}
       />
+      {/* Persistent Trust & Safety pinned disclaimer (Aviation Trust & Safety v2.0 §C) */}
+      <div
+        role="note"
+        aria-label="Safety disclaimer"
+        className="px-3 py-1.5 border-b border-border bg-muted/40 text-[10px] leading-snug text-muted-foreground text-center font-medium"
+      >
+        I'm a study tool, not a CFI or dispatcher. AI can be confidently wrong. Under <span className="text-foreground">14 CFR §91.3</span>, the PIC is the final authority.
+      </div>
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {!started && welcomeMessage && (
