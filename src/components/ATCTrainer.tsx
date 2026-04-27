@@ -453,48 +453,62 @@ const LiveAtisSeekBar = ({ audioRef }: { audioRef: React.MutableRefObject<HTMLAu
   const hasWindow = windowSize >= 2;
 
   return (
-    <div className="mt-1.5 flex items-center gap-2 rounded border border-border/60 bg-background/40 px-2 py-1.5">
-      <button
-        type="button"
-        onClick={togglePlay}
-        className="shrink-0 rounded border border-border bg-background/60 hover:border-primary/60 hover:bg-primary/5 p-1 transition-colors"
-        title={paused ? "Resume live ATIS" : "Pause live ATIS"}
-        aria-label={paused ? "Resume live ATIS" : "Pause live ATIS"}
-      >
-        {paused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
-      </button>
-      {hasWindow && isSeekable ? (
-        <>
-          <Slider
-            value={[current]}
-            min={windowStart}
-            max={windowEnd}
-            step={0.25}
-            onValueChange={onSlide}
-            className="flex-1"
-            aria-label="Replay buffered ATIS audio"
-          />
-          <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0">
-            -{fmt(fromLive)} / {fmt(windowSize)}
+    <div className="mt-1.5 rounded border border-border/60 bg-background/40 px-2 py-1.5">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={togglePlay}
+          className="shrink-0 rounded border border-border bg-background/60 hover:border-primary/60 hover:bg-primary/5 p-1 transition-colors"
+          title={paused ? "Resume live ATIS (Space)" : "Pause live ATIS (Space)"}
+          aria-label={paused ? "Resume live ATIS" : "Pause live ATIS"}
+        >
+          {paused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
+        </button>
+        {hasWindow && isSeekable ? (
+          <>
+            <Slider
+              value={[current]}
+              min={windowStart}
+              max={windowEnd}
+              step={0.25}
+              onValueChange={onSlide}
+              className="flex-1"
+              aria-label="Replay buffered ATIS audio"
+            />
+            <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0">
+              -{fmt(fromLive)} / {fmt(windowSize)}
+            </span>
+            <button
+              type="button"
+              onClick={jumpToLive}
+              disabled={fromLive < 1}
+              className="shrink-0 rounded border border-border bg-background/60 hover:border-primary/60 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-default p-1 transition-colors"
+              title="Jump back to live"
+              aria-label="Jump back to live"
+            >
+              <Rewind className="h-3 w-3 rotate-180" />
+            </button>
+          </>
+        ) : (
+          <span className="flex-1 font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+            Live · buffering replay window…
           </span>
-          <button
-            type="button"
-            onClick={jumpToLive}
-            disabled={fromLive < 1}
-            className="shrink-0 rounded border border-border bg-background/60 hover:border-primary/60 hover:bg-primary/5 disabled:opacity-40 disabled:cursor-default p-1 transition-colors"
-            title="Jump back to live"
-            aria-label="Jump back to live"
-          >
-            <Rewind className="h-3 w-3 rotate-180" />
-          </button>
-        </>
-      ) : (
-        <span className="flex-1 font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
-          Live · buffering replay window…
-        </span>
-      )}
+        )}
+      </div>
+      <div
+        className="mt-1 font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground/80 select-none"
+        title="Keyboard shortcuts active while tuned to ATIS"
+      >
+        <span className="hidden sm:inline">Shortcuts · </span>
+        <kbd className="px-1 rounded border border-border/60 bg-background/60 font-mono text-[9px]">Space</kbd> Play/Pause
+        <span className="mx-1 opacity-50">·</span>
+        <kbd className="px-1 rounded border border-border/60 bg-background/60 font-mono text-[9px]">M</kbd> Mute
+        <span className="mx-1 opacity-50">·</span>
+        <kbd className="px-1 rounded border border-border/60 bg-background/60 font-mono text-[9px]">↑↓</kbd> Volume
+      </div>
     </div>
   );
+
 };
 
 const ATCTrainer = () => {
