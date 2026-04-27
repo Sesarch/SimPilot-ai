@@ -372,6 +372,12 @@ const FlightTrackerMap = () => {
   }, [historicalTrack, trailPositions]);
 
   const filteredAircraft = useMemo(() => {
+    // When the user picks a specific aircraft from the search dropdown,
+    // isolate it: show ONLY that aircraft (plus its historical trail).
+    if (selectedIcaoRef.current && selectedAircraft) {
+      const onlySelected = aircraft.filter(ac => ac.icao24 === selectedIcaoRef.current);
+      return onlySelected.length > 0 ? onlySelected : [selectedAircraft];
+    }
     let list = aircraft;
     if (statusFilter === "airborne") list = list.filter(ac => !ac.onGround);
     else if (statusFilter === "ground") list = list.filter(ac => ac.onGround);
@@ -382,7 +388,7 @@ const FlightTrackerMap = () => {
       });
     }
     return list;
-  }, [aircraft, statusFilter, altRange]);
+  }, [aircraft, statusFilter, altRange, selectedAircraft]);
 
   const markers = useMemo(() => filteredAircraft.map((ac) => (
     <Marker
