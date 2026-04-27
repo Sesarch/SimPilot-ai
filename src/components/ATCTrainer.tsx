@@ -2698,8 +2698,10 @@ ${transcript}`;
                   })()}
                 </div>
               </div>
+              )}
 
               {/* ========= LEGACY GUIDED SCENARIOS ========= */}
+              {guidedScenariosEnabled && (
               <div className="border-t border-border pt-4">
                 <div className="text-center mb-4 space-y-2 sm:space-y-2.5 px-3 sm:px-4">
                   <div className="font-display text-xs sm:text-sm md:text-base tracking-[0.2em] sm:tracking-[0.3em] uppercase text-foreground/90 font-medium leading-snug sm:leading-relaxed">
