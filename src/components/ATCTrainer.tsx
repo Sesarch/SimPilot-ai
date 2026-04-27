@@ -703,6 +703,13 @@ const ATCTrainer = () => {
   const [selectedOutputId, setSelectedOutputId] = useState<string>(() => {
     try { return localStorage.getItem("atc_output_device_id") || ""; } catch { return ""; }
   });
+  // Independent output device for Live ATIS — lets pilots route the live ATC
+  // broadcast to a dedicated headset while ATC voice + UI sounds stay on the
+  // main output (mirrors a real cockpit's split audio panel). Empty string
+  // means "follow the main ATC output device".
+  const [selectedAtisOutputId, setSelectedAtisOutputId] = useState<string>(() => {
+    try { return localStorage.getItem("atc_atis_output_device_id") || ""; } catch { return ""; }
+  });
   // setSinkId is only on Chromium-family browsers
   const sinkIdSupported = typeof document !== "undefined"
     && typeof (document.createElement("audio") as any).setSinkId === "function";
