@@ -593,7 +593,7 @@ const ATCTrainer = () => {
   const [airportSearch, setAirportSearch] = useState("");
   // Real-world ATIS state — set when the pilot tunes an ATIS frequency.
   // `info` is the phonetic letter ("Bravo"), `text` is the broadcast string.
-  const [currentAtis, setCurrentAtis] = useState<{ icao: string; info: string; text: string; source: string; audioUrl?: string | null } | null>(null);
+  const [currentAtis, setCurrentAtis] = useState<{ icao: string; info: string; text: string; source: string; audioUrl?: string | null; proxyAudioUrl?: string | null } | null>(null);
   const [atisLoading, setAtisLoading] = useState(false);
   // Live ATIS audio stream (LiveATC). When tuned, we attempt to stream the
   // real broadcast; the <audio> element is held in a ref so we can stop it
@@ -767,65 +767,85 @@ const ATCTrainer = () => {
           text: data.text,
           source: data.source ?? "synth",
           audioUrl: data.audioUrl ?? null,
+          proxyAudioUrl: data.proxyAudioUrl ?? null,
         });
         const sourceLabel =
           data.source === "datis" ? "live FAA D-ATIS"
           : data.source === "vatsim" ? "live VATSIM feed"
           : "live weather";
+        const hasLiveAudio = !!(data.proxyAudioUrl || data.audioUrl);
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             role: "system",
-            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${data.audioUrl ? " + live audio" : ""})`,
+            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${hasLiveAudio ? " + live audio" : ""})`,
           },
           { id: crypto.randomUUID(), role: "atc", content: data.text },
         ]);
 
-        // Try to play the real-world ATIS audio stream first. If it fails
-        // (CORS, geoblock, feed offline), fall back to TTS of the text.
+        // Universal Live ATIS playback. Try sources in order:
+        //   1. Edge proxy (CORS-safe, works in any browser).
+        //   2. Direct LiveATC URL (faster, sometimes blocked by CORS/hotlink).
+        //   3. TTS of the D-ATIS/synth text (always available).
+        const tryPlay = async (src: string): Promise<boolean> => {
+          if (atisAudioRef.current) {
+            try { atisAudioRef.current.pause(); } catch { /* noop */ }
+            atisAudioRef.current.src = "";
+            atisAudioRef.current = null;
+          }
+          // NOTE: do NOT set audio.crossOrigin — it forces a CORS preflight
+          // that the LiveATC origin rejects. Plain media playback works fine
+          // without it (we don't need WebAudio analysis on this stream).
+          const audio = new Audio(src);
+          audio.preload = "none";
+          audio.autoplay = true;
+          audio.volume = 0.9;
+          atisAudioRef.current = audio;
+          setAtisAudioState("loading");
+          return await new Promise<boolean>((resolve) => {
+            let settled = false;
+            const finish = (ok: boolean) => {
+              if (settled) return;
+              settled = true;
+              audio.removeEventListener("playing", onPlaying);
+              audio.removeEventListener("error", onErr);
+              clearTimeout(timer);
+              resolve(ok);
+            };
+            const onPlaying = () => finish(true);
+            const onErr = () => finish(false);
+            audio.addEventListener("playing", onPlaying, { once: true });
+            audio.addEventListener("error", onErr, { once: true });
+            const timer = setTimeout(() => finish(false), 6000);
+            audio.play().catch(() => finish(false));
+          });
+        };
+
         let livePlaying = false;
-        if (data.audioUrl) {
-          try {
-            // Tear down any prior stream.
-            if (atisAudioRef.current) {
-              atisAudioRef.current.pause();
-              atisAudioRef.current.src = "";
-              atisAudioRef.current = null;
-            }
-            setAtisAudioState("loading");
-            const audio = new Audio(data.audioUrl);
-            audio.crossOrigin = "anonymous";
-            audio.preload = "none";
-            audio.autoplay = true;
-            audio.volume = 0.9;
-            atisAudioRef.current = audio;
-            await new Promise<void>((resolve, reject) => {
-              const onPlaying = () => { cleanup(); resolve(); };
-              const onErr = () => { cleanup(); reject(new Error("audio error")); };
-              const cleanup = () => {
-                audio.removeEventListener("playing", onPlaying);
-                audio.removeEventListener("error", onErr);
-              };
-              audio.addEventListener("playing", onPlaying, { once: true });
-              audio.addEventListener("error", onErr, { once: true });
-              // Kick off playback (may reject due to autoplay policy).
-              audio.play().catch(onErr);
-              setTimeout(() => { cleanup(); reject(new Error("audio timeout")); }, 6000);
-            });
+        const candidates: string[] = [data.proxyAudioUrl, data.audioUrl].filter(
+          (u: unknown): u is string => typeof u === "string" && u.length > 0,
+        );
+        for (const src of candidates) {
+          if (cancelled) break;
+          // eslint-disable-next-line no-await-in-loop
+          const ok = await tryPlay(src);
+          if (ok) {
             if (cancelled) {
-              audio.pause();
-              return;
+              try { atisAudioRef.current?.pause(); } catch { /* noop */ }
+              break;
             }
             livePlaying = true;
             setAtisAudioState("playing");
-          } catch (err) {
-            console.warn("Live ATIS audio failed, falling back to TTS", err);
-            setAtisAudioState("failed");
-            if (atisAudioRef.current) {
-              try { atisAudioRef.current.pause(); } catch { /* noop */ }
-              atisAudioRef.current = null;
-            }
+            break;
+          }
+          console.warn("[ATIS] live audio source failed, trying next:", src);
+        }
+        if (!livePlaying) {
+          setAtisAudioState(candidates.length ? "failed" : "idle");
+          if (atisAudioRef.current) {
+            try { atisAudioRef.current.pause(); } catch { /* noop */ }
+            atisAudioRef.current = null;
           }
         }
         if (!livePlaying && !cancelled) {
