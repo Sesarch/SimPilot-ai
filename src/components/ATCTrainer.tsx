@@ -850,13 +850,16 @@ const ATCTrainer = () => {
         };
 
         let livePlaying = false;
-        const candidates: string[] = [data.proxyAudioUrl, data.audioUrl].filter(
-          (u: unknown): u is string => typeof u === "string" && u.length > 0,
-        );
-        for (const src of candidates) {
+        const proxyUrl: string | null = typeof data.proxyAudioUrl === "string" && data.proxyAudioUrl.length > 0 ? data.proxyAudioUrl : null;
+        const directUrl: string | null = typeof data.audioUrl === "string" && data.audioUrl.length > 0 ? data.audioUrl : null;
+        // Try proxy first (CORS-safe), then fall back to direct LiveATC URL.
+        const candidates: Array<{ url: string; kind: "proxy" | "direct" }> = [];
+        if (proxyUrl) candidates.push({ url: proxyUrl, kind: "proxy" });
+        if (directUrl) candidates.push({ url: directUrl, kind: "direct" });
+        for (const c of candidates) {
           if (cancelled) break;
           // eslint-disable-next-line no-await-in-loop
-          const ok = await tryPlay(src);
+          const ok = await tryPlay(c.url);
           if (ok) {
             if (cancelled) {
               try { atisAudioRef.current?.pause(); } catch { /* noop */ }
@@ -864,12 +867,14 @@ const ATCTrainer = () => {
             }
             livePlaying = true;
             setAtisAudioState("playing");
+            setAtisLiveSource(c.kind);
             break;
           }
-          console.warn("[ATIS] live audio source failed, trying next:", src);
+          console.warn("[ATIS] live audio source failed, trying next:", c.kind, c.url);
         }
         if (!livePlaying) {
           setAtisAudioState(candidates.length ? "failed" : "idle");
+          setAtisLiveSource(null);
           if (atisAudioRef.current) {
             try { atisAudioRef.current.pause(); } catch { /* noop */ }
             atisAudioRef.current = null;
