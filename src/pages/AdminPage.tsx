@@ -80,6 +80,10 @@ const AdminPage = () => {
   const [grantReason, setGrantReason] = useState("");
   const [grantExpires, setGrantExpires] = useState("");
   const [granting, setGranting] = useState(false);
+  const [extendDialog, setExtendDialog] = useState<{ userId: string; email: string; currentEndsAt: string | null } | null>(null);
+  const [extendMonths, setExtendMonths] = useState<string>("1");
+  const [extendReason, setExtendReason] = useState("");
+  const [extending, setExtending] = useState(false);
   const [leads, setLeads] = useState<LeadEmail[]>([]);
   const [leadsFetching, setLeadsFetching] = useState(false);
 
