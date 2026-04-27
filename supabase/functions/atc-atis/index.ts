@@ -174,11 +174,21 @@ Deno.serve(async (req) => {
     // Probe LiveATC for a real audio stream in parallel with text lookups.
     const audioPromise = probeLiveAtcAtis(icao);
 
+    // Build a CORS-safe proxy URL the browser can hit even when the direct
+    // LiveATC URL is blocked. Always returned when the direct probe succeeds —
+    // the client will prefer this for playback.
+    const origin = new URL(req.url).origin;
+    const proxyAudioUrlFor = (i: string) =>
+      `${origin}/functions/v1/atc-atis-stream?icao=${encodeURIComponent(i)}`;
+
     // 1) FAA D-ATIS — official US text broadcast.
     const datis = await tryDatis(icao);
     if (datis) {
       const audioUrl = await audioPromise;
-      return new Response(JSON.stringify({ source: "datis", icao, freq, info: datis.info, text: datis.text, audioUrl }), {
+      return new Response(JSON.stringify({
+        source: "datis", icao, freq, info: datis.info, text: datis.text,
+        audioUrl, proxyAudioUrl: audioUrl ? proxyAudioUrlFor(icao) : null,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -187,7 +197,10 @@ Deno.serve(async (req) => {
     const vatsim = await tryVatsim(icao);
     if (vatsim) {
       const audioUrl = await audioPromise;
-      return new Response(JSON.stringify({ source: "vatsim", icao, freq, info: vatsim.info, text: vatsim.text, audioUrl }), {
+      return new Response(JSON.stringify({
+        source: "vatsim", icao, freq, info: vatsim.info, text: vatsim.text,
+        audioUrl, proxyAudioUrl: audioUrl ? proxyAudioUrlFor(icao) : null,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -198,12 +211,18 @@ Deno.serve(async (req) => {
     const audioUrl = await audioPromise;
     if (!metar) {
       const text = `${airportName || icao} information ${info}, weather not available. Advise on initial contact you have information ${info}.`;
-      return new Response(JSON.stringify({ source: "synth", icao, freq, info, text, audioUrl }), {
+      return new Response(JSON.stringify({
+        source: "synth", icao, freq, info, text,
+        audioUrl, proxyAudioUrl: audioUrl ? proxyAudioUrlFor(icao) : null,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const text = await synthAtisFromMetar(icao, metar, info, airportName);
-    return new Response(JSON.stringify({ source: "synth", icao, freq, info, text, metar, audioUrl }), {
+    return new Response(JSON.stringify({
+      source: "synth", icao, freq, info, text, metar,
+      audioUrl, proxyAudioUrl: audioUrl ? proxyAudioUrlFor(icao) : null,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
