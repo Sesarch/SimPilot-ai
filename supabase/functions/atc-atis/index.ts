@@ -26,25 +26,56 @@ const AI_GW = "https://ai.gateway.lovable.dev/v1/chat/completions";
 // dedicated ATIS-only feed at this URL pattern (lowercase ICAO, "_atis"). We
 // HEAD-probe before returning so the client only attempts to play live feeds
 // that are actually online.
-function liveAtcAtisUrl(icao: string): string {
-  return `https://d.liveatc.net/${icao.toLowerCase()}_atis`;
+// LiveATC mount-name candidates. Most airports publish at `<icao>_atis`, but
+// some use numeric suffixes (`<icao>2_atis`) or the legacy `<faa>_atis` (FAA
+// 3-letter id, e.g. `lax_atis` for KLAX). We probe in order and return the
+// first that actually serves audio.
+function liveAtcAtisCandidates(icao: string): string[] {
+  const lo = icao.toLowerCase();
+  const urls: string[] = [
+    `https://d.liveatc.net/${lo}_atis`,
+    `https://d.liveatc.net/${lo}2_atis`,
+    `https://d.liveatc.net/${lo}_atis1`,
+  ];
+  // ICAO -> FAA id (drop leading K for US, leading P for some Pacific).
+  if (/^K[A-Z]{3}$/.test(icao)) urls.push(`https://d.liveatc.net/${lo.slice(1)}_atis`);
+  return urls;
+}
+
+async function probeOne(url: string): Promise<boolean> {
+  // Use a small ranged GET — many Icecast/Shoutcast servers mishandle HEAD
+  // (return 405 or omit Content-Type) but always answer GET correctly.
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 3500);
+    const r = await fetch(url, {
+      method: "GET",
+      signal: ctrl.signal,
+      redirect: "follow",
+      headers: {
+        "User-Agent": "simpilot-atc/1.0 (+https://simpilot.ai)",
+        Accept: "audio/mpeg, audio/*;q=0.9, */*;q=0.5",
+        Referer: "https://www.liveatc.net/",
+        Range: "bytes=0-1023",
+      },
+    });
+    clearTimeout(timer);
+    // Cancel the body immediately — we only needed headers + first bytes.
+    try { await r.body?.cancel(); } catch { /* noop */ }
+    if (!r.ok && r.status !== 206) return false;
+    const ct = r.headers.get("content-type") ?? "";
+    if (!/audio|mpeg|octet-stream/i.test(ct)) return false;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function probeLiveAtcAtis(icao: string): Promise<string | null> {
-  const url = liveAtcAtisUrl(icao);
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 2500);
-    // LiveATC returns 200 + audio/mpeg when a feed is live, 404 otherwise.
-    const r = await fetch(url, { method: "HEAD", signal: ctrl.signal, redirect: "follow" });
-    clearTimeout(timer);
-    if (!r.ok) return null;
-    const ct = r.headers.get("content-type") ?? "";
-    if (!/audio|mpeg|octet-stream/i.test(ct)) return null;
-    return url;
-  } catch {
-    return null;
+  for (const url of liveAtcAtisCandidates(icao)) {
+    if (await probeOne(url)) return url;
   }
+  return null;
 }
 
 async function tryDatis(icao: string): Promise<{ text: string; info: string } | null> {
