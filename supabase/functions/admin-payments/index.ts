@@ -347,6 +347,58 @@ Deno.serve(async (req) => {
         });
         return json({ success: true });
       }
+
+      if (action === "extend-trial") {
+        const { user_id, months, reason } = body;
+        const m = Number(months);
+        if (!user_id || !Number.isFinite(m) || m <= 0 || m > 120) {
+          return badReq("user_id and months (1-120) required");
+        }
+        // Fetch current trial_ends_at
+        const { data: profile, error: pErr } = await admin
+          .from("profiles")
+          .select("trial_ends_at")
+          .eq("user_id", user_id)
+          .maybeSingle();
+        if (pErr) throw pErr;
+
+        const now = new Date();
+        const baseMs = profile?.trial_ends_at
+          ? Math.max(new Date(profile.trial_ends_at).getTime(), now.getTime())
+          : now.getTime();
+        const newEnd = new Date(baseMs);
+        // Add months by calendar
+        newEnd.setMonth(newEnd.getMonth() + Math.floor(m));
+        // Handle fractional months as days (30/mo)
+        const fractional = m - Math.floor(m);
+        if (fractional > 0) {
+          newEnd.setDate(newEnd.getDate() + Math.round(fractional * 30));
+        }
+
+        const { data: updated, error: uErr } = await admin
+          .from("profiles")
+          .update({ trial_ends_at: newEnd.toISOString() })
+          .eq("user_id", user_id)
+          .select("trial_ends_at")
+          .single();
+        if (uErr) throw uErr;
+
+        await logAdminAction(admin, {
+          adminUserId: user.id,
+          adminEmail: user.email,
+          action: "trial.extend",
+          targetType: "user",
+          targetId: user_id,
+          details: {
+            months: m,
+            reason: reason || null,
+            previous_ends_at: profile?.trial_ends_at || null,
+            new_ends_at: updated.trial_ends_at,
+          },
+          req,
+        });
+        return json({ success: true, trial_ends_at: updated.trial_ends_at });
+      }
     }
 
     return badReq("Invalid action");

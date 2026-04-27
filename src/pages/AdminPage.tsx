@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
-  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift,
+  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,7 @@ type AdminUser = {
   roles: string[];
   display_name: string | null;
   terms_agreed_at: string | null;
+  trial_ends_at: string | null;
   last_transmission_at: string | null;
   total_sim_hours: number;
   comp_grant: { plan_tier: string; expires_at: string | null } | null;
@@ -79,6 +80,10 @@ const AdminPage = () => {
   const [grantReason, setGrantReason] = useState("");
   const [grantExpires, setGrantExpires] = useState("");
   const [granting, setGranting] = useState(false);
+  const [extendDialog, setExtendDialog] = useState<{ userId: string; email: string; currentEndsAt: string | null } | null>(null);
+  const [extendMonths, setExtendMonths] = useState<string>("1");
+  const [extendReason, setExtendReason] = useState("");
+  const [extending, setExtending] = useState(false);
   const [leads, setLeads] = useState<LeadEmail[]>([]);
   const [leadsFetching, setLeadsFetching] = useState(false);
 
@@ -274,6 +279,47 @@ const AdminPage = () => {
       toast.error(err.message);
     }
     setGranting(false);
+  };
+
+  const handleExtendTrial = async () => {
+    if (!extendDialog) return;
+    const months = Number(extendMonths);
+    if (!Number.isFinite(months) || months <= 0 || months > 120) {
+      toast.error("Enter 1–120 months");
+      return;
+    }
+    setExtending(true);
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-payments?action=extend-trial`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: extendDialog.userId,
+            months,
+            reason: extendReason.trim() || null,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to extend trial");
+      toast.success(
+        `Extended trial for ${extendDialog.email} by ${months} month${months === 1 ? "" : "s"}. New end: ${new Date(data.trial_ends_at).toLocaleDateString()}`
+      );
+      setExtendDialog(null);
+      setExtendReason("");
+      setExtendMonths("1");
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setExtending(false);
   };
 
   const filteredUsers = users.filter(
@@ -521,6 +567,10 @@ const AdminPage = () => {
                                     <Ban className="w-3 h-3" />
                                   </Button>
                                 )}
+                                <Button variant="ghost" size="sm" className="text-xs text-cyan-500 h-7" title="Extend free trial (full access)"
+                                  onClick={() => { setExtendMonths("1"); setExtendReason(""); setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at }); }}>
+                                  <CalendarClock className="w-3 h-3" />
+                                </Button>
                                 <Button variant="ghost" size="sm" className="text-xs text-amber-500 h-7" title="Grant comp access"
                                   onClick={() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); }}>
                                   <Gift className="w-3 h-3" />
@@ -721,6 +771,66 @@ const AdminPage = () => {
             <Button variant="outline" onClick={() => setGrantDialog(null)} disabled={granting}>Cancel</Button>
             <Button onClick={handleGrant} disabled={granting}>
               {granting ? "Granting…" : "Grant Access"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Extend Trial Dialog */}
+      <Dialog open={!!extendDialog} onOpenChange={(o) => !o && setExtendDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarClock className="w-4 h-4 text-cyan-500" /> Extend Free Trial
+            </DialogTitle>
+            <DialogDescription>
+              Extend <span className="font-medium text-foreground">{extendDialog?.email}</span>'s
+              free trial by any number of months. While the trial is active, the user has full
+              access (equivalent to Ultra). This bypasses Stripe and is logged to the audit log.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              Current trial ends:{" "}
+              <span className="font-medium text-foreground">
+                {extendDialog?.currentEndsAt
+                  ? new Date(extendDialog.currentEndsAt).toLocaleDateString()
+                  : "—"}
+              </span>
+              {extendDialog?.currentEndsAt &&
+                new Date(extendDialog.currentEndsAt).getTime() < Date.now() && (
+                  <span className="ml-2 text-amber-500">(expired — extension starts from today)</span>
+                )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="extend-months">Months to add</Label>
+              <Input
+                id="extend-months"
+                type="number"
+                min={1}
+                max={120}
+                step={1}
+                value={extendMonths}
+                onChange={(e) => setExtendMonths(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Enter any whole number from 1 to 120.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="extend-reason">Reason (optional)</Label>
+              <Input
+                id="extend-reason"
+                placeholder="Beta tester, partner, customer goodwill…"
+                value={extendReason}
+                onChange={(e) => setExtendReason(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExtendDialog(null)} disabled={extending}>
+              Cancel
+            </Button>
+            <Button onClick={handleExtendTrial} disabled={extending}>
+              {extending ? "Extending…" : "Extend Trial"}
             </Button>
           </DialogFooter>
         </DialogContent>

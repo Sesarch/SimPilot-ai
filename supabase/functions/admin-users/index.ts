@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
       // Get profiles
       const { data: profiles } = await adminClient
         .from("profiles")
-        .select("user_id, display_name, terms_agreed_at")
+        .select("user_id, display_name, terms_agreed_at, trial_ends_at")
         .in("user_id", userIds);
 
       // Engagement: last_transmission (latest chat session updated_at)
@@ -145,6 +145,7 @@ Deno.serve(async (req) => {
         roles: (roles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
         display_name: (profiles || []).find((p: any) => p.user_id === u.id)?.display_name || null,
         terms_agreed_at: (profiles || []).find((p: any) => p.user_id === u.id)?.terms_agreed_at || null,
+        trial_ends_at: (profiles || []).find((p: any) => p.user_id === u.id)?.trial_ends_at || null,
         last_transmission_at: lastTxByUser.get(u.id) || null,
         total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
         comp_grant: grantByUser.get(u.id) || null,
