@@ -3210,6 +3210,10 @@ ${transcript}`;
                         </span>
                       );
                     })()}
+                   </div>
+                   {tunedToAtis && atisAudioState === "playing" && atisLiveSource && (
+                     <LiveAtisSeekBar audioRef={atisAudioRef} />
+                   )}
                   </div>
                 );
               })()}
