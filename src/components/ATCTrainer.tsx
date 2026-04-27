@@ -2905,29 +2905,35 @@ ${transcript}`;
                       // Audio source badge — reflects what the pilot is actually
                       // hearing (or would hear) on this ATIS frequency.
                       // Priority: LiveATC stream actively playing > text source.
-                      const isLive = tunedToAtis && atisAudioState === "playing" && !!currentAtis.audioUrl;
+                      const isLive = tunedToAtis && atisAudioState === "playing" && !!atisLiveSource;
                       type SrcMeta = { label: string; title: string; cls: string };
-                      const meta: SrcMeta = isLive
+                      const meta: SrcMeta = isLive && atisLiveSource === "direct"
                         ? {
                             label: "LiveATC",
-                            title: "Real-world ATIS audio streaming from LiveATC.net",
+                            title: "Real-world ATIS audio streamed directly from LiveATC.net",
+                            cls: "border-red-500/60 bg-red-500/10 text-red-500",
+                          }
+                        : isLive && atisLiveSource === "proxy"
+                        ? {
+                            label: "Proxy",
+                            title: "Real-world ATIS audio relayed through SimPilot's edge proxy (CORS-safe path to LiveATC.net)",
                             cls: "border-red-500/60 bg-red-500/10 text-red-500",
                           }
                         : currentAtis.source === "datis"
                         ? {
-                            label: "D-ATIS",
-                            title: "Official FAA Digital ATIS text (spoken via TTS)",
+                            label: "D-ATIS · TTS",
+                            title: "Official FAA Digital ATIS text spoken via text-to-speech (no live audio stream available)",
                             cls: "border-emerald-500/60 bg-emerald-500/10 text-emerald-500",
                           }
                         : currentAtis.source === "vatsim"
                         ? {
-                            label: "VATSIM",
-                            title: "Live VATSIM controller ATIS text (spoken via TTS)",
+                            label: "VATSIM · TTS",
+                            title: "Live VATSIM controller ATIS text spoken via text-to-speech",
                             cls: "border-violet-500/60 bg-violet-500/10 text-violet-500",
                           }
                         : {
-                            label: "Synthetic",
-                            title: "Generated from current METAR (no real ATIS available)",
+                            label: "METAR Fallback",
+                            title: "No real ATIS available — generated from current METAR weather and spoken via text-to-speech",
                             cls: "border-amber-500/60 bg-amber-500/10 text-amber-500",
                           };
                       return (
