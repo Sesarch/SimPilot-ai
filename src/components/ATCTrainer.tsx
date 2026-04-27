@@ -900,6 +900,7 @@ const ATCTrainer = () => {
         atisAudioRef.current = null;
       }
       setAtisAudioState("idle");
+      setAtisLiveSource(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveAirport?.icao, activeFreq, liveContext?.facility?.kind]);
