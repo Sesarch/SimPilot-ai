@@ -354,6 +354,7 @@ const FlightTrackerMap = () => {
     setSelectedAirport(null);
     setPositionHistory([]);
     setHistoricalTrack([]);
+    setFlightStatus(null);
     traceAbortRef.current?.abort();
   }, []);
 
