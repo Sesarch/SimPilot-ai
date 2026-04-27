@@ -3474,31 +3474,19 @@ ${transcript}`;
           )}
         </div>
 
-        {/* PTT preferences: Release-to-Transmit toggle + assignable hotkey */}
+        {/* PTT preferences: assignable hotkey. Release-to-Transmit is always on. */}
         {sttSupported && (
           <div className="w-full flex flex-col gap-2 border border-border/60 rounded-md bg-background/40 px-3 py-2">
             <div className="flex items-center justify-between gap-2">
               <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
                 Release-to-Transmit
               </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={autoTransmit}
-                onClick={() => setAutoTransmit((v) => !v)}
-                title={autoTransmit ? "On: releasing PTT sends immediately" : "Off: review draft, then press Transmit"}
-                className={cn(
-                  "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
-                  autoTransmit ? "bg-[hsl(var(--hud-green))]/70" : "bg-muted",
-                )}
+              <span
+                className="font-display text-[10px] tracking-[0.25em] uppercase text-[hsl(var(--hud-green))]"
+                title="Releasing PTT transmits immediately — standard cockpit behavior"
               >
-                <span
-                  className={cn(
-                    "inline-block h-4 w-4 rounded-full bg-background shadow transition-transform",
-                    autoTransmit ? "translate-x-4" : "translate-x-0.5",
-                  )}
-                />
-              </button>
+                Always On
+              </span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
