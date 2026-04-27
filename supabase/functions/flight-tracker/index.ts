@@ -264,21 +264,105 @@ async function lookupTrace(hex: string): Promise<Response> {
     const data = await res.json();
     const baseTs = Number(data?.timestamp ?? 0);
     const trace = Array.isArray(data?.trace) ? data.trace : [];
-    // Down-sample large traces to keep the polyline fast.
-    const stride = trace.length > 1500 ? Math.ceil(trace.length / 1500) : 1;
-    const points = [] as Array<{ t: number; lat: number; lon: number; alt: number | null; gs: number | null }>;
-    for (let i = 0; i < trace.length; i += stride) {
-      const p = trace[i];
+
+    // Parse raw trace into typed points (no down-sample yet).
+    type Pt = { t: number; lat: number; lon: number; alt: number | null; gs: number | null; ground: boolean };
+    const all: Pt[] = [];
+    for (const p of trace) {
       if (!p || p.length < 3) continue;
       const altRaw = p[3];
-      points.push({
+      const ground = altRaw === "ground";
+      const lat = Number(p[1]);
+      const lon = Number(p[2]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      all.push({
         t: Math.round(baseTs + Number(p[0] || 0)),
-        lat: Number(p[1]),
-        lon: Number(p[2]),
-        alt: altRaw === "ground" ? 0 : (typeof altRaw === "number" ? altRaw : null),
+        lat, lon,
+        alt: ground ? 0 : (typeof altRaw === "number" ? altRaw : null),
         gs: typeof p[4] === "number" ? p[4] : null,
+        ground,
       });
     }
+
+    // Segment into discrete flights. A new flight starts after either:
+    //   - an extended ground period (>= 10 min on ground), OR
+    //   - a long telemetry gap (>= 30 min) between consecutive points.
+    // We then return ONLY the most recent flight segment so the polyline shows
+    // one flight, not days of history. If the aircraft is still airborne, the
+    // last segment naturally extends to "now"; if it has landed, the last
+    // segment ends at the most recent landing.
+    const GROUND_BREAK_SEC = 10 * 60;
+    const GAP_BREAK_SEC = 30 * 60;
+
+    let lastSegmentStart = 0;
+    let groundRunStart: number | null = null; // index of first ground point in current run
+    for (let i = 0; i < all.length; i++) {
+      const cur = all[i];
+      const prev = i > 0 ? all[i - 1] : null;
+
+      // Telemetry gap break.
+      if (prev && cur.t - prev.t >= GAP_BREAK_SEC) {
+        lastSegmentStart = i;
+        groundRunStart = cur.ground ? i : null;
+        continue;
+      }
+
+      if (cur.ground) {
+        if (groundRunStart === null) groundRunStart = i;
+        const runLen = cur.t - all[groundRunStart].t;
+        // If this ground run is long enough, the *next* airborne point starts a new flight.
+        if (runLen >= GROUND_BREAK_SEC) {
+          // Mark: we'll move the segment start to the next non-ground sample we see.
+          // Use a sentinel via groundRunStart; handled below.
+        }
+      } else {
+        // Airborne: if we just exited a long ground run, this is a new flight.
+        if (groundRunStart !== null) {
+          const runLen = all[i - 1].t - all[groundRunStart].t;
+          if (runLen >= GROUND_BREAK_SEC) {
+            lastSegmentStart = i;
+          }
+        }
+        groundRunStart = null;
+      }
+    }
+
+    // Trim leading ground taxi from the chosen segment so the polyline starts
+    // at takeoff (first airborne point of that flight).
+    let segStart = lastSegmentStart;
+    while (segStart < all.length && all[segStart].ground) segStart++;
+    if (segStart >= all.length) segStart = lastSegmentStart;
+
+    let segment = all.slice(segStart);
+
+    // Trim trailing taxi after the last landing so the line ends at touchdown
+    // (only when the aircraft is no longer airborne).
+    if (segment.length > 0 && segment[segment.length - 1].ground) {
+      let lastAir = segment.length - 1;
+      while (lastAir >= 0 && segment[lastAir].ground) lastAir--;
+      if (lastAir >= 0) segment = segment.slice(0, lastAir + 2); // include touchdown point
+    }
+
+    // Down-sample for polyline performance.
+    const stride = segment.length > 1500 ? Math.ceil(segment.length / 1500) : 1;
+    const points = [] as Array<{ t: number; lat: number; lon: number; alt: number | null; gs: number | null }>;
+    for (let i = 0; i < segment.length; i += stride) {
+      const s = segment[i];
+      points.push({ t: s.t, lat: s.lat, lon: s.lon, alt: s.alt, gs: s.gs });
+    }
+    // Always include the final point.
+    if (segment.length > 0) {
+      const last = segment[segment.length - 1];
+      const tail = points[points.length - 1];
+      if (!tail || tail.t !== last.t) {
+        points.push({ t: last.t, lat: last.lat, lon: last.lon, alt: last.alt, gs: last.gs });
+      }
+    }
+
+    const flightStartTs = segment.length > 0 ? segment[0].t : baseTs;
+    const flightEndTs = segment.length > 0 ? segment[segment.length - 1].t : baseTs;
+    const isLive = segment.length > 0 && !segment[segment.length - 1].ground;
+
     return new Response(
       JSON.stringify({
         hex: h,
@@ -287,6 +371,9 @@ async function lookupTrace(hex: string): Promise<Response> {
         description: data?.desc ?? null,
         owner: data?.ownOp ?? null,
         timestamp: baseTs,
+        flight_start: flightStartTs,
+        flight_end: flightEndTs,
+        is_live: isLive,
         points,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
