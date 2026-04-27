@@ -767,17 +767,19 @@ const ATCTrainer = () => {
           text: data.text,
           source: data.source ?? "synth",
           audioUrl: data.audioUrl ?? null,
+          proxyAudioUrl: data.proxyAudioUrl ?? null,
         });
         const sourceLabel =
           data.source === "datis" ? "live FAA D-ATIS"
           : data.source === "vatsim" ? "live VATSIM feed"
           : "live weather";
+        const hasLiveAudio = !!(data.proxyAudioUrl || data.audioUrl);
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             role: "system",
-            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${data.audioUrl ? " + live audio" : ""})`,
+            content: `📻 ${liveAirport.icao} ATIS · Information ${data.info ?? "Alpha"} (${sourceLabel}${hasLiveAudio ? " + live audio" : ""})`,
           },
           { id: crypto.randomUUID(), role: "atc", content: data.text },
         ]);
