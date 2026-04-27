@@ -2625,6 +2625,7 @@ ${transcript}`;
           {!selectedScenario && (
             <div className="h-full flex flex-col gap-5">
               {/* ========= LIVE FREQUENCY MODE (primary) ========= */}
+              {liveFreqEnabled && (
               <div>
                 <div className="text-center mb-3">
                   <div className="font-display text-[10px] tracking-[0.3em] uppercase text-primary">
