@@ -3451,10 +3451,22 @@ ${transcript}`;
                          </SelectContent>
                        </Select>
                      </div>
-                   )}
-                  </div>
-                );
-              })()}
+                    )}
+                    {tunedToAtis && (
+                      <div className="mt-1.5 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleClearAllAtisPrefs}
+                          className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground hover:text-destructive transition-colors underline-offset-4 hover:underline"
+                          title="Wipe stored Live ATIS volume and mute settings for every airport"
+                        >
+                          Clear all saved ATIS prefs
+                        </button>
+                      </div>
+                    )}
+                   </div>
+                 );
+               })()}
 
               {/* Manual frequency entry — accepts "119.2", normalizes to "119.200",
                   warns when freq doesn't belong to the selected airport. */}
