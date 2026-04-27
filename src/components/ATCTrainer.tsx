@@ -785,6 +785,34 @@ const ATCTrainer = () => {
       try { void (atisAudioRef.current as any).setSinkId(target); } catch { /* noop */ }
     }
   }, [sinkIdSupported, selectedOutputId]);
+  // Wipe every per-airport Live ATIS preference (volume + mute) from
+  // localStorage. Keys follow the convention `atc_atis_prefs:<ICAO>`. We also
+  // clear the global enable flag so the user starts from a clean slate.
+  const handleClearAllAtisPrefs = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (!window.confirm("Clear saved Live ATIS volume and mute preferences for every airport? This cannot be undone.")) {
+      return;
+    }
+    let removed = 0;
+    try {
+      const toRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith("atc_atis_prefs:") || k === "atc_atis_prefs_enabled")) {
+          toRemove.push(k);
+        }
+      }
+      for (const k of toRemove) {
+        localStorage.removeItem(k);
+        removed++;
+      }
+    } catch { /* private mode */ }
+    toast.success(
+      removed > 0
+        ? `Cleared saved ATIS preferences (${removed} ${removed === 1 ? "entry" : "entries"})`
+        : "No saved ATIS preferences to clear",
+    );
+  }, []);
   // One-time onboarding tooltip explaining mic permission.
   const [showMicOnboarding, setShowMicOnboarding] = useState(false);
   useEffect(() => {
