@@ -20,8 +20,15 @@ const corsHeaders = {
   "Access-Control-Expose-Headers": "content-length, content-range, accept-ranges",
 };
 
-function liveAtcAtisUrl(icao: string): string {
-  return `https://d.liveatc.net/${icao.toLowerCase()}_atis`;
+function liveAtcAtisCandidates(icao: string): string[] {
+  const lo = icao.toLowerCase();
+  const urls: string[] = [
+    `https://d.liveatc.net/${lo}_atis`,
+    `https://d.liveatc.net/${lo}2_atis`,
+    `https://d.liveatc.net/${lo}_atis1`,
+  ];
+  if (/^K[A-Z]{3}$/.test(icao)) urls.push(`https://d.liveatc.net/${lo.slice(1)}_atis`);
+  return urls;
 }
 
 Deno.serve(async (req) => {
@@ -36,8 +43,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const upstream = liveAtcAtisUrl(icao);
-
     // Forward Range header when the browser asks (HTML5 audio often does).
     const fwdHeaders: Record<string, string> = {
       "User-Agent": "simpilot-atc/1.0 (+https://simpilot.ai)",
@@ -47,18 +52,31 @@ Deno.serve(async (req) => {
     const range = req.headers.get("range");
     if (range) fwdHeaders["Range"] = range;
 
-    const upstreamResp = await fetch(upstream, {
-      method: "GET",
-      headers: fwdHeaders,
-      redirect: "follow",
-    });
+    // Try each known mount-name pattern; return the first one that streams audio.
+    let upstreamResp: Response | null = null;
+    let lastStatus = 0;
+    for (const candidate of liveAtcAtisCandidates(icao)) {
+      try {
+        const r = await fetch(candidate, { method: "GET", headers: fwdHeaders, redirect: "follow" });
+        lastStatus = r.status;
+        if (!r.ok && r.status !== 206) { try { await r.body?.cancel(); } catch { /* noop */ } continue; }
+        const ct = r.headers.get("content-type") ?? "";
+        if (!/audio|mpeg|octet-stream/i.test(ct)) {
+          try { await r.body?.cancel(); } catch { /* noop */ }
+          continue;
+        }
+        upstreamResp = r;
+        break;
+      } catch {
+        // try next candidate
+      }
+    }
 
-    if (!upstreamResp.ok || !upstreamResp.body) {
-      return new Response(JSON.stringify({ error: "upstream unavailable", status: upstreamResp.status }), {
+    if (!upstreamResp || !upstreamResp.body) {
+      return new Response(JSON.stringify({ error: "upstream unavailable", status: lastStatus }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
     const ct = upstreamResp.headers.get("content-type") ?? "audio/mpeg";
     if (!/audio|mpeg|octet-stream/i.test(ct)) {
       return new Response(JSON.stringify({ error: "non-audio response", contentType: ct }), {
