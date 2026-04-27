@@ -3388,6 +3388,42 @@ ${transcript}`;
                    {tunedToAtis && atisAudioState === "playing" && atisLiveSource && (
                      <LiveAtisSeekBar audioRef={atisAudioRef} />
                    )}
+                   {tunedToAtis && sinkIdSupported && outputDevices.length > 1 && (
+                     <div
+                       className="mt-1.5 flex items-center gap-2 rounded border border-border/60 bg-background/40 px-2 py-1.5"
+                       title="Route the live ATIS stream to a dedicated headset while keeping ATC voice on the main output"
+                     >
+                       <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" aria-hidden />
+                       <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground shrink-0">
+                         ATIS Out
+                       </span>
+                       <Select
+                         value={selectedAtisOutputId || "follow"}
+                         onValueChange={(v) => handleSelectAtisOutput(v === "follow" ? "" : v)}
+                       >
+                         <SelectTrigger
+                           className="h-6 flex-1 text-[10px] tracking-[0.15em] uppercase font-display"
+                           aria-label="Select audio output device for live ATIS"
+                         >
+                           <SelectValue placeholder="Follow main output" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="follow" className="text-xs">
+                             Follow main output
+                           </SelectItem>
+                           {outputDevices.map((d, i) => (
+                             <SelectItem
+                               key={d.deviceId || `atis-out-${i}`}
+                               value={d.deviceId || `atis-out-${i}`}
+                               className="text-xs"
+                             >
+                               {d.label || `Speaker ${i + 1}`}
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
+                     </div>
+                   )}
                   </div>
                 );
               })()}
