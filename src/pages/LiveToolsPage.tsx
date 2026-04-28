@@ -38,7 +38,22 @@ import FeatureDisabledPage from "@/components/FeatureDisabledPage";
 
 const LiveToolsPage = () => {
   const { settings } = useSiteSettings();
-  const [activeTab, setActiveTab] = useState<"tracker" | "atc">("tracker");
+  const location = useLocation();
+  const initialTab: "tracker" | "atc" =
+    new URLSearchParams(location.search).get("tab") === "atc" ||
+    location.hash === "#atc" ||
+    location.pathname.includes("atc")
+      ? "atc"
+      : "tracker";
+  const [activeTab, setActiveTab] = useState<"tracker" | "atc">(initialTab);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const t = params.get("tab");
+    if (t === "atc" || t === "tracker") setActiveTab(t);
+    else if (location.hash === "#atc") setActiveTab("atc");
+    else if (location.hash === "#tracker") setActiveTab("tracker");
+  }, [location.search, location.hash]);
 
   if (!settings.live_tools_enabled) return <FeatureDisabledPage feature="Live Sky Tools" />;
 
