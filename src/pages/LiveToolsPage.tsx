@@ -125,6 +125,27 @@ const LiveToolsPage = () => {
               })}
             </div>
 
+            {/* Weather Briefing CTA — links to dedicated page */}
+            <Link
+              to="/weather-briefing"
+              className="group mb-4 sm:mb-6 flex items-center justify-between gap-3 rounded-lg border border-border bg-card/40 hover:bg-card/70 hover:border-accent/60 transition-all px-3 sm:px-4 py-2.5 sm:py-3"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md bg-accent/15 text-accent shrink-0">
+                  <Cloud className="h-4 w-4 sm:h-5 sm:w-5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="font-display text-xs sm:text-sm uppercase tracking-wider text-foreground">
+                    Real-World Weather Briefing
+                  </div>
+                  <div className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                    Pull live METAR &amp; TAF for any airport, then get an AI CFI brief.
+                  </div>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
+            </Link>
+
             {/* Content */}
             {activeTab === "tracker" ? (
               <FlightTrackerErrorBoundary>
