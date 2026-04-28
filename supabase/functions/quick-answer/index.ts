@@ -33,7 +33,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, sourcePref } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -63,6 +63,12 @@ serve(async (req) => {
       }
     }
 
+    const allowedSources = ["auto", "FAR", "PHAK", "AIM"] as const;
+    const pref = allowedSources.includes(sourcePref) ? sourcePref : "auto";
+    const sourceDirective = pref === "auto"
+      ? ""
+      : `\n\nSOURCE PRIORITY: The user has selected ${pref} as the preferred source. Answer primarily from ${pref} and cite it. Only fall back to another source (PHAK/FAR/AIM) if ${pref} does not cover the question — and explicitly say so.`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -72,7 +78,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: SYSTEM_PROMPT + sourceDirective },
           ...messages,
         ],
         stream: true,
