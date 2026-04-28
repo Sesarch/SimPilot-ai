@@ -1,4 +1,4 @@
-import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable } from "lucide-react";
+import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable, Radar } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -22,7 +22,8 @@ const navItems = [
   { title: "Flight Deck", url: "/dashboard", icon: Gauge },
   { title: "Ground School", url: "/ground-school", icon: BookOpen },
   { title: "Oral Exam Sim", url: "/oral-exam", icon: Mic },
-  { title: "ATC Radio", url: "/live-tools", icon: Radio },
+  { title: "ATC Training", url: "/live-tools?tab=atc", icon: Radio },
+  { title: "Flight Tracking", url: "/live-tools?tab=tracker", icon: Radar },
   { title: "Logbook", url: "/logbook", icon: ClipboardList },
   { title: "Analytics", url: "/progress", icon: LineChart },
 ];
@@ -58,10 +59,15 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
+                const [pathOnly, queryStr = ""] = item.url.split("?");
+                const itemTab = new URLSearchParams(queryStr).get("tab");
+                const currentTab = new URLSearchParams(location.search).get("tab");
                 const active =
-                  item.url === "/dashboard"
+                  pathOnly === "/dashboard"
                     ? location.pathname === "/dashboard"
-                    : location.pathname.startsWith(item.url);
+                    : itemTab
+                      ? location.pathname === pathOnly && currentTab === itemTab
+                      : location.pathname.startsWith(pathOnly);
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={active} tooltip={item.title} className="h-10">
