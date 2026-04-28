@@ -35,6 +35,7 @@ import MobileChatPage from "./pages/MobileChatPage.tsx";
 import PublicProfilePage from "./pages/PublicProfilePage.tsx";
 import WeatherBriefingPage from "./pages/WeatherBriefingPage.tsx";
 import LiveToolsPage from "./pages/LiveToolsPage.tsx";
+import QuickAnswerPage from "./pages/QuickAnswerPage.tsx";
 import ForSchoolsPage from "./pages/ForSchoolsPage.tsx";
 import ForSchoolsSuccessPage from "./pages/ForSchoolsSuccessPage.tsx";
 import IntakePage from "./pages/IntakePage.tsx";
@@ -80,6 +81,7 @@ const App = () => (
                 <Route path="/oral-exam" element={<OralExamPage />} />
                 <Route path="/weather-briefing" element={<WeatherBriefingPage />} />
                 <Route path="/live-tools" element={<LiveToolsPage />} />
+                <Route path="/quick-answer" element={<QuickAnswerPage />} />
                 <Route path="/session-history" element={<SessionHistoryPage />} />
                 <Route path="/progress" element={<ProgressPage />} />
                 <Route path="/logbook" element={<LogbookPage />} />
