@@ -95,6 +95,33 @@ export default function QuickAnswerPage() {
       return;
     }
 
+    // Topical relevance check — only consult the server validator if no obvious aviation keywords matched
+    if (!AVIATION_KEYWORDS.test(content)) {
+      try {
+        const vUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quick-answer-validate`;
+        const vResp = await fetch(vUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ question: content }),
+        });
+        if (vResp.ok) {
+          const v = await vResp.json();
+          if (v.relevant === false) {
+            toast({
+              title: "Off-topic question",
+              description: v.suggestion || "Quick Answer only handles FAA, PHAK, FAR, or AIM questions. Try rephrasing.",
+            });
+            return;
+          }
+        }
+      } catch {
+        // Fail-open: let the question through if validator errors out
+      }
+    }
+
     // Auto-summarize older messages if approaching the cap
     let history = messages;
     if (messages.length >= SOFT_CAP) {
