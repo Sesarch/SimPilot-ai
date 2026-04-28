@@ -1,4 +1,4 @@
-import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable, Radar } from "lucide-react";
+import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable, Radar, Zap } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { title: "Flight Deck", url: "/dashboard", icon: Gauge },
+  { title: "Quick Answer", url: "/quick-answer", icon: Zap },
   { title: "Ground School", url: "/ground-school", icon: BookOpen },
   { title: "Oral Exam Sim", url: "/oral-exam", icon: Mic },
   { title: "ATC Training", url: "/live-tools?tab=atc", icon: Radio },
