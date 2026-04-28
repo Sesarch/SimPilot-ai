@@ -1,21 +1,37 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Zap, Loader2, Trash2, BookText } from "lucide-react";
+import { Send, Zap, Loader2, Trash2, BookText, X, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/hooks/use-toast";
 
 type Msg = { role: "user" | "assistant"; content: string; isSummary?: boolean };
 type SourcePref = "auto" | "FAR" | "PHAK" | "AIM";
+type Section = "all" | "weather" | "aerodynamics" | "regulations" | "airspace" | "navigation" | "procedures" | "systems" | "communications" | "performance" | "human_factors";
 
 const MAX_CHARS = 300;
 const MIN_CHARS = 3;
 const SOFT_CAP = 18; // trigger summarization at this many messages
 const KEEP_RECENT = 6; // number of most-recent messages to preserve verbatim
+
+const SECTIONS: { value: Section; label: string }[] = [
+  { value: "all", label: "All topics" },
+  { value: "weather", label: "Weather" },
+  { value: "aerodynamics", label: "Aerodynamics" },
+  { value: "regulations", label: "Regulations (FAR)" },
+  { value: "airspace", label: "Airspace" },
+  { value: "navigation", label: "Navigation" },
+  { value: "procedures", label: "Procedures" },
+  { value: "systems", label: "Aircraft Systems" },
+  { value: "communications", label: "Communications" },
+  { value: "performance", label: "Performance & W&B" },
+  { value: "human_factors", label: "Human Factors" },
+];
 
 const SUGGESTIONS = [
   "VFR fuel requirements at night?",
