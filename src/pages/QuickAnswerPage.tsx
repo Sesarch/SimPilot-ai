@@ -101,7 +101,7 @@ export default function QuickAnswerPage() {
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
-    if (!content || isLoading || isSummarizing) return;
+    if (!content || isLoading || isSummarizing || isCheckingSection) return;
     if (content.length < MIN_CHARS) {
       toast({ title: "Too short", description: `Question must be at least ${MIN_CHARS} characters.` });
       return;
@@ -109,6 +109,37 @@ export default function QuickAnswerPage() {
     if (content.length > MAX_CHARS) {
       toast({ title: "Too long", description: `Keep questions under ${MAX_CHARS} characters.` });
       return;
+    }
+
+    // Section focus check — block off-topic questions when a specific section is active
+    if (section !== "all") {
+      setIsCheckingSection(true);
+      try {
+        const checkUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quick-answer-section-check`;
+        const cResp = await fetch(checkUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ question: content, section }),
+        });
+        if (cResp.ok) {
+          const c = await cResp.json();
+          if (c.relevant === false) {
+            toast({
+              title: `This question is not related to ${sectionLabel}`,
+              description: c.reason || `Switch focus to "All topics" or rephrase to fit ${sectionLabel}.`,
+            });
+            setIsCheckingSection(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("section check failed", e);
+      } finally {
+        setIsCheckingSection(false);
+      }
     }
 
     // Auto-summarize older messages if approaching the cap
