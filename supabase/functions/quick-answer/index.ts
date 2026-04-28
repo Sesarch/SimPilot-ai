@@ -69,6 +69,14 @@ serve(async (req) => {
       ? ""
       : `\n\nSOURCE PRIORITY: The user has selected ${pref} as the preferred source. Answer primarily from ${pref} and cite it. Only fall back to another source (PHAK/FAR/AIM) if ${pref} does not cover the question — and explicitly say so.`;
 
+    const allowedSections = new Set([
+      "weather", "aerodynamics", "regulations", "airspace", "navigation",
+      "procedures", "systems", "communications", "performance", "human_factors",
+    ]);
+    const sectionDirective = (typeof section === "string" && allowedSections.has(section))
+      ? `\n\nFOCUS SECTION: The user has narrowed focus to "${section}". Answer strictly within this topic. If the question drifts outside this section, briefly note it and suggest switching focus.`
+      : "";
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -78,7 +86,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT + sourceDirective },
+          { role: "system", content: SYSTEM_PROMPT + sourceDirective + sectionDirective },
           ...messages,
         ],
         stream: true,
