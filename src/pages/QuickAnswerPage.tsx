@@ -7,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/hooks/use-toast";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = { role: "user" | "assistant"; content: string; isSummary?: boolean };
 type SourcePref = "auto" | "FAR" | "PHAK" | "AIM";
 
 const MAX_CHARS = 300;
 const MIN_CHARS = 3;
+const SOFT_CAP = 18; // trigger summarization at this many messages
+const KEEP_RECENT = 6; // number of most-recent messages to preserve verbatim
 
 const SUGGESTIONS = [
   "VFR fuel requirements at night?",
@@ -24,8 +26,52 @@ export default function QuickAnswerPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sourcePref, setSourcePref] = useState<SourcePref>("auto");
+  const [autoSummarize, setAutoSummarize] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const compactIfNeeded = async (current: Msg[]): Promise<Msg[]> => {
+    if (!autoSummarize || current.length < SOFT_CAP) return current;
+    const cutoff = current.length - KEEP_RECENT;
+    const toSummarize = current.slice(0, cutoff).filter((m) => !m.isSummary);
+    const recent = current.slice(cutoff);
+    const existingSummary = current.slice(0, cutoff).find((m) => m.isSummary);
+    if (toSummarize.length === 0) return current;
+
+    setIsSummarizing(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quick-answer-summarize`;
+      const payload = existingSummary
+        ? [{ role: "assistant", content: existingSummary.content }, ...toSummarize]
+        : toSummarize;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: payload }),
+      });
+      if (!resp.ok) {
+        toast({ title: "Could not summarize", description: "Keeping full history." });
+        return current;
+      }
+      const { summary } = await resp.json();
+      if (!summary) return current;
+      const compacted: Msg[] = [
+        { role: "assistant", content: summary, isSummary: true },
+        ...recent,
+      ];
+      toast({ title: "Older messages summarized", description: "Conversation compacted to free up space." });
+      return compacted;
+    } catch (e) {
+      console.error(e);
+      return current;
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
