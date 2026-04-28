@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Zap, Loader2 } from "lucide-react";
+import { Send, Zap, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -100,10 +100,20 @@ export default function QuickAnswerPage() {
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto w-full p-4 gap-4">
       <div className="flex items-center gap-3 border-b border-border pb-3">
         <Zap className="w-5 h-5 text-accent" />
-        <div>
+        <div className="flex-1">
           <h1 className="font-display text-lg font-semibold tracking-[0.15em] uppercase">Quick Answer</h1>
           <p className="text-xs text-muted-foreground">Short FAA answers grounded in PHAK, FAR, and AIM.</p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => { setMessages([]); setInput(""); }}
+          disabled={isLoading || messages.length === 0}
+          className="gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span className="hidden sm:inline">Clear chat</span>
+        </Button>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 pr-2">
