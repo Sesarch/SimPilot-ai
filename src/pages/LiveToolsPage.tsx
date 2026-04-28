@@ -6,7 +6,8 @@ import ATCTrainer from "@/components/ATCTrainer";
 import FlightAwareTestButton from "@/components/FlightAwareTestButton";
 import FlightProviderStatusPanel from "@/components/FlightProviderStatusPanel";
 
-import { Radar, Radio } from "lucide-react";
+import { Radar, Radio, Cloud, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 
 const tabs = [
