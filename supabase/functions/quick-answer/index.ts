@@ -37,6 +37,32 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // Validate input
+    const MAX_CHARS = 300;
+    const MAX_MESSAGES = 20;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return new Response(JSON.stringify({ error: "Messages required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (messages.length > MAX_MESSAGES) {
+      return new Response(JSON.stringify({ error: "Conversation too long. Please clear chat." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    for (const m of messages) {
+      if (!m || typeof m.content !== "string" || !["user", "assistant"].includes(m.role)) {
+        return new Response(JSON.stringify({ error: "Invalid message format" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (m.role === "user" && m.content.length > MAX_CHARS) {
+        return new Response(JSON.stringify({ error: `Question must be under ${MAX_CHARS} characters` }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {

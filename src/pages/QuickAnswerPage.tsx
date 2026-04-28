@@ -8,6 +8,9 @@ import { toast } from "@/hooks/use-toast";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+const MAX_CHARS = 300;
+const MIN_CHARS = 3;
+
 const SUGGESTIONS = [
   "VFR fuel requirements at night?",
   "What is class B airspace entry requirement?",
@@ -28,6 +31,14 @@ export default function QuickAnswerPage() {
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || isLoading) return;
+    if (content.length < MIN_CHARS) {
+      toast({ title: "Too short", description: `Question must be at least ${MIN_CHARS} characters.` });
+      return;
+    }
+    if (content.length > MAX_CHARS) {
+      toast({ title: "Too long", description: `Keep questions under ${MAX_CHARS} characters.` });
+      return;
+    }
 
     const userMsg: Msg = { role: "user", content };
     const next = [...messages, userMsg];
@@ -153,18 +164,24 @@ export default function QuickAnswerPage() {
 
       <form
         onSubmit={(e) => { e.preventDefault(); send(); }}
-        className="flex gap-2 border-t border-border pt-3"
+        className="flex flex-col gap-1 border-t border-border pt-3"
       >
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask a quick FAA question…"
-          disabled={isLoading}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={isLoading || !input.trim()}>
-          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-        </Button>
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value.slice(0, MAX_CHARS))}
+            placeholder="Ask a quick FAA question…"
+            disabled={isLoading}
+            maxLength={MAX_CHARS}
+            className="flex-1"
+          />
+          <Button type="submit" disabled={isLoading || input.trim().length < MIN_CHARS}>
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          </Button>
+        </div>
+        <div className={`text-[11px] text-right tabular-nums ${input.length >= MAX_CHARS ? "text-destructive" : "text-muted-foreground"}`}>
+          {input.length}/{MAX_CHARS}
+        </div>
       </form>
     </div>
   );
