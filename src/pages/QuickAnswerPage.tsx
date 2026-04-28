@@ -44,10 +44,14 @@ export default function QuickAnswerPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sourcePref, setSourcePref] = useState<SourcePref>("auto");
+  const [section, setSection] = useState<Section>("all");
   const [autoSummarize, setAutoSummarize] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isCheckingSection, setIsCheckingSection] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const sectionLabel = SECTIONS.find((s) => s.value === section)?.label ?? "All topics";
 
   const compactIfNeeded = async (current: Msg[]): Promise<Msg[]> => {
     if (!autoSummarize || current.length < SOFT_CAP) return current;
