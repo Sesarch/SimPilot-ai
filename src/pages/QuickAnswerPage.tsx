@@ -336,6 +336,12 @@ export default function QuickAnswerPage() {
             Summarizing earlier messages…
           </div>
         )}
+        {isCheckingSection && (
+          <div className="text-xs text-muted-foreground flex items-center gap-2 px-2">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            Checking question fits {sectionLabel}…
+          </div>
+        )}
       </div>
 
       <form
@@ -346,13 +352,13 @@ export default function QuickAnswerPage() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value.slice(0, MAX_CHARS))}
-            placeholder="Ask a quick FAA question…"
-            disabled={isLoading}
+            placeholder={section === "all" ? "Ask a quick FAA question…" : `Ask about ${sectionLabel}…`}
+            disabled={isLoading || isCheckingSection}
             maxLength={MAX_CHARS}
             className="flex-1"
           />
-          <Button type="submit" disabled={isLoading || input.trim().length < MIN_CHARS}>
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          <Button type="submit" disabled={isLoading || isCheckingSection || input.trim().length < MIN_CHARS}>
+            {isLoading || isCheckingSection ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
         <div className={`text-[11px] text-right tabular-nums ${input.length >= MAX_CHARS ? "text-destructive" : "text-muted-foreground"}`}>
