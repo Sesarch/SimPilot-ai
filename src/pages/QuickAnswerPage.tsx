@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Zap, Loader2, Trash2 } from "lucide-react";
+import { Send, Zap, Loader2, Trash2, BookText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/hooks/use-toast";
 
@@ -178,6 +180,10 @@ export default function QuickAnswerPage() {
           <h1 className="font-display text-lg font-semibold tracking-[0.15em] uppercase">Quick Answer</h1>
           <p className="text-xs text-muted-foreground">Short FAA answers grounded in PHAK, FAR, and AIM.</p>
         </div>
+        <div className="hidden md:flex items-center gap-2">
+          <Switch id="auto-sum" checked={autoSummarize} onCheckedChange={setAutoSummarize} disabled={isLoading || isSummarizing} />
+          <Label htmlFor="auto-sum" className="text-xs cursor-pointer">Auto-summarize</Label>
+        </div>
         <Select value={sourcePref} onValueChange={(v) => setSourcePref(v as SourcePref)} disabled={isLoading}>
           <SelectTrigger className="w-[110px] h-9">
             <SelectValue />
@@ -193,7 +199,7 @@ export default function QuickAnswerPage() {
           variant="outline"
           size="sm"
           onClick={() => { setMessages([]); setInput(""); }}
-          disabled={isLoading || messages.length === 0}
+          disabled={isLoading || isSummarizing || messages.length === 0}
           className="gap-2"
         >
           <Trash2 className="w-4 h-4" />
@@ -224,16 +230,29 @@ export default function QuickAnswerPage() {
         {messages.map((m, i) => (
           <Card
             key={i}
-            className={`p-3 ${m.role === "user" ? "bg-muted/40 ml-8" : "bg-card mr-8 border-accent/30"}`}
+            className={`p-3 ${
+              m.isSummary
+                ? "bg-muted/20 border-dashed border-muted-foreground/40 text-muted-foreground"
+                : m.role === "user"
+                  ? "bg-muted/40 ml-8"
+                  : "bg-card mr-8 border-accent/30"
+            }`}
           >
-            <div className="text-[10px] font-display tracking-[0.2em] uppercase text-muted-foreground mb-1">
-              {m.role === "user" ? "You" : "SimPilot"}
+            <div className="text-[10px] font-display tracking-[0.2em] uppercase text-muted-foreground mb-1 flex items-center gap-1">
+              {m.isSummary && <BookText className="w-3 h-3" />}
+              {m.isSummary ? "Summary of earlier messages" : m.role === "user" ? "You" : "SimPilot"}
             </div>
             <div className="prose prose-sm dark:prose-invert max-w-none">
               <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
             </div>
           </Card>
         ))}
+        {isSummarizing && (
+          <div className="text-xs text-muted-foreground flex items-center gap-2 px-2">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            Summarizing earlier messages…
+          </div>
+        )}
       </div>
 
       <form
