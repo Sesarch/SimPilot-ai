@@ -11,6 +11,7 @@ import CTASection from "@/components/CTASection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import PricingSection from "@/components/PricingSection";
 import NewsletterSection from "@/components/NewsletterSection";
+import LeadCaptureSection from "@/components/LeadCaptureSection";
 import Footer from "@/components/Footer";
 
 import CookieConsent from "@/components/CookieConsent";
@@ -124,6 +125,7 @@ const Index = () => {
       <TestimonialsSection />
       <PricingSection />
        <CTASection />
+       <LeadCaptureSection />
        <NewsletterSection />
        <Footer />
       

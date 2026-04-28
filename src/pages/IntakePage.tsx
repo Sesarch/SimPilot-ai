@@ -183,6 +183,27 @@ const IntakePage = () => {
           // Non-blocking
         });
 
+      // Notify the SimPilot team
+      supabase.functions
+        .invoke("send-transactional-email", {
+          body: {
+            templateName: "intake-team-notification",
+            recipientEmail: "support@simpilot.ai",
+            idempotencyKey: `intake-notify-${id}`,
+            templateData: {
+              audience: form.audience,
+              contactName: form.contact_name.trim(),
+              contactEmail: form.contact_email.trim().toLowerCase(),
+              schoolName: isSchool ? form.school_name.trim() : undefined,
+              trainingGoals: form.training_goals.trim() || undefined,
+              source: "intake-page",
+            },
+          },
+        })
+        .catch(() => {
+          // Non-blocking
+        });
+
       setDone(true);
     } catch (err) {
       console.error("Intake submit failed", err);
