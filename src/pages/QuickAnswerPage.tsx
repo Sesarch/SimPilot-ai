@@ -17,6 +17,10 @@ const MIN_CHARS = 3;
 const SOFT_CAP = 18; // trigger summarization at this many messages
 const KEEP_RECENT = 6; // number of most-recent messages to preserve verbatim
 
+// Fast client-side aviation keyword pre-check — if any match, skip server validation.
+const AVIATION_KEYWORDS = /\b(faa|far|aim|phak|aircraft|airplane|plane|pilot|flight|flying|fly|cockpit|airspace|atc|tower|ifr|vfr|metar|taf|notam|runway|airport|altimeter|altitude|takeoff|landing|stall|spin|rudder|aileron|elevator|throttle|engine|propeller|fuel|checkride|oral|exam|cfi|dpe|sectional|chart|navigation|nav|gps|vor|ils|ndb|approach|departure|cleared|squawk|transponder|class\s?[abcdeg]|part\s?\d{2,3}|14\s?cfr|wind|weather|cloud|ceiling|visibility|turbulence|icing|density\s?altitude|magnetic|true|heading|course|bearing|crosswind|headwind|tailwind|flare|go.?around|pattern|downwind|base|final|holding|emergency|mayday|pan\s?pan|maneuver|chandelle|lazy.?eight|steep\s?turn|slow\s?flight|preflight|w\s?&\s?b|weight|balance|cg|vne|vno|vfe|vso|vs1|vx|vy|gs|airspeed|knot|kt|knots|hp|rpm|carb|mixture|trim|flap|gear|brake|tire|tach|cylinder|magneto|ignition|battery|alternator|generator|pitot|static|vacuum|gyro|attitude|hsi|cdi|dme|adsb|tcas|tis|fss|ctaf|unicom|atis|awos|asos|tfr|sfra|class|airworthiness|annual|inspection|logbook|certificate|rating|endorsement|medical|bfr)\b/i;
+
+
 const SUGGESTIONS = [
   "VFR fuel requirements at night?",
   "What is class B airspace entry requirement?",
