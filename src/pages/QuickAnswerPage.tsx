@@ -1,25 +1,37 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Zap, Loader2, Trash2, BookText } from "lucide-react";
+import { Send, Zap, Loader2, Trash2, BookText, X, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/hooks/use-toast";
 
 type Msg = { role: "user" | "assistant"; content: string; isSummary?: boolean };
 type SourcePref = "auto" | "FAR" | "PHAK" | "AIM";
+type Section = "all" | "weather" | "aerodynamics" | "regulations" | "airspace" | "navigation" | "procedures" | "systems" | "communications" | "performance" | "human_factors";
 
 const MAX_CHARS = 300;
 const MIN_CHARS = 3;
 const SOFT_CAP = 18; // trigger summarization at this many messages
 const KEEP_RECENT = 6; // number of most-recent messages to preserve verbatim
 
-// Fast client-side aviation keyword pre-check — if any match, skip server validation.
-const AVIATION_KEYWORDS = /\b(faa|far|aim|phak|aircraft|airplane|plane|pilot|flight|flying|fly|cockpit|airspace|atc|tower|ifr|vfr|metar|taf|notam|runway|airport|altimeter|altitude|takeoff|landing|stall|spin|rudder|aileron|elevator|throttle|engine|propeller|fuel|checkride|oral|exam|cfi|dpe|sectional|chart|navigation|nav|gps|vor|ils|ndb|approach|departure|cleared|squawk|transponder|class\s?[abcdeg]|part\s?\d{2,3}|14\s?cfr|wind|weather|cloud|ceiling|visibility|turbulence|icing|density\s?altitude|magnetic|true|heading|course|bearing|crosswind|headwind|tailwind|flare|go.?around|pattern|downwind|base|final|holding|emergency|mayday|pan\s?pan|maneuver|chandelle|lazy.?eight|steep\s?turn|slow\s?flight|preflight|w\s?&\s?b|weight|balance|cg|vne|vno|vfe|vso|vs1|vx|vy|gs|airspeed|knot|kt|knots|hp|rpm|carb|mixture|trim|flap|gear|brake|tire|tach|cylinder|magneto|ignition|battery|alternator|generator|pitot|static|vacuum|gyro|attitude|hsi|cdi|dme|adsb|tcas|tis|fss|ctaf|unicom|atis|awos|asos|tfr|sfra|class|airworthiness|annual|inspection|logbook|certificate|rating|endorsement|medical|bfr)\b/i;
-
+const SECTIONS: { value: Section; label: string }[] = [
+  { value: "all", label: "All topics" },
+  { value: "weather", label: "Weather" },
+  { value: "aerodynamics", label: "Aerodynamics" },
+  { value: "regulations", label: "Regulations (FAR)" },
+  { value: "airspace", label: "Airspace" },
+  { value: "navigation", label: "Navigation" },
+  { value: "procedures", label: "Procedures" },
+  { value: "systems", label: "Aircraft Systems" },
+  { value: "communications", label: "Communications" },
+  { value: "performance", label: "Performance & W&B" },
+  { value: "human_factors", label: "Human Factors" },
+];
 
 const SUGGESTIONS = [
   "VFR fuel requirements at night?",
@@ -32,10 +44,14 @@ export default function QuickAnswerPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sourcePref, setSourcePref] = useState<SourcePref>("auto");
+  const [section, setSection] = useState<Section>("all");
   const [autoSummarize, setAutoSummarize] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isCheckingSection, setIsCheckingSection] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const sectionLabel = SECTIONS.find((s) => s.value === section)?.label ?? "All topics";
 
   const compactIfNeeded = async (current: Msg[]): Promise<Msg[]> => {
     if (!autoSummarize || current.length < SOFT_CAP) return current;
@@ -85,7 +101,7 @@ export default function QuickAnswerPage() {
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
-    if (!content || isLoading || isSummarizing) return;
+    if (!content || isLoading || isSummarizing || isCheckingSection) return;
     if (content.length < MIN_CHARS) {
       toast({ title: "Too short", description: `Question must be at least ${MIN_CHARS} characters.` });
       return;
@@ -95,30 +111,34 @@ export default function QuickAnswerPage() {
       return;
     }
 
-    // Topical relevance check — only consult the server validator if no obvious aviation keywords matched
-    if (!AVIATION_KEYWORDS.test(content)) {
+    // Section focus check — block off-topic questions when a specific section is active
+    if (section !== "all") {
+      setIsCheckingSection(true);
       try {
-        const vUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quick-answer-validate`;
-        const vResp = await fetch(vUrl, {
+        const checkUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quick-answer-section-check`;
+        const cResp = await fetch(checkUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ question: content }),
+          body: JSON.stringify({ question: content, section }),
         });
-        if (vResp.ok) {
-          const v = await vResp.json();
-          if (v.relevant === false) {
+        if (cResp.ok) {
+          const c = await cResp.json();
+          if (c.relevant === false) {
             toast({
-              title: "Off-topic question",
-              description: v.suggestion || "Quick Answer only handles FAA, PHAK, FAR, or AIM questions. Try rephrasing.",
+              title: `This question is not related to ${sectionLabel}`,
+              description: c.reason || `Switch focus to "All topics" or rephrase to fit ${sectionLabel}.`,
             });
+            setIsCheckingSection(false);
             return;
           }
         }
-      } catch {
-        // Fail-open: let the question through if validator errors out
+      } catch (e) {
+        console.error("section check failed", e);
+      } finally {
+        setIsCheckingSection(false);
       }
     }
 
@@ -150,7 +170,7 @@ export default function QuickAnswerPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: wirePayload, sourcePref }),
+        body: JSON.stringify({ messages: wirePayload, sourcePref, section }),
       });
 
       if (!resp.ok || !resp.body) {
@@ -205,9 +225,9 @@ export default function QuickAnswerPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto w-full p-4 gap-4">
-      <div className="flex items-center gap-3 border-b border-border pb-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border pb-3">
         <Zap className="w-5 h-5 text-accent" />
-        <div className="flex-1">
+        <div className="flex-1 min-w-[180px]">
           <h1 className="font-display text-lg font-semibold tracking-[0.15em] uppercase">Quick Answer</h1>
           <p className="text-xs text-muted-foreground">Short FAA answers grounded in PHAK, FAR, and AIM.</p>
         </div>
@@ -215,6 +235,16 @@ export default function QuickAnswerPage() {
           <Switch id="auto-sum" checked={autoSummarize} onCheckedChange={setAutoSummarize} disabled={isLoading || isSummarizing} />
           <Label htmlFor="auto-sum" className="text-xs cursor-pointer">Auto-summarize</Label>
         </div>
+        <Select value={section} onValueChange={(v) => setSection(v as Section)} disabled={isLoading}>
+          <SelectTrigger className="w-[170px] h-9">
+            <SelectValue placeholder="Focus section" />
+          </SelectTrigger>
+          <SelectContent>
+            {SECTIONS.map((s) => (
+              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={sourcePref} onValueChange={(v) => setSourcePref(v as SourcePref)} disabled={isLoading}>
           <SelectTrigger className="w-[110px] h-9">
             <SelectValue />
@@ -237,6 +267,28 @@ export default function QuickAnswerPage() {
           <span className="hidden sm:inline">Clear chat</span>
         </Button>
       </div>
+
+      {section !== "all" && (
+        <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-accent/30 bg-accent/5">
+          <div className="flex items-center gap-2 text-xs">
+            <Target className="w-3.5 h-3.5 text-accent" />
+            <span className="text-muted-foreground">Focus narrowed to</span>
+            <Badge variant="outline" className="font-display tracking-wider uppercase text-[10px]">
+              {sectionLabel}
+            </Badge>
+            <span className="hidden sm:inline text-muted-foreground">— off-topic questions will be blocked.</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs gap-1"
+            onClick={() => setSection("all")}
+            disabled={isLoading}
+          >
+            <X className="w-3 h-3" /> Clear focus
+          </Button>
+        </div>
+      )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 pr-2">
         {messages.length === 0 && (
@@ -284,6 +336,12 @@ export default function QuickAnswerPage() {
             Summarizing earlier messages…
           </div>
         )}
+        {isCheckingSection && (
+          <div className="text-xs text-muted-foreground flex items-center gap-2 px-2">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            Checking question fits {sectionLabel}…
+          </div>
+        )}
       </div>
 
       <form
@@ -294,13 +352,13 @@ export default function QuickAnswerPage() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value.slice(0, MAX_CHARS))}
-            placeholder="Ask a quick FAA question…"
-            disabled={isLoading}
+            placeholder={section === "all" ? "Ask a quick FAA question…" : `Ask about ${sectionLabel}…`}
+            disabled={isLoading || isCheckingSection}
             maxLength={MAX_CHARS}
             className="flex-1"
           />
-          <Button type="submit" disabled={isLoading || input.trim().length < MIN_CHARS}>
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          <Button type="submit" disabled={isLoading || isCheckingSection || input.trim().length < MIN_CHARS}>
+            {isLoading || isCheckingSection ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
         <div className={`text-[11px] text-right tabular-nums ${input.length >= MAX_CHARS ? "text-destructive" : "text-muted-foreground"}`}>
