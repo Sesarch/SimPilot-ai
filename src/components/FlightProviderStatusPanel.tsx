@@ -98,6 +98,14 @@ export default function FlightProviderStatusPanel({ diagnostics, activeProvider 
       tone = "error";
       icon = <XCircle className="h-4 w-4 text-destructive" />;
       title = "FlightAware not configured";
+    } else if (fa.error === "plan_or_query_rejected" || fa.error === "forbidden_plan_tier") {
+      tone = "warn";
+      icon = <AlertTriangle className="h-4 w-4 text-amber-500" />;
+      title = "FlightAware plan tier too low — using free source";
+    } else if (fa.error === "unauthorized") {
+      tone = "error";
+      icon = <XCircle className="h-4 w-4 text-destructive" />;
+      title = "FlightAware key rejected — using free source";
     } else {
       tone = "warn";
       icon = <AlertTriangle className="h-4 w-4 text-amber-500" />;
