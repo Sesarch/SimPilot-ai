@@ -170,7 +170,7 @@ export default function QuickAnswerPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: wirePayload, sourcePref }),
+        body: JSON.stringify({ messages: wirePayload, sourcePref, section }),
       });
 
       if (!resp.ok || !resp.body) {
