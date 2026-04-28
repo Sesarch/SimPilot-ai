@@ -3,10 +3,12 @@ import { Send, Zap, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/hooks/use-toast";
 
 type Msg = { role: "user" | "assistant"; content: string };
+type SourcePref = "auto" | "FAR" | "PHAK" | "AIM";
 
 const MAX_CHARS = 300;
 const MIN_CHARS = 3;
@@ -21,6 +23,7 @@ const SUGGESTIONS = [
 export default function QuickAnswerPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
+  const [sourcePref, setSourcePref] = useState<SourcePref>("auto");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +57,7 @@ export default function QuickAnswerPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, sourcePref }),
       });
 
       if (!resp.ok || !resp.body) {
@@ -115,6 +118,17 @@ export default function QuickAnswerPage() {
           <h1 className="font-display text-lg font-semibold tracking-[0.15em] uppercase">Quick Answer</h1>
           <p className="text-xs text-muted-foreground">Short FAA answers grounded in PHAK, FAR, and AIM.</p>
         </div>
+        <Select value={sourcePref} onValueChange={(v) => setSourcePref(v as SourcePref)} disabled={isLoading}>
+          <SelectTrigger className="w-[110px] h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="auto">Auto</SelectItem>
+            <SelectItem value="FAR">FAR</SelectItem>
+            <SelectItem value="PHAK">PHAK</SelectItem>
+            <SelectItem value="AIM">AIM</SelectItem>
+          </SelectContent>
+        </Select>
         <Button
           variant="outline"
           size="sm"
