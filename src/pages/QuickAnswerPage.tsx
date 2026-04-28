@@ -79,7 +79,7 @@ export default function QuickAnswerPage() {
 
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
-    if (!content || isLoading) return;
+    if (!content || isLoading || isSummarizing) return;
     if (content.length < MIN_CHARS) {
       toast({ title: "Too short", description: `Question must be at least ${MIN_CHARS} characters.` });
       return;
@@ -89,11 +89,25 @@ export default function QuickAnswerPage() {
       return;
     }
 
+    // Auto-summarize older messages if approaching the cap
+    let history = messages;
+    if (messages.length >= SOFT_CAP) {
+      if (!autoSummarize) {
+        toast({ title: "Conversation full", description: "Enable auto-summarize or clear the chat." });
+        return;
+      }
+      history = await compactIfNeeded(messages);
+      setMessages(history);
+    }
+
     const userMsg: Msg = { role: "user", content };
-    const next = [...messages, userMsg];
+    const next = [...history, userMsg];
     setMessages(next);
     setInput("");
     setIsLoading(true);
+
+    // Strip isSummary flag before sending (server only sees role+content)
+    const wirePayload = next.map(({ role, content }) => ({ role, content }));
 
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quick-answer`;
@@ -103,7 +117,7 @@ export default function QuickAnswerPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next, sourcePref }),
+        body: JSON.stringify({ messages: wirePayload, sourcePref }),
       });
 
       if (!resp.ok || !resp.body) {
