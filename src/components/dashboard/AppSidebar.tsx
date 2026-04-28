@@ -59,10 +59,15 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
+                const [pathOnly, queryStr = ""] = item.url.split("?");
+                const itemTab = new URLSearchParams(queryStr).get("tab");
+                const currentTab = new URLSearchParams(location.search).get("tab");
                 const active =
-                  item.url === "/dashboard"
+                  pathOnly === "/dashboard"
                     ? location.pathname === "/dashboard"
-                    : location.pathname.startsWith(item.url);
+                    : itemTab
+                      ? location.pathname === pathOnly && currentTab === itemTab
+                      : location.pathname.startsWith(pathOnly);
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={active} tooltip={item.title} className="h-10">
