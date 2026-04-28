@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import FlightTrackerMap from "@/components/FlightTrackerMap";
 import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary";
 import ATCTrainer from "@/components/ATCTrainer";
