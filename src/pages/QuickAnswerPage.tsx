@@ -225,9 +225,9 @@ export default function QuickAnswerPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto w-full p-4 gap-4">
-      <div className="flex items-center gap-3 border-b border-border pb-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border pb-3">
         <Zap className="w-5 h-5 text-accent" />
-        <div className="flex-1">
+        <div className="flex-1 min-w-[180px]">
           <h1 className="font-display text-lg font-semibold tracking-[0.15em] uppercase">Quick Answer</h1>
           <p className="text-xs text-muted-foreground">Short FAA answers grounded in PHAK, FAR, and AIM.</p>
         </div>
@@ -235,6 +235,16 @@ export default function QuickAnswerPage() {
           <Switch id="auto-sum" checked={autoSummarize} onCheckedChange={setAutoSummarize} disabled={isLoading || isSummarizing} />
           <Label htmlFor="auto-sum" className="text-xs cursor-pointer">Auto-summarize</Label>
         </div>
+        <Select value={section} onValueChange={(v) => setSection(v as Section)} disabled={isLoading}>
+          <SelectTrigger className="w-[170px] h-9">
+            <SelectValue placeholder="Focus section" />
+          </SelectTrigger>
+          <SelectContent>
+            {SECTIONS.map((s) => (
+              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={sourcePref} onValueChange={(v) => setSourcePref(v as SourcePref)} disabled={isLoading}>
           <SelectTrigger className="w-[110px] h-9">
             <SelectValue />
@@ -257,6 +267,28 @@ export default function QuickAnswerPage() {
           <span className="hidden sm:inline">Clear chat</span>
         </Button>
       </div>
+
+      {section !== "all" && (
+        <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-accent/30 bg-accent/5">
+          <div className="flex items-center gap-2 text-xs">
+            <Target className="w-3.5 h-3.5 text-accent" />
+            <span className="text-muted-foreground">Focus narrowed to</span>
+            <Badge variant="outline" className="font-display tracking-wider uppercase text-[10px]">
+              {sectionLabel}
+            </Badge>
+            <span className="hidden sm:inline text-muted-foreground">— off-topic questions will be blocked.</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs gap-1"
+            onClick={() => setSection("all")}
+            disabled={isLoading}
+          >
+            <X className="w-3 h-3" /> Clear focus
+          </Button>
+        </div>
+      )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 pr-2">
         {messages.length === 0 && (
