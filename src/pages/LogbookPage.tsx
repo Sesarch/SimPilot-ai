@@ -792,13 +792,37 @@ const LogbookPage = () => {
                     <td className="px-3 py-2 text-right tabular-nums">{num(l.pic_time).toFixed(1)}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{num(l.day_landings) + num(l.night_landings)}</td>
                     <td className="px-3 py-2">
-                      {l.source === "atc_session" ? (
-                        <span className="inline-flex items-center gap-1 font-display text-[9px] tracking-[0.2em] uppercase text-primary">
-                          <Radio className="w-3 h-3" /> ATC
-                        </span>
-                      ) : (
-                        <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">Manual</span>
-                      )}
+                      {(() => {
+                        // ATC sessions are NOT a real-world logbook source — they are a
+                        // SimPilot training artifact. Show them as such and keep real-world
+                        // sources (tracking devices, sims, manual) clearly distinct.
+                        switch (l.source) {
+                          case "tracking_device":
+                            return (
+                              <span className="inline-flex items-center gap-1 font-display text-[9px] tracking-[0.2em] uppercase text-primary">
+                                <Tablet className="w-3 h-3" /> Tracking Device
+                              </span>
+                            );
+                          case "msfs2024":
+                          case "xplane12":
+                          case "sim":
+                            return (
+                              <span className="inline-flex items-center gap-1 font-display text-[9px] tracking-[0.2em] uppercase text-accent">
+                                <Plane className="w-3 h-3" /> Sim
+                              </span>
+                            );
+                          case "atc_session":
+                            return (
+                              <span className="inline-flex items-center gap-1 font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
+                                <Radio className="w-3 h-3" /> SimPilot ATC (practice)
+                              </span>
+                            );
+                          default:
+                            return (
+                              <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">Manual</span>
+                            );
+                        }
+                      })()}
                     </td>
                     <td className="px-3 py-2 text-right">
                       <button
