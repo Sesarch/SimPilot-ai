@@ -171,28 +171,31 @@ export const TrainingChat = ({
     prevLoadingRef.current = isLoading;
   }, [isLoading, messages, saveMessage, parseAndSaveScore, voiceActive, voice]);
 
-  // Auto-mark ground school topic as completed
+  // Mark ground school topic complete ONLY when the assistant emits a passing
+  // end-of-lesson quiz result (TOPIC_QUIZ_RESULT: PASS). Simply chatting with a
+  // topic must NOT mark it done — the student has to take and pass the quiz.
   useEffect(() => {
     if (!topicId || !user || topicMarkedRef.current) return;
-    const userMsgCount = messages.filter(m => m.role === "user").length;
-    if (userMsgCount >= 3) {
-      topicMarkedRef.current = true;
-      supabase
-        .from("topic_progress")
-        .upsert(
-          {
-            user_id: user.id,
-            topic_id: topicId,
-            completed: true,
-            completed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id,topic_id" }
-        )
-        .then(({ error }) => {
-          if (error) console.error("Failed to mark topic complete:", error);
-        });
-    }
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    if (!lastAssistant) return;
+    const text = getTextContent(lastAssistant.content);
+    if (!/TOPIC_QUIZ_RESULT\s*:\s*PASS\b/i.test(text)) return;
+    topicMarkedRef.current = true;
+    supabase
+      .from("topic_progress")
+      .upsert(
+        {
+          user_id: user.id,
+          topic_id: topicId,
+          completed: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,topic_id" }
+      )
+      .then(({ error }) => {
+        if (error) console.error("Failed to mark topic complete:", error);
+      });
   }, [messages, topicId, user]);
 
   // Stress-Mode timer: starts when assistant finishes, resets on user send, fires TIMEOUT on expiry
