@@ -203,12 +203,61 @@ const LogbookPage = () => {
       drafts: (logs ?? []).filter((l) => l.status === "draft").length,
       total: sum("total_time"),
       pic: sum("pic_time"),
+      sic: sum("sic_time"),
       xc: sum("cross_country_time"),
       night: sum("night_time"),
+      day: sum("day_time"),
       instrument: sum("instrument_time"),
+      simInstrument: sum("simulated_instrument_time"),
+      dualReceived: sum("dual_received_time"),
+      dualGiven: sum("dual_given_time"),
+      solo: sum("solo_time"),
       landings: sum("day_landings") + sum("night_landings"),
     };
   }, [logs]);
+
+  // Map the student's pilot context (or rating focus) to a known license track.
+  const activeLicense = useMemo<LicenseSpec | null>(() => {
+    const rating = (pilotCtx.context.rating_focus ?? "").toUpperCase();
+    const cert = (pilotCtx.context.certificate_type ?? "").toUpperCase();
+    // Prefer rating focus (what they're training for); fall back to current cert.
+    const candidates = [rating, cert];
+    for (const c of candidates) {
+      if (!c) continue;
+      if (c.includes("ATP")) return LICENSE_SPECS.ATP;
+      if (c.includes("COMMERCIAL") || c === "CPL") return LICENSE_SPECS.CPL;
+      if (c.includes("INSTRUMENT") || c === "IR") return LICENSE_SPECS.IR;
+      if (c.includes("PRIVATE") || c === "PPL") return LICENSE_SPECS.PPL;
+    }
+    // Default: assume a primary student is working toward PPL.
+    return LICENSE_SPECS.PPL;
+  }, [pilotCtx.context.rating_focus, pilotCtx.context.certificate_type]);
+
+  // Map each license requirement key to a logged number.
+  const licenseProgress = useMemo(() => {
+    if (!activeLicense) return [];
+    const lookup: Record<string, number> = {
+      total: totals.total,
+      pic: totals.pic,
+      sic: totals.sic,
+      dual_received: totals.dualReceived,
+      dual_given: totals.dualGiven,
+      solo: totals.solo,
+      xc: totals.xc,
+      xc_pic: totals.xc, // approximation: XC time is typically PIC for these certs
+      xc_dual: totals.xc,
+      night: totals.night,
+      day: totals.day,
+      instrument: totals.instrument + totals.simInstrument,
+    };
+    return activeLicense.reqs.map((r) => {
+      const logged = lookup[r.key] ?? 0;
+      const remaining = Math.max(0, r.target - logged);
+      const pct = r.target > 0 ? Math.min(100, Math.round((logged / r.target) * 100)) : 0;
+      return { ...r, logged, remaining, pct, met: logged >= r.target };
+    });
+  }, [activeLicense, totals]);
+
 
   // FAR 61.57 currency: 3 takeoffs/landings within preceding 90 days.
   // Night requires full-stop landings at night. Day allows day OR night landings.
