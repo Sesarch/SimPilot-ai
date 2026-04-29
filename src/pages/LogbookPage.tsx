@@ -75,8 +75,65 @@ const emptyDraft = (): Partial<FlightLog> => ({
 
 const num = (v: unknown) => Number.isFinite(Number(v)) ? Number(v) : 0;
 
+// FAA Part 61 minimum aeronautical experience requirements (most common tracks).
+// We surface these on the logbook so a student can see "X of Y hours remaining"
+// for the certificate they're working toward.
+type LicenseReq = { key: string; label: string; target: number; tooltip: string };
+type LicenseSpec = { code: string; name: string; far: string; reqs: LicenseReq[] };
+
+const LICENSE_SPECS: Record<string, LicenseSpec> = {
+  PPL: {
+    code: "PPL",
+    name: "Private Pilot — Airplane",
+    far: "14 CFR 61.109(a)",
+    reqs: [
+      { key: "total", label: "Total Time", target: 40, tooltip: "Min 40 hrs total flight time" },
+      { key: "dual_received", label: "Dual Received", target: 20, tooltip: "Min 20 hrs of flight training with a CFI" },
+      { key: "solo", label: "Solo", target: 10, tooltip: "Min 10 hrs of solo flight time" },
+      { key: "xc_dual", label: "X-Country (any)", target: 5, tooltip: "Includes 3 hrs XC dual + solo XC" },
+      { key: "night", label: "Night", target: 3, tooltip: "Min 3 hrs of night training" },
+      { key: "instrument", label: "Instrument (sim/actual)", target: 3, tooltip: "Min 3 hrs of instrument training" },
+    ],
+  },
+  IR: {
+    code: "IR",
+    name: "Instrument Rating — Airplane",
+    far: "14 CFR 61.65(d)",
+    reqs: [
+      { key: "xc_pic", label: "X-Country PIC", target: 50, tooltip: "Min 50 hrs PIC cross-country (≥10 in airplanes)" },
+      { key: "instrument", label: "Instrument (sim/actual)", target: 40, tooltip: "Min 40 hrs of actual or simulated instrument time" },
+      { key: "dual_received", label: "Instrument Dual", target: 15, tooltip: "Min 15 hrs of instrument flight training with a CFII" },
+    ],
+  },
+  CPL: {
+    code: "CPL",
+    name: "Commercial Pilot — Airplane (SEL)",
+    far: "14 CFR 61.129(a)",
+    reqs: [
+      { key: "total", label: "Total Time", target: 250, tooltip: "Min 250 hrs total flight time" },
+      { key: "pic", label: "PIC", target: 100, tooltip: "Min 100 hrs PIC" },
+      { key: "xc_pic", label: "X-Country PIC", target: 50, tooltip: "Min 50 hrs cross-country PIC" },
+      { key: "instrument", label: "Instrument (sim/actual)", target: 10, tooltip: "Min 10 hrs of instrument training" },
+      { key: "night", label: "Night", target: 5, tooltip: "Min 5 hrs of night flight training" },
+    ],
+  },
+  ATP: {
+    code: "ATP",
+    name: "Airline Transport Pilot — Airplane",
+    far: "14 CFR 61.159",
+    reqs: [
+      { key: "total", label: "Total Time", target: 1500, tooltip: "Min 1,500 hrs total flight time" },
+      { key: "pic", label: "PIC", target: 250, tooltip: "Min 250 hrs PIC" },
+      { key: "xc", label: "X-Country", target: 500, tooltip: "Min 500 hrs cross-country" },
+      { key: "night", label: "Night", target: 100, tooltip: "Min 100 hrs night" },
+      { key: "instrument", label: "Instrument (sim/actual)", target: 75, tooltip: "Min 75 hrs of instrument time" },
+    ],
+  },
+};
+
 const LogbookPage = () => {
   const { user } = useAuth();
+  const pilotCtx = usePilotContext();
   const [logs, setLogs] = useState<FlightLog[] | null>(null);
   const [streak, setStreak] = useState<number>(0);
   const [hasIronMic, setHasIronMic] = useState<boolean>(false);
