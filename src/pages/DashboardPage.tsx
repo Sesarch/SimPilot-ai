@@ -23,7 +23,7 @@ type Profile = {
 };
 
 const trainingModules = [
-  { to: "/ground-school", icon: BookOpen, label: "Ground School", desc: "Interactive FAA lessons", color: "text-primary", bg: "bg-primary/15" },
+  { to: "/ground-school", icon: BookOpen, label: "Ground One-on-One", desc: "Interactive FAA lessons", color: "text-primary", bg: "bg-primary/15" },
   { to: "/oral-exam", icon: Mic, label: "Oral Exam Prep", desc: "Checkride simulation", color: "text-accent", bg: "bg-accent/15" },
   { to: "/weather-briefing", icon: Cloud, label: "Weather Briefing", desc: "Live METAR/TAF & AI analysis", color: "text-accent", bg: "bg-accent/15" },
   { to: "/live-tools", icon: Plane, label: "Live Sky", desc: "Flight tracker & ATC", color: "text-primary", bg: "bg-primary/15" },

@@ -22,7 +22,7 @@ type Message = {
 };
 
 const modeLabels: Record<string, { label: string; icon: typeof BookOpen }> = {
-  ground_school: { label: "Ground School", icon: BookOpen },
+  ground_school: { label: "Ground One-on-One", icon: BookOpen },
   oral_exam: { label: "Oral Exam", icon: Mic },
   general: { label: "General", icon: MessageSquare },
 };
