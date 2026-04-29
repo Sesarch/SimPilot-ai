@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
-import { BookOpen, ArrowLeft, ChevronRight } from "lucide-react";
+import { BookOpen, ArrowLeft, ChevronRight, MessageCircle, ClipboardCheck, CheckCircle2, X } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import groundSchoolLight from "@/assets/ground-school-light.jpg";
@@ -47,6 +47,14 @@ const GroundSchoolPage = () => {
   const pilotCtx = usePilotContext();
   const [selectedLesson, setSelectedLesson] = useState<LessonArea | null>(null);
   const [onlyRelevant, setOnlyRelevant] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("simpilot.groundOneOnOne.introDismissed") !== "1";
+  });
+  const dismissIntro = () => {
+    setShowIntro(false);
+    try { localStorage.setItem("simpilot.groundOneOnOne.introDismissed", "1"); } catch {}
+  };
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get("category") as ReadinessCategoryKey | null;
   const activeCategory: ReadinessCategoryKey | null =
@@ -173,6 +181,59 @@ const GroundSchoolPage = () => {
                 Each lesson follows FAA Airman Certification Standards (ACS).
               </p>
             </div>
+
+            {/* Onboarding intro — dismissible */}
+            {showIntro && (
+              <div className="mb-6 relative bg-gradient-to-br from-primary/10 via-card/80 to-accent/5 backdrop-blur-sm border border-primary/30 rounded-xl p-5 shadow-[0_0_25px_hsl(var(--cyan-glow)/0.08)]">
+                <button
+                  onClick={dismissIntro}
+                  aria-label="Dismiss onboarding intro"
+                  className="absolute top-3 right-3 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="shrink-0 w-9 h-9 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm font-bold tracking-wide text-foreground">
+                      How Ground One-on-One Works
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Personalized 1-on-1 lessons with your CFI-AI — taught the way a real instructor would.
+                    </p>
+                  </div>
+                </div>
+                <ol className="space-y-2.5 text-sm text-foreground/90">
+                  <li className="flex items-start gap-2.5">
+                    <MessageCircle className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
+                    <span>
+                      <strong className="text-foreground">Pick a knowledge area</strong> below and your CFI-AI will teach
+                      it Socratically — asking guiding questions instead of just dumping answers.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <ClipboardCheck className="w-4 h-4 mt-0.5 shrink-0 text-accent" />
+                    <span>
+                      <strong className="text-foreground">End with a 3-question quiz.</strong> When the lesson wraps,
+                      your instructor gives you a short comprehension check tied to the FAA ACS standard.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
+                    <span>
+                      <strong className="text-foreground">Pass 2 of 3 to mark the topic complete.</strong> Just chatting
+                      isn't enough — you must demonstrate understanding before progress is recorded.
+                    </span>
+                  </li>
+                </ol>
+                <p className="text-[11px] text-muted-foreground mt-4 leading-relaxed">
+                  Tip: change your <span className="font-semibold text-foreground">Study Track</span> below to scale
+                  depth from PPL through ATP. Not FAA-approved — supplemental training only.
+                </p>
+              </div>
+            )}
 
             {/* Certificate Level Toggle — global state shared across all 19 lessons */}
             <div className="mb-6 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-4">
