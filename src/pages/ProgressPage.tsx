@@ -196,7 +196,7 @@ const ProgressPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="bg-gradient-card rounded-xl border border-border p-4 text-center">
             <p className="text-3xl font-display font-bold text-primary">{completionPct}%</p>
-            <p className="text-xs text-muted-foreground mt-1">Ground School</p>
+            <p className="text-xs text-muted-foreground mt-1">Ground One-on-One</p>
           </div>
           <div className="bg-gradient-card rounded-xl border border-border p-4 text-center">
             <p className="text-3xl font-display font-bold text-accent">{examScores.length}</p>
@@ -208,11 +208,11 @@ const ProgressPage = () => {
           </div>
         </div>
 
-        {/* Ground School Topics */}
+        {/* Ground One-on-One Topics */}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <BookOpen className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold text-foreground">Ground School Topics</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground">Ground One-on-One Topics</h2>
           </div>
           <div className="mb-3">
             <Progress value={completionPct} className="h-2" />

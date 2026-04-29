@@ -77,7 +77,7 @@ const CategoryCard = ({ icon: Icon, label, score, trend, accent = "cyan", href }
     return (
       <Link
         to={href}
-        aria-label={`${label} — open Ground School`}
+        aria-label={`${label} — open Ground One-on-One`}
         className={`g3000-bezel rounded-lg p-4 relative overflow-hidden group block ${interactiveCls}`}
       >
         {inner}

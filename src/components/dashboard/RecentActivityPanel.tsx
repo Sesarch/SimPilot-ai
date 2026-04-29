@@ -89,7 +89,7 @@ const RecentActivityPanel = () => {
         id: `topic-${t.id}`,
         kind: "topic",
         title: TOPIC_TITLES[t.topic_id] ?? t.topic_id,
-        subtitle: "Ground School · Topic Complete",
+        subtitle: "Ground One-on-One · Topic Complete",
         metric: "✓",
         metricColor: "hsl(var(--cyan-glow))",
         at: t.completed_at!,
