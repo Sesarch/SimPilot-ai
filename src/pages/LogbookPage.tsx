@@ -31,13 +31,17 @@ type FlightLog = {
   sic_time: number;
   cross_country_time: number;
   night_time: number;
+  day_time: number;
   instrument_time: number;
   simulated_instrument_time: number;
+  dual_received_time: number;
+  dual_given_time: number;
+  solo_time: number;
   day_landings: number;
   night_landings: number;
   approaches: number;
   remarks: string | null;
-  source: "manual" | "atc_session" | "msfs2024" | "xplane12" | "sim";
+  source: "manual" | "atc_session" | "msfs2024" | "xplane12" | "sim" | "tracking_device";
   source_session_id: string | null;
   created_at: string;
   pmdg_debrief: PmdgDebrief | null;
@@ -56,8 +60,12 @@ const emptyDraft = (): Partial<FlightLog> => ({
   sic_time: 0,
   cross_country_time: 0,
   night_time: 0,
+  day_time: 0,
   instrument_time: 0,
   simulated_instrument_time: 0,
+  dual_received_time: 0,
+  dual_given_time: 0,
+  solo_time: 0,
   day_landings: 0,
   night_landings: 0,
   approaches: 0,
