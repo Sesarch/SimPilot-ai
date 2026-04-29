@@ -24,7 +24,7 @@ const MODEL_OPTIONS = [
 const SCOPE_OPTIONS = [
   { value: "all", label: "All AI chat responses" },
   { value: "oral_exam", label: "Oral Exam only" },
-  { value: "training", label: "Oral Exam + Ground School" },
+  { value: "training", label: "Oral Exam + Ground One-on-One" },
   { value: "off", label: "Off (no audit)" },
 ];
 

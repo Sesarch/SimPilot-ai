@@ -77,7 +77,7 @@ export const SHARE_COPY_BY_PATH: Record<string, ShareCopy> = {
       "Personalised training dashboard — ground school progress, oral exam history and checkride readiness at a glance.",
   },
   "/ground-school": {
-    title: "AI Ground School — 19 modules from PPL to ATP",
+    title: "AI Ground One-on-One — 19 modules from PPL to ATP",
     description:
       "Interactive, Socratic ground school covering regulations, weather, navigation, systems and more — adaptive to your aircraft.",
   },

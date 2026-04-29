@@ -14,7 +14,7 @@ const plans = [
     description: "Everything you need to pass your checkride",
     priceSuffix: "/mo",
     features: [
-      "19 Ground School modules (FAA ACS)",
+      "19 Ground One-on-One modules (FAA ACS)",
       "Oral Exam simulator",
       "ATC communication trainer",
       "Live Flight Tracker & Weather",
@@ -271,7 +271,7 @@ const PricingSection = () => {
           <div className="grid md:grid-cols-2 gap-6 items-center">
             <div className="text-center p-6 rounded-lg bg-destructive/10 border border-destructive/20">
               <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
-                Ground School + CFI Tutoring
+                Ground One-on-One + CFI Tutoring
               </p>
               <p className="font-display text-4xl md:text-5xl font-bold text-destructive">$2,500+</p>
               <p className="text-sm text-muted-foreground mt-2">

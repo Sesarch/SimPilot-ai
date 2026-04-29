@@ -122,7 +122,7 @@ const AnimatedChatDemo = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">SimPilot.AI CFI</p>
-                <p className="text-[10px] text-muted-foreground">Ground School — Aerodynamics</p>
+                <p className="text-[10px] text-muted-foreground">Ground One-on-One — Aerodynamics</p>
               </div>
               <div className="ml-auto flex items-center gap-3">
                 <button

@@ -43,7 +43,7 @@ const TrialEndingReminderEmail = ({
   // Build a small recap line from non-zero stats
   const stats: string[] = []
   if (groundSchoolModules > 0)
-    stats.push(`${groundSchoolModules} Ground School module${groundSchoolModules === 1 ? '' : 's'}`)
+    stats.push(`${groundSchoolModules} Ground One-on-One module${groundSchoolModules === 1 ? '' : 's'}`)
   if (atcSessions > 0)
     stats.push(`${atcSessions} ATC flight${atcSessions === 1 ? '' : 's'}`)
   if (examAttempts > 0)

@@ -54,7 +54,7 @@ export default function GraduationModal({ open, displayName, activity }: Graduat
   };
 
   const stats = [
-    { icon: BookOpen, label: "Ground School modules", value: activity.groundSchoolModules },
+    { icon: BookOpen, label: "Ground One-on-One modules", value: activity.groundSchoolModules },
     { icon: Radio, label: "Simulated ATC flights", value: activity.atcSessions },
     { icon: ClipboardCheck, label: "Oral exam attempts", value: activity.examAttempts },
     { icon: NotebookPen, label: "Logbook entries", value: activity.flightLogs },
@@ -63,7 +63,7 @@ export default function GraduationModal({ open, displayName, activity }: Graduat
   // Build a friendly summary sentence from non-zero stats
   const summaryParts: string[] = [];
   if (activity.groundSchoolModules > 0)
-    summaryParts.push(`completed ${activity.groundSchoolModules} Ground School module${activity.groundSchoolModules === 1 ? "" : "s"}`);
+    summaryParts.push(`completed ${activity.groundSchoolModules} Ground One-on-One module${activity.groundSchoolModules === 1 ? "" : "s"}`);
   if (activity.atcSessions > 0)
     summaryParts.push(`flew ${activity.atcSessions} simulated ATC flight${activity.atcSessions === 1 ? "" : "s"}`);
   if (activity.examAttempts > 0)

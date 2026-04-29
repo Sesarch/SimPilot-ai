@@ -18,7 +18,7 @@ const faqs = [
     a: "No. SimPilot.AI is a supplemental study tool only. It is NOT FAA-approved and cannot replace training from certified flight instructors and accredited flight schools.",
   },
   {
-    q: "What topics does the Ground School cover?",
+    q: "What topics does the Ground One-on-One cover?",
     a: "Our AI tutor covers all major ground school subjects including aerodynamics, weather, regulations, navigation, aircraft systems, and flight operations — aligned with the FAA knowledge test areas.",
   },
   {

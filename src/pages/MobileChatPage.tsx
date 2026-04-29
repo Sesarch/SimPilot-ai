@@ -33,7 +33,7 @@ const CHAT_TABS: ChatTab[] = [
   },
   {
     id: "ground_school",
-    label: "Ground School",
+    label: "Ground One-on-One",
     mode: "ground_school",
     icon: <BookOpen className="w-4 h-4" />,
     welcome: "Interactive FAA ground school. Ask about any knowledge area.",
@@ -167,7 +167,7 @@ const MobileChatPage = () => {
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-secondary transition-colors"
                 >
                   <BookOpen className="w-4 h-4" />
-                  Ground School Topics
+                  Ground One-on-One Topics
                 </Link>
                 <Link
                   to="/progress"

@@ -31,7 +31,7 @@ const features = [
     icon: Target,
   },
   {
-    label: "Ground School Lessons",
+    label: "Ground One-on-One Lessons",
     description: "Progressive lessons with progress tracking & comprehension checks",
     simpilot: true,
     general: false,

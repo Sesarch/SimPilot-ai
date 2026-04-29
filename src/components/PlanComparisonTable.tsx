@@ -29,7 +29,7 @@ const categories: { title: string; rows: ComparisonRow[] }[] = [
   {
     title: "Exam Preparation",
     rows: [
-      { feature: "19 Ground School modules", student: true, proPilot: true, goldSeal: true, flightSchool: true },
+      { feature: "19 Ground One-on-One modules", student: true, proPilot: true, goldSeal: true, flightSchool: true },
       { feature: "Oral Exam simulator", student: true, proPilot: true, goldSeal: true, flightSchool: true },
       { feature: "Checkride prep modules", student: true, proPilot: true, goldSeal: true, flightSchool: true },
       { feature: "Exam score tracking & history", student: true, proPilot: true, goldSeal: true, flightSchool: true },

@@ -145,7 +145,7 @@ const AdminSiteSettings = () => {
             {[
               { label: "User Signups", value: signupEnabled, set: setSignupEnabled },
               { label: "AI Chat", value: chatEnabled, set: setChatEnabled },
-              { label: "Ground School", value: groundSchoolEnabled, set: setGroundSchoolEnabled },
+              { label: "Ground One-on-One", value: groundSchoolEnabled, set: setGroundSchoolEnabled },
               { label: "Weather Briefing", value: weatherEnabled, set: setWeatherEnabled },
               { label: "Live Sky Tools", value: liveToolsEnabled, set: setLiveToolsEnabled },
               { label: "ATC: Live Frequency Trainer", value: atcLiveFreqEnabled, set: setAtcLiveFreqEnabled },

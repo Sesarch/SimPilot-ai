@@ -44,7 +44,7 @@ const WelcomeSignupEmail = ({ name }: WelcomeSignupProps) => (
 
         <Section style={card}>
           <Heading as="h2" style={h2}>Your preflight checklist</Heading>
-          <Text style={listItem}>✅ <strong>Ground School</strong> — 19 modules mapped to FAA ACS standards</Text>
+          <Text style={listItem}>✅ <strong>Ground One-on-One</strong> — 19 modules mapped to FAA ACS standards</Text>
           <Text style={listItem}>✅ <strong>Oral Exam Prep</strong> — Practice with strict DPE-mode scenarios</Text>
           <Text style={listItem}>✅ <strong>Live Sky Tools</strong> — Real-time weather briefings and flight tracking</Text>
           <Text style={listItem}>✅ <strong>ATC Trainer</strong> — Sharpen your radio comms with interactive scenarios</Text>

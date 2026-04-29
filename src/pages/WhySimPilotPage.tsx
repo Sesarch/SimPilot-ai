@@ -18,7 +18,7 @@ const comparisonFeatures = [
   { label: "Socratic Teaching Method", desc: "Guides you to discover answers, just like a real CFI debrief", simpilot: true, general: false, icon: Brain },
   { label: "FAR/AIM & ACS References", desc: "Every answer cites specific regulations and ACS task codes", simpilot: true, general: false, icon: BookOpen },
   { label: "DPE Oral Exam Simulation", desc: "Structured checkride sim with scoring, debrief & pass/fail", simpilot: true, general: false, icon: Target },
-  { label: "Ground School Lessons", desc: "Progressive lessons with progress tracking & comprehension checks", simpilot: true, general: false, icon: Zap },
+  { label: "Ground One-on-One Lessons", desc: "Progressive lessons with progress tracking & comprehension checks", simpilot: true, general: false, icon: Zap },
   { label: "Aviation Safety Focus", desc: "Never compromises on accuracy; redirects medical/legal questions", simpilot: true, general: false, icon: Shield },
   { label: "Progress & Score Tracking", desc: "Track your readiness across topics and mock exams over time", simpilot: true, general: false, icon: TrendingUp },
   { label: "Session History & Review", desc: "Revisit past conversations and study sessions anytime", simpilot: true, general: false, icon: Clock },

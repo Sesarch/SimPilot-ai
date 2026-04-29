@@ -30,7 +30,7 @@ const pillars = [
 ];
 
 const quickCompare = [
-  { feature: "AI Coaching + Ground School", us: true, them: false },
+  { feature: "AI Coaching + Ground One-on-One", us: true, them: false },
   { feature: "Oral Exam Simulation", us: true, them: false },
   { feature: "Live Weather & Flight Tracking", us: true, them: false },
   { feature: "POH Upload", us: true, them: false },
