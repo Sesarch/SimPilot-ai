@@ -930,16 +930,30 @@ const LogbookPage = () => {
                   placeholder="Maneuvers, ATC notes, lessons learned..."
                 />
               </div>
-              <div className="col-span-2 sm:col-span-3 flex items-center gap-2">
-                <Label className="text-xs">Status:</Label>
-                <select
-                  className="bg-background border border-border rounded-md px-2 py-1 text-sm"
-                  value={editing.status ?? "final"}
-                  onChange={(e) => setEditing({ ...editing, status: e.target.value as "draft" | "final" })}
-                >
-                  <option value="draft">Draft</option>
-                  <option value="final">Final</option>
-                </select>
+              <div className="col-span-2 sm:col-span-3 flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Status:</Label>
+                  <select
+                    className="bg-background border border-border rounded-md px-2 py-1 text-sm"
+                    value={editing.status ?? "final"}
+                    onChange={(e) => setEditing({ ...editing, status: e.target.value as "draft" | "final" })}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="final">Final</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Source:</Label>
+                  <select
+                    className="bg-background border border-border rounded-md px-2 py-1 text-sm"
+                    value={editing.source ?? "manual"}
+                    onChange={(e) => setEditing({ ...editing, source: e.target.value as FlightLog["source"] })}
+                  >
+                    <option value="manual">Manual entry</option>
+                    <option value="tracking_device">Tracking device (iPad / Sentry / GPS)</option>
+                    <option value="sim">Simulator</option>
+                  </select>
+                </div>
               </div>
             </div>
           )}
