@@ -9,7 +9,7 @@ import Logo from "@/components/Logo";
 
 const navItems = [
   { label: "Why SimPilot.AI", href: "/competitors#comparison-matrix" },
-  { label: "Ground School", href: "/ground-school" },
+  { label: "Ground One-on-One", href: "/ground-school" },
   { label: "Oral Exam", href: "/oral-exam" },
   { label: "Live Sky", href: "/live-tools", live: true },
   { label: "Get Started", href: "/intake" },
