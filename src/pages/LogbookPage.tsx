@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ClipboardList, Plus, Plane, Flame, Radio, X, Save, Pencil, Download, CheckCheck } from "lucide-react";
+import { ClipboardList, Plus, Plane, Flame, Radio, X, Save, Pencil, Download, CheckCheck, GraduationCap, Tablet } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePilotContext } from "@/hooks/usePilotContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,13 +31,17 @@ type FlightLog = {
   sic_time: number;
   cross_country_time: number;
   night_time: number;
+  day_time: number;
   instrument_time: number;
   simulated_instrument_time: number;
+  dual_received_time: number;
+  dual_given_time: number;
+  solo_time: number;
   day_landings: number;
   night_landings: number;
   approaches: number;
   remarks: string | null;
-  source: "manual" | "atc_session" | "msfs2024" | "xplane12" | "sim";
+  source: "manual" | "atc_session" | "msfs2024" | "xplane12" | "sim" | "tracking_device";
   source_session_id: string | null;
   created_at: string;
   pmdg_debrief: PmdgDebrief | null;
@@ -55,8 +60,12 @@ const emptyDraft = (): Partial<FlightLog> => ({
   sic_time: 0,
   cross_country_time: 0,
   night_time: 0,
+  day_time: 0,
   instrument_time: 0,
   simulated_instrument_time: 0,
+  dual_received_time: 0,
+  dual_given_time: 0,
+  solo_time: 0,
   day_landings: 0,
   night_landings: 0,
   approaches: 0,
@@ -66,8 +75,65 @@ const emptyDraft = (): Partial<FlightLog> => ({
 
 const num = (v: unknown) => Number.isFinite(Number(v)) ? Number(v) : 0;
 
+// FAA Part 61 minimum aeronautical experience requirements (most common tracks).
+// We surface these on the logbook so a student can see "X of Y hours remaining"
+// for the certificate they're working toward.
+type LicenseReq = { key: string; label: string; target: number; tooltip: string };
+type LicenseSpec = { code: string; name: string; far: string; reqs: LicenseReq[] };
+
+const LICENSE_SPECS: Record<string, LicenseSpec> = {
+  PPL: {
+    code: "PPL",
+    name: "Private Pilot — Airplane",
+    far: "14 CFR 61.109(a)",
+    reqs: [
+      { key: "total", label: "Total Time", target: 40, tooltip: "Min 40 hrs total flight time" },
+      { key: "dual_received", label: "Dual Received", target: 20, tooltip: "Min 20 hrs of flight training with a CFI" },
+      { key: "solo", label: "Solo", target: 10, tooltip: "Min 10 hrs of solo flight time" },
+      { key: "xc_dual", label: "X-Country (any)", target: 5, tooltip: "Includes 3 hrs XC dual + solo XC" },
+      { key: "night", label: "Night", target: 3, tooltip: "Min 3 hrs of night training" },
+      { key: "instrument", label: "Instrument (sim/actual)", target: 3, tooltip: "Min 3 hrs of instrument training" },
+    ],
+  },
+  IR: {
+    code: "IR",
+    name: "Instrument Rating — Airplane",
+    far: "14 CFR 61.65(d)",
+    reqs: [
+      { key: "xc_pic", label: "X-Country PIC", target: 50, tooltip: "Min 50 hrs PIC cross-country (≥10 in airplanes)" },
+      { key: "instrument", label: "Instrument (sim/actual)", target: 40, tooltip: "Min 40 hrs of actual or simulated instrument time" },
+      { key: "dual_received", label: "Instrument Dual", target: 15, tooltip: "Min 15 hrs of instrument flight training with a CFII" },
+    ],
+  },
+  CPL: {
+    code: "CPL",
+    name: "Commercial Pilot — Airplane (SEL)",
+    far: "14 CFR 61.129(a)",
+    reqs: [
+      { key: "total", label: "Total Time", target: 250, tooltip: "Min 250 hrs total flight time" },
+      { key: "pic", label: "PIC", target: 100, tooltip: "Min 100 hrs PIC" },
+      { key: "xc_pic", label: "X-Country PIC", target: 50, tooltip: "Min 50 hrs cross-country PIC" },
+      { key: "instrument", label: "Instrument (sim/actual)", target: 10, tooltip: "Min 10 hrs of instrument training" },
+      { key: "night", label: "Night", target: 5, tooltip: "Min 5 hrs of night flight training" },
+    ],
+  },
+  ATP: {
+    code: "ATP",
+    name: "Airline Transport Pilot — Airplane",
+    far: "14 CFR 61.159",
+    reqs: [
+      { key: "total", label: "Total Time", target: 1500, tooltip: "Min 1,500 hrs total flight time" },
+      { key: "pic", label: "PIC", target: 250, tooltip: "Min 250 hrs PIC" },
+      { key: "xc", label: "X-Country", target: 500, tooltip: "Min 500 hrs cross-country" },
+      { key: "night", label: "Night", target: 100, tooltip: "Min 100 hrs night" },
+      { key: "instrument", label: "Instrument (sim/actual)", target: 75, tooltip: "Min 75 hrs of instrument time" },
+    ],
+  },
+};
+
 const LogbookPage = () => {
   const { user } = useAuth();
+  const pilotCtx = usePilotContext();
   const [logs, setLogs] = useState<FlightLog[] | null>(null);
   const [streak, setStreak] = useState<number>(0);
   const [hasIronMic, setHasIronMic] = useState<boolean>(false);
@@ -137,12 +203,61 @@ const LogbookPage = () => {
       drafts: (logs ?? []).filter((l) => l.status === "draft").length,
       total: sum("total_time"),
       pic: sum("pic_time"),
+      sic: sum("sic_time"),
       xc: sum("cross_country_time"),
       night: sum("night_time"),
+      day: sum("day_time"),
       instrument: sum("instrument_time"),
+      simInstrument: sum("simulated_instrument_time"),
+      dualReceived: sum("dual_received_time"),
+      dualGiven: sum("dual_given_time"),
+      solo: sum("solo_time"),
       landings: sum("day_landings") + sum("night_landings"),
     };
   }, [logs]);
+
+  // Map the student's pilot context (or rating focus) to a known license track.
+  const activeLicense = useMemo<LicenseSpec | null>(() => {
+    const rating = (pilotCtx.context.rating_focus ?? "").toUpperCase();
+    const cert = (pilotCtx.context.certificate_type ?? "").toUpperCase();
+    // Prefer rating focus (what they're training for); fall back to current cert.
+    const candidates = [rating, cert];
+    for (const c of candidates) {
+      if (!c) continue;
+      if (c.includes("ATP")) return LICENSE_SPECS.ATP;
+      if (c.includes("COMMERCIAL") || c === "CPL") return LICENSE_SPECS.CPL;
+      if (c.includes("INSTRUMENT") || c === "IR") return LICENSE_SPECS.IR;
+      if (c.includes("PRIVATE") || c === "PPL") return LICENSE_SPECS.PPL;
+    }
+    // Default: assume a primary student is working toward PPL.
+    return LICENSE_SPECS.PPL;
+  }, [pilotCtx.context.rating_focus, pilotCtx.context.certificate_type]);
+
+  // Map each license requirement key to a logged number.
+  const licenseProgress = useMemo(() => {
+    if (!activeLicense) return [];
+    const lookup: Record<string, number> = {
+      total: totals.total,
+      pic: totals.pic,
+      sic: totals.sic,
+      dual_received: totals.dualReceived,
+      dual_given: totals.dualGiven,
+      solo: totals.solo,
+      xc: totals.xc,
+      xc_pic: totals.xc, // approximation: XC time is typically PIC for these certs
+      xc_dual: totals.xc,
+      night: totals.night,
+      day: totals.day,
+      instrument: totals.instrument + totals.simInstrument,
+    };
+    return activeLicense.reqs.map((r) => {
+      const logged = lookup[r.key] ?? 0;
+      const remaining = Math.max(0, r.target - logged);
+      const pct = r.target > 0 ? Math.min(100, Math.round((logged / r.target) * 100)) : 0;
+      return { ...r, logged, remaining, pct, met: logged >= r.target };
+    });
+  }, [activeLicense, totals]);
+
 
   // FAR 61.57 currency: 3 takeoffs/landings within preceding 90 days.
   // Night requires full-stop landings at night. Day allows day OR night landings.
@@ -218,8 +333,12 @@ const LogbookPage = () => {
         sic_time: num(editing.sic_time),
         cross_country_time: num(editing.cross_country_time),
         night_time: num(editing.night_time),
+        day_time: num(editing.day_time),
         instrument_time: num(editing.instrument_time),
         simulated_instrument_time: num(editing.simulated_instrument_time),
+        dual_received_time: num(editing.dual_received_time),
+        dual_given_time: num(editing.dual_given_time),
+        solo_time: num(editing.solo_time),
         day_landings: num(editing.day_landings),
         night_landings: num(editing.night_landings),
         approaches: num(editing.approaches),
@@ -531,6 +650,68 @@ const LogbookPage = () => {
         </div>
       </div>
 
+      {/* Training Progress — license requirements vs. logged hours */}
+      {activeLicense && (
+        <div className="g3000-bezel rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-primary" />
+              <span className="font-display text-[11px] tracking-[0.25em] uppercase text-foreground">
+                Training Progress · {activeLicense.name}
+              </span>
+            </div>
+            <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+              Per {activeLicense.far} · minimums only
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {licenseProgress.map((r) => {
+              const accent = r.met ? "hsl(var(--hud-green))" : "hsl(var(--primary))";
+              return (
+                <div
+                  key={r.key}
+                  className="rounded-md border px-3 py-2.5"
+                  style={{
+                    borderColor: `${accent}55`,
+                    background: `linear-gradient(135deg, ${accent}12 0%, hsl(var(--background) / 0.6) 60%, ${accent}06 100%)`,
+                  }}
+                  title={r.tooltip}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-display text-[10px] tracking-[0.2em] uppercase text-foreground">
+                      {r.label}
+                    </span>
+                    <span
+                      className="font-display text-[9px] tracking-[0.2em] uppercase font-bold"
+                      style={{ color: accent }}
+                    >
+                      {r.met ? "Met" : `${r.remaining.toFixed(1)} hr left`}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="font-display text-xl font-bold tabular-nums" style={{ color: accent }}>
+                      {r.logged.toFixed(1)}
+                    </span>
+                    <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                      / {r.target} hr
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-background/60 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${r.pct}%`, background: accent, boxShadow: `0 0 6px ${accent}aa` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground mt-3">
+            Tip: set your training goal in your profile (Rating Focus) to switch this panel to a different certificate.
+          </p>
+        </div>
+      )}
+
       <div className="g3000-bezel rounded-lg p-4">
         <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-3">
           Career Totals
@@ -538,9 +719,15 @@ const LogbookPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { label: "PIC", value: totals.pic.toFixed(1) },
+            { label: "SIC", value: totals.sic.toFixed(1) },
+            { label: "Dual Recv", value: totals.dualReceived.toFixed(1) },
+            { label: "Dual Given", value: totals.dualGiven.toFixed(1) },
+            { label: "Solo", value: totals.solo.toFixed(1) },
             { label: "Cross Country", value: totals.xc.toFixed(1) },
+            { label: "Day", value: totals.day.toFixed(1) },
             { label: "Night", value: totals.night.toFixed(1) },
             { label: "Instrument", value: totals.instrument.toFixed(1) },
+            { label: "Sim IMC", value: totals.simInstrument.toFixed(1) },
             { label: "Landings", value: totals.landings.toString() },
             { label: "Drafts", value: totals.drafts.toString() },
           ].map((s) => (
@@ -673,13 +860,37 @@ const LogbookPage = () => {
                     <td className="px-3 py-2 text-right tabular-nums">{num(l.pic_time).toFixed(1)}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{num(l.day_landings) + num(l.night_landings)}</td>
                     <td className="px-3 py-2">
-                      {l.source === "atc_session" ? (
-                        <span className="inline-flex items-center gap-1 font-display text-[9px] tracking-[0.2em] uppercase text-primary">
-                          <Radio className="w-3 h-3" /> ATC
-                        </span>
-                      ) : (
-                        <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">Manual</span>
-                      )}
+                      {(() => {
+                        // ATC sessions are NOT a real-world logbook source — they are a
+                        // SimPilot training artifact. Show them as such and keep real-world
+                        // sources (tracking devices, sims, manual) clearly distinct.
+                        switch (l.source) {
+                          case "tracking_device":
+                            return (
+                              <span className="inline-flex items-center gap-1 font-display text-[9px] tracking-[0.2em] uppercase text-primary">
+                                <Tablet className="w-3 h-3" /> Tracking Device
+                              </span>
+                            );
+                          case "msfs2024":
+                          case "xplane12":
+                          case "sim":
+                            return (
+                              <span className="inline-flex items-center gap-1 font-display text-[9px] tracking-[0.2em] uppercase text-accent">
+                                <Plane className="w-3 h-3" /> Sim
+                              </span>
+                            );
+                          case "atc_session":
+                            return (
+                              <span className="inline-flex items-center gap-1 font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
+                                <Radio className="w-3 h-3" /> SimPilot ATC (practice)
+                              </span>
+                            );
+                          default:
+                            return (
+                              <span className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground">Manual</span>
+                            );
+                        }
+                      })()}
                     </td>
                     <td className="px-3 py-2 text-right">
                       <button
@@ -743,7 +954,11 @@ const LogbookPage = () => {
                 ["total_time", "Total"],
                 ["pic_time", "PIC"],
                 ["sic_time", "SIC"],
+                ["dual_received_time", "Dual Received"],
+                ["dual_given_time", "Dual Given"],
+                ["solo_time", "Solo"],
                 ["cross_country_time", "X-Country"],
+                ["day_time", "Day"],
                 ["night_time", "Night"],
                 ["instrument_time", "Actual IMC"],
                 ["simulated_instrument_time", "Sim IMC"],
@@ -783,16 +998,30 @@ const LogbookPage = () => {
                   placeholder="Maneuvers, ATC notes, lessons learned..."
                 />
               </div>
-              <div className="col-span-2 sm:col-span-3 flex items-center gap-2">
-                <Label className="text-xs">Status:</Label>
-                <select
-                  className="bg-background border border-border rounded-md px-2 py-1 text-sm"
-                  value={editing.status ?? "final"}
-                  onChange={(e) => setEditing({ ...editing, status: e.target.value as "draft" | "final" })}
-                >
-                  <option value="draft">Draft</option>
-                  <option value="final">Final</option>
-                </select>
+              <div className="col-span-2 sm:col-span-3 flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Status:</Label>
+                  <select
+                    className="bg-background border border-border rounded-md px-2 py-1 text-sm"
+                    value={editing.status ?? "final"}
+                    onChange={(e) => setEditing({ ...editing, status: e.target.value as "draft" | "final" })}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="final">Final</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Source:</Label>
+                  <select
+                    className="bg-background border border-border rounded-md px-2 py-1 text-sm"
+                    value={editing.source ?? "manual"}
+                    onChange={(e) => setEditing({ ...editing, source: e.target.value as FlightLog["source"] })}
+                  >
+                    <option value="manual">Manual entry</option>
+                    <option value="tracking_device">Tracking device (iPad / Sentry / GPS)</option>
+                    <option value="sim">Simulator</option>
+                  </select>
+                </div>
               </div>
             </div>
           )}

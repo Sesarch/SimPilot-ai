@@ -283,8 +283,11 @@ export type Database = {
           created_at: string
           cross_country_time: number
           day_landings: number
+          day_time: number
           departure: string | null
           destination: string | null
+          dual_given_time: number
+          dual_received_time: number
           flight_date: string
           id: string
           instrument_time: number
@@ -296,6 +299,7 @@ export type Database = {
           route: string | null
           sic_time: number
           simulated_instrument_time: number
+          solo_time: number
           source: string
           source_session_id: string | null
           status: string
@@ -310,8 +314,11 @@ export type Database = {
           created_at?: string
           cross_country_time?: number
           day_landings?: number
+          day_time?: number
           departure?: string | null
           destination?: string | null
+          dual_given_time?: number
+          dual_received_time?: number
           flight_date?: string
           id?: string
           instrument_time?: number
@@ -323,6 +330,7 @@ export type Database = {
           route?: string | null
           sic_time?: number
           simulated_instrument_time?: number
+          solo_time?: number
           source?: string
           source_session_id?: string | null
           status?: string
@@ -337,8 +345,11 @@ export type Database = {
           created_at?: string
           cross_country_time?: number
           day_landings?: number
+          day_time?: number
           departure?: string | null
           destination?: string | null
+          dual_given_time?: number
+          dual_received_time?: number
           flight_date?: string
           id?: string
           instrument_time?: number
@@ -350,6 +361,7 @@ export type Database = {
           route?: string | null
           sic_time?: number
           simulated_instrument_time?: number
+          solo_time?: number
           source?: string
           source_session_id?: string | null
           status?: string
