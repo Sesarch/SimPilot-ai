@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
-import { BookOpen, ArrowLeft, ChevronRight, MessageCircle, ClipboardCheck, CheckCircle2, X } from "lucide-react";
+import { BookOpen, ArrowLeft, ChevronRight, MessageCircle, ClipboardCheck, CheckCircle2, X, Play } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import groundSchoolLight from "@/assets/ground-school-light.jpg";
@@ -181,6 +181,38 @@ const GroundSchoolPage = () => {
                 Each lesson follows FAA Airman Certification Standards (ACS).
               </p>
             </div>
+
+            {/* Prominent CTA — launches the first relevant lesson */}
+            <button
+              onClick={() => {
+                const filtered = activeCategory
+                  ? LESSON_AREAS.filter((l) => TOPIC_TO_CATEGORY[l.id] === activeCategory && l.levels.includes(certLevel))
+                  : LESSON_AREAS.filter((l) => l.levels.includes(certLevel));
+                const next = filtered[0] ?? LESSON_AREAS[0];
+                if (next) {
+                  setSelectedLesson(next);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
+              className="group w-full mb-6 flex items-center justify-between gap-4 px-5 py-4 rounded-xl border border-primary/50 bg-gradient-to-r from-primary/20 via-primary/15 to-accent/10 hover:from-primary/30 hover:via-primary/25 hover:to-accent/20 hover:border-primary hover:shadow-[0_0_30px_hsl(var(--cyan-glow)/0.35)] transition-all text-left"
+              aria-label="Start a Ground One-on-One lesson"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="shrink-0 w-11 h-11 rounded-lg bg-primary/25 border border-primary/50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Play className="w-5 h-5 text-primary fill-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-display text-sm font-bold tracking-wider uppercase text-foreground">
+                    Start a Ground Lesson
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    Begin a 1-on-1 session at your <span className="text-primary font-semibold">{certLevel}</span> level
+                    {activeCategory ? ` — ${CATEGORY_LABELS[activeCategory]} focus` : ""}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-primary shrink-0 group-hover:translate-x-1 transition-transform" />
+            </button>
 
             {/* Onboarding intro — dismissible */}
             {showIntro && (
