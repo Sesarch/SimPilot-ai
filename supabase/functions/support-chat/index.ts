@@ -19,7 +19,7 @@ SimPilot is an AI-powered flight training platform that helps student pilots pre
 - **What do I need to start?** Just a web browser and an internet connection. No downloads required.
 
 ### Features
-- **Ground School Mode**: Interactive AI-guided lessons covering all FAA knowledge areas from PHAK, AFH, and IFH.
+- **Ground One-on-One Mode**: Interactive AI-guided lessons covering all FAA knowledge areas from PHAK, AFH, and IFH.
 - **Oral Exam Prep**: Realistic oral exam simulations with a virtual DPE (Designated Pilot Examiner).
 - **Chart Analysis**: Upload VFR/IFR charts and get AI-powered analysis and explanations.
 - **Progress Tracking**: Track your study progress across all knowledge areas.

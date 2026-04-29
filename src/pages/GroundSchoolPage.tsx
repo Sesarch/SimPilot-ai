@@ -99,7 +99,7 @@ const GroundSchoolPage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title="AI Ground School — SimPilot.AI Flight Training"
+        title="AI Ground One-on-One — SimPilot.AI Flight Training"
         description="Study for your FAA knowledge test with SimPilot.AI's AI-powered ground school. Covers aerodynamics, regulations, weather, navigation, and all ACS areas. Not FAA-approved — supplemental training only."
         keywords="AI ground school, FAA knowledge test prep, pilot ground school online, aerodynamics study, aviation weather training, ACS study guide, private pilot ground school"
         canonical="/ground-school"
@@ -108,14 +108,14 @@ const GroundSchoolPage = () => {
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Course",
-          "name": "AI Ground School — SimPilot.AI",
+          "name": "AI Ground One-on-One — SimPilot.AI",
           "description": "AI-powered ground school covering all FAA ACS knowledge areas for the Private Pilot certificate.",
           "url": "https://simpilot.ai/ground-school",
           "provider": { "@type": "Organization", "name": "SimPilot.AI", "url": "https://simpilot.ai" },
           "educationalLevel": "Beginner to Intermediate",
           "about": [
             { "@type": "Thing", "name": "FAA Knowledge Test" },
-            { "@type": "Thing", "name": "Private Pilot Ground School" }
+            { "@type": "Thing", "name": "Private Pilot Ground One-on-One" }
           ]
         }}
       />
@@ -155,7 +155,7 @@ const GroundSchoolPage = () => {
           <div className="absolute inset-0">
             <img
               src={heroImage}
-              alt="Aviation study materials — Ground School background"
+              alt="Aviation study materials — Ground One-on-One background"
               width={1920}
               height={1080}
               className="w-full h-full object-cover"

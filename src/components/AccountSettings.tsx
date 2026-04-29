@@ -141,7 +141,7 @@ const AccountSettings = () => {
           <GraduationCap className="w-4 h-4 text-primary" /> Study Track
         </h3>
         <p className="text-xs text-muted-foreground mb-4">
-          Sets the ACS depth your CFI-AI uses across Ground School, Oral Exam, and chat. Syncs across devices.
+          Sets the ACS depth your CFI-AI uses across Ground One-on-One, Oral Exam, and chat. Syncs across devices.
         </p>
         <Select value={currentTrack} onValueChange={handleTrackChange}>
           <SelectTrigger className="w-full sm:w-[320px]">
