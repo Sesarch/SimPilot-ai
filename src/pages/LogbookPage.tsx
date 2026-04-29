@@ -650,6 +650,68 @@ const LogbookPage = () => {
         </div>
       </div>
 
+      {/* Training Progress — license requirements vs. logged hours */}
+      {activeLicense && (
+        <div className="g3000-bezel rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-primary" />
+              <span className="font-display text-[11px] tracking-[0.25em] uppercase text-foreground">
+                Training Progress · {activeLicense.name}
+              </span>
+            </div>
+            <span className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+              Per {activeLicense.far} · minimums only
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {licenseProgress.map((r) => {
+              const accent = r.met ? "hsl(var(--hud-green))" : "hsl(var(--primary))";
+              return (
+                <div
+                  key={r.key}
+                  className="rounded-md border px-3 py-2.5"
+                  style={{
+                    borderColor: `${accent}55`,
+                    background: `linear-gradient(135deg, ${accent}12 0%, hsl(var(--background) / 0.6) 60%, ${accent}06 100%)`,
+                  }}
+                  title={r.tooltip}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-display text-[10px] tracking-[0.2em] uppercase text-foreground">
+                      {r.label}
+                    </span>
+                    <span
+                      className="font-display text-[9px] tracking-[0.2em] uppercase font-bold"
+                      style={{ color: accent }}
+                    >
+                      {r.met ? "Met" : `${r.remaining.toFixed(1)} hr left`}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1 mt-1">
+                    <span className="font-display text-xl font-bold tabular-nums" style={{ color: accent }}>
+                      {r.logged.toFixed(1)}
+                    </span>
+                    <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                      / {r.target} hr
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-background/60 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${r.pct}%`, background: accent, boxShadow: `0 0 6px ${accent}aa` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground mt-3">
+            Tip: set your training goal in your profile (Rating Focus) to switch this panel to a different certificate.
+          </p>
+        </div>
+      )}
+
       <div className="g3000-bezel rounded-lg p-4">
         <div className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-3">
           Career Totals
@@ -657,9 +719,15 @@ const LogbookPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { label: "PIC", value: totals.pic.toFixed(1) },
+            { label: "SIC", value: totals.sic.toFixed(1) },
+            { label: "Dual Recv", value: totals.dualReceived.toFixed(1) },
+            { label: "Dual Given", value: totals.dualGiven.toFixed(1) },
+            { label: "Solo", value: totals.solo.toFixed(1) },
             { label: "Cross Country", value: totals.xc.toFixed(1) },
+            { label: "Day", value: totals.day.toFixed(1) },
             { label: "Night", value: totals.night.toFixed(1) },
             { label: "Instrument", value: totals.instrument.toFixed(1) },
+            { label: "Sim IMC", value: totals.simInstrument.toFixed(1) },
             { label: "Landings", value: totals.landings.toString() },
             { label: "Drafts", value: totals.drafts.toString() },
           ].map((s) => (
