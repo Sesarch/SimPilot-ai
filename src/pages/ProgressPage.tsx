@@ -209,7 +209,9 @@ const ProgressPage = () => {
         </div>
 
         {/* Ground One-on-One Topics */}
-...
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen className="w-5 h-5 text-primary" />
             <h2 className="font-display text-lg font-semibold text-foreground">Ground One-on-One Topics</h2>
           </div>
           <div className="mb-3">
