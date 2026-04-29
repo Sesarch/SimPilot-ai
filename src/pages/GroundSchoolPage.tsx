@@ -86,7 +86,7 @@ const GroundSchoolPage = () => {
 
   const heroImage = resolvedTheme === "dark" ? groundSchoolDark : groundSchoolLight;
 
-  if (!settings.ground_school_enabled) return <FeatureDisabledPage feature="Ground School" />;
+  if (!settings.ground_school_enabled) return <FeatureDisabledPage feature="Ground One-on-One" />;
 
   if (loading) {
     return (
@@ -166,7 +166,7 @@ const GroundSchoolPage = () => {
           <div className="container mx-auto px-6 py-8 max-w-3xl relative z-10">
             <div className="mb-6">
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">
-                Ground School Lessons
+                Ground One-on-One Lessons
               </h1>
               <p className="text-sm text-muted-foreground">
                 Select a knowledge area to begin an interactive lesson with your CFI-AI instructor.
