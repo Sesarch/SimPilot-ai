@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 const navItems = [
   { title: "Flight Deck", url: "/dashboard", icon: Gauge },
   { title: "Quick Answer", url: "/quick-answer", icon: Zap },
-  { title: "Ground School", url: "/ground-school", icon: BookOpen },
+  { title: "Ground One-on-One", url: "/ground-school", icon: BookOpen },
   { title: "Oral Exam Sim", url: "/oral-exam", icon: Mic },
   { title: "ATC Training", url: "/live-tools?tab=atc", icon: Radio },
   { title: "Flight Tracking", url: "/live-tools?tab=tracker", icon: Radar },
