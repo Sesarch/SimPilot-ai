@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
-import { BookOpen, ArrowLeft, ChevronRight, MessageCircle, ClipboardCheck, CheckCircle2, X } from "lucide-react";
+import { BookOpen, ArrowLeft, ChevronRight, MessageCircle, ClipboardCheck, CheckCircle2, X, Play } from "lucide-react";
 import { TrainingChat } from "@/components/TrainingChat";
 import SEOHead from "@/components/SEOHead";
 import groundSchoolLight from "@/assets/ground-school-light.jpg";
