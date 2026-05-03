@@ -87,11 +87,10 @@ const AdminOrchestratorTester = () => {
     setResult(null);
     setAudit(null);
     try {
-      const { data, error } = await supabase.functions.invoke("ai-orchestrator", {
+      const { data, error } = await supabase.functions.invoke("admin-orchestrator-test", {
         body: {
           task,
           messages: [{ role: "user", content: prompt }],
-          session_id: `admin-test-${Date.now()}`,
         },
       });
       if (error) throw error;
