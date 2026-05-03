@@ -281,19 +281,6 @@ const AdminOrchestratorTester = () => {
           return;
         }
       }
-            audit_notes: row.audit_notes,
-            audit_model: row.audit_model,
-            severity: flag?.severity ?? null,
-            contradiction: flag?.contradiction ?? null,
-            poh_reference: flag?.poh_reference ?? null,
-          },
-        });
-        if (row.status !== "pending") {
-          updateHistoryAudit(id, row.status, flag?.severity ?? null);
-          update({ polling: false });
-          return;
-        }
-      }
       if (attempts < 30) setTimeout(tick, 2500);
       else update({ polling: false });
     };
