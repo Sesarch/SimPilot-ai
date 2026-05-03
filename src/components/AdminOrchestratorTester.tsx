@@ -22,9 +22,11 @@ type OrchestratorResult = {
 type AuditRow = {
   id: string;
   status: string;
-  severity: number | null;
   audit_notes: string | null;
-  auditor_model: string | null;
+  audit_model: string | null;
+  severity: number | null;
+  contradiction: string | null;
+  poh_reference: string | null;
 };
 
 const SAMPLES: Record<Exclude<TaskType, "auto">, string> = {
