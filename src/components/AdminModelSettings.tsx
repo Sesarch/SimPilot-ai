@@ -181,6 +181,49 @@ const AdminModelSettings = () => {
         </div>
       </div>
 
+      {/* ---------- Model Connection Health ---------- */}
+      <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-primary" />
+            <h2 className="font-display text-sm font-semibold text-foreground">Model Connection Health</h2>
+          </div>
+          <Button size="sm" variant="outline" onClick={runHealthCheck} disabled={healthLoading}>
+            {healthLoading ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Activity className="w-3 h-3 mr-1.5" />}
+            {healthLoading ? "Pinging..." : "Run health check"}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Sends a tiny ping to each direct provider key (Anthropic, OpenAI, Lovable Gateway) and decodes any 401/404/429 errors.
+        </p>
+        {!health && !healthLoading && (
+          <p className="text-[11px] text-muted-foreground italic">No check yet — click "Run health check".</p>
+        )}
+        {health && (
+          <div className="space-y-2">
+            <p className="text-[10px] text-muted-foreground">Last checked: {new Date(health.checked_at).toLocaleString()}</p>
+            {health.results.map((r: any) => (
+              <div key={r.brain} className={`p-3 rounded-lg border text-xs ${r.ok ? "border-emerald-500/30 bg-emerald-500/5" : "border-destructive/30 bg-destructive/5"}`}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {r.ok ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <XCircle className="w-4 h-4 text-destructive" />}
+                  <span className="font-semibold text-foreground">{r.brain}</span>
+                  <span className="text-muted-foreground">→ {r.model}</span>
+                  <span className="ml-auto text-[10px] text-muted-foreground">
+                    {r.status ? `HTTP ${r.status}` : "no response"} · {r.latency_ms}ms
+                  </span>
+                </div>
+                {!r.ok && (
+                  <div className="mt-2 ml-6 space-y-1">
+                    {r.hint && <p className="text-[11px] text-foreground"><span className="font-semibold">What to do: </span>{r.hint}</p>}
+                    {r.error && <p className="text-[10px] text-muted-foreground font-mono break-all">{r.error}</p>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* ---------- Legacy single-flow settings (still used by pilot-chat) ---------- */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5">
         <div className="flex items-center gap-2 mb-3">
