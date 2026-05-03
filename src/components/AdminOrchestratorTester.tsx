@@ -24,6 +24,15 @@ type HistoryEntry = {
   audit_id: string | null;
   audit_status: string; // "n/a" | "pending" | "clean" | "flagged" | "error"
   audit_severity: number | null;
+  audit_raw?: {
+    id: string;
+    status: string;
+    audit_notes: string | null;
+    audit_model: string | null;
+    severity: number | null;
+    contradiction: string | null;
+    poh_reference: string | null;
+  } | null;
 };
 
 const HISTORY_KEY = "simpilot.admin.orchestrator.history.v1";
@@ -224,9 +233,11 @@ const AdminOrchestratorTester = () => {
     ].slice(0, HISTORY_LIMIT));
   };
 
-  const updateHistoryAudit = (auditId: string, status: string, severity: number | null) => {
+  const updateHistoryAudit = (auditId: string, status: string, severity: number | null, raw?: AuditRow | null) => {
     setHistory(prev => prev.map(h =>
-      h.audit_id === auditId ? { ...h, audit_status: status, audit_severity: severity } : h,
+      h.audit_id === auditId
+        ? { ...h, audit_status: status, audit_severity: severity, audit_raw: raw ?? h.audit_raw ?? null }
+        : h,
     ));
   };
 
@@ -254,19 +265,18 @@ const AdminOrchestratorTester = () => {
         .select("severity, contradiction, poh_reference")
         .eq("audit_queue_id", id).maybeSingle();
       if (row) {
-        update({
-          audit: {
-            id: row.id,
-            status: row.status,
-            audit_notes: row.audit_notes,
-            audit_model: row.audit_model,
-            severity: flag?.severity ?? null,
-            contradiction: flag?.contradiction ?? null,
-            poh_reference: flag?.poh_reference ?? null,
-          },
-        });
+        const auditObj: AuditRow = {
+          id: row.id,
+          status: row.status,
+          audit_notes: row.audit_notes,
+          audit_model: row.audit_model,
+          severity: flag?.severity ?? null,
+          contradiction: flag?.contradiction ?? null,
+          poh_reference: flag?.poh_reference ?? null,
+        };
+        update({ audit: auditObj });
         if (row.status !== "pending") {
-          updateHistoryAudit(id, row.status, flag?.severity ?? null);
+          updateHistoryAudit(id, row.status, flag?.severity ?? null, auditObj);
           update({ polling: false });
           return;
         }
@@ -448,6 +458,53 @@ const AdminOrchestratorTester = () => {
                 }}
               >
                 <Download className="w-3 h-3 mr-1.5" /> Export CSV
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const filtered = historyFilter === "all"
+                    ? history
+                    : history.filter(h => h.audit_status === historyFilter);
+                  if (filtered.length === 0) {
+                    toast.error("Nothing to export for this filter");
+                    return;
+                  }
+                  const payload = {
+                    exported_at: new Date().toISOString(),
+                    filter: historyFilter,
+                    count: filtered.length,
+                    runs: filtered.map(h => ({
+                      id: h.id,
+                      timestamp_iso: new Date(h.ts).toISOString(),
+                      timestamp_ms: h.ts,
+                      prompt: h.prompt,
+                      forced_task: h.forced_task,
+                      routed_task: h.routed_task,
+                      model: h.model,
+                      latency_ms: h.latency_ms,
+                      audit_id: h.audit_id,
+                      audit_status: h.audit_status,
+                      audit_severity: h.audit_severity,
+                      audit_raw: h.audit_raw ?? null,
+                    })),
+                  };
+                  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+                    type: "application/json;charset=utf-8;",
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  const suffix = historyFilter === "all" ? "all" : historyFilter.replace("/", "-");
+                  a.href = url;
+                  a.download = `orchestrator-history-${suffix}-${csvDateStamp()}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"} as JSON`);
+                }}
+              >
+                <Download className="w-3 h-3 mr-1.5" /> Export JSON
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setHistory([])}>
                 <Trash2 className="w-3 h-3 mr-1.5" /> Clear
