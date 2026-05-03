@@ -505,6 +505,7 @@ const AdminOrchestratorTester = () => {
                 }}
               >
                 <Download className="w-3 h-3 mr-1.5" /> Export JSON
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => setHistory([])}>
                 <Trash2 className="w-3 h-3 mr-1.5" /> Clear
               </Button>
