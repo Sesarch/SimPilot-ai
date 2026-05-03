@@ -292,6 +292,7 @@ const AdminOrchestratorTester = () => {
 
     try {
       const data = await invokeFor(forcedTask);
+      addHistory(forcedTask, prompt, data);
       if (which === "A") {
         setSlotA(prev => ({ ...prev, result: data, loading: false }));
         if (data.audit_id) pollAudit(data.audit_id, setSlotA as any, false);
