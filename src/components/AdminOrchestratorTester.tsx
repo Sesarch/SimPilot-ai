@@ -423,6 +423,52 @@ const AdminOrchestratorTester = () => {
             No runs yet. Press Run, Re-run, or Compare to populate the history.
           </p>
         ) : (
+          <>
+            {(() => {
+              const counts = history.reduce<Record<string, number>>((acc, h) => {
+                acc[h.audit_status] = (acc[h.audit_status] ?? 0) + 1;
+                return acc;
+              }, {});
+              const filters: { key: typeof historyFilter; label: string }[] = [
+                { key: "all", label: "All" },
+                { key: "pending", label: "Pending" },
+                { key: "clean", label: "Clean" },
+                { key: "flagged", label: "Flagged" },
+                { key: "error", label: "Errors" },
+                { key: "n/a", label: "N/A" },
+              ];
+              return (
+                <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                  {filters.map(f => {
+                    const n = f.key === "all" ? history.length : (counts[f.key] ?? 0);
+                    const active = historyFilter === f.key;
+                    return (
+                      <Button
+                        key={f.key}
+                        size="sm"
+                        variant={active ? "default" : "outline"}
+                        className="h-6 px-2 text-[10px]"
+                        onClick={() => setHistoryFilter(f.key)}
+                      >
+                        {f.label} <span className="ml-1 opacity-70">{n}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+            {(() => {
+              const filtered = historyFilter === "all"
+                ? history
+                : history.filter(h => h.audit_status === historyFilter);
+              if (filtered.length === 0) {
+                return (
+                  <p className="text-[11px] text-muted-foreground italic">
+                    No runs match this filter.
+                  </p>
+                );
+              }
+              return (
           <div className="rounded-lg border border-border bg-background/40 overflow-x-auto">
             <table className="w-full text-[11px]">
               <thead className="bg-muted/30 text-muted-foreground uppercase text-[10px]">
@@ -437,7 +483,7 @@ const AdminOrchestratorTester = () => {
                 </tr>
               </thead>
               <tbody>
-                {history.map(h => {
+                {filtered.map(h => {
                   const auditColor =
                     h.audit_status === "flagged" ? "text-destructive" :
                     h.audit_status === "clean" ? "text-emerald-500" :
