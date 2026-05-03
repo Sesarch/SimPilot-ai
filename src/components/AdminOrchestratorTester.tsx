@@ -263,7 +263,11 @@ const AdminOrchestratorTester = () => {
             poh_reference: flag?.poh_reference ?? null,
           },
         });
-        if (row.status !== "pending") { update({ polling: false }); return; }
+        if (row.status !== "pending") {
+          updateHistoryAudit(id, row.status, flag?.severity ?? null);
+          update({ polling: false });
+          return;
+        }
       }
       if (attempts < 30) setTimeout(tick, 2500);
       else update({ polling: false });
