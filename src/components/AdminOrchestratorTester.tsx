@@ -265,10 +265,22 @@ const AdminOrchestratorTester = () => {
         .select("severity, contradiction, poh_reference")
         .eq("audit_queue_id", id).maybeSingle();
       if (row) {
-        update({
-          audit: {
-            id: row.id,
-            status: row.status,
+        const auditObj: AuditRow = {
+          id: row.id,
+          status: row.status,
+          audit_notes: row.audit_notes,
+          audit_model: row.audit_model,
+          severity: flag?.severity ?? null,
+          contradiction: flag?.contradiction ?? null,
+          poh_reference: flag?.poh_reference ?? null,
+        };
+        update({ audit: auditObj });
+        if (row.status !== "pending") {
+          updateHistoryAudit(id, row.status, flag?.severity ?? null, auditObj);
+          update({ polling: false });
+          return;
+        }
+      }
             audit_notes: row.audit_notes,
             audit_model: row.audit_model,
             severity: flag?.severity ?? null,
