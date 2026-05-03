@@ -233,9 +233,11 @@ const AdminOrchestratorTester = () => {
     ].slice(0, HISTORY_LIMIT));
   };
 
-  const updateHistoryAudit = (auditId: string, status: string, severity: number | null) => {
+  const updateHistoryAudit = (auditId: string, status: string, severity: number | null, raw?: AuditRow | null) => {
     setHistory(prev => prev.map(h =>
-      h.audit_id === auditId ? { ...h, audit_status: status, audit_severity: severity } : h,
+      h.audit_id === auditId
+        ? { ...h, audit_status: status, audit_severity: severity, audit_raw: raw ?? h.audit_raw ?? null }
+        : h,
     ));
   };
 
