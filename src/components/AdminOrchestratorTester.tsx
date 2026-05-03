@@ -459,6 +459,52 @@ const AdminOrchestratorTester = () => {
               >
                 <Download className="w-3 h-3 mr-1.5" /> Export CSV
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const filtered = historyFilter === "all"
+                    ? history
+                    : history.filter(h => h.audit_status === historyFilter);
+                  if (filtered.length === 0) {
+                    toast.error("Nothing to export for this filter");
+                    return;
+                  }
+                  const payload = {
+                    exported_at: new Date().toISOString(),
+                    filter: historyFilter,
+                    count: filtered.length,
+                    runs: filtered.map(h => ({
+                      id: h.id,
+                      timestamp_iso: new Date(h.ts).toISOString(),
+                      timestamp_ms: h.ts,
+                      prompt: h.prompt,
+                      forced_task: h.forced_task,
+                      routed_task: h.routed_task,
+                      model: h.model,
+                      latency_ms: h.latency_ms,
+                      audit_id: h.audit_id,
+                      audit_status: h.audit_status,
+                      audit_severity: h.audit_severity,
+                      audit_raw: h.audit_raw ?? null,
+                    })),
+                  };
+                  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+                    type: "application/json;charset=utf-8;",
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  const suffix = historyFilter === "all" ? "all" : historyFilter.replace("/", "-");
+                  a.href = url;
+                  a.download = `orchestrator-history-${suffix}-${csvDateStamp()}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"} as JSON`);
+                }}
+              >
+                <Download className="w-3 h-3 mr-1.5" /> Export JSON
               <Button size="sm" variant="ghost" onClick={() => setHistory([])}>
                 <Trash2 className="w-3 h-3 mr-1.5" /> Clear
               </Button>
