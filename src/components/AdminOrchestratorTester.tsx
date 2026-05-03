@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,8 +9,24 @@ import {
 import { toast } from "sonner";
 import {
   FlaskConical, Loader2, Cpu, Radio, Eye, ShieldAlert, ShieldCheck, Clock,
-  RefreshCw, GitCompare, X,
+  RefreshCw, GitCompare, X, History, Trash2, Play,
 } from "lucide-react";
+
+type HistoryEntry = {
+  id: string;
+  ts: number;
+  prompt: string;
+  forced_task: TaskType;
+  routed_task: string;
+  model: string;
+  latency_ms: number;
+  audit_id: string | null;
+  audit_status: string; // "n/a" | "pending" | "clean" | "flagged" | "error"
+  audit_severity: number | null;
+};
+
+const HISTORY_KEY = "simpilot.admin.orchestrator.history.v1";
+const HISTORY_LIMIT = 25;
 
 type TaskType = "auto" | "technical" | "operational" | "vision";
 
@@ -177,6 +193,40 @@ const AdminOrchestratorTester = () => {
   const [prompt, setPrompt] = useState(SAMPLES.technical);
   const [slotA, setSlotA] = useState<Slot>(emptySlot("auto"));
   const [slotB, setSlotB] = useState<Slot | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? (JSON.parse(raw) as HistoryEntry[]) : [];
+    } catch { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch { /* ignore */ }
+  }, [history]);
+
+  const addHistory = (forced: TaskType, promptText: string, data: OrchestratorResult) => {
+    setHistory(prev => [
+      {
+        id: `${data.audit_id ?? ""}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        ts: Date.now(),
+        prompt: promptText,
+        forced_task: forced,
+        routed_task: data.task,
+        model: data.model,
+        latency_ms: data.latency_ms,
+        audit_id: data.audit_id,
+        audit_status: data.audit_id ? "pending" : "n/a",
+        audit_severity: null,
+      },
+      ...prev,
+    ].slice(0, HISTORY_LIMIT));
+  };
+
+  const updateHistoryAudit = (auditId: string, status: string, severity: number | null) => {
+    setHistory(prev => prev.map(h =>
+      h.audit_id === auditId ? { ...h, audit_status: status, audit_severity: severity } : h,
+    ));
+  };
 
   const loadSample = (t: Exclude<TaskType, "auto">) => {
     setTask(t);
@@ -213,7 +263,11 @@ const AdminOrchestratorTester = () => {
             poh_reference: flag?.poh_reference ?? null,
           },
         });
-        if (row.status !== "pending") { update({ polling: false }); return; }
+        if (row.status !== "pending") {
+          updateHistoryAudit(id, row.status, flag?.severity ?? null);
+          update({ polling: false });
+          return;
+        }
       }
       if (attempts < 30) setTimeout(tick, 2500);
       else update({ polling: false });
@@ -238,6 +292,7 @@ const AdminOrchestratorTester = () => {
 
     try {
       const data = await invokeFor(forcedTask);
+      addHistory(forcedTask, prompt, data);
       if (which === "A") {
         setSlotA(prev => ({ ...prev, result: data, loading: false }));
         if (data.audit_id) pollAudit(data.audit_id, setSlotA as any, false);
@@ -343,6 +398,95 @@ const AdminOrchestratorTester = () => {
           )}
         </div>
       )}
+
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-primary" />
+            <h3 className="font-display text-xs font-semibold text-foreground uppercase tracking-wider">
+              Run history
+            </h3>
+            <span className="text-[10px] text-muted-foreground">
+              {history.length}/{HISTORY_LIMIT} (this browser)
+            </span>
+          </div>
+          {history.length > 0 && (
+            <Button size="sm" variant="ghost" onClick={() => setHistory([])}>
+              <Trash2 className="w-3 h-3 mr-1.5" /> Clear
+            </Button>
+          )}
+        </div>
+
+        {history.length === 0 ? (
+          <p className="text-[11px] text-muted-foreground italic">
+            No runs yet. Press Run, Re-run, or Compare to populate the history.
+          </p>
+        ) : (
+          <div className="rounded-lg border border-border bg-background/40 overflow-x-auto">
+            <table className="w-full text-[11px]">
+              <thead className="bg-muted/30 text-muted-foreground uppercase text-[10px]">
+                <tr>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Time</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Prompt</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Forced → routed</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Model</th>
+                  <th className="text-right px-2.5 py-1.5 font-semibold">Latency</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Audit</th>
+                  <th className="px-2.5 py-1.5"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map(h => {
+                  const auditColor =
+                    h.audit_status === "flagged" ? "text-destructive" :
+                    h.audit_status === "clean" ? "text-emerald-500" :
+                    h.audit_status === "pending" ? "text-amber-500" :
+                    "text-muted-foreground";
+                  return (
+                    <tr key={h.id} className="border-t border-border/60 hover:bg-muted/20">
+                      <td className="px-2.5 py-1.5 whitespace-nowrap text-muted-foreground font-mono">
+                        {new Date(h.ts).toLocaleTimeString()}
+                      </td>
+                      <td className="px-2.5 py-1.5 max-w-[260px] truncate text-foreground" title={h.prompt}>
+                        {h.prompt}
+                      </td>
+                      <td className="px-2.5 py-1.5 whitespace-nowrap">
+                        <span className="text-muted-foreground">{h.forced_task}</span>
+                        <span className="text-muted-foreground mx-1">→</span>
+                        <span className="text-foreground font-semibold">{h.routed_task}</span>
+                      </td>
+                      <td className="px-2.5 py-1.5 font-mono text-foreground/90 max-w-[200px] truncate" title={h.model}>
+                        {h.model}
+                      </td>
+                      <td className="px-2.5 py-1.5 text-right whitespace-nowrap text-foreground">
+                        {h.latency_ms} ms
+                      </td>
+                      <td className={`px-2.5 py-1.5 whitespace-nowrap font-semibold ${auditColor}`}>
+                        {h.audit_status}
+                        {h.audit_severity != null && ` · S${h.audit_severity}`}
+                      </td>
+                      <td className="px-2.5 py-1.5 text-right">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6"
+                          title="Reuse this prompt"
+                          onClick={() => {
+                            setPrompt(h.prompt);
+                            setTask(h.forced_task);
+                          }}
+                        >
+                          <Play className="w-3 h-3" />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
