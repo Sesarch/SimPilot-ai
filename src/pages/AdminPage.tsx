@@ -673,6 +673,9 @@ const AdminPage = () => {
           {/* Models Tab */}
           <TabsContent value="models">
             <AdminModelSettings />
+            <div className="mt-6">
+              <AdminOrchestratorTester />
+            </div>
           </TabsContent>
 
           <TabsContent value="kb">
