@@ -82,6 +82,19 @@ const AdminModelSettings = () => {
   const [s, setS] = useState<Settings | null>(null);
   const [saving, setSaving] = useState(false);
   const [audits, setAudits] = useState<AuditRow[]>([]);
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [health, setHealth] = useState<{ checked_at: string; results: any[] } | null>(null);
+
+  const runHealthCheck = async () => {
+    setHealthLoading(true);
+    const { data, error } = await supabase.functions.invoke("ai-health-check", { body: {} });
+    setHealthLoading(false);
+    if (error) { toast.error(error.message); return; }
+    setHealth(data);
+    const bad = (data?.results || []).filter((r: any) => !r.ok).length;
+    if (bad === 0) toast.success("All brains reachable");
+    else toast.warning(`${bad} brain(s) failing — see details below`);
+  };
 
   useEffect(() => {
     supabase.from("model_settings").select("*").eq("id", 1).maybeSingle()
