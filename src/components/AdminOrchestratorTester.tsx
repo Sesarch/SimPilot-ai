@@ -9,8 +9,24 @@ import {
 import { toast } from "sonner";
 import {
   FlaskConical, Loader2, Cpu, Radio, Eye, ShieldAlert, ShieldCheck, Clock,
-  RefreshCw, GitCompare, X,
+  RefreshCw, GitCompare, X, History, Trash2, Play,
 } from "lucide-react";
+
+type HistoryEntry = {
+  id: string;
+  ts: number;
+  prompt: string;
+  forced_task: TaskType;
+  routed_task: string;
+  model: string;
+  latency_ms: number;
+  audit_id: string | null;
+  audit_status: string; // "n/a" | "pending" | "clean" | "flagged" | "error"
+  audit_severity: number | null;
+};
+
+const HISTORY_KEY = "simpilot.admin.orchestrator.history.v1";
+const HISTORY_LIMIT = 25;
 
 type TaskType = "auto" | "technical" | "operational" | "vision";
 
