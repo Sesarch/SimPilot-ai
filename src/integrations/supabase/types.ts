@@ -53,6 +53,113 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_audit_queue: {
+        Row: {
+          ai_response: string
+          attempts: number
+          audit_completed_at: string | null
+          audit_model: string | null
+          audit_notes: string | null
+          audit_started_at: string | null
+          created_at: string
+          id: string
+          message_id: string | null
+          pilot_context: Json | null
+          primary_model: string
+          session_id: string | null
+          status: string
+          task_type: string
+          user_id: string | null
+          user_prompt: string
+        }
+        Insert: {
+          ai_response: string
+          attempts?: number
+          audit_completed_at?: string | null
+          audit_model?: string | null
+          audit_notes?: string | null
+          audit_started_at?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          pilot_context?: Json | null
+          primary_model: string
+          session_id?: string | null
+          status?: string
+          task_type: string
+          user_id?: string | null
+          user_prompt: string
+        }
+        Update: {
+          ai_response?: string
+          attempts?: number
+          audit_completed_at?: string | null
+          audit_model?: string | null
+          audit_notes?: string | null
+          audit_started_at?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          pilot_context?: Json | null
+          primary_model?: string
+          session_id?: string | null
+          status?: string
+          task_type?: string
+          user_id?: string | null
+          user_prompt?: string
+        }
+        Relationships: []
+      }
+      ai_safety_flags: {
+        Row: {
+          audit_queue_id: string | null
+          auditor_model: string
+          category: string
+          contradiction: string
+          created_at: string
+          id: string
+          message_id: string | null
+          poh_reference: string | null
+          session_id: string | null
+          severity: number
+          user_id: string | null
+        }
+        Insert: {
+          audit_queue_id?: string | null
+          auditor_model: string
+          category: string
+          contradiction: string
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          poh_reference?: string | null
+          session_id?: string | null
+          severity?: number
+          user_id?: string | null
+        }
+        Update: {
+          audit_queue_id?: string | null
+          auditor_model?: string
+          category?: string
+          contradiction?: string
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          poh_reference?: string | null
+          session_id?: string | null
+          severity?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_safety_flags_audit_queue_id_fkey"
+            columns: ["audit_queue_id"]
+            isOneToOne: false
+            referencedRelation: "ai_audit_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -640,31 +747,46 @@ export type Database = {
       }
       model_settings: {
         Row: {
+          auditor_model: string
           guardrails_enabled: boolean
           id: number
+          operational_model: string
           primary_model: string
           reviewer_enabled: boolean
           reviewer_model: string
           reviewer_scope: string
+          shadow_audit_enabled: boolean
+          technical_model: string
           updated_at: string
+          vision_model: string
         }
         Insert: {
+          auditor_model?: string
           guardrails_enabled?: boolean
           id?: number
+          operational_model?: string
           primary_model?: string
           reviewer_enabled?: boolean
           reviewer_model?: string
           reviewer_scope?: string
+          shadow_audit_enabled?: boolean
+          technical_model?: string
           updated_at?: string
+          vision_model?: string
         }
         Update: {
+          auditor_model?: string
           guardrails_enabled?: boolean
           id?: number
+          operational_model?: string
           primary_model?: string
           reviewer_enabled?: boolean
           reviewer_model?: string
           reviewer_scope?: string
+          shadow_audit_enabled?: boolean
+          technical_model?: string
           updated_at?: string
+          vision_model?: string
         }
         Relationships: []
       }
@@ -696,13 +818,16 @@ export type Database = {
           display_name: string | null
           flight_hours: number | null
           id: string
+          license_level: string | null
           profile_public: boolean
           rating_focus: string | null
           region: string | null
           school_seat_code_id: string | null
           subscription_expires_at: string | null
           subscription_source: string | null
+          tail_number: string | null
           terms_agreed_at: string | null
+          training_progress: Json
           trial_ends_at: string | null
           trial_started_at: string | null
           updated_at: string
@@ -717,13 +842,16 @@ export type Database = {
           display_name?: string | null
           flight_hours?: number | null
           id?: string
+          license_level?: string | null
           profile_public?: boolean
           rating_focus?: string | null
           region?: string | null
           school_seat_code_id?: string | null
           subscription_expires_at?: string | null
           subscription_source?: string | null
+          tail_number?: string | null
           terms_agreed_at?: string | null
+          training_progress?: Json
           trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
@@ -738,13 +866,16 @@ export type Database = {
           display_name?: string | null
           flight_hours?: number | null
           id?: string
+          license_level?: string | null
           profile_public?: boolean
           rating_focus?: string | null
           region?: string | null
           school_seat_code_id?: string | null
           subscription_expires_at?: string | null
           subscription_source?: string | null
+          tail_number?: string | null
           terms_agreed_at?: string | null
+          training_progress?: Json
           trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
