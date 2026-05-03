@@ -53,18 +53,29 @@ const AdminOrchestratorTester = () => {
     let attempts = 0;
     const tick = async () => {
       attempts++;
-      const { data } = await supabase
+      const { data: row } = await supabase
         .from("ai_audit_queue")
-        .select("id, status, severity, audit_notes, auditor_model")
+        .select("id, status, audit_notes, audit_model")
         .eq("id", id)
         .maybeSingle();
-      if (data && data.status !== "pending") {
-        setAudit(data as AuditRow);
-        setAuditPolling(false);
-        return;
+      const { data: flag } = await supabase
+        .from("ai_safety_flags")
+        .select("severity, contradiction, poh_reference")
+        .eq("audit_queue_id", id)
+        .maybeSingle();
+      if (row) {
+        setAudit({
+          id: row.id,
+          status: row.status,
+          audit_notes: row.audit_notes,
+          audit_model: row.audit_model,
+          severity: flag?.severity ?? null,
+          contradiction: flag?.contradiction ?? null,
+          poh_reference: flag?.poh_reference ?? null,
+        });
+        if (row.status !== "pending") { setAuditPolling(false); return; }
       }
-      if (data) setAudit(data as AuditRow);
-      if (attempts < 30) setTimeout(tick, 2500); // up to ~75s
+      if (attempts < 30) setTimeout(tick, 2500);
       else setAuditPolling(false);
     };
     tick();
