@@ -193,6 +193,40 @@ const AdminOrchestratorTester = () => {
   const [prompt, setPrompt] = useState(SAMPLES.technical);
   const [slotA, setSlotA] = useState<Slot>(emptySlot("auto"));
   const [slotB, setSlotB] = useState<Slot | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? (JSON.parse(raw) as HistoryEntry[]) : [];
+    } catch { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch { /* ignore */ }
+  }, [history]);
+
+  const addHistory = (forced: TaskType, promptText: string, data: OrchestratorResult) => {
+    setHistory(prev => [
+      {
+        id: `${data.audit_id ?? ""}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        ts: Date.now(),
+        prompt: promptText,
+        forced_task: forced,
+        routed_task: data.task,
+        model: data.model,
+        latency_ms: data.latency_ms,
+        audit_id: data.audit_id,
+        audit_status: data.audit_id ? "pending" : "n/a",
+        audit_severity: null,
+      },
+      ...prev,
+    ].slice(0, HISTORY_LIMIT));
+  };
+
+  const updateHistoryAudit = (auditId: string, status: string, severity: number | null) => {
+    setHistory(prev => prev.map(h =>
+      h.audit_id === auditId ? { ...h, audit_status: status, audit_severity: severity } : h,
+    ));
+  };
 
   const loadSample = (t: Exclude<TaskType, "auto">) => {
     setTask(t);
