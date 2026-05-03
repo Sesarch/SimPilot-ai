@@ -7,7 +7,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Brain, ShieldCheck, Loader2, Cpu, Radio, Eye, ScanSearch } from "lucide-react";
+import { Brain, ShieldCheck, Loader2, Cpu, Radio, Eye, ScanSearch, Activity, CheckCircle2, XCircle } from "lucide-react";
 
 const GATEWAY_MODELS = [
   { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (preview) — fast" },
