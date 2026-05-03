@@ -532,6 +532,9 @@ const AdminOrchestratorTester = () => {
               </tbody>
             </table>
           </div>
+              );
+            })()}
+          </>
         )}
       </div>
     </div>
