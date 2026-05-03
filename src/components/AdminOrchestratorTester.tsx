@@ -207,14 +207,54 @@ const AdminOrchestratorTester = () => {
               <p className="text-[11px] text-muted-foreground">Queued · audit id <span className="font-mono">{result.audit_id.slice(0, 8)}</span> · waiting for auditor (cron runs every minute)…</p>
             )}
             {audit && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <p className={`text-xs font-semibold ${sevColor}`}>
                   Status: {audit.status.toUpperCase()}
                   {audit.severity != null && ` · Severity ${audit.severity}`}
                 </p>
-                {audit.audit_model && <p className="text-[10px] text-muted-foreground">Auditor: {audit.audit_model}</p>}
-                {audit.audit_notes && (
-                  <p className="text-[11px] text-foreground whitespace-pre-wrap">{audit.audit_notes}</p>
+                {audit.audit_model && (
+                  <p className="text-[10px] text-muted-foreground">Auditor: {audit.audit_model}</p>
+                )}
+
+                {audit.status === "flagged" && (
+                  <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2.5 space-y-1.5">
+                    {audit.contradiction && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-destructive/80 font-semibold mb-0.5">
+                          Contradiction
+                        </p>
+                        <p className="text-[11px] text-foreground whitespace-pre-wrap leading-relaxed">
+                          {audit.contradiction}
+                        </p>
+                      </div>
+                    )}
+                    {audit.poh_reference && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-destructive/80 font-semibold mb-0.5">
+                          POH / Reference
+                        </p>
+                        <a
+                          href={`https://www.google.com/search?q=${encodeURIComponent(audit.poh_reference)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-mono break-all"
+                        >
+                          {audit.poh_reference}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {audit.audit_notes && audit.audit_notes !== audit.contradiction && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">
+                      Auditor notes
+                    </p>
+                    <p className="text-[11px] text-foreground whitespace-pre-wrap leading-relaxed">
+                      {audit.audit_notes}
+                    </p>
+                  </div>
                 )}
               </div>
             )}
