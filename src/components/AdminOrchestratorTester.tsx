@@ -9,8 +9,9 @@ import {
 import { toast } from "sonner";
 import {
   FlaskConical, Loader2, Cpu, Radio, Eye, ShieldAlert, ShieldCheck, Clock,
-  RefreshCw, GitCompare, X, History, Trash2, Play,
+  RefreshCw, GitCompare, X, History, Trash2, Play, Download,
 } from "lucide-react";
+import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 
 type HistoryEntry = {
   id: string;
@@ -412,9 +413,46 @@ const AdminOrchestratorTester = () => {
             </span>
           </div>
           {history.length > 0 && (
-            <Button size="sm" variant="ghost" onClick={() => setHistory([])}>
-              <Trash2 className="w-3 h-3 mr-1.5" /> Clear
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const filtered = historyFilter === "all"
+                    ? history
+                    : history.filter(h => h.audit_status === historyFilter);
+                  if (filtered.length === 0) {
+                    toast.error("Nothing to export for this filter");
+                    return;
+                  }
+                  const rows = filtered.map(h => ({
+                    timestamp_iso: new Date(h.ts).toISOString(),
+                    timestamp_local: new Date(h.ts).toLocaleString(),
+                    prompt: h.prompt,
+                    forced_task: h.forced_task,
+                    routed_task: h.routed_task,
+                    model: h.model,
+                    latency_ms: h.latency_ms,
+                    audit_id: h.audit_id ?? "",
+                    audit_status: h.audit_status,
+                    audit_severity: h.audit_severity ?? "",
+                  }));
+                  const csv = toCSV(rows, [
+                    "timestamp_iso", "timestamp_local", "prompt",
+                    "forced_task", "routed_task", "model", "latency_ms",
+                    "audit_id", "audit_status", "audit_severity",
+                  ]);
+                  const suffix = historyFilter === "all" ? "all" : historyFilter.replace("/", "-");
+                  downloadCSV(`orchestrator-history-${suffix}-${csvDateStamp()}.csv`, csv);
+                  toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"}`);
+                }}
+              >
+                <Download className="w-3 h-3 mr-1.5" /> Export CSV
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setHistory([])}>
+                <Trash2 className="w-3 h-3 mr-1.5" /> Clear
+              </Button>
+            </div>
           )}
         </div>
 
