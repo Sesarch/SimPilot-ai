@@ -30,6 +30,7 @@ import AdminSiteSettings from "@/components/AdminSiteSettings";
 import AdminMissingAcsCodes from "@/components/AdminMissingAcsCodes";
 import AdminSchoolInquiries from "@/components/AdminSchoolInquiries";
 import AdminModelSettings from "@/components/AdminModelSettings";
+import AdminOrchestratorTester from "@/components/AdminOrchestratorTester";
 import AdminKnowledgeBase from "@/components/AdminKnowledgeBase";
 import AdminPayments from "@/components/AdminPayments";
 import AdminReports from "@/components/AdminReports";
