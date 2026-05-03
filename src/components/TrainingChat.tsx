@@ -15,6 +15,7 @@ import PilotContextChips, { PilotContextBadge } from "@/components/PilotContextC
 import ExamPassCelebration from "@/components/ExamPassCelebration";
 import CheckrideReadinessReport from "@/components/CheckrideReadinessReport";
 import { extractCheckrideReport, type CheckrideReport } from "@/lib/checkrideReport";
+import SafetyAlertBanner from "@/components/SafetyAlertBanner";
 
 interface TrainingChatProps {
   mode: ChatMode;
@@ -310,6 +311,7 @@ export const TrainingChat = ({
       </div>
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+        <SafetyAlertBanner />
         {!started && welcomeMessage && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             {!pilotCtx.isComplete ? (
