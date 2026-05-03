@@ -24,6 +24,15 @@ type HistoryEntry = {
   audit_id: string | null;
   audit_status: string; // "n/a" | "pending" | "clean" | "flagged" | "error"
   audit_severity: number | null;
+  audit_raw?: {
+    id: string;
+    status: string;
+    audit_notes: string | null;
+    audit_model: string | null;
+    severity: number | null;
+    contradiction: string | null;
+    poh_reference: string | null;
+  } | null;
 };
 
 const HISTORY_KEY = "simpilot.admin.orchestrator.history.v1";
