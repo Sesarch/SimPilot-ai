@@ -212,7 +212,7 @@ const AdminOrchestratorTester = () => {
                   Status: {audit.status.toUpperCase()}
                   {audit.severity != null && ` · Severity ${audit.severity}`}
                 </p>
-                {audit.auditor_model && <p className="text-[10px] text-muted-foreground">Auditor: {audit.auditor_model}</p>}
+                {audit.audit_model && <p className="text-[10px] text-muted-foreground">Auditor: {audit.audit_model}</p>}
                 {audit.audit_notes && (
                   <p className="text-[11px] text-foreground whitespace-pre-wrap">{audit.audit_notes}</p>
                 )}
