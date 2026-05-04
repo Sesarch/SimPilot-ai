@@ -597,9 +597,42 @@ const AdminOrchestratorTester = () => {
                   <th className="text-left px-2.5 py-1.5 font-semibold">Model</th>
                   <th className="text-right px-2.5 py-1.5 font-semibold">Latency</th>
                   <th className="text-left px-2.5 py-1.5 font-semibold">Audit</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Notes</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Contradiction</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">POH ref</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("audit_notes")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      Notes
+                      {sortKey === "audit_notes"
+                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
+                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                    </button>
+                  </th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("contradiction")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      Contradiction
+                      {sortKey === "contradiction"
+                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
+                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                    </button>
+                  </th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("poh_reference")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      POH ref
+                      {sortKey === "poh_reference"
+                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
+                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                    </button>
+                  </th>
                   <th className="px-2.5 py-1.5"></th>
                 </tr>
               </thead>
