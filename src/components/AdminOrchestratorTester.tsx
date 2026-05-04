@@ -826,6 +826,113 @@ const AdminOrchestratorTester = () => {
           })()}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!detailsEntry} onOpenChange={(o) => !o && setDetailsEntry(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <FileText className="w-4 h-4 text-primary" />
+              Audit details
+            </DialogTitle>
+            <DialogDescription className="text-[11px]">
+              {detailsEntry && new Date(detailsEntry.ts).toLocaleString()} ·{" "}
+              <span className="font-mono">{detailsEntry?.routed_task}</span> ·{" "}
+              <span className="font-mono">{detailsEntry?.audit_status}</span>
+              {detailsEntry?.audit_severity != null && ` · S${detailsEntry.audit_severity}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {detailsEntry && (
+            <ScrollArea className="max-h-[65vh] pr-3">
+              <div className="space-y-4">
+                <section>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                    Prompt
+                  </p>
+                  <p className="text-xs text-foreground/90 whitespace-pre-wrap rounded-md border border-border bg-background/40 p-2.5">
+                    {detailsEntry.prompt}
+                  </p>
+                </section>
+
+                <section>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                    Audit notes
+                  </p>
+                  {detailsEntry.audit_raw?.audit_notes ? (
+                    <p className="text-xs text-foreground/90 whitespace-pre-wrap rounded-md border border-border bg-background/40 p-2.5 leading-relaxed">
+                      {detailsEntry.audit_raw.audit_notes}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic">No notes recorded.</p>
+                  )}
+                  {detailsEntry.audit_raw?.audit_model && (
+                    <p className="text-[10px] text-muted-foreground mt-1 font-mono">
+                      Auditor: {detailsEntry.audit_raw.audit_model}
+                    </p>
+                  )}
+                </section>
+
+                <section>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                    Contradiction
+                  </p>
+                  {detailsEntry.audit_raw?.contradiction ? (
+                    <p className="text-xs text-foreground/90 whitespace-pre-wrap rounded-md border border-destructive/40 bg-destructive/10 p-2.5 leading-relaxed">
+                      {detailsEntry.audit_raw.contradiction}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic">No contradiction flagged.</p>
+                  )}
+                </section>
+
+                <section>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                    POH reference
+                  </p>
+                  {detailsEntry.audit_raw?.poh_reference ? (
+                    <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-background/40 p-2.5">
+                      <span className="text-xs font-mono text-foreground/90 break-all">
+                        {detailsEntry.audit_raw.poh_reference}
+                      </span>
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(detailsEntry.audit_raw.poh_reference)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline whitespace-nowrap"
+                      >
+                        Search <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic">No POH reference cited.</p>
+                  )}
+                </section>
+
+                <div className="flex justify-end pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7"
+                    onClick={() => {
+                      const r = detailsEntry.audit_raw;
+                      const text = [
+                        `Notes: ${r?.audit_notes ?? "—"}`,
+                        `Contradiction: ${r?.contradiction ?? "—"}`,
+                        `POH ref: ${r?.poh_reference ?? "—"}`,
+                      ].join("\n");
+                      navigator.clipboard.writeText(text)
+                        .then(() => toast.success("Copied details"))
+                        .catch(() => toast.error("Copy failed"));
+                    }}
+                  >
+                    <Copy className="w-3 h-3 mr-1.5" /> Copy details
+                  </Button>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
