@@ -579,6 +579,9 @@ const AdminOrchestratorTester = () => {
                   <th className="text-left px-2.5 py-1.5 font-semibold">Model</th>
                   <th className="text-right px-2.5 py-1.5 font-semibold">Latency</th>
                   <th className="text-left px-2.5 py-1.5 font-semibold">Audit</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Notes</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Contradiction</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">POH ref</th>
                   <th className="px-2.5 py-1.5"></th>
                 </tr>
               </thead>
@@ -611,6 +614,35 @@ const AdminOrchestratorTester = () => {
                       <td className={`px-2.5 py-1.5 whitespace-nowrap font-semibold ${auditColor}`}>
                         {h.audit_status}
                         {h.audit_severity != null && ` · S${h.audit_severity}`}
+                      </td>
+                      <td
+                        className="px-2.5 py-1.5 max-w-[200px] truncate text-foreground/90"
+                        title={h.audit_raw?.audit_notes ?? ""}
+                      >
+                        {h.audit_raw?.audit_notes ?? <span className="text-muted-foreground">—</span>}
+                      </td>
+                      <td
+                        className="px-2.5 py-1.5 max-w-[200px] truncate text-foreground/90"
+                        title={h.audit_raw?.contradiction ?? ""}
+                      >
+                        {h.audit_raw?.contradiction ?? <span className="text-muted-foreground">—</span>}
+                      </td>
+                      <td
+                        className="px-2.5 py-1.5 max-w-[160px] truncate font-mono text-foreground/90"
+                        title={h.audit_raw?.poh_reference ?? ""}
+                      >
+                        {h.audit_raw?.poh_reference
+                          ? (
+                            <a
+                              href={`https://www.google.com/search?q=${encodeURIComponent(h.audit_raw.poh_reference)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {h.audit_raw.poh_reference}
+                            </a>
+                          )
+                          : <span className="text-muted-foreground">—</span>}
                       </td>
                       <td className="px-2.5 py-1.5 text-right whitespace-nowrap">
                         <Button
