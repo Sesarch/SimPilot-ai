@@ -1614,12 +1614,16 @@ const ATCTrainer = () => {
         ? currentAtis.info
         : null;
     const atisIntent = detectAtisIntent(trimmed, currentAtisLetter);
+    const currentAtisPhonetic = toAtisPhonetic(currentAtisLetter);
+    if (atisIntent.matchesCurrent && currentAtisLetter) {
+      setFlightState((prev) => ({ ...prev, atis: currentAtisLetter }));
+    }
     const atisHintMessages = atisIntent.hasToken
       ? [{
           role: "system" as const,
           content: atisIntent.matchesCurrent
             ? `[ATIS_CONFIRMED] The pilot's current transmission explicitly contains the active ATIS token${atisIntent.spokenPhonetic ? ` ("${atisIntent.spokenPhonetic}")` : ""}. Do NOT ask them to verify ATIS. Acknowledge and proceed with the requested instruction in the same transmission.`
-            : `[ATIS_TOKEN_MISMATCH] The pilot stated "${atisIntent.spokenPhonetic}" but current ATIS is Information ${currentAtisLetter}. Briefly correct: "<Callsign>, current information is ${currentAtisLetter}, verify."`,
+            : `[ATIS_TOKEN_MISMATCH] The pilot stated "${atisIntent.spokenPhonetic}" but current ATIS is Information ${currentAtisPhonetic ?? currentAtisLetter}. Use exactly: "<Callsign>, verify you have the current ATIS, Information ${currentAtisPhonetic ?? currentAtisLetter}." Do not issue taxi clearance until confirmed.`,
         }]
       : [];
 
