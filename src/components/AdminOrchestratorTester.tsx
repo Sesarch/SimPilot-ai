@@ -696,6 +696,27 @@ const AdminOrchestratorTester = () => {
               >
                 <Link2 className="w-3 h-3 mr-1.5" /> Share
               </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                title="Copy compact permalink with encoded sort state"
+                onClick={async () => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete(SORT_QS_KEY);
+                  const short = serializeSortShort(sortStack);
+                  if (short) url.searchParams.set(SORT_QS_SHORT_KEY, short);
+                  else url.searchParams.delete(SORT_QS_SHORT_KEY);
+                  const link = url.toString();
+                  try {
+                    await navigator.clipboard.writeText(link);
+                    toast.success("Permalink copied", { description: short ? `?s=${short}` : "Default sort" });
+                  } catch {
+                    toast.error("Could not copy permalink", { description: link });
+                  }
+                }}
+              >
+                <Link2 className="w-3 h-3 mr-1.5" /> Permalink
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm" variant="ghost">
