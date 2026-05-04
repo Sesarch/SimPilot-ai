@@ -39,6 +39,7 @@ import QuickAnswerPage from "./pages/QuickAnswerPage.tsx";
 import ForSchoolsPage from "./pages/ForSchoolsPage.tsx";
 import ForSchoolsSuccessPage from "./pages/ForSchoolsSuccessPage.tsx";
 import IntakePage from "./pages/IntakePage.tsx";
+import TestModePage from "./pages/TestModePage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
@@ -85,6 +86,7 @@ const App = () => (
                 <Route path="/session-history" element={<SessionHistoryPage />} />
                 <Route path="/progress" element={<ProgressPage />} />
                 <Route path="/logbook" element={<LogbookPage />} />
+                <Route path="/test-mode" element={<TestModePage />} />
               </Route>
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
