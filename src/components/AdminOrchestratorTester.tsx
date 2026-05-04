@@ -214,7 +214,47 @@ const AdminOrchestratorTester = () => {
   const [detailsEntry, setDetailsEntry] = useState<HistoryEntry | null>(null);
   type SortColKey = "audit_notes" | "contradiction" | "poh_reference";
   type SortCriterion = { key: SortColKey; dir: "asc" | "desc" };
-  const [sortStack, setSortStack] = useState<SortCriterion[]>([]);
+  const SORT_QS_KEY = "histSort";
+  const VALID_SORT_KEYS: SortColKey[] = ["audit_notes", "contradiction", "poh_reference"];
+  const parseSortParam = (raw: string | null): SortCriterion[] => {
+    if (!raw) return [];
+    const out: SortCriterion[] = [];
+    const seen = new Set<string>();
+    for (const part of raw.split(",")) {
+      const [k, d] = part.split(":");
+      if (!VALID_SORT_KEYS.includes(k as SortColKey)) continue;
+      if (d !== "asc" && d !== "desc") continue;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ key: k as SortColKey, dir: d });
+    }
+    return out;
+  };
+  const serializeSort = (stack: SortCriterion[]) =>
+    stack.map(c => `${c.key}:${c.dir}`).join(",");
+  const [sortStack, setSortStack] = useState<SortCriterion[]>(() => {
+    if (typeof window === "undefined") return [];
+    return parseSortParam(new URLSearchParams(window.location.search).get(SORT_QS_KEY));
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const current = url.searchParams.get(SORT_QS_KEY) ?? "";
+    const next = serializeSort(sortStack);
+    if (current === next) return;
+    if (next) url.searchParams.set(SORT_QS_KEY, next);
+    else url.searchParams.delete(SORT_QS_KEY);
+    window.history.replaceState({}, "", url.toString());
+  }, [sortStack]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onPop = () => {
+      const parsed = parseSortParam(new URLSearchParams(window.location.search).get(SORT_QS_KEY));
+      setSortStack(parsed);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   const [notesQuery, setNotesQuery] = useState("");
   const [contradictionQuery, setContradictionQuery] = useState("");
   const [pohQuery, setPohQuery] = useState("");
