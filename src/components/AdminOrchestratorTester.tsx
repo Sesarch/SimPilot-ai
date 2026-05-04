@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import {
   FlaskConical, Loader2, Cpu, Radio, Eye, ShieldAlert, ShieldCheck, Clock,
   RefreshCw, GitCompare, X, History, Trash2, Play, Download, Code2, Copy,
-  ArrowUp, ArrowDown, ArrowUpDown, FileText, ExternalLink,
+  ArrowUp, ArrowDown, ArrowUpDown, FileText, ExternalLink, Link2,
 } from "lucide-react";
 import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 import {
@@ -237,9 +237,16 @@ const AdminOrchestratorTester = () => {
   };
   const serializeSort = (stack: SortCriterion[]) =>
     stack.map(c => `${c.key}:${c.dir}`).join(",");
+  const DEFAULT_SORT_STACK: SortCriterion[] = [
+    { key: "contradiction", dir: "desc" },
+    { key: "audit_notes", dir: "asc" },
+    { key: "poh_reference", dir: "asc" },
+  ];
   const [sortStack, setSortStack] = useState<SortCriterion[]>(() => {
-    if (typeof window === "undefined") return [];
-    return parseSortParam(new URLSearchParams(window.location.search).get(SORT_QS_KEY));
+    if (typeof window === "undefined") return DEFAULT_SORT_STACK;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has(SORT_QS_KEY)) return DEFAULT_SORT_STACK;
+    return parseSortParam(params.get(SORT_QS_KEY));
   });
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -645,6 +652,21 @@ const AdminOrchestratorTester = () => {
                 }}
               >
                 <Download className="w-3 h-3 mr-1.5" /> Export JSON
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  const url = window.location.href;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast.success("Share link copied", { description: "URL includes current sort." });
+                  } catch {
+                    toast.error("Could not copy link", { description: url });
+                  }
+                }}
+              >
+                <Link2 className="w-3 h-3 mr-1.5" /> Share
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
