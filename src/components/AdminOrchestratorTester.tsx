@@ -565,7 +565,7 @@ const AdminOrchestratorTester = () => {
                       notes_query: notesQuery.trim() || null,
                       contradiction_query: contradictionQuery.trim() || null,
                       poh_query: pohQuery.trim() || null,
-                      sort: sortKey ? { key: sortKey, direction: sortDir } : null,
+                      sort: sortStack.length ? sortStack.map(c => ({ key: c.key, direction: c.dir })) : null,
                     },
                     count: filtered.length,
                     runs: filtered.map((h, idx) => ({
