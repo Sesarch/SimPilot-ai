@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import {
   FlaskConical, Loader2, Cpu, Radio, Eye, ShieldAlert, ShieldCheck, Clock,
   RefreshCw, GitCompare, X, History, Trash2, Play, Download, Code2, Copy,
+  ArrowUp, ArrowDown, ArrowUpDown,
 } from "lucide-react";
 import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 import {
@@ -209,6 +210,13 @@ const AdminOrchestratorTester = () => {
   const [slotB, setSlotB] = useState<Slot | null>(null);
   const [historyFilter, setHistoryFilter] = useState<"all" | "pending" | "clean" | "flagged" | "error" | "n/a">("all");
   const [inspectEntry, setInspectEntry] = useState<HistoryEntry | null>(null);
+  const [sortKey, setSortKey] = useState<"audit_notes" | "contradiction" | "poh_reference" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
+    if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
+    else if (sortDir === "asc") setSortDir("desc");
+    else { setSortKey(null); setSortDir("asc"); }
+  };
   const [history, setHistory] = useState<HistoryEntry[]>(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
@@ -558,9 +566,19 @@ const AdminOrchestratorTester = () => {
               );
             })()}
             {(() => {
-              const filtered = historyFilter === "all"
+              const base = historyFilter === "all"
                 ? history
                 : history.filter(h => h.audit_status === historyFilter);
+              const filtered = sortKey
+                ? [...base].sort((a, b) => {
+                    const av = (a.audit_raw?.[sortKey] ?? "") as string;
+                    const bv = (b.audit_raw?.[sortKey] ?? "") as string;
+                    if (!av && bv) return 1;
+                    if (av && !bv) return -1;
+                    const cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+                    return sortDir === "asc" ? cmp : -cmp;
+                  })
+                : base;
               if (filtered.length === 0) {
                 return (
                   <p className="text-[11px] text-muted-foreground italic">
@@ -579,9 +597,42 @@ const AdminOrchestratorTester = () => {
                   <th className="text-left px-2.5 py-1.5 font-semibold">Model</th>
                   <th className="text-right px-2.5 py-1.5 font-semibold">Latency</th>
                   <th className="text-left px-2.5 py-1.5 font-semibold">Audit</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Notes</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Contradiction</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">POH ref</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("audit_notes")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      Notes
+                      {sortKey === "audit_notes"
+                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
+                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                    </button>
+                  </th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("contradiction")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      Contradiction
+                      {sortKey === "contradiction"
+                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
+                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                    </button>
+                  </th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("poh_reference")}
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      POH ref
+                      {sortKey === "poh_reference"
+                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
+                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                    </button>
+                  </th>
                   <th className="px-2.5 py-1.5"></th>
                 </tr>
               </thead>
