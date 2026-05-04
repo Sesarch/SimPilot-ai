@@ -724,42 +724,28 @@ const AdminOrchestratorTester = () => {
                   <th className="text-left px-2.5 py-1.5 font-semibold">Model</th>
                   <th className="text-right px-2.5 py-1.5 font-semibold">Latency</th>
                   <th className="text-left px-2.5 py-1.5 font-semibold">Audit</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("audit_notes")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      Notes
-                      {sortKey === "audit_notes"
-                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
-                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
-                    </button>
-                  </th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("contradiction")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      Contradiction
-                      {sortKey === "contradiction"
-                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
-                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
-                    </button>
-                  </th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("poh_reference")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      POH ref
-                      {sortKey === "poh_reference"
-                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
-                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
-                    </button>
-                  </th>
+                  {(["audit_notes", "contradiction", "poh_reference"] as const).map(colKey => {
+                    const label = colKey === "audit_notes" ? "Notes" : colKey === "contradiction" ? "Contradiction" : "POH ref";
+                    const info = sortInfo(colKey);
+                    return (
+                      <th key={colKey} className="text-left px-2.5 py-1.5 font-semibold">
+                        <button
+                          type="button"
+                          onClick={(e) => toggleSort(colKey, e.shiftKey)}
+                          title="Click to sort · Shift+click to add to multi-sort"
+                          className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                        >
+                          {label}
+                          {info.active
+                            ? (info.dir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
+                            : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                          {info.active && sortStack.length > 1 && (
+                            <span className="text-[9px] font-mono opacity-70">{info.order}</span>
+                          )}
+                        </button>
+                      </th>
+                    );
+                  })}
                   <th className="px-2.5 py-1.5"></th>
                 </tr>
               </thead>
