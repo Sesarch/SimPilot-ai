@@ -220,7 +220,10 @@ const AdminOrchestratorTester = () => {
   type SortColKey = "audit_notes" | "contradiction" | "poh_reference";
   type SortCriterion = { key: SortColKey; dir: "asc" | "desc" };
   const SORT_QS_KEY = "histSort";
+  const SORT_QS_SHORT_KEY = "s";
   const VALID_SORT_KEYS: SortColKey[] = ["audit_notes", "contradiction", "poh_reference"];
+  const SHORT_KEY_MAP: Record<string, SortColKey> = { n: "audit_notes", c: "contradiction", p: "poh_reference" };
+  const SHORT_KEY_INV: Record<SortColKey, string> = { audit_notes: "n", contradiction: "c", poh_reference: "p" };
   const parseSortParam = (raw: string | null): SortCriterion[] => {
     if (!raw) return [];
     const out: SortCriterion[] = [];
@@ -235,8 +238,25 @@ const AdminOrchestratorTester = () => {
     }
     return out;
   };
+  const parseShortSortParam = (raw: string | null): SortCriterion[] => {
+    if (!raw) return [];
+    const out: SortCriterion[] = [];
+    const seen = new Set<string>();
+    // tokens like "cd", "na", "pa" — letter + a/d
+    for (let i = 0; i + 1 < raw.length; i += 2) {
+      const k = SHORT_KEY_MAP[raw[i]];
+      const d = raw[i + 1] === "a" ? "asc" : raw[i + 1] === "d" ? "desc" : null;
+      if (!k || !d) continue;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ key: k, dir: d });
+    }
+    return out;
+  };
   const serializeSort = (stack: SortCriterion[]) =>
     stack.map(c => `${c.key}:${c.dir}`).join(",");
+  const serializeSortShort = (stack: SortCriterion[]) =>
+    stack.map(c => `${SHORT_KEY_INV[c.key]}${c.dir === "asc" ? "a" : "d"}`).join("");
   const DEFAULT_SORT_STACK: SortCriterion[] = [
     { key: "contradiction", dir: "desc" },
     { key: "audit_notes", dir: "asc" },
