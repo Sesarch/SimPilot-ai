@@ -208,6 +208,7 @@ const AdminOrchestratorTester = () => {
   const [slotA, setSlotA] = useState<Slot>(emptySlot("auto"));
   const [slotB, setSlotB] = useState<Slot | null>(null);
   const [historyFilter, setHistoryFilter] = useState<"all" | "pending" | "clean" | "flagged" | "error" | "n/a">("all");
+  const [inspectEntry, setInspectEntry] = useState<HistoryEntry | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
