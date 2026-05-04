@@ -214,6 +214,10 @@ const AdminOrchestratorTester = () => {
   const [detailsEntry, setDetailsEntry] = useState<HistoryEntry | null>(null);
   const [sortKey, setSortKey] = useState<"audit_notes" | "contradiction" | "poh_reference" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [notesQuery, setNotesQuery] = useState("");
+  const [contradictionQuery, setContradictionQuery] = useState("");
+  const [pohQuery, setPohQuery] = useState("");
+  const [presenceFilter, setPresenceFilter] = useState<"any" | "notes" | "contradiction" | "poh">("any");
   const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
     if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
     else if (sortDir === "asc") setSortDir("desc");
