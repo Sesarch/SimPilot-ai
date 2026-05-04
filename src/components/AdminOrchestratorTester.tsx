@@ -218,6 +218,27 @@ const AdminOrchestratorTester = () => {
   const [contradictionQuery, setContradictionQuery] = useState("");
   const [pohQuery, setPohQuery] = useState("");
   const [presenceFilter, setPresenceFilter] = useState<"any" | "notes" | "contradiction" | "poh">("any");
+
+  const applyHistoryFilters = (rows: HistoryEntry[]) => {
+    const nq = notesQuery.trim().toLowerCase();
+    const cq = contradictionQuery.trim().toLowerCase();
+    const pq = pohQuery.trim().toLowerCase();
+    return rows.filter(h => {
+      if (historyFilter !== "all" && h.audit_status !== historyFilter) return false;
+      const notes = h.audit_raw?.audit_notes ?? "";
+      const contradiction = h.audit_raw?.contradiction ?? "";
+      const poh = h.audit_raw?.poh_reference ?? "";
+      if (presenceFilter === "notes" && !notes) return false;
+      if (presenceFilter === "contradiction" && !contradiction) return false;
+      if (presenceFilter === "poh" && !poh) return false;
+      if (nq && !notes.toLowerCase().includes(nq)) return false;
+      if (cq && !contradiction.toLowerCase().includes(cq)) return false;
+      if (pq && !poh.toLowerCase().includes(pq)) return false;
+      return true;
+    });
+  };
+  const hasExtraFilters =
+    presenceFilter !== "any" || !!notesQuery.trim() || !!contradictionQuery.trim() || !!pohQuery.trim();
   const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
     if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
     else if (sortDir === "asc") setSortDir("desc");
