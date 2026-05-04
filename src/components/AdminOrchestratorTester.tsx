@@ -775,6 +775,9 @@ const AdminOrchestratorTester = () => {
                     <ExternalLink className="w-3.5 h-3.5 mr-2" /> Open in new tab
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => exportHistoryCSV()}>
+                    <Download className="w-3.5 h-3.5 mr-2" /> Download CSV
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => exportHistoryJSON()}>
                     <Download className="w-3.5 h-3.5 mr-2" /> Download JSON
                   </DropdownMenuItem>
