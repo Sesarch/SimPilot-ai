@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { PercentileSparkline } from "@/components/PercentileSparkline";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
+import { formatAtisForSpeech } from "@/lib/atisSpeech";
 import { generateATCTranscriptPDF } from "@/lib/atcTranscriptReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1167,7 +1168,7 @@ const ATCTrainer = () => {
         // played as audio. In that case we render the text only.
         const isRealAtis = data.source === "datis" || data.source === "vatsim";
         if (!livePlaying && !cancelled && isRealAtis) {
-          void speakATC(data.text);
+          void speakATC(formatAtisForSpeech(data.text));
         } else if (!livePlaying && !cancelled) {
           toast.info("No live ATIS broadcast available for this airport", {
             description: `${targetIcao} · showing weather-derived summary only (not an official broadcast).`,
