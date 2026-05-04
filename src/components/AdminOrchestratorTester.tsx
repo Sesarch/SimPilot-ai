@@ -351,8 +351,7 @@ const AdminOrchestratorTester = () => {
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"} as JSON`);
   };
-
-
+  const applyHistoryFilters = (rows: HistoryEntry[]) => {
     const nq = notesQuery.trim().toLowerCase();
     const cq = contradictionQuery.trim().toLowerCase();
     const pq = pohQuery.trim().toLowerCase();
