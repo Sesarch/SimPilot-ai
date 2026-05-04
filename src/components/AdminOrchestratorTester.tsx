@@ -237,9 +237,16 @@ const AdminOrchestratorTester = () => {
   };
   const serializeSort = (stack: SortCriterion[]) =>
     stack.map(c => `${c.key}:${c.dir}`).join(",");
+  const DEFAULT_SORT_STACK: SortCriterion[] = [
+    { key: "contradiction", dir: "desc" },
+    { key: "audit_notes", dir: "asc" },
+    { key: "poh_reference", dir: "asc" },
+  ];
   const [sortStack, setSortStack] = useState<SortCriterion[]>(() => {
-    if (typeof window === "undefined") return [];
-    return parseSortParam(new URLSearchParams(window.location.search).get(SORT_QS_KEY));
+    if (typeof window === "undefined") return DEFAULT_SORT_STACK;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has(SORT_QS_KEY)) return DEFAULT_SORT_STACK;
+    return parseSortParam(params.get(SORT_QS_KEY));
   });
   useEffect(() => {
     if (typeof window === "undefined") return;
