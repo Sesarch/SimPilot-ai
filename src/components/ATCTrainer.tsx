@@ -1601,11 +1601,28 @@ const ATCTrainer = () => {
         content: m.content,
       }));
 
+    // Deterministic ATIS-intent detection — gives the model an unambiguous
+    // signal so it never asks for verification when the pilot already
+    // included the current ATIS letter (or an equivalent token).
+    const currentAtisLetter =
+      currentAtis && liveAirport && currentAtis.icao === liveAirport.icao
+        ? currentAtis.info
+        : null;
+    const atisIntent = detectAtisIntent(trimmed, currentAtisLetter);
+    const atisHintMessages = atisIntent.hasToken
+      ? [{
+          role: "system" as const,
+          content: atisIntent.matchesCurrent
+            ? `[ATIS_CONFIRMED] The pilot's current transmission explicitly contains the active ATIS token${atisIntent.spokenPhonetic ? ` ("${atisIntent.spokenPhonetic}")` : ""}. Do NOT ask them to verify ATIS. Acknowledge and proceed with the requested instruction in the same transmission.`
+            : `[ATIS_TOKEN_MISMATCH] The pilot stated "${atisIntent.spokenPhonetic}" but current ATIS is Information ${currentAtisLetter}. Briefly correct: "<Callsign>, current information is ${currentAtisLetter}, verify."`,
+        }]
+      : [];
+
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
           mode: "atc",
-          messages: [{ role: "system", content: buildSystemPrompt() }, ...history],
+          messages: [{ role: "system", content: buildSystemPrompt() }, ...atisHintMessages, ...history],
         },
       });
       if (error) throw error;
