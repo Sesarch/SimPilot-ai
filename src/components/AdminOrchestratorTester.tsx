@@ -646,6 +646,74 @@ const AdminOrchestratorTester = () => {
           </>
         )}
       </div>
+
+      <Dialog open={!!inspectEntry} onOpenChange={(o) => !o && setInspectEntry(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <Code2 className="w-4 h-4 text-primary" />
+              Run inspector
+            </DialogTitle>
+            <DialogDescription className="text-[11px]">
+              {inspectEntry && new Date(inspectEntry.ts).toLocaleString()} ·{" "}
+              <span className="font-mono">{inspectEntry?.routed_task}</span> ·{" "}
+              <span className="font-mono">{inspectEntry?.model}</span> ·{" "}
+              {inspectEntry?.latency_ms} ms
+            </DialogDescription>
+          </DialogHeader>
+
+          {inspectEntry && (() => {
+            const payload = {
+              id: inspectEntry.id,
+              timestamp_iso: new Date(inspectEntry.ts).toISOString(),
+              prompt: inspectEntry.prompt,
+              forced_task: inspectEntry.forced_task,
+              routed_task: inspectEntry.routed_task,
+              model: inspectEntry.model,
+              latency_ms: inspectEntry.latency_ms,
+              audit_id: inspectEntry.audit_id,
+              audit_status: inspectEntry.audit_status,
+              audit_severity: inspectEntry.audit_severity,
+              audit_raw: inspectEntry.audit_raw ?? null,
+            };
+            const text = JSON.stringify(payload, null, 2);
+            return (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    Full audit payload
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(text);
+                        toast.success("Copied JSON to clipboard");
+                      } catch {
+                        toast.error("Copy failed");
+                      }
+                    }}
+                  >
+                    <Copy className="w-3 h-3 mr-1.5" /> Copy JSON
+                  </Button>
+                </div>
+                <ScrollArea className="h-[60vh] rounded-md border border-border bg-background/40">
+                  <pre className="text-[11px] font-mono text-foreground p-3 whitespace-pre-wrap break-all">
+                    {text}
+                  </pre>
+                </ScrollArea>
+                {!inspectEntry.audit_raw && (
+                  <p className="text-[10px] text-muted-foreground italic">
+                    No raw audit verdict captured for this run (skipped, pending, or pre-existing entry).
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
