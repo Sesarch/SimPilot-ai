@@ -30,6 +30,7 @@ import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 import { formatAtisForSpeech } from "@/lib/atisSpeech";
 import { detectAtisIntent, toAtisPhonetic } from "@/lib/atisIntent";
+import { detectCallsignIntent } from "@/lib/callsignIntent";
 import { generateATCTranscriptPDF } from "@/lib/atcTranscriptReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
