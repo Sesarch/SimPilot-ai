@@ -703,6 +703,18 @@ const AdminOrchestratorTester = () => {
                   <X className="w-3 h-3 mr-1" /> Clear filters
                 </Button>
               )}
+              {sortStack.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => setSortStack([])}
+                  title="Reset all sort columns"
+                >
+                  <ArrowUpDown className="w-3 h-3 mr-1" /> Clear sort
+                  <span className="ml-1 opacity-70">{sortStack.length}</span>
+                </Button>
+              )}
             </div>
             {(() => {
               const filtered = applyHistorySort(applyHistoryFilters(history));
