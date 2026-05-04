@@ -210,6 +210,13 @@ const AdminOrchestratorTester = () => {
   const [slotB, setSlotB] = useState<Slot | null>(null);
   const [historyFilter, setHistoryFilter] = useState<"all" | "pending" | "clean" | "flagged" | "error" | "n/a">("all");
   const [inspectEntry, setInspectEntry] = useState<HistoryEntry | null>(null);
+  const [sortKey, setSortKey] = useState<"audit_notes" | "contradiction" | "poh_reference" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
+    if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
+    else if (sortDir === "asc") setSortDir("desc");
+    else { setSortKey(null); setSortDir("asc"); }
+  };
   const [history, setHistory] = useState<HistoryEntry[]>(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
