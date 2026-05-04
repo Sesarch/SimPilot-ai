@@ -239,6 +239,33 @@ const AdminOrchestratorTester = () => {
   };
   const hasExtraFilters =
     presenceFilter !== "any" || !!notesQuery.trim() || !!contradictionQuery.trim() || !!pohQuery.trim();
+  const applyHistorySort = (rows: HistoryEntry[]) => {
+    if (!sortKey) return rows;
+    const key = sortKey;
+    return [...rows].sort((a, b) => {
+      const av = (a.audit_raw?.[key] ?? "").toString().trim();
+      const bv = (b.audit_raw?.[key] ?? "").toString().trim();
+      if (!av && !bv) return 0;
+      if (!av) return 1;
+      if (!bv) return -1;
+      let cmp: number;
+      if (key === "poh_reference") {
+        const numsA = av.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+        const numsB = bv.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+        const len = Math.max(numsA.length, numsB.length);
+        cmp = 0;
+        for (let i = 0; i < len; i++) {
+          const x = numsA[i] ?? -Infinity;
+          const y = numsB[i] ?? -Infinity;
+          if (x !== y) { cmp = x - y; break; }
+        }
+        if (cmp === 0) cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+      } else {
+        cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  };
   const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
     if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
     else if (sortDir === "asc") setSortDir("desc");
