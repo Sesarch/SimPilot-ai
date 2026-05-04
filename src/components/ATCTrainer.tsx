@@ -79,7 +79,7 @@ const scenarios = [
   { id: "vfr-flight-following", label: "VFR Flight Following", description: "Approach control advisories", facility: "APP", frequency: "124.35" },
 ] as const;
 
-const FAA_PROMPT = (scenarioLabel: string) => `You are a FAA-certified Air Traffic Controller running a live radio drill.
+export const FAA_PROMPT = (scenarioLabel: string) => `You are a FAA-certified Air Traffic Controller running a live radio drill.
 
 CALLSIGN: Pilot is "November One Two Three Alpha Bravo" (N123AB). Use full callsign on first contact, then "One Two Three Alpha Bravo" or "Three Alpha Bravo".
 
