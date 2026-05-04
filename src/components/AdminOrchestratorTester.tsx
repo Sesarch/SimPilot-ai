@@ -671,13 +671,33 @@ const AdminOrchestratorTester = () => {
                         className="px-2.5 py-1.5 max-w-[200px] truncate text-foreground/90"
                         title={h.audit_raw?.audit_notes ?? ""}
                       >
-                        {h.audit_raw?.audit_notes ?? <span className="text-muted-foreground">—</span>}
+                        {h.audit_raw?.audit_notes
+                          ? (
+                            <button
+                              type="button"
+                              onClick={() => setDetailsEntry(h)}
+                              className="text-left hover:text-primary hover:underline truncate w-full"
+                            >
+                              {h.audit_raw.audit_notes}
+                            </button>
+                          )
+                          : <span className="text-muted-foreground">—</span>}
                       </td>
                       <td
                         className="px-2.5 py-1.5 max-w-[200px] truncate text-foreground/90"
                         title={h.audit_raw?.contradiction ?? ""}
                       >
-                        {h.audit_raw?.contradiction ?? <span className="text-muted-foreground">—</span>}
+                        {h.audit_raw?.contradiction
+                          ? (
+                            <button
+                              type="button"
+                              onClick={() => setDetailsEntry(h)}
+                              className="text-left hover:text-primary hover:underline truncate w-full"
+                            >
+                              {h.audit_raw.contradiction}
+                            </button>
+                          )
+                          : <span className="text-muted-foreground">—</span>}
                       </td>
                       <td
                         className="px-2.5 py-1.5 max-w-[160px] truncate font-mono text-foreground/90"
@@ -685,14 +705,13 @@ const AdminOrchestratorTester = () => {
                       >
                         {h.audit_raw?.poh_reference
                           ? (
-                            <a
-                              href={`https://www.google.com/search?q=${encodeURIComponent(h.audit_raw.poh_reference)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline"
+                            <button
+                              type="button"
+                              onClick={() => setDetailsEntry(h)}
+                              className="text-primary hover:underline truncate w-full text-left"
                             >
                               {h.audit_raw.poh_reference}
-                            </a>
+                            </button>
                           )
                           : <span className="text-muted-foreground">—</span>}
                       </td>
