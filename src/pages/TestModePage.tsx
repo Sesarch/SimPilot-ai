@@ -7,6 +7,8 @@ import { CheckCircle2, XCircle, Loader2, FlaskConical, Volume2 } from "lucide-re
 import { detectAtisIntent, toAtisPhonetic } from "@/lib/atisIntent";
 import { detectCallsignIntent } from "@/lib/callsignIntent";
 import { formatATISForAudio } from "@/lib/atisSpeech";
+import { supabase } from "@/integrations/supabase/client";
+import { FAA_PROMPT } from "@/components/ATCTrainer";
 
 type Expect =
   | "callsign_missing"
@@ -19,18 +21,12 @@ type Step = {
   label: string;
   pilotSays: string;
   expect: Expect;
-  /** Aircraft state — what controller knows. */
-  callsign: string | null;
-  currentAtisLetter: string | null;
-  /** What ATC SHOULD say in response (for the diff report). */
-  expectedAtcResponse: string;
-};
-
-type Scenario = {
-  id: string;
-  name: string;
-  description: string;
-  steps: Step[];
+  callsign: string; // registered tail
+  currentAtisLetter: string;
+  /** Substrings the real ATC reply MUST contain to be considered correct. */
+  mustContainAny: string[];
+  /** Substrings the reply MUST NOT contain (e.g. "taxi to" when blocked). */
+  mustNotContain?: string[];
 };
 
 type StepResult = {
@@ -42,18 +38,18 @@ type StepResult = {
     spokenPhonetic: string | null;
     atisMatchesCurrent: boolean;
   };
-  /** What the ATC engine would actually say back, given the detection result. */
+  /** Real ATC reply from the pilot-chat edge function. */
   actualAtcResponse: string;
   pass: boolean;
   reason: string;
 };
 
-const SCENARIOS: Scenario[] = [
+const SCENARIOS = [
   {
     id: "taxi-checkride-strict",
     name: "Request Taxi → Missing ATIS → Missing Tail Number (Checkride strict)",
     description:
-      "Pilot calls Ground for taxi. ATC must enforce: (1) callsign on every readback, (2) correct ATIS phonetic, (3) reject mismatched callsigns and ATIS letters.",
+      "Runs against the real pilot-chat ATC pipeline. Verifies the controller blocks missing/wrong callsign and missing/wrong ATIS before issuing taxi.",
     steps: [
       {
         label: "Instruction with NO callsign",
@@ -61,8 +57,8 @@ const SCENARIOS: Scenario[] = [
         expect: "callsign_missing",
         callsign: "N123AB",
         currentAtisLetter: "Echo",
-        expectedAtcResponse:
-          "Verify your callsign — readback must include your tail number.",
+        mustContainAny: ["callsign", "say callsign", "confirm callsign"],
+        mustNotContain: ["cleared to taxi", "taxi to runway 28R via"],
       },
       {
         label: "Instruction with WRONG callsign",
@@ -70,8 +66,8 @@ const SCENARIOS: Scenario[] = [
         expect: "callsign_wrong",
         callsign: "N123AB",
         currentAtisLetter: "Echo",
-        expectedAtcResponse:
-          "Callsign mismatch — say your registered callsign (N123AB / 3AB).",
+        mustContainAny: ["callsign"],
+        mustNotContain: ["cleared to taxi", "taxi to runway 28R via"],
       },
       {
         label: "Callsign present, ATIS OMITTED",
@@ -79,16 +75,17 @@ const SCENARIOS: Scenario[] = [
         expect: "atis_missing",
         callsign: "N123AB",
         currentAtisLetter: "Echo",
-        expectedAtcResponse: "Confirm you have information Echo.",
+        mustContainAny: ["ATIS", "information Echo", "Information Echo"],
+        mustNotContain: ["taxi to runway 28R via"],
       },
       {
         label: "Callsign present, WRONG ATIS letter",
-        pilotSays: "Cessna 3AB taxi to 28R with Delta.",
+        pilotSays: "Cessna 3AB ready to taxi with Delta.",
         expect: "atis_mismatch",
         callsign: "N123AB",
         currentAtisLetter: "Echo",
-        expectedAtcResponse:
-          "Negative — current ATIS is Echo, not Delta. Re-check ATIS and say information Echo.",
+        mustContainAny: ["Echo", "current ATIS", "verify"],
+        mustNotContain: ["taxi to runway 28R via"],
       },
       {
         label: "Fully compliant transmission",
@@ -96,107 +93,129 @@ const SCENARIOS: Scenario[] = [
         expect: "callsign_and_atis_ok",
         callsign: "N123AB",
         currentAtisLetter: "Echo",
-        expectedAtcResponse:
-          "Cessna 3AB, taxi to runway 28R via Hotel, hold short 28R.",
+        mustContainAny: ["taxi", "runway"],
       },
-    ],
+    ] as Step[],
   },
 ];
 
 /**
- * Mock of the ATC engine's response logic. Mirrors the production rules in
- * src/components/ATCTrainer.tsx so we can verify behavior without a network call.
+ * Build the SAME hint-injection block ATCTrainer.tsx wraps around every
+ * pilot-chat call, so Test Mode hits the production decision pipeline.
  */
-function simulateAtcResponse(
-  step: Step,
-  detected: StepResult["detected"],
-): string {
-  if (!detected.hasCallsign) {
-    return "Verify your callsign — readback must include your tail number.";
-  }
-  // Callsign was matched — verify it actually belongs to THIS aircraft.
-  // detectCallsignIntent already enforces this against step.callsign, so a
-  // false hasCallsign covers the wrong-callsign case too. But for clarity
-  // we double-check the matched variant against the registered tail.
-  if (
-    step.callsign &&
-    detected.matchedVariant &&
-    !step.callsign.toUpperCase().includes(detected.matchedVariant)
-  ) {
-    return `Callsign mismatch — say your registered callsign (${step.callsign} / ${step.callsign.replace(/^N\d/, "").slice(0, 3)}).`;
-  }
-  if (!detected.hasAtisToken) {
-    return `Confirm you have information ${step.currentAtisLetter}.`;
-  }
-  if (!detected.atisMatchesCurrent) {
-    return `Negative — current ATIS is ${step.currentAtisLetter}, not ${detected.spokenPhonetic}. Re-check ATIS and say information ${step.currentAtisLetter}.`;
-  }
-  return `Cessna 3AB, taxi to runway 28R via Hotel, hold short 28R.`;
-}
+function buildHintMessages(step: Step) {
+  const atisIntent = detectAtisIntent(step.pilotSays, step.currentAtisLetter);
+  const callsignIntent = detectCallsignIntent(step.pilotSays, step.callsign);
+  const currentAtisPhonetic = toAtisPhonetic(step.currentAtisLetter);
 
-function evaluateStep(step: Step): StepResult {
-  const cs = detectCallsignIntent(step.pilotSays, step.callsign);
-  const atis = detectAtisIntent(step.pilotSays, step.currentAtisLetter);
+  const atisHint = atisIntent.hasToken
+    ? [
+        {
+          role: "system" as const,
+          content: atisIntent.matchesCurrent
+            ? `[ATIS_CONFIRMED] The pilot's current transmission explicitly contains the active ATIS token${atisIntent.spokenPhonetic ? ` ("${atisIntent.spokenPhonetic}")` : ""}. Do NOT ask them to verify ATIS. Acknowledge and proceed with the requested instruction in the same transmission.`
+            : `[ATIS_TOKEN_MISMATCH] The pilot stated "${atisIntent.spokenPhonetic}" but current ATIS is Information ${currentAtisPhonetic ?? step.currentAtisLetter}. Use exactly: "<Callsign>, verify you have the current ATIS, Information ${currentAtisPhonetic ?? step.currentAtisLetter}." Do not issue taxi clearance until confirmed.`,
+        },
+      ]
+    : [];
 
-  const detected = {
-    hasCallsign: cs.hasCallsign,
-    matchedVariant: cs.matchedVariant,
-    hasAtisToken: atis.hasToken,
-    spokenPhonetic: atis.spokenPhonetic,
-    atisMatchesCurrent: atis.matchesCurrent,
+  // Test Mode treats the test scenario as the pilot's first reply to a prior
+  // ATC turn, so callsign discipline is always enforced (same as ATCTrainer
+  // when priorWasATC).
+  const callsignHint = !callsignIntent.hasCallsign
+    ? [
+        {
+          role: "system" as const,
+          content: `[CALLSIGN_MISSING] The pilot just transmitted a readback/acknowledgment WITHOUT including the aircraft callsign (${step.callsign} / "Three Alpha Bravo"). Per FAA AIM 4-2, every readback must include the callsign. DO NOT accept this transmission. Respond ONLY with one of: "Aircraft calling, say callsign." or "Three Alpha Bravo, confirm callsign on that readback?" — then STOP. Do not advance the clearance, do not issue any new instruction.`,
+        },
+      ]
+    : [];
+
+  return {
+    detected: {
+      hasCallsign: callsignIntent.hasCallsign,
+      matchedVariant: callsignIntent.matchedVariant,
+      hasAtisToken: atisIntent.hasToken,
+      spokenPhonetic: atisIntent.spokenPhonetic,
+      atisMatchesCurrent: atisIntent.matchesCurrent,
+    },
+    hintMessages: [...atisHint, ...callsignHint],
   };
-
-  const actualAtcResponse = simulateAtcResponse(step, detected);
-
-  let pass = false;
-  let reason = "";
-
-  switch (step.expect) {
-    case "callsign_missing":
-      pass = !cs.hasCallsign;
-      reason = pass
-        ? "✓ ATC blocked transmission — callsign omission caught."
-        : `✗ ATC accepted transmission as callsign "${cs.matchedVariant}" — should have blocked.`;
-      break;
-    case "callsign_wrong":
-      // Strict: the matched variant (if any) must NOT belong to the registered callsign.
-      // detectCallsignIntent only returns hasCallsign:true if a variant matched the
-      // aircraft's registered tail, so a wrong callsign should produce hasCallsign:false.
-      pass = !cs.hasCallsign;
-      reason = pass
-        ? "✓ Wrong tail number rejected."
-        : `✗ Wrong callsign was accepted as "${cs.matchedVariant}" — registered is ${step.callsign}.`;
-      break;
-    case "atis_missing":
-      pass = cs.hasCallsign && !atis.hasToken;
-      reason = pass
-        ? `✓ Callsign accepted, missing ATIS triggered "Confirm info ${step.currentAtisLetter}".`
-        : !cs.hasCallsign
-          ? "✗ Callsign was rejected — cannot evaluate ATIS step."
-          : "✗ ATIS token incorrectly accepted — pilot did not state one.";
-      break;
-    case "atis_mismatch":
-      pass = atis.hasToken && !atis.matchesCurrent;
-      reason = pass
-        ? `✓ ATIS mismatch caught (pilot: "${atis.spokenPhonetic}", current: "${step.currentAtisLetter}").`
-        : "✗ Wrong ATIS letter was not flagged as a mismatch.";
-      break;
-    case "callsign_and_atis_ok":
-      pass = cs.hasCallsign && atis.hasToken && atis.matchesCurrent;
-      reason = pass
-        ? "✓ Compliant transmission accepted."
-        : "✗ Compliant transmission was incorrectly rejected.";
-      break;
-  }
-
-  return { step, detected, actualAtcResponse, pass, reason };
 }
 
-/**
- * Phonetic Audio Check (Mock): verifies that the TTS pipeline expands a
- * single-letter ATIS code (e.g. "Information E") into the full phonetic word
- * ("Information Echo") before being sent to the audio engine.
- */
+/** Calls the real pilot-chat edge function the same way ATCTrainer does. */
+async function callRealAtc(step: Step): Promise<{
+  reply: string;
+  detected: StepResult["detected"];
+  error?: string;
+}> {
+  const { detected, hintMessages } = buildHintMessages(step);
+
+  const systemPrompt =
+    FAA_PROMPT("Ground — Taxi Clearance (Test Mode)") +
+    `\n\nCURRENT ATIS: Information ${step.currentAtisLetter} is active at this field. ` +
+    `The pilot is preparing to taxi. The previous controller transmission was an ` +
+    `instruction, so any pilot reply MUST include the aircraft callsign (${step.callsign}).`;
+
+  // Seed history with a prior ATC turn so the controller's reply is treated as
+  // a response to a real instruction (mirroring ATCTrainer's priorWasATC path).
+  const history = [
+    {
+      role: "assistant" as const,
+      content: `${step.callsign}, Ground, taxi to runway 28R via Hotel, hold short 28R.`,
+    },
+    { role: "user" as const, content: step.pilotSays },
+  ];
+
+  try {
+    const { data, error } = await supabase.functions.invoke("pilot-chat", {
+      body: {
+        mode: "atc",
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...hintMessages,
+          ...history,
+        ],
+      },
+    });
+    if (error) throw error;
+    const reply: string =
+      data?.choices?.[0]?.message?.content || data?.reply || "";
+    return { reply: reply.trim(), detected };
+  } catch (e) {
+    return {
+      reply: "",
+      detected,
+      error: e instanceof Error ? e.message : "Edge function call failed",
+    };
+  }
+}
+
+function evaluateReply(step: Step, reply: string): { pass: boolean; reason: string } {
+  if (!reply) {
+    return { pass: false, reason: "✗ No reply received from ATC pipeline." };
+  }
+  const lower = reply.toLowerCase();
+  const hits = step.mustContainAny.filter((s) => lower.includes(s.toLowerCase()));
+  const banned = (step.mustNotContain ?? []).filter((s) =>
+    lower.includes(s.toLowerCase()),
+  );
+
+  if (hits.length === 0) {
+    return {
+      pass: false,
+      reason: `✗ Reply missing required correction. Expected one of: [${step.mustContainAny.join(" | ")}].`,
+    };
+  }
+  if (banned.length > 0) {
+    return {
+      pass: false,
+      reason: `✗ Reply contains forbidden content (${banned.join(", ")}) — controller advanced clearance instead of correcting the pilot.`,
+    };
+  }
+  return { pass: true, reason: `✓ Controller correctly enforced: matched "${hits[0]}".` };
+}
+
 type PhoneticCheck = {
   letter: string;
   rawAtcText: string;
@@ -212,7 +231,8 @@ function runPhoneticAudioChecks(): PhoneticCheck[] {
     const ttsText = formatATISForAudio(rawAtcText);
     const expectedPhonetic = toAtisPhonetic(letter) ?? letter;
     const pass =
-      ttsText.includes(expectedPhonetic) && !ttsText.match(new RegExp(`Information ${letter}\\b`));
+      ttsText.includes(expectedPhonetic) &&
+      !new RegExp(`Information ${letter}\\b`).test(ttsText);
     return { letter, rawAtcText, ttsText, expectedPhonetic, pass };
   });
 }
@@ -233,8 +253,18 @@ export default function TestModePage() {
       next[scn.id] = [];
       setResults({ ...next });
       for (const step of scn.steps) {
-        await new Promise((r) => setTimeout(r, 300));
-        next[scn.id] = [...next[scn.id], evaluateStep(step)];
+        const { reply, detected, error } = await callRealAtc(step);
+        const verdict = error
+          ? { pass: false, reason: `✗ Pipeline error: ${error}` }
+          : evaluateReply(step, reply);
+        const result: StepResult = {
+          step,
+          detected,
+          actualAtcResponse: reply || "(no reply)",
+          pass: verdict.pass,
+          reason: verdict.reason,
+        };
+        next[scn.id] = [...next[scn.id], result];
         setResults({ ...next });
       }
     }
@@ -274,15 +304,16 @@ export default function TestModePage() {
             ATC Logic Test Mode
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Checkride-strict validation: enforces callsign on every readback,
-            ATIS confirmation, mismatch correction, and TTS phonetic expansion.
+            Runs against the <span className="font-mono text-primary">pilot-chat</span> edge
+            function (the same pipeline production uses). Verifies callsign
+            discipline, ATIS confirmation, and TTS phonetic expansion.
           </p>
         </div>
         <Button onClick={runAll} disabled={running} size="lg">
           {running ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Running...
+              Running live...
             </>
           ) : (
             "Run Full Test Suite"
@@ -329,9 +360,9 @@ export default function TestModePage() {
                         <div className="text-[11px] text-muted-foreground">
                           Expect: <span className="font-mono">{step.expect}</span>
                           {" · "}callsign:{" "}
-                          <span className="font-mono">{step.callsign ?? "—"}</span>
+                          <span className="font-mono">{step.callsign}</span>
                           {" · "}ATIS:{" "}
-                          <span className="font-mono">{step.currentAtisLetter ?? "—"}</span>
+                          <span className="font-mono">{step.currentAtisLetter}</span>
                         </div>
                       </div>
                       <div className="shrink-0 pt-1">
@@ -354,26 +385,34 @@ export default function TestModePage() {
                         <div className={`text-xs ${r.pass ? "text-muted-foreground" : "text-destructive"}`}>
                           {r.reason}
                         </div>
-                        {!r.pass && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
-                            <div className="rounded border border-emerald-500/30 bg-emerald-500/5 p-2">
-                              <div className="font-semibold text-emerald-500 mb-1">
-                                EXPECTED ATC
-                              </div>
-                              <div className="font-mono">
-                                "{step.expectedAtcResponse}"
-                              </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+                          <div className="rounded border border-emerald-500/30 bg-emerald-500/5 p-2">
+                            <div className="font-semibold text-emerald-500 mb-1">
+                              EXPECTED ATC must include
                             </div>
-                            <div className="rounded border border-destructive/30 bg-destructive/5 p-2">
-                              <div className="font-semibold text-destructive mb-1">
-                                ACTUAL ATC
-                              </div>
-                              <div className="font-mono">
-                                "{r.actualAtcResponse}"
-                              </div>
+                            <div className="font-mono">
+                              [{step.mustContainAny.join(" | ")}]
                             </div>
                           </div>
-                        )}
+                          <div
+                            className={`rounded border p-2 ${
+                              r.pass
+                                ? "border-border/40 bg-muted/20"
+                                : "border-destructive/30 bg-destructive/5"
+                            }`}
+                          >
+                            <div
+                              className={`font-semibold mb-1 ${
+                                r.pass ? "text-foreground" : "text-destructive"
+                              }`}
+                            >
+                              ACTUAL ATC reply
+                            </div>
+                            <div className="font-mono break-words">
+                              "{r.actualAtcResponse}"
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -384,7 +423,6 @@ export default function TestModePage() {
         );
       })}
 
-      {/* Phonetic Audio Check */}
       {(running || phoneticResults.length > 0) && (
         <Card className="border-border/60">
           <CardHeader>
@@ -400,7 +438,7 @@ export default function TestModePage() {
           <CardContent className="space-y-2">
             {phoneticResults.length === 0 && running && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Loader2 className="w-3 h-3 animate-spin" /> Running checks...
+                <Loader2 className="w-3 h-3 animate-spin" /> Pending — runs after radio steps complete...
               </div>
             )}
             {phoneticResults.map((p) => (
@@ -430,7 +468,6 @@ export default function TestModePage() {
         </Card>
       )}
 
-      {/* Pilot Proficiency Score */}
       {completed && (
         <Card className="border-2 border-primary/40">
           <CardHeader>
@@ -449,15 +486,9 @@ export default function TestModePage() {
                 </div>
               </div>
               <div className="text-xs text-muted-foreground space-y-1 font-mono">
-                <div>
-                  Radio dialogue: {radioPass}/{radioTotal}
-                </div>
-                <div>
-                  Phonetic TTS: {phoneticPass}/{phoneticTotal}
-                </div>
-                <div>
-                  Total: {totalPass}/{totalCount}
-                </div>
+                <div>Radio dialogue (live ATC): {radioPass}/{radioTotal}</div>
+                <div>Phonetic TTS: {phoneticPass}/{phoneticTotal}</div>
+                <div>Total: {totalPass}/{totalCount}</div>
               </div>
             </div>
           </CardContent>
