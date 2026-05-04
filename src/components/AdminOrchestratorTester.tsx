@@ -6,6 +6,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
   AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -16,7 +20,7 @@ import { toast } from "sonner";
 import {
   FlaskConical, Loader2, Cpu, Radio, Eye, ShieldAlert, ShieldCheck, Clock,
   RefreshCw, GitCompare, X, History, Trash2, Play, Download, Code2, Copy,
-  ArrowUp, ArrowDown, ArrowUpDown, FileText, ExternalLink, Link2,
+  ArrowUp, ArrowDown, ArrowUpDown, FileText, ExternalLink, Link2, ChevronDown,
 } from "lucide-react";
 import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 import {
@@ -300,6 +304,53 @@ const AdminOrchestratorTester = () => {
   const [pohQuery, setPohQuery] = useState("");
   const [presenceFilter, setPresenceFilter] = useState<"any" | "notes" | "contradiction" | "poh">("any");
 
+  const exportHistoryJSON = () => {
+    const filtered = applyHistorySort(applyHistoryFilters(history));
+    if (filtered.length === 0) {
+      toast.error("Nothing to export for this filter");
+      return;
+    }
+    const payload = {
+      exported_at: new Date().toISOString(),
+      view: {
+        status_filter: historyFilter,
+        presence_filter: presenceFilter,
+        notes_query: notesQuery.trim() || null,
+        contradiction_query: contradictionQuery.trim() || null,
+        poh_query: pohQuery.trim() || null,
+        sort: sortStack.length ? sortStack.map(c => ({ key: c.key, direction: c.dir })) : null,
+      },
+      count: filtered.length,
+      runs: filtered.map((h, idx) => ({
+        sort_index: idx,
+        id: h.id,
+        timestamp_iso: new Date(h.ts).toISOString(),
+        timestamp_ms: h.ts,
+        prompt: h.prompt,
+        forced_task: h.forced_task,
+        routed_task: h.routed_task,
+        model: h.model,
+        latency_ms: h.latency_ms,
+        audit_id: h.audit_id,
+        audit_status: h.audit_status,
+        audit_severity: h.audit_severity,
+        audit_raw: h.audit_raw ?? null,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const suffix = historyFilter === "all" ? "all" : historyFilter.replace("/", "-");
+    a.href = url;
+    a.download = `orchestrator-history-${suffix}-${csvDateStamp()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"} as JSON`);
+  };
   const applyHistoryFilters = (rows: HistoryEntry[]) => {
     const nq = notesQuery.trim().toLowerCase();
     const cq = contradictionQuery.trim().toLowerCase();
@@ -631,53 +682,7 @@ const AdminOrchestratorTester = () => {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => {
-                  const filtered = applyHistorySort(applyHistoryFilters(history));
-                  if (filtered.length === 0) {
-                    toast.error("Nothing to export for this filter");
-                    return;
-                  }
-                  const payload = {
-                    exported_at: new Date().toISOString(),
-                    view: {
-                      status_filter: historyFilter,
-                      presence_filter: presenceFilter,
-                      notes_query: notesQuery.trim() || null,
-                      contradiction_query: contradictionQuery.trim() || null,
-                      poh_query: pohQuery.trim() || null,
-                      sort: sortStack.length ? sortStack.map(c => ({ key: c.key, direction: c.dir })) : null,
-                    },
-                    count: filtered.length,
-                    runs: filtered.map((h, idx) => ({
-                      sort_index: idx,
-                      id: h.id,
-                      timestamp_iso: new Date(h.ts).toISOString(),
-                      timestamp_ms: h.ts,
-                      prompt: h.prompt,
-                      forced_task: h.forced_task,
-                      routed_task: h.routed_task,
-                      model: h.model,
-                      latency_ms: h.latency_ms,
-                      audit_id: h.audit_id,
-                      audit_status: h.audit_status,
-                      audit_severity: h.audit_severity,
-                      audit_raw: h.audit_raw ?? null,
-                    })),
-                  };
-                  const blob = new Blob([JSON.stringify(payload, null, 2)], {
-                    type: "application/json;charset=utf-8;",
-                  });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  const suffix = historyFilter === "all" ? "all" : historyFilter.replace("/", "-");
-                  a.href = url;
-                  a.download = `orchestrator-history-${suffix}-${csvDateStamp()}.json`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                  toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"} as JSON`);
-                }}
+                onClick={() => exportHistoryJSON()}
               >
                 <Download className="w-3 h-3 mr-1.5" /> Export JSON
               </Button>
@@ -696,27 +701,57 @@ const AdminOrchestratorTester = () => {
               >
                 <Link2 className="w-3 h-3 mr-1.5" /> Share
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                title="Copy compact permalink with encoded sort state"
-                onClick={async () => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.delete(SORT_QS_KEY);
-                  const short = serializeSortShort(sortStack);
-                  if (short) url.searchParams.set(SORT_QS_SHORT_KEY, short);
-                  else url.searchParams.delete(SORT_QS_SHORT_KEY);
-                  const link = url.toString();
-                  try {
-                    await navigator.clipboard.writeText(link);
-                    toast.success("Permalink copied", { description: short ? `?s=${short}` : "Default sort" });
-                  } catch {
-                    toast.error("Could not copy permalink", { description: link });
-                  }
-                }}
-              >
-                <Link2 className="w-3 h-3 mr-1.5" /> Permalink
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="ghost" title="More share actions">
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const url = window.location.href;
+                      try {
+                        await navigator.clipboard.writeText(url);
+                        toast.success("Link copied");
+                      } catch {
+                        toast.error("Could not copy link", { description: url });
+                      }
+                    }}
+                  >
+                    <Copy className="w-3.5 h-3.5 mr-2" /> Copy link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const url = new URL(window.location.href);
+                      url.searchParams.delete(SORT_QS_KEY);
+                      const short = serializeSortShort(sortStack);
+                      if (short) url.searchParams.set(SORT_QS_SHORT_KEY, short);
+                      else url.searchParams.delete(SORT_QS_SHORT_KEY);
+                      const link = url.toString();
+                      try {
+                        await navigator.clipboard.writeText(link);
+                        toast.success("Permalink copied", { description: short ? `?s=${short}` : "Default sort" });
+                      } catch {
+                        toast.error("Could not copy permalink", { description: link });
+                      }
+                    }}
+                  >
+                    <Link2 className="w-3.5 h-3.5 mr-2" /> Copy permalink
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      window.open(window.location.href, "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 mr-2" /> Open in new tab
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => exportHistoryJSON()}>
+                    <Download className="w-3.5 h-3.5 mr-2" /> Download JSON
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm" variant="ghost">
