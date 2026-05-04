@@ -720,6 +720,15 @@ const AdminOrchestratorTester = () => {
                           size="icon"
                           variant="ghost"
                           className="h-6 w-6"
+                          title="View audit details"
+                          onClick={() => setDetailsEntry(h)}
+                        >
+                          <FileText className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6"
                           title="View full audit JSON"
                           onClick={() => setInspectEntry(h)}
                         >
