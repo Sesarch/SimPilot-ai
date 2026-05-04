@@ -29,7 +29,7 @@ import { PercentileSparkline } from "@/components/PercentileSparkline";
 import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 import { formatAtisForSpeech } from "@/lib/atisSpeech";
-import { detectAtisIntent } from "@/lib/atisIntent";
+import { detectAtisIntent, toAtisPhonetic } from "@/lib/atisIntent";
 import { generateATCTranscriptPDF } from "@/lib/atcTranscriptReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -159,8 +159,9 @@ Respond with a single short line acknowledging dead air, e.g. "[no response — 
 Do NOT impersonate a controller. Do NOT add [FEEDBACK].`;
   }
 
+  const currentAtisPhonetic = toAtisPhonetic(opts.currentAtisInfo);
   const atisLine = opts.currentAtisInfo
-    ? `\nCURRENT ATIS: Information ${opts.currentAtisInfo} is active. If the pilot's transmission contains the current ATIS letter via any of these patterns — "with ${opts.currentAtisInfo}", "information ${opts.currentAtisInfo}", "have ${opts.currentAtisInfo}", "have information ${opts.currentAtisInfo}", "with the ATIS", or "with current weather" — they HAVE the current ATIS. Acknowledge and proceed directly with the taxi/clearance instruction in the SAME transmission. DO NOT ask them to verify ATIS. Only if the ATIS letter is missing should you respond: "<Callsign>, ${opts.facilityName}, verify you have information ${opts.currentAtisInfo}."`
+    ? `\nCURRENT ATIS: Information ${currentAtisPhonetic ?? opts.currentAtisInfo} is active. If the pilot includes the correct current ATIS phonetic letter in their request, accept it as verified. Prioritize the taxi clearance over the ATIS reminder. Recognize "with ${currentAtisPhonetic ?? opts.currentAtisInfo}", "with ${opts.currentAtisInfo}", "information ${currentAtisPhonetic ?? opts.currentAtisInfo}", "information ${opts.currentAtisInfo}", "have ${currentAtisPhonetic ?? opts.currentAtisInfo}", "have ${opts.currentAtisInfo}", and phrase-ending tokens like "...departure with ${currentAtisPhonetic ?? opts.currentAtisInfo}". Acknowledge the information and proceed directly with the taxi/clearance instruction in the SAME transmission. DO NOT ask them to verify ATIS when the current code is provided. Only if the ATIS letter is missing or outdated should you respond exactly: "<Callsign>, ${opts.facilityName}, verify you have the current ATIS, Information ${currentAtisPhonetic ?? opts.currentAtisInfo}."`
     : "";
 
   return `You are ${opts.facilityName} at ${opts.airportIcao} (${opts.airportCallName}) on ${opts.frequency} MHz.
@@ -193,7 +194,7 @@ CRITICAL ROLE RULES:
    Use the OTHER FACILITIES list for the correct frequency.
 
 REAL-WORLD CONTROLLER BEHAVIOR (CRITICAL — never violate):
-- ATIS confirmation on initial taxi/clearance call (ABSOLUTE RULE — NO EXCEPTIONS): On the pilot's FIRST contact with GROUND for taxi (or CLEARANCE for a clearance), you MUST verify ATIS UNLESS the pilot's transmission contains an EXPLICIT ATIS token. Explicit tokens are ANY of: "with <Phonetic>", "information <Phonetic>", "have <Phonetic>", "have information <Phonetic>" (e.g. "with Echo", "information Charlie", "have Bravo"), OR "with the ATIS", OR "with current weather", OR "have the numbers". If ANY of those tokens appear, the pilot HAS the ATIS — acknowledge it and proceed with the runway, taxi route, and any other instruction in the SAME transmission. Do NOT split the response into a verification turn. Do NOT infer ATIS possession from context, professionalism, prior turns, or callsign — but DO recognize the explicit tokens above. If no token is present, your ONLY response is: "<Callsign>, ${opts.facilityName}, verify you have the current ATIS information." — then STOP and wait for the pilot's reply containing the phonetic letter.
+- ATIS confirmation on initial taxi/clearance call (ABSOLUTE RULE — NO EXCEPTIONS): On the pilot's FIRST contact with GROUND for taxi (or CLEARANCE for a clearance), you MUST verify ATIS UNLESS the pilot's transmission contains the CORRECT CURRENT ATIS code. Explicit tokens are ANY of: "with <Letter/Phonetic>", "information <Letter/Phonetic>", "have <Letter/Phonetic>", "have information <Letter/Phonetic>" (e.g. "with E", "with Echo", "information Charlie", "have Bravo"), including phrase-ending use such as "...departure with Echo", OR "with the ATIS", OR "with current weather", OR "have the numbers". If the token matches the current ATIS, acknowledge it and proceed with the runway, taxi route, and any other instruction in the SAME transmission. If the token is missing or outdated, your ONLY response is: "<Callsign>, ${opts.facilityName}, verify you have the current ATIS, Information <Current Letter>." — then STOP and wait for the pilot's reply containing the current letter.
 - ATIS acknowledgement: Once the pilot has stated any explicit ATIS token (above), they HAVE the current ATIS. NEVER ask them to "check ATIS" or "advise you have information X" again in the same session.
 - VFR taxi requests: NEVER ask the pilot for their destination. Ground does not need it for a VFR taxi. Only ask for destination if the pilot explicitly requested Flight Following or filed IFR.
 - Pilot's current parking location (CRITICAL): When the pilot states their current position on the airport (e.g. "at the south ramp", "at Signature", "at the FBO", "at the run-up area for 28R", "tied down at the west tie-downs", "at transient parking", "at the flight school"), ACCEPT that location at face value. Do NOT say "unable to locate" or ask them to clarify a known FBO/ramp/tie-down area — controllers know their own field's parking areas. Build the taxi route FROM the pilot's stated location to the assigned runway using realistic taxiway letters at ${opts.airportIcao}. If the location is genuinely ambiguous, ask ONCE for the nearest taxiway — do not refuse the request.
@@ -1318,7 +1319,11 @@ const ATCTrainer = () => {
     if (flightState.heading) stateLines.push(`Heading: ${flightState.heading}`);
     if (flightState.squawk) stateLines.push(`Squawk: ${flightState.squawk}`);
     if (flightState.handoffTo) stateLines.push(`Last handoff to: ${flightState.handoffTo}${flightState.handoffFreq ? ` on ${flightState.handoffFreq}` : ""}`);
-    if (flightState.atis) stateLines.push(`ATIS in hand: Information ${flightState.atis}`);
+    const activeAtisInfo = currentAtis && liveAirport && currentAtis.icao === liveAirport.icao ? currentAtis.info : null;
+    const hasCurrentAtisInHand = Boolean(
+      flightState.atis && (!activeAtisInfo || toAtisPhonetic(flightState.atis) === toAtisPhonetic(activeAtisInfo)),
+    );
+    if (hasCurrentAtisInHand) stateLines.push(`ATIS in hand: Information ${toAtisPhonetic(flightState.atis) ?? flightState.atis}`);
     const continuityBlock = stateLines.length
       ? `\n\nFLIGHT STATE (carry-over from prior controllers — DO NOT re-issue what is already assigned, DO NOT ask for ATIS again, DO NOT ask the runway, DO NOT re-clear taxi if already taxiing):\n${stateLines.map((l) => `  • ${l}`).join("\n")}`
       : "";
@@ -1337,7 +1342,7 @@ const ATCTrainer = () => {
           name: f.name,
           freq: formatFreq(f.freq),
         })),
-        currentAtisInfo: currentAtis && currentAtis.icao === liveAirport.icao ? currentAtis.info : null,
+        currentAtisInfo: activeAtisInfo,
       }) + continuityBlock;
     }
     const sc = scenarios.find((s) => s.id === selectedScenario);
@@ -1609,12 +1614,16 @@ const ATCTrainer = () => {
         ? currentAtis.info
         : null;
     const atisIntent = detectAtisIntent(trimmed, currentAtisLetter);
+    const currentAtisPhonetic = toAtisPhonetic(currentAtisLetter);
+    if (atisIntent.matchesCurrent && currentAtisLetter) {
+      setFlightState((prev) => ({ ...prev, atis: currentAtisLetter }));
+    }
     const atisHintMessages = atisIntent.hasToken
       ? [{
           role: "system" as const,
           content: atisIntent.matchesCurrent
             ? `[ATIS_CONFIRMED] The pilot's current transmission explicitly contains the active ATIS token${atisIntent.spokenPhonetic ? ` ("${atisIntent.spokenPhonetic}")` : ""}. Do NOT ask them to verify ATIS. Acknowledge and proceed with the requested instruction in the same transmission.`
-            : `[ATIS_TOKEN_MISMATCH] The pilot stated "${atisIntent.spokenPhonetic}" but current ATIS is Information ${currentAtisLetter}. Briefly correct: "<Callsign>, current information is ${currentAtisLetter}, verify."`,
+            : `[ATIS_TOKEN_MISMATCH] The pilot stated "${atisIntent.spokenPhonetic}" but current ATIS is Information ${currentAtisPhonetic ?? currentAtisLetter}. Use exactly: "<Callsign>, verify you have the current ATIS, Information ${currentAtisPhonetic ?? currentAtisLetter}." Do not issue taxi clearance until confirmed.`,
         }]
       : [];
 
