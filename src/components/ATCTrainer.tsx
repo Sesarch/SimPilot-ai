@@ -160,7 +160,7 @@ Do NOT impersonate a controller. Do NOT add [FEEDBACK].`;
   }
 
   const atisLine = opts.currentAtisInfo
-    ? `\nCURRENT ATIS: Information ${opts.currentAtisInfo} is active. If the pilot says "with ${opts.currentAtisInfo}" or any phonetic letter, treat them as having current ATIS — DO NOT ask them to check ATIS.`
+    ? `\nCURRENT ATIS: Information ${opts.currentAtisInfo} is active. If the pilot's transmission contains the current ATIS letter via any of these patterns — "with ${opts.currentAtisInfo}", "information ${opts.currentAtisInfo}", "have ${opts.currentAtisInfo}", "have information ${opts.currentAtisInfo}", "with the ATIS", or "with current weather" — they HAVE the current ATIS. Acknowledge and proceed directly with the taxi/clearance instruction in the SAME transmission. DO NOT ask them to verify ATIS. Only if the ATIS letter is missing should you respond: "<Callsign>, ${opts.facilityName}, verify you have information ${opts.currentAtisInfo}."`
     : "";
 
   return `You are ${opts.facilityName} at ${opts.airportIcao} (${opts.airportCallName}) on ${opts.frequency} MHz.
