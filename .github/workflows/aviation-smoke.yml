@@ -1,0 +1,73 @@
+# ============================================================================
+#  Aviation Logic Smoke Tests
+#
+#  Runs the production-mode regression suite for the three safety-critical
+#  pillars on every PR (and pushes to main / develop):
+#    1. ATIS TTS / phonetic recognition  (src/lib/atisIntent.test.ts)
+#    2. Callsign enforcement              (src/lib/callsignIntent.test.ts)
+#    3. Local 25 NM weather briefing      (scripts/weather-briefing-smoke.mjs)
+#
+#  The live weather check is auto-skipped unless the repo has the
+#  WEATHER_SMOKE_URL + WEATHER_SMOKE_ANON_KEY secrets configured.
+# ============================================================================
+
+name: Aviation Smoke Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/lib/atisIntent.ts"
+      - "src/lib/atisIntent.test.ts"
+      - "src/lib/atisSpeech.ts"
+      - "src/lib/callsignIntent.ts"
+      - "src/lib/callsignIntent.test.ts"
+      - "src/components/ATCTrainer.tsx"
+      - "supabase/functions/weather-briefing/**"
+      - "supabase/functions/quick-answer/**"
+      - "scripts/weather-briefing-smoke.mjs"
+      - ".github/workflows/aviation-smoke.yml"
+  pull_request:
+    paths:
+      - "src/lib/atisIntent.ts"
+      - "src/lib/atisIntent.test.ts"
+      - "src/lib/atisSpeech.ts"
+      - "src/lib/callsignIntent.ts"
+      - "src/lib/callsignIntent.test.ts"
+      - "src/components/ATCTrainer.tsx"
+      - "supabase/functions/weather-briefing/**"
+      - "supabase/functions/quick-answer/**"
+      - "scripts/weather-briefing-smoke.mjs"
+      - ".github/workflows/aviation-smoke.yml"
+
+jobs:
+  aviation-smoke:
+    name: ATIS + Callsign + Weather Briefing regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # 1 + 2. Unit suites for ATIS phonetic recognition and callsign enforcement.
+      - name: Run ATIS + callsign unit tests
+        run: bunx vitest run src/lib/atisIntent.test.ts src/lib/callsignIntent.test.ts
+
+      # 3. Live edge-function smoke for the 25 NM local weather briefing.
+      #    Auto-skips when secrets are absent (e.g. fork PRs).
+      - name: Live 25 NM weather-briefing smoke
+        env:
+          WEATHER_SMOKE_URL: ${{ secrets.WEATHER_SMOKE_URL }}
+          WEATHER_SMOKE_ANON_KEY: ${{ secrets.WEATHER_SMOKE_ANON_KEY }}
+          WEATHER_SMOKE_AIRPORT: KBOS
+        run: bun run scripts/weather-briefing-smoke.mjs
