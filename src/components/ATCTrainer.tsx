@@ -1628,11 +1628,25 @@ const ATCTrainer = () => {
         }]
       : [];
 
+    // ---- Callsign / readback discipline -------------------------------------
+    // Whenever the prior turn was an ATC instruction, the pilot's reply MUST
+    // include the aircraft callsign. Inject a [CALLSIGN_MISSING] hint so the
+    // controller rejects the silent readback instead of proceeding.
+    const priorNonSystem = [...messages].reverse().find((m) => m.role !== "system");
+    const priorWasATC = priorNonSystem?.role === "atc";
+    const callsignIntent = detectCallsignIntent(trimmed, "N123AB");
+    const callsignHintMessages = priorWasATC && !callsignIntent.hasCallsign
+      ? [{
+          role: "system" as const,
+          content: `[CALLSIGN_MISSING] The pilot just transmitted a readback/acknowledgment WITHOUT including the aircraft callsign (N123AB / "Three Alpha Bravo"). Per FAA AIM 4-2, every readback must include the callsign. DO NOT accept this transmission. Respond ONLY with one of: "Aircraft calling, say callsign." or "Three Alpha Bravo, confirm callsign on that readback?" — then STOP. Do not advance the clearance, do not issue any new instruction, and do not emit a [STATE ...] update.`,
+        }]
+      : [];
+
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
           mode: "atc",
-          messages: [{ role: "system", content: buildSystemPrompt() }, ...atisHintMessages, ...history],
+          messages: [{ role: "system", content: buildSystemPrompt() }, ...atisHintMessages, ...callsignHintMessages, ...history],
         },
       });
       if (error) throw error;
