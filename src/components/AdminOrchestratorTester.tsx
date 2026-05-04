@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -641,9 +646,32 @@ const AdminOrchestratorTester = () => {
               >
                 <Download className="w-3 h-3 mr-1.5" /> Export JSON
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setHistory([])}>
-                <Trash2 className="w-3 h-3 mr-1.5" /> Clear
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="ghost">
+                    <Trash2 className="w-3 h-3 mr-1.5" /> Clear
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear run history?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently removes all {history.length} run{history.length === 1 ? "" : "s"} from this browser, including the localStorage audit records. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        setHistory([]);
+                        try { localStorage.removeItem(HISTORY_KEY); } catch { /* ignore */ }
+                      }}
+                    >
+                      Clear history
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           )}
         </div>
