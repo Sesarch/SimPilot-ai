@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import {
   FlaskConical, Loader2, Cpu, Radio, Eye, ShieldAlert, ShieldCheck, Clock,
   RefreshCw, GitCompare, X, History, Trash2, Play, Download, Code2, Copy,
-  ArrowUp, ArrowDown, ArrowUpDown,
+  ArrowUp, ArrowDown, ArrowUpDown, FileText, ExternalLink,
 } from "lucide-react";
 import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
 import {
@@ -210,6 +210,7 @@ const AdminOrchestratorTester = () => {
   const [slotB, setSlotB] = useState<Slot | null>(null);
   const [historyFilter, setHistoryFilter] = useState<"all" | "pending" | "clean" | "flagged" | "error" | "n/a">("all");
   const [inspectEntry, setInspectEntry] = useState<HistoryEntry | null>(null);
+  const [detailsEntry, setDetailsEntry] = useState<HistoryEntry | null>(null);
   const [sortKey, setSortKey] = useState<"audit_notes" | "contradiction" | "poh_reference" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
@@ -670,13 +671,33 @@ const AdminOrchestratorTester = () => {
                         className="px-2.5 py-1.5 max-w-[200px] truncate text-foreground/90"
                         title={h.audit_raw?.audit_notes ?? ""}
                       >
-                        {h.audit_raw?.audit_notes ?? <span className="text-muted-foreground">—</span>}
+                        {h.audit_raw?.audit_notes
+                          ? (
+                            <button
+                              type="button"
+                              onClick={() => setDetailsEntry(h)}
+                              className="text-left hover:text-primary hover:underline truncate w-full"
+                            >
+                              {h.audit_raw.audit_notes}
+                            </button>
+                          )
+                          : <span className="text-muted-foreground">—</span>}
                       </td>
                       <td
                         className="px-2.5 py-1.5 max-w-[200px] truncate text-foreground/90"
                         title={h.audit_raw?.contradiction ?? ""}
                       >
-                        {h.audit_raw?.contradiction ?? <span className="text-muted-foreground">—</span>}
+                        {h.audit_raw?.contradiction
+                          ? (
+                            <button
+                              type="button"
+                              onClick={() => setDetailsEntry(h)}
+                              className="text-left hover:text-primary hover:underline truncate w-full"
+                            >
+                              {h.audit_raw.contradiction}
+                            </button>
+                          )
+                          : <span className="text-muted-foreground">—</span>}
                       </td>
                       <td
                         className="px-2.5 py-1.5 max-w-[160px] truncate font-mono text-foreground/90"
@@ -684,18 +705,26 @@ const AdminOrchestratorTester = () => {
                       >
                         {h.audit_raw?.poh_reference
                           ? (
-                            <a
-                              href={`https://www.google.com/search?q=${encodeURIComponent(h.audit_raw.poh_reference)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline"
+                            <button
+                              type="button"
+                              onClick={() => setDetailsEntry(h)}
+                              className="text-primary hover:underline truncate w-full text-left"
                             >
                               {h.audit_raw.poh_reference}
-                            </a>
+                            </button>
                           )
                           : <span className="text-muted-foreground">—</span>}
                       </td>
                       <td className="px-2.5 py-1.5 text-right whitespace-nowrap">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6"
+                          title="View audit details"
+                          onClick={() => setDetailsEntry(h)}
+                        >
+                          <FileText className="w-3 h-3" />
+                        </Button>
                         <Button
                           size="icon"
                           variant="ghost"
@@ -795,6 +824,113 @@ const AdminOrchestratorTester = () => {
               </div>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!detailsEntry} onOpenChange={(o) => !o && setDetailsEntry(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <FileText className="w-4 h-4 text-primary" />
+              Audit details
+            </DialogTitle>
+            <DialogDescription className="text-[11px]">
+              {detailsEntry && new Date(detailsEntry.ts).toLocaleString()} ·{" "}
+              <span className="font-mono">{detailsEntry?.routed_task}</span> ·{" "}
+              <span className="font-mono">{detailsEntry?.audit_status}</span>
+              {detailsEntry?.audit_severity != null && ` · S${detailsEntry.audit_severity}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {detailsEntry && (
+            <ScrollArea className="max-h-[65vh] pr-3">
+              <div className="space-y-4">
+                <section>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                    Prompt
+                  </p>
+                  <p className="text-xs text-foreground/90 whitespace-pre-wrap rounded-md border border-border bg-background/40 p-2.5">
+                    {detailsEntry.prompt}
+                  </p>
+                </section>
+
+                <section>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                    Audit notes
+                  </p>
+                  {detailsEntry.audit_raw?.audit_notes ? (
+                    <p className="text-xs text-foreground/90 whitespace-pre-wrap rounded-md border border-border bg-background/40 p-2.5 leading-relaxed">
+                      {detailsEntry.audit_raw.audit_notes}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic">No notes recorded.</p>
+                  )}
+                  {detailsEntry.audit_raw?.audit_model && (
+                    <p className="text-[10px] text-muted-foreground mt-1 font-mono">
+                      Auditor: {detailsEntry.audit_raw.audit_model}
+                    </p>
+                  )}
+                </section>
+
+                <section>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                    Contradiction
+                  </p>
+                  {detailsEntry.audit_raw?.contradiction ? (
+                    <p className="text-xs text-foreground/90 whitespace-pre-wrap rounded-md border border-destructive/40 bg-destructive/10 p-2.5 leading-relaxed">
+                      {detailsEntry.audit_raw.contradiction}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic">No contradiction flagged.</p>
+                  )}
+                </section>
+
+                <section>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                    POH reference
+                  </p>
+                  {detailsEntry.audit_raw?.poh_reference ? (
+                    <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-background/40 p-2.5">
+                      <span className="text-xs font-mono text-foreground/90 break-all">
+                        {detailsEntry.audit_raw.poh_reference}
+                      </span>
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(detailsEntry.audit_raw.poh_reference)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline whitespace-nowrap"
+                      >
+                        Search <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic">No POH reference cited.</p>
+                  )}
+                </section>
+
+                <div className="flex justify-end pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7"
+                    onClick={() => {
+                      const r = detailsEntry.audit_raw;
+                      const text = [
+                        `Notes: ${r?.audit_notes ?? "—"}`,
+                        `Contradiction: ${r?.contradiction ?? "—"}`,
+                        `POH ref: ${r?.poh_reference ?? "—"}`,
+                      ].join("\n");
+                      navigator.clipboard.writeText(text)
+                        .then(() => toast.success("Copied details"))
+                        .catch(() => toast.error("Copy failed"));
+                    }}
+                  >
+                    <Copy className="w-3 h-3 mr-1.5" /> Copy details
+                  </Button>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
         </DialogContent>
       </Dialog>
     </div>
