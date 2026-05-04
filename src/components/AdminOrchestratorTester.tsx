@@ -240,37 +240,60 @@ const AdminOrchestratorTester = () => {
   };
   const hasExtraFilters =
     presenceFilter !== "any" || !!notesQuery.trim() || !!contradictionQuery.trim() || !!pohQuery.trim();
-  const applyHistorySort = (rows: HistoryEntry[]) => {
-    if (!sortKey) return rows;
-    const key = sortKey;
-    return [...rows].sort((a, b) => {
-      const av = (a.audit_raw?.[key] ?? "").toString().trim();
-      const bv = (b.audit_raw?.[key] ?? "").toString().trim();
-      if (!av && !bv) return 0;
-      if (!av) return 1;
-      if (!bv) return -1;
-      let cmp: number;
-      if (key === "poh_reference") {
-        const numsA = av.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
-        const numsB = bv.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
-        const len = Math.max(numsA.length, numsB.length);
-        cmp = 0;
-        for (let i = 0; i < len; i++) {
-          const x = numsA[i] ?? -Infinity;
-          const y = numsB[i] ?? -Infinity;
-          if (x !== y) { cmp = x - y; break; }
-        }
-        if (cmp === 0) cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
-      } else {
-        cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+  const compareByCriterion = (a: HistoryEntry, b: HistoryEntry, c: SortCriterion) => {
+    const av = (a.audit_raw?.[c.key] ?? "").toString().trim();
+    const bv = (b.audit_raw?.[c.key] ?? "").toString().trim();
+    if (!av && !bv) return 0;
+    if (!av) return 1;
+    if (!bv) return -1;
+    let cmp: number;
+    if (c.key === "poh_reference") {
+      const numsA = av.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+      const numsB = bv.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+      const len = Math.max(numsA.length, numsB.length);
+      cmp = 0;
+      for (let i = 0; i < len; i++) {
+        const x = numsA[i] ?? -Infinity;
+        const y = numsB[i] ?? -Infinity;
+        if (x !== y) { cmp = x - y; break; }
       }
-      return sortDir === "asc" ? cmp : -cmp;
+      if (cmp === 0) cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+    } else {
+      cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+    }
+    return c.dir === "asc" ? cmp : -cmp;
+  };
+  const applyHistorySort = (rows: HistoryEntry[]) => {
+    if (sortStack.length === 0) return rows;
+    return [...rows].sort((a, b) => {
+      for (const c of sortStack) {
+        const r = compareByCriterion(a, b, c);
+        if (r !== 0) return r;
+      }
+      return 0;
     });
   };
-  const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
-    if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
-    else if (sortDir === "asc") setSortDir("desc");
-    else { setSortKey(null); setSortDir("asc"); }
+  const toggleSort = (key: SortColKey, additive = false) => {
+    setSortStack(prev => {
+      const idx = prev.findIndex(c => c.key === key);
+      if (!additive) {
+        if (idx === -1) return [{ key, dir: "asc" }];
+        const cur = prev[idx];
+        if (cur.dir === "asc") return [{ key, dir: "desc" }];
+        return [];
+      }
+      if (idx === -1) return [...prev, { key, dir: "asc" }];
+      const cur = prev[idx];
+      const next = [...prev];
+      if (cur.dir === "asc") next[idx] = { key, dir: "desc" };
+      else next.splice(idx, 1);
+      return next;
+    });
+  };
+  const sortInfo = (key: SortColKey) => {
+    const idx = sortStack.findIndex(c => c.key === key);
+    if (idx === -1) return { active: false, dir: null as null | "asc" | "desc", order: 0 };
+    return { active: true, dir: sortStack[idx].dir, order: idx + 1 };
   };
   const [history, setHistory] = useState<HistoryEntry[]>(() => {
     try {
