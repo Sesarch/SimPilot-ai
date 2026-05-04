@@ -3,8 +3,8 @@
 // "verify you have the current ATIS information."
 //
 // Recognized patterns (case-insensitive):
-//   - "with <Phonetic>"            e.g. "with Echo"
-//   - "information <Phonetic>"     e.g. "information Echo"
+//   - "with <Letter/Phonetic>"     e.g. "with E" / "with Echo"
+//   - "information <Letter/Phonetic>"
 //   - "have information <Phonetic>"
 //   - "have <Phonetic>"            e.g. "have Echo"
 //   - "with the ATIS"
@@ -15,19 +15,26 @@
 // the confirmation to be considered "correct"; otherwise any valid phonetic
 // counts as a generic confirmation token.
 
+export const ICAO_PHONETIC_BY_LETTER: Record<string, string> = {
+  A: "Alpha", B: "Bravo", C: "Charlie", D: "Delta", E: "Echo", F: "Foxtrot",
+  G: "Golf", H: "Hotel", I: "India", J: "Juliett", K: "Kilo", L: "Lima",
+  M: "Mike", N: "November", O: "Oscar", P: "Papa", Q: "Quebec", R: "Romeo",
+  S: "Sierra", T: "Tango", U: "Uniform", V: "Victor", W: "Whiskey",
+  X: "X-ray", Y: "Yankee", Z: "Zulu",
+};
+
 export const ICAO_PHONETICS = [
-  "Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel",
-  "India", "Juliett", "Juliet", "Kilo", "Lima", "Mike", "November", "Oscar",
-  "Papa", "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor",
-  "Whiskey", "Whisky", "X-ray", "Xray", "Yankee", "Zulu",
+  ...Object.values(ICAO_PHONETIC_BY_LETTER),
+  "Juliet", "Whisky", "Xray",
 ] as const;
 
-const PHONETIC_GROUP = `(${ICAO_PHONETICS.join("|")})`;
+const TOKEN_GROUP = `(${[...ICAO_PHONETICS, ...Object.keys(ICAO_PHONETIC_BY_LETTER)].join("|")})`;
 
 const PATTERNS: RegExp[] = [
-  new RegExp(`\\bwith\\s+${PHONETIC_GROUP}\\b`, "i"),
-  new RegExp(`\\binformation\\s+${PHONETIC_GROUP}\\b`, "i"),
-  new RegExp(`\\bhave\\s+(?:information\\s+)?${PHONETIC_GROUP}\\b`, "i"),
+  new RegExp(`\\bwith\\s+${TOKEN_GROUP}\\b`, "i"),
+  new RegExp(`\\binformation\\s+${TOKEN_GROUP}\\b`, "i"),
+  new RegExp(`\\bhave\\s+(?:information\\s+)?${TOKEN_GROUP}\\b`, "i"),
+  new RegExp(`(?:^|[,;]\\s*|\\s+)${TOKEN_GROUP}[.!?]?\\s*$`, "i"),
   /\bwith\s+the\s+atis\b/i,
   /\bwith\s+current\s+weather\b/i,
   /\bhave\s+the\s+numbers\b/i,
@@ -46,8 +53,20 @@ export interface AtisIntentResult {
   matchesCurrent: boolean;
 }
 
-const norm = (s: string) =>
-  s.toLowerCase().replace(/^juliet$/, "juliett").replace(/-/g, "").replace(/\s+/g, "");
+export const toAtisPhonetic = (s?: string | null): string | null => {
+  if (!s) return null;
+  const trimmed = s.trim();
+  const singleLetter = trimmed.match(/^[a-z]$/i)?.[0]?.toUpperCase();
+  if (singleLetter) return ICAO_PHONETIC_BY_LETTER[singleLetter] ?? null;
+
+  const normalized = trimmed.toLowerCase().replace(/^juliet$/, "juliett").replace(/^whisky$/, "whiskey").replace(/^xray$/, "xray").replace(/-/g, "").replace(/\s+/g, "");
+  const match = Object.values(ICAO_PHONETIC_BY_LETTER).find(
+    (word) => word.toLowerCase().replace(/-/g, "") === normalized,
+  );
+  return match ?? null;
+};
+
+const norm = (s: string) => toAtisPhonetic(s)?.toLowerCase().replace(/-/g, "") ?? "";
 
 /**
  * Inspect a pilot transmission for an ATIS-confirmation token.
