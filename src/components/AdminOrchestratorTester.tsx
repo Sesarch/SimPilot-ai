@@ -566,9 +566,19 @@ const AdminOrchestratorTester = () => {
               );
             })()}
             {(() => {
-              const filtered = historyFilter === "all"
+              const base = historyFilter === "all"
                 ? history
                 : history.filter(h => h.audit_status === historyFilter);
+              const filtered = sortKey
+                ? [...base].sort((a, b) => {
+                    const av = (a.audit_raw?.[sortKey] ?? "") as string;
+                    const bv = (b.audit_raw?.[sortKey] ?? "") as string;
+                    if (!av && bv) return 1;
+                    if (av && !bv) return -1;
+                    const cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+                    return sortDir === "asc" ? cmp : -cmp;
+                  })
+                : base;
               if (filtered.length === 0) {
                 return (
                   <p className="text-[11px] text-muted-foreground italic">
