@@ -351,6 +351,34 @@ const AdminOrchestratorTester = () => {
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"} as JSON`);
   };
+  const exportHistoryCSV = () => {
+    const filtered = applyHistorySort(applyHistoryFilters(history));
+    if (filtered.length === 0) {
+      toast.error("Nothing to export for this filter");
+      return;
+    }
+    const rows = filtered.map((h, idx) => ({
+      sort_index: idx,
+      timestamp_iso: new Date(h.ts).toISOString(),
+      timestamp_local: new Date(h.ts).toLocaleString(),
+      prompt: h.prompt,
+      forced_task: h.forced_task,
+      routed_task: h.routed_task,
+      model: h.model,
+      latency_ms: h.latency_ms,
+      audit_id: h.audit_id ?? "",
+      audit_status: h.audit_status,
+      audit_severity: h.audit_severity ?? "",
+    }));
+    const csv = toCSV(rows, [
+      "sort_index", "timestamp_iso", "timestamp_local", "prompt",
+      "forced_task", "routed_task", "model", "latency_ms",
+      "audit_id", "audit_status", "audit_severity",
+    ]);
+    const suffix = historyFilter === "all" ? "all" : historyFilter.replace("/", "-");
+    downloadCSV(`orchestrator-history-${suffix}-${csvDateStamp()}.csv`, csv);
+    toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"} as CSV`);
+  };
   const applyHistoryFilters = (rows: HistoryEntry[]) => {
     const nq = notesQuery.trim().toLowerCase();
     const cq = contradictionQuery.trim().toLowerCase();
