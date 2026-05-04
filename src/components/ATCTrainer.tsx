@@ -30,6 +30,7 @@ import { useExamPercentile } from "@/hooks/useExamPercentile";
 import { generateATCDebriefPDF } from "@/lib/atcDebriefReport";
 import { formatAtisForSpeech } from "@/lib/atisSpeech";
 import { detectAtisIntent, toAtisPhonetic } from "@/lib/atisIntent";
+import { detectCallsignIntent } from "@/lib/callsignIntent";
 import { generateATCTranscriptPDF } from "@/lib/atcTranscriptReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -104,6 +105,7 @@ REAL-WORLD CONTROLLER BEHAVIOR (CRITICAL — never violate):
 - Taxi clearances use this exact pattern: "<Callsign>, Runway <NN[L/R]>, taxi via <Taxiway letters>." e.g. "Three alpha bravo, Runway two eight right, taxi via Hotel, Juliet, Alpha."
 - Hold short / position: When traffic warrants, issue "hold short of Runway <NN>" or "hold position" or "follow the [type] on [taxiway]". Use these dynamically — do not always give a clean route.
 - Wrong-facility request (CRITICAL): If the pilot asks the WRONG controller for a service (e.g. asks "Tower" for taxi, asks "Ground" for takeoff, asks "Clearance" for taxi), DO NOT play along. Correct them: "<Callsign>, contact <correct facility> on <freq> for <service>." (e.g. "Three alpha bravo, contact Ground on one two one point seven for taxi.") NOTE: VFR Flight Following is NOT a wrong-facility request when asked of Ground — see the rule above.
+- Callsign on EVERY readback (ABSOLUTE RULE): Strictly enforce pilot identification. Do NOT accept any readback, acknowledgment, or compliance reply ("roger", "wilco", "going to 28R", "monitoring tower") that omits the aircraft callsign (N123AB / "Three Alpha Bravo"). If the callsign is missing, your ONLY response is: "Aircraft calling, say callsign." or "Three Alpha Bravo, confirm callsign on that readback?" — then STOP. Do not advance the clearance, do not issue a new instruction, and do not emit a [STATE ...] update until the pilot re-transmits with their callsign.
 - Be concise. Only ask for information required by SOP.
 
 DYNAMIC SCENARIO INJECTIONS (CRITICAL — randomize realistic curveballs):
@@ -202,6 +204,7 @@ REAL-WORLD CONTROLLER BEHAVIOR (CRITICAL — never violate):
 - Active runway: NEVER ask the pilot "what is the active runway" or "say active". The Ground/Tower controller ASSIGNS the runway. Pick a sensible one and tell them.
 - Standard taxi clearance pattern: "<Callsign>, Runway <NN[L/R]>, taxi via <Taxiway letters>." e.g. "Three alpha bravo, Runway two eight right, taxi via Hotel, Juliet, Alpha."
 - Dynamic mid-taxi commands: When traffic warrants, issue "hold short of Runway <NN>", "hold position", or "follow the [type] on [taxiway]". Vary instructions realistically — don't always issue a clean route.
+- Callsign on EVERY readback (ABSOLUTE RULE): Strictly enforce pilot identification. Do NOT accept any readback, acknowledgment, or compliance reply ("roger", "wilco", "monitoring tower", "going to 28R") that omits the aircraft callsign (N123AB / "Three Alpha Bravo"). If the callsign is missing, your ONLY response is: "Aircraft calling, say callsign." or "Three Alpha Bravo, confirm callsign on that readback?" — then STOP. Do not advance the clearance, do not issue a new instruction, and do not emit a [STATE ...] update until the pilot re-transmits with their callsign.
 - Be concise. Only ask for information required by SOP.
 
 DYNAMIC SCENARIO INJECTIONS (CRITICAL — randomize realistic curveballs appropriate for ${opts.facilityKind}):
@@ -1627,11 +1630,25 @@ const ATCTrainer = () => {
         }]
       : [];
 
+    // ---- Callsign / readback discipline -------------------------------------
+    // Whenever the prior turn was an ATC instruction, the pilot's reply MUST
+    // include the aircraft callsign. Inject a [CALLSIGN_MISSING] hint so the
+    // controller rejects the silent readback instead of proceeding.
+    const priorNonSystem = [...messages].reverse().find((m) => m.role !== "system");
+    const priorWasATC = priorNonSystem?.role === "atc";
+    const callsignIntent = detectCallsignIntent(trimmed, "N123AB");
+    const callsignHintMessages = priorWasATC && !callsignIntent.hasCallsign
+      ? [{
+          role: "system" as const,
+          content: `[CALLSIGN_MISSING] The pilot just transmitted a readback/acknowledgment WITHOUT including the aircraft callsign (N123AB / "Three Alpha Bravo"). Per FAA AIM 4-2, every readback must include the callsign. DO NOT accept this transmission. Respond ONLY with one of: "Aircraft calling, say callsign." or "Three Alpha Bravo, confirm callsign on that readback?" — then STOP. Do not advance the clearance, do not issue any new instruction, and do not emit a [STATE ...] update.`,
+        }]
+      : [];
+
     try {
       const { data, error } = await supabase.functions.invoke("pilot-chat", {
         body: {
           mode: "atc",
-          messages: [{ role: "system", content: buildSystemPrompt() }, ...atisHintMessages, ...history],
+          messages: [{ role: "system", content: buildSystemPrompt() }, ...atisHintMessages, ...callsignHintMessages, ...history],
         },
       });
       if (error) throw error;
