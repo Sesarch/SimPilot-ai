@@ -1319,7 +1319,11 @@ const ATCTrainer = () => {
     if (flightState.heading) stateLines.push(`Heading: ${flightState.heading}`);
     if (flightState.squawk) stateLines.push(`Squawk: ${flightState.squawk}`);
     if (flightState.handoffTo) stateLines.push(`Last handoff to: ${flightState.handoffTo}${flightState.handoffFreq ? ` on ${flightState.handoffFreq}` : ""}`);
-    if (flightState.atis) stateLines.push(`ATIS in hand: Information ${flightState.atis}`);
+    const activeAtisInfo = currentAtis && liveAirport && currentAtis.icao === liveAirport.icao ? currentAtis.info : null;
+    const hasCurrentAtisInHand = Boolean(
+      flightState.atis && (!activeAtisInfo || toAtisPhonetic(flightState.atis) === toAtisPhonetic(activeAtisInfo)),
+    );
+    if (hasCurrentAtisInHand) stateLines.push(`ATIS in hand: Information ${toAtisPhonetic(flightState.atis) ?? flightState.atis}`);
     const continuityBlock = stateLines.length
       ? `\n\nFLIGHT STATE (carry-over from prior controllers — DO NOT re-issue what is already assigned, DO NOT ask for ATIS again, DO NOT ask the runway, DO NOT re-clear taxi if already taxiing):\n${stateLines.map((l) => `  • ${l}`).join("\n")}`
       : "";
@@ -1338,7 +1342,7 @@ const ATCTrainer = () => {
           name: f.name,
           freq: formatFreq(f.freq),
         })),
-        currentAtisInfo: currentAtis && currentAtis.icao === liveAirport.icao ? currentAtis.info : null,
+        currentAtisInfo: activeAtisInfo,
       }) + continuityBlock;
     }
     const sc = scenarios.find((s) => s.id === selectedScenario);
