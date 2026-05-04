@@ -304,7 +304,55 @@ const AdminOrchestratorTester = () => {
   const [pohQuery, setPohQuery] = useState("");
   const [presenceFilter, setPresenceFilter] = useState<"any" | "notes" | "contradiction" | "poh">("any");
 
-  const applyHistoryFilters = (rows: HistoryEntry[]) => {
+  const exportHistoryJSON = () => {
+    const filtered = applyHistorySort(applyHistoryFilters(history));
+    if (filtered.length === 0) {
+      toast.error("Nothing to export for this filter");
+      return;
+    }
+    const payload = {
+      exported_at: new Date().toISOString(),
+      view: {
+        status_filter: historyFilter,
+        presence_filter: presenceFilter,
+        notes_query: notesQuery.trim() || null,
+        contradiction_query: contradictionQuery.trim() || null,
+        poh_query: pohQuery.trim() || null,
+        sort: sortStack.length ? sortStack.map(c => ({ key: c.key, direction: c.dir })) : null,
+      },
+      count: filtered.length,
+      runs: filtered.map((h, idx) => ({
+        sort_index: idx,
+        id: h.id,
+        timestamp_iso: new Date(h.ts).toISOString(),
+        timestamp_ms: h.ts,
+        prompt: h.prompt,
+        forced_task: h.forced_task,
+        routed_task: h.routed_task,
+        model: h.model,
+        latency_ms: h.latency_ms,
+        audit_id: h.audit_id,
+        audit_status: h.audit_status,
+        audit_severity: h.audit_severity,
+        audit_raw: h.audit_raw ?? null,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const suffix = historyFilter === "all" ? "all" : historyFilter.replace("/", "-");
+    a.href = url;
+    a.download = `orchestrator-history-${suffix}-${csvDateStamp()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filtered.length} run${filtered.length === 1 ? "" : "s"} as JSON`);
+  };
+
+
     const nq = notesQuery.trim().toLowerCase();
     const cq = contradictionQuery.trim().toLowerCase();
     const pq = pohQuery.trim().toLowerCase();
