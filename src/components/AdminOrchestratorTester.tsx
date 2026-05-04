@@ -579,6 +579,9 @@ const AdminOrchestratorTester = () => {
                   <th className="text-left px-2.5 py-1.5 font-semibold">Model</th>
                   <th className="text-right px-2.5 py-1.5 font-semibold">Latency</th>
                   <th className="text-left px-2.5 py-1.5 font-semibold">Audit</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Notes</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">Contradiction</th>
+                  <th className="text-left px-2.5 py-1.5 font-semibold">POH ref</th>
                   <th className="px-2.5 py-1.5"></th>
                 </tr>
               </thead>
