@@ -612,7 +612,16 @@ const AdminOrchestratorTester = () => {
                         {h.audit_status}
                         {h.audit_severity != null && ` · S${h.audit_severity}`}
                       </td>
-                      <td className="px-2.5 py-1.5 text-right">
+                      <td className="px-2.5 py-1.5 text-right whitespace-nowrap">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6"
+                          title="View full audit JSON"
+                          onClick={() => setInspectEntry(h)}
+                        >
+                          <Code2 className="w-3 h-3" />
+                        </Button>
                         <Button
                           size="icon"
                           variant="ghost"
