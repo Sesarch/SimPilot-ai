@@ -212,8 +212,9 @@ const AdminOrchestratorTester = () => {
   const [historyFilter, setHistoryFilter] = useState<"all" | "pending" | "clean" | "flagged" | "error" | "n/a">("all");
   const [inspectEntry, setInspectEntry] = useState<HistoryEntry | null>(null);
   const [detailsEntry, setDetailsEntry] = useState<HistoryEntry | null>(null);
-  const [sortKey, setSortKey] = useState<"audit_notes" | "contradiction" | "poh_reference" | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  type SortColKey = "audit_notes" | "contradiction" | "poh_reference";
+  type SortCriterion = { key: SortColKey; dir: "asc" | "desc" };
+  const [sortStack, setSortStack] = useState<SortCriterion[]>([]);
   const [notesQuery, setNotesQuery] = useState("");
   const [contradictionQuery, setContradictionQuery] = useState("");
   const [pohQuery, setPohQuery] = useState("");
