@@ -468,9 +468,7 @@ const AdminOrchestratorTester = () => {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  const filtered = historyFilter === "all"
-                    ? history
-                    : history.filter(h => h.audit_status === historyFilter);
+                  const filtered = applyHistoryFilters(history);
                   if (filtered.length === 0) {
                     toast.error("Nothing to export for this filter");
                     return;
