@@ -649,11 +649,32 @@ const AdminOrchestratorTester = () => {
               const base = applyHistoryFilters(history);
               const filtered = sortKey
                 ? [...base].sort((a, b) => {
-                    const av = (a.audit_raw?.[sortKey] ?? "") as string;
-                    const bv = (b.audit_raw?.[sortKey] ?? "") as string;
-                    if (!av && bv) return 1;
-                    if (av && !bv) return -1;
-                    const cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+                    const rawA = a.audit_raw?.[sortKey];
+                    const rawB = b.audit_raw?.[sortKey];
+                    const av = (rawA ?? "").toString().trim();
+                    const bv = (rawB ?? "").toString().trim();
+                    // Always pin empty/null values to the bottom, regardless of sort direction
+                    if (!av && !bv) return 0;
+                    if (!av) return 1;
+                    if (!bv) return -1;
+                    let cmp: number;
+                    if (sortKey === "poh_reference") {
+                      // Compare numeric chunks first (e.g. "3.10" > "3.5"), then fall back to natural string compare
+                      const numsA = av.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+                      const numsB = bv.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+                      const len = Math.max(numsA.length, numsB.length);
+                      cmp = 0;
+                      for (let i = 0; i < len; i++) {
+                        const x = numsA[i] ?? -Infinity;
+                        const y = numsB[i] ?? -Infinity;
+                        if (x !== y) { cmp = x - y; break; }
+                      }
+                      if (cmp === 0) {
+                        cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+                      }
+                    } else {
+                      cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+                    }
                     return sortDir === "asc" ? cmp : -cmp;
                   })
                 : base;
