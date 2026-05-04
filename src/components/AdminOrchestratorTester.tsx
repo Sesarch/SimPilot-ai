@@ -588,6 +588,63 @@ const AdminOrchestratorTester = () => {
                 </div>
               );
             })()}
+
+            <div className="grid gap-1.5 sm:grid-cols-3 mb-2">
+              <Input
+                value={notesQuery}
+                onChange={(e) => setNotesQuery(e.target.value)}
+                placeholder="Filter notes…"
+                className="h-7 text-[11px]"
+              />
+              <Input
+                value={contradictionQuery}
+                onChange={(e) => setContradictionQuery(e.target.value)}
+                placeholder="Filter contradiction…"
+                className="h-7 text-[11px]"
+              />
+              <Input
+                value={pohQuery}
+                onChange={(e) => setPohQuery(e.target.value)}
+                placeholder="Filter POH ref…"
+                className="h-7 text-[11px]"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 mb-3">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mr-1">
+                Has:
+              </span>
+              {([
+                { key: "any", label: "Any" },
+                { key: "notes", label: "Notes" },
+                { key: "contradiction", label: "Contradiction" },
+                { key: "poh", label: "POH ref" },
+              ] as const).map(p => (
+                <Button
+                  key={p.key}
+                  size="sm"
+                  variant={presenceFilter === p.key ? "default" : "outline"}
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => setPresenceFilter(p.key)}
+                >
+                  {p.label}
+                </Button>
+              ))}
+              {hasExtraFilters && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => {
+                    setNotesQuery("");
+                    setContradictionQuery("");
+                    setPohQuery("");
+                    setPresenceFilter("any");
+                  }}
+                >
+                  <X className="w-3 h-3 mr-1" /> Clear filters
+                </Button>
+              )}
+            </div>
             {(() => {
               const base = applyHistoryFilters(history);
               const filtered = sortKey
