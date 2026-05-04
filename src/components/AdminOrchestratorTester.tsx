@@ -9,9 +9,13 @@ import {
 import { toast } from "sonner";
 import {
   FlaskConical, Loader2, Cpu, Radio, Eye, ShieldAlert, ShieldCheck, Clock,
-  RefreshCw, GitCompare, X, History, Trash2, Play, Download,
+  RefreshCw, GitCompare, X, History, Trash2, Play, Download, Code2, Copy,
 } from "lucide-react";
 import { toCSV, downloadCSV, csvDateStamp } from "@/lib/csv";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type HistoryEntry = {
   id: string;
