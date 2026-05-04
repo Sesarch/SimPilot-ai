@@ -653,6 +653,20 @@ const AdminOrchestratorTester = () => {
               >
                 <Download className="w-3 h-3 mr-1.5" /> Export JSON
               </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  const url = window.location.href;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast.success("Share link copied", { description: "URL includes current sort." });
+                  } catch {
+                    toast.error("Could not copy link", { description: url });
+                  }
+                }}
+              >
+                <Link2 className="w-3 h-3 mr-1.5" /> Share
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm" variant="ghost">
