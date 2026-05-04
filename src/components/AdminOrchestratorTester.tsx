@@ -589,9 +589,7 @@ const AdminOrchestratorTester = () => {
               );
             })()}
             {(() => {
-              const base = historyFilter === "all"
-                ? history
-                : history.filter(h => h.audit_status === historyFilter);
+              const base = applyHistoryFilters(history);
               const filtered = sortKey
                 ? [...base].sort((a, b) => {
                     const av = (a.audit_raw?.[sortKey] ?? "") as string;
