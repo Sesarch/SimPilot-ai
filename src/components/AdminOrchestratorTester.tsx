@@ -212,8 +212,9 @@ const AdminOrchestratorTester = () => {
   const [historyFilter, setHistoryFilter] = useState<"all" | "pending" | "clean" | "flagged" | "error" | "n/a">("all");
   const [inspectEntry, setInspectEntry] = useState<HistoryEntry | null>(null);
   const [detailsEntry, setDetailsEntry] = useState<HistoryEntry | null>(null);
-  const [sortKey, setSortKey] = useState<"audit_notes" | "contradiction" | "poh_reference" | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  type SortColKey = "audit_notes" | "contradiction" | "poh_reference";
+  type SortCriterion = { key: SortColKey; dir: "asc" | "desc" };
+  const [sortStack, setSortStack] = useState<SortCriterion[]>([]);
   const [notesQuery, setNotesQuery] = useState("");
   const [contradictionQuery, setContradictionQuery] = useState("");
   const [pohQuery, setPohQuery] = useState("");
@@ -239,10 +240,60 @@ const AdminOrchestratorTester = () => {
   };
   const hasExtraFilters =
     presenceFilter !== "any" || !!notesQuery.trim() || !!contradictionQuery.trim() || !!pohQuery.trim();
-  const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
-    if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
-    else if (sortDir === "asc") setSortDir("desc");
-    else { setSortKey(null); setSortDir("asc"); }
+  const compareByCriterion = (a: HistoryEntry, b: HistoryEntry, c: SortCriterion) => {
+    const av = (a.audit_raw?.[c.key] ?? "").toString().trim();
+    const bv = (b.audit_raw?.[c.key] ?? "").toString().trim();
+    if (!av && !bv) return 0;
+    if (!av) return 1;
+    if (!bv) return -1;
+    let cmp: number;
+    if (c.key === "poh_reference") {
+      const numsA = av.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+      const numsB = bv.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+      const len = Math.max(numsA.length, numsB.length);
+      cmp = 0;
+      for (let i = 0; i < len; i++) {
+        const x = numsA[i] ?? -Infinity;
+        const y = numsB[i] ?? -Infinity;
+        if (x !== y) { cmp = x - y; break; }
+      }
+      if (cmp === 0) cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+    } else {
+      cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+    }
+    return c.dir === "asc" ? cmp : -cmp;
+  };
+  const applyHistorySort = (rows: HistoryEntry[]) => {
+    if (sortStack.length === 0) return rows;
+    return [...rows].sort((a, b) => {
+      for (const c of sortStack) {
+        const r = compareByCriterion(a, b, c);
+        if (r !== 0) return r;
+      }
+      return 0;
+    });
+  };
+  const toggleSort = (key: SortColKey, additive = false) => {
+    setSortStack(prev => {
+      const idx = prev.findIndex(c => c.key === key);
+      if (!additive) {
+        if (idx === -1) return [{ key, dir: "asc" }];
+        const cur = prev[idx];
+        if (cur.dir === "asc") return [{ key, dir: "desc" }];
+        return [];
+      }
+      if (idx === -1) return [...prev, { key, dir: "asc" }];
+      const cur = prev[idx];
+      const next = [...prev];
+      if (cur.dir === "asc") next[idx] = { key, dir: "desc" };
+      else next.splice(idx, 1);
+      return next;
+    });
+  };
+  const sortInfo = (key: SortColKey) => {
+    const idx = sortStack.findIndex(c => c.key === key);
+    if (idx === -1) return { active: false, dir: null as null | "asc" | "desc", order: 0 };
+    return { active: true, dir: sortStack[idx].dir, order: idx + 1 };
   };
   const [history, setHistory] = useState<HistoryEntry[]>(() => {
     try {
@@ -501,16 +552,24 @@ const AdminOrchestratorTester = () => {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  const filtered = applyHistoryFilters(history);
+                  const filtered = applyHistorySort(applyHistoryFilters(history));
                   if (filtered.length === 0) {
                     toast.error("Nothing to export for this filter");
                     return;
                   }
                   const payload = {
                     exported_at: new Date().toISOString(),
-                    filter: historyFilter,
+                    view: {
+                      status_filter: historyFilter,
+                      presence_filter: presenceFilter,
+                      notes_query: notesQuery.trim() || null,
+                      contradiction_query: contradictionQuery.trim() || null,
+                      poh_query: pohQuery.trim() || null,
+                      sort: sortStack.length ? sortStack.map(c => ({ key: c.key, direction: c.dir })) : null,
+                    },
                     count: filtered.length,
-                    runs: filtered.map(h => ({
+                    runs: filtered.map((h, idx) => ({
+                      sort_index: idx,
                       id: h.id,
                       timestamp_iso: new Date(h.ts).toISOString(),
                       timestamp_ms: h.ts,
@@ -646,38 +705,7 @@ const AdminOrchestratorTester = () => {
               )}
             </div>
             {(() => {
-              const base = applyHistoryFilters(history);
-              const filtered = sortKey
-                ? [...base].sort((a, b) => {
-                    const rawA = a.audit_raw?.[sortKey];
-                    const rawB = b.audit_raw?.[sortKey];
-                    const av = (rawA ?? "").toString().trim();
-                    const bv = (rawB ?? "").toString().trim();
-                    // Always pin empty/null values to the bottom, regardless of sort direction
-                    if (!av && !bv) return 0;
-                    if (!av) return 1;
-                    if (!bv) return -1;
-                    let cmp: number;
-                    if (sortKey === "poh_reference") {
-                      // Compare numeric chunks first (e.g. "3.10" > "3.5"), then fall back to natural string compare
-                      const numsA = av.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
-                      const numsB = bv.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
-                      const len = Math.max(numsA.length, numsB.length);
-                      cmp = 0;
-                      for (let i = 0; i < len; i++) {
-                        const x = numsA[i] ?? -Infinity;
-                        const y = numsB[i] ?? -Infinity;
-                        if (x !== y) { cmp = x - y; break; }
-                      }
-                      if (cmp === 0) {
-                        cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
-                      }
-                    } else {
-                      cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
-                    }
-                    return sortDir === "asc" ? cmp : -cmp;
-                  })
-                : base;
+              const filtered = applyHistorySort(applyHistoryFilters(history));
               if (filtered.length === 0) {
                 return (
                   <p className="text-[11px] text-muted-foreground italic">
@@ -696,42 +724,28 @@ const AdminOrchestratorTester = () => {
                   <th className="text-left px-2.5 py-1.5 font-semibold">Model</th>
                   <th className="text-right px-2.5 py-1.5 font-semibold">Latency</th>
                   <th className="text-left px-2.5 py-1.5 font-semibold">Audit</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("audit_notes")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      Notes
-                      {sortKey === "audit_notes"
-                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
-                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
-                    </button>
-                  </th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("contradiction")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      Contradiction
-                      {sortKey === "contradiction"
-                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
-                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
-                    </button>
-                  </th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("poh_reference")}
-                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
-                      POH ref
-                      {sortKey === "poh_reference"
-                        ? (sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
-                        : <ArrowUpDown className="w-3 h-3 opacity-50" />}
-                    </button>
-                  </th>
+                  {(["audit_notes", "contradiction", "poh_reference"] as const).map(colKey => {
+                    const label = colKey === "audit_notes" ? "Notes" : colKey === "contradiction" ? "Contradiction" : "POH ref";
+                    const info = sortInfo(colKey);
+                    return (
+                      <th key={colKey} className="text-left px-2.5 py-1.5 font-semibold">
+                        <button
+                          type="button"
+                          onClick={(e) => toggleSort(colKey, e.shiftKey)}
+                          title="Click to sort · Shift+click to add to multi-sort"
+                          className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                        >
+                          {label}
+                          {info.active
+                            ? (info.dir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />)
+                            : <ArrowUpDown className="w-3 h-3 opacity-50" />}
+                          {info.active && sortStack.length > 1 && (
+                            <span className="text-[9px] font-mono opacity-70">{info.order}</span>
+                          )}
+                        </button>
+                      </th>
+                    );
+                  })}
                   <th className="px-2.5 py-1.5"></th>
                 </tr>
               </thead>
