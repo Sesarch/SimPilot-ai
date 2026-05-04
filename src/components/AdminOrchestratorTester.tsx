@@ -667,6 +667,7 @@ const AdminOrchestratorTester = () => {
                 }}
               >
                 <Link2 className="w-3 h-3 mr-1.5" /> Share
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm" variant="ghost">
