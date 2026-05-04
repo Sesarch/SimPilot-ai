@@ -239,6 +239,33 @@ const AdminOrchestratorTester = () => {
   };
   const hasExtraFilters =
     presenceFilter !== "any" || !!notesQuery.trim() || !!contradictionQuery.trim() || !!pohQuery.trim();
+  const applyHistorySort = (rows: HistoryEntry[]) => {
+    if (!sortKey) return rows;
+    const key = sortKey;
+    return [...rows].sort((a, b) => {
+      const av = (a.audit_raw?.[key] ?? "").toString().trim();
+      const bv = (b.audit_raw?.[key] ?? "").toString().trim();
+      if (!av && !bv) return 0;
+      if (!av) return 1;
+      if (!bv) return -1;
+      let cmp: number;
+      if (key === "poh_reference") {
+        const numsA = av.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+        const numsB = bv.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+        const len = Math.max(numsA.length, numsB.length);
+        cmp = 0;
+        for (let i = 0; i < len; i++) {
+          const x = numsA[i] ?? -Infinity;
+          const y = numsB[i] ?? -Infinity;
+          if (x !== y) { cmp = x - y; break; }
+        }
+        if (cmp === 0) cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+      } else {
+        cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  };
   const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
     if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
     else if (sortDir === "asc") setSortDir("desc");
@@ -501,16 +528,24 @@ const AdminOrchestratorTester = () => {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  const filtered = applyHistoryFilters(history);
+                  const filtered = applyHistorySort(applyHistoryFilters(history));
                   if (filtered.length === 0) {
                     toast.error("Nothing to export for this filter");
                     return;
                   }
                   const payload = {
                     exported_at: new Date().toISOString(),
-                    filter: historyFilter,
+                    view: {
+                      status_filter: historyFilter,
+                      presence_filter: presenceFilter,
+                      notes_query: notesQuery.trim() || null,
+                      contradiction_query: contradictionQuery.trim() || null,
+                      poh_query: pohQuery.trim() || null,
+                      sort: sortKey ? { key: sortKey, direction: sortDir } : null,
+                    },
                     count: filtered.length,
-                    runs: filtered.map(h => ({
+                    runs: filtered.map((h, idx) => ({
+                      sort_index: idx,
                       id: h.id,
                       timestamp_iso: new Date(h.ts).toISOString(),
                       timestamp_ms: h.ts,
@@ -646,38 +681,7 @@ const AdminOrchestratorTester = () => {
               )}
             </div>
             {(() => {
-              const base = applyHistoryFilters(history);
-              const filtered = sortKey
-                ? [...base].sort((a, b) => {
-                    const rawA = a.audit_raw?.[sortKey];
-                    const rawB = b.audit_raw?.[sortKey];
-                    const av = (rawA ?? "").toString().trim();
-                    const bv = (rawB ?? "").toString().trim();
-                    // Always pin empty/null values to the bottom, regardless of sort direction
-                    if (!av && !bv) return 0;
-                    if (!av) return 1;
-                    if (!bv) return -1;
-                    let cmp: number;
-                    if (sortKey === "poh_reference") {
-                      // Compare numeric chunks first (e.g. "3.10" > "3.5"), then fall back to natural string compare
-                      const numsA = av.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
-                      const numsB = bv.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
-                      const len = Math.max(numsA.length, numsB.length);
-                      cmp = 0;
-                      for (let i = 0; i < len; i++) {
-                        const x = numsA[i] ?? -Infinity;
-                        const y = numsB[i] ?? -Infinity;
-                        if (x !== y) { cmp = x - y; break; }
-                      }
-                      if (cmp === 0) {
-                        cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
-                      }
-                    } else {
-                      cmp = av.localeCompare(bv, undefined, { sensitivity: "base", numeric: true });
-                    }
-                    return sortDir === "asc" ? cmp : -cmp;
-                  })
-                : base;
+              const filtered = applyHistorySort(applyHistoryFilters(history));
               if (filtered.length === 0) {
                 return (
                   <p className="text-[11px] text-muted-foreground italic">
