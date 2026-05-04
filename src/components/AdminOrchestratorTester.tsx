@@ -265,15 +265,18 @@ const AdminOrchestratorTester = () => {
   const [sortStack, setSortStack] = useState<SortCriterion[]>(() => {
     if (typeof window === "undefined") return DEFAULT_SORT_STACK;
     const params = new URLSearchParams(window.location.search);
-    if (!params.has(SORT_QS_KEY)) return DEFAULT_SORT_STACK;
-    return parseSortParam(params.get(SORT_QS_KEY));
+    if (params.has(SORT_QS_KEY)) return parseSortParam(params.get(SORT_QS_KEY));
+    if (params.has(SORT_QS_SHORT_KEY)) return parseShortSortParam(params.get(SORT_QS_SHORT_KEY));
+    return DEFAULT_SORT_STACK;
   });
   useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
     const current = url.searchParams.get(SORT_QS_KEY) ?? "";
     const next = serializeSort(sortStack);
-    if (current === next) return;
+    if (current === next && !url.searchParams.has(SORT_QS_SHORT_KEY)) return;
+    // Long form is the canonical, browser-visible form. Drop short form on user-driven changes.
+    url.searchParams.delete(SORT_QS_SHORT_KEY);
     if (next) url.searchParams.set(SORT_QS_KEY, next);
     else url.searchParams.delete(SORT_QS_KEY);
     window.history.replaceState({}, "", url.toString());
@@ -281,7 +284,12 @@ const AdminOrchestratorTester = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const onPop = () => {
-      const parsed = parseSortParam(new URLSearchParams(window.location.search).get(SORT_QS_KEY));
+      const params = new URLSearchParams(window.location.search);
+      const parsed = params.has(SORT_QS_KEY)
+        ? parseSortParam(params.get(SORT_QS_KEY))
+        : params.has(SORT_QS_SHORT_KEY)
+          ? parseShortSortParam(params.get(SORT_QS_SHORT_KEY))
+          : [];
       setSortStack(parsed);
     };
     window.addEventListener("popstate", onPop);
