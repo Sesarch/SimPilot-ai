@@ -220,7 +220,10 @@ const AdminOrchestratorTester = () => {
   type SortColKey = "audit_notes" | "contradiction" | "poh_reference";
   type SortCriterion = { key: SortColKey; dir: "asc" | "desc" };
   const SORT_QS_KEY = "histSort";
+  const SORT_QS_SHORT_KEY = "s";
   const VALID_SORT_KEYS: SortColKey[] = ["audit_notes", "contradiction", "poh_reference"];
+  const SHORT_KEY_MAP: Record<string, SortColKey> = { n: "audit_notes", c: "contradiction", p: "poh_reference" };
+  const SHORT_KEY_INV: Record<SortColKey, string> = { audit_notes: "n", contradiction: "c", poh_reference: "p" };
   const parseSortParam = (raw: string | null): SortCriterion[] => {
     if (!raw) return [];
     const out: SortCriterion[] = [];
@@ -235,8 +238,25 @@ const AdminOrchestratorTester = () => {
     }
     return out;
   };
+  const parseShortSortParam = (raw: string | null): SortCriterion[] => {
+    if (!raw) return [];
+    const out: SortCriterion[] = [];
+    const seen = new Set<string>();
+    // tokens like "cd", "na", "pa" — letter + a/d
+    for (let i = 0; i + 1 < raw.length; i += 2) {
+      const k = SHORT_KEY_MAP[raw[i]];
+      const d = raw[i + 1] === "a" ? "asc" : raw[i + 1] === "d" ? "desc" : null;
+      if (!k || !d) continue;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ key: k, dir: d });
+    }
+    return out;
+  };
   const serializeSort = (stack: SortCriterion[]) =>
     stack.map(c => `${c.key}:${c.dir}`).join(",");
+  const serializeSortShort = (stack: SortCriterion[]) =>
+    stack.map(c => `${SHORT_KEY_INV[c.key]}${c.dir === "asc" ? "a" : "d"}`).join("");
   const DEFAULT_SORT_STACK: SortCriterion[] = [
     { key: "contradiction", dir: "desc" },
     { key: "audit_notes", dir: "asc" },
@@ -245,15 +265,18 @@ const AdminOrchestratorTester = () => {
   const [sortStack, setSortStack] = useState<SortCriterion[]>(() => {
     if (typeof window === "undefined") return DEFAULT_SORT_STACK;
     const params = new URLSearchParams(window.location.search);
-    if (!params.has(SORT_QS_KEY)) return DEFAULT_SORT_STACK;
-    return parseSortParam(params.get(SORT_QS_KEY));
+    if (params.has(SORT_QS_KEY)) return parseSortParam(params.get(SORT_QS_KEY));
+    if (params.has(SORT_QS_SHORT_KEY)) return parseShortSortParam(params.get(SORT_QS_SHORT_KEY));
+    return DEFAULT_SORT_STACK;
   });
   useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
     const current = url.searchParams.get(SORT_QS_KEY) ?? "";
     const next = serializeSort(sortStack);
-    if (current === next) return;
+    if (current === next && !url.searchParams.has(SORT_QS_SHORT_KEY)) return;
+    // Long form is the canonical, browser-visible form. Drop short form on user-driven changes.
+    url.searchParams.delete(SORT_QS_SHORT_KEY);
     if (next) url.searchParams.set(SORT_QS_KEY, next);
     else url.searchParams.delete(SORT_QS_KEY);
     window.history.replaceState({}, "", url.toString());
@@ -261,7 +284,12 @@ const AdminOrchestratorTester = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const onPop = () => {
-      const parsed = parseSortParam(new URLSearchParams(window.location.search).get(SORT_QS_KEY));
+      const params = new URLSearchParams(window.location.search);
+      const parsed = params.has(SORT_QS_KEY)
+        ? parseSortParam(params.get(SORT_QS_KEY))
+        : params.has(SORT_QS_SHORT_KEY)
+          ? parseShortSortParam(params.get(SORT_QS_SHORT_KEY))
+          : [];
       setSortStack(parsed);
     };
     window.addEventListener("popstate", onPop);
@@ -667,6 +695,27 @@ const AdminOrchestratorTester = () => {
                 }}
               >
                 <Link2 className="w-3 h-3 mr-1.5" /> Share
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                title="Copy compact permalink with encoded sort state"
+                onClick={async () => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete(SORT_QS_KEY);
+                  const short = serializeSortShort(sortStack);
+                  if (short) url.searchParams.set(SORT_QS_SHORT_KEY, short);
+                  else url.searchParams.delete(SORT_QS_SHORT_KEY);
+                  const link = url.toString();
+                  try {
+                    await navigator.clipboard.writeText(link);
+                    toast.success("Permalink copied", { description: short ? `?s=${short}` : "Default sort" });
+                  } catch {
+                    toast.error("Could not copy permalink", { description: link });
+                  }
+                }}
+              >
+                <Link2 className="w-3 h-3 mr-1.5" /> Permalink
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
