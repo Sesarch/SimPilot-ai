@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -213,6 +214,31 @@ const AdminOrchestratorTester = () => {
   const [detailsEntry, setDetailsEntry] = useState<HistoryEntry | null>(null);
   const [sortKey, setSortKey] = useState<"audit_notes" | "contradiction" | "poh_reference" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [notesQuery, setNotesQuery] = useState("");
+  const [contradictionQuery, setContradictionQuery] = useState("");
+  const [pohQuery, setPohQuery] = useState("");
+  const [presenceFilter, setPresenceFilter] = useState<"any" | "notes" | "contradiction" | "poh">("any");
+
+  const applyHistoryFilters = (rows: HistoryEntry[]) => {
+    const nq = notesQuery.trim().toLowerCase();
+    const cq = contradictionQuery.trim().toLowerCase();
+    const pq = pohQuery.trim().toLowerCase();
+    return rows.filter(h => {
+      if (historyFilter !== "all" && h.audit_status !== historyFilter) return false;
+      const notes = h.audit_raw?.audit_notes ?? "";
+      const contradiction = h.audit_raw?.contradiction ?? "";
+      const poh = h.audit_raw?.poh_reference ?? "";
+      if (presenceFilter === "notes" && !notes) return false;
+      if (presenceFilter === "contradiction" && !contradiction) return false;
+      if (presenceFilter === "poh" && !poh) return false;
+      if (nq && !notes.toLowerCase().includes(nq)) return false;
+      if (cq && !contradiction.toLowerCase().includes(cq)) return false;
+      if (pq && !poh.toLowerCase().includes(pq)) return false;
+      return true;
+    });
+  };
+  const hasExtraFilters =
+    presenceFilter !== "any" || !!notesQuery.trim() || !!contradictionQuery.trim() || !!pohQuery.trim();
   const toggleSort = (key: "audit_notes" | "contradiction" | "poh_reference") => {
     if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
     else if (sortDir === "asc") setSortDir("desc");
@@ -442,9 +468,7 @@ const AdminOrchestratorTester = () => {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  const filtered = historyFilter === "all"
-                    ? history
-                    : history.filter(h => h.audit_status === historyFilter);
+                  const filtered = applyHistoryFilters(history);
                   if (filtered.length === 0) {
                     toast.error("Nothing to export for this filter");
                     return;
@@ -477,9 +501,7 @@ const AdminOrchestratorTester = () => {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  const filtered = historyFilter === "all"
-                    ? history
-                    : history.filter(h => h.audit_status === historyFilter);
+                  const filtered = applyHistoryFilters(history);
                   if (filtered.length === 0) {
                     toast.error("Nothing to export for this filter");
                     return;
@@ -566,10 +588,65 @@ const AdminOrchestratorTester = () => {
                 </div>
               );
             })()}
+
+            <div className="grid gap-1.5 sm:grid-cols-3 mb-2">
+              <Input
+                value={notesQuery}
+                onChange={(e) => setNotesQuery(e.target.value)}
+                placeholder="Filter notes…"
+                className="h-7 text-[11px]"
+              />
+              <Input
+                value={contradictionQuery}
+                onChange={(e) => setContradictionQuery(e.target.value)}
+                placeholder="Filter contradiction…"
+                className="h-7 text-[11px]"
+              />
+              <Input
+                value={pohQuery}
+                onChange={(e) => setPohQuery(e.target.value)}
+                placeholder="Filter POH ref…"
+                className="h-7 text-[11px]"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 mb-3">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mr-1">
+                Has:
+              </span>
+              {([
+                { key: "any", label: "Any" },
+                { key: "notes", label: "Notes" },
+                { key: "contradiction", label: "Contradiction" },
+                { key: "poh", label: "POH ref" },
+              ] as const).map(p => (
+                <Button
+                  key={p.key}
+                  size="sm"
+                  variant={presenceFilter === p.key ? "default" : "outline"}
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => setPresenceFilter(p.key)}
+                >
+                  {p.label}
+                </Button>
+              ))}
+              {hasExtraFilters && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => {
+                    setNotesQuery("");
+                    setContradictionQuery("");
+                    setPohQuery("");
+                    setPresenceFilter("any");
+                  }}
+                >
+                  <X className="w-3 h-3 mr-1" /> Clear filters
+                </Button>
+              )}
+            </div>
             {(() => {
-              const base = historyFilter === "all"
-                ? history
-                : history.filter(h => h.audit_status === historyFilter);
+              const base = applyHistoryFilters(history);
               const filtered = sortKey
                 ? [...base].sort((a, b) => {
                     const av = (a.audit_raw?.[sortKey] ?? "") as string;
