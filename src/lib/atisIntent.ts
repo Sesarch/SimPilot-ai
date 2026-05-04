@@ -9,7 +9,7 @@
 //   - "have <Phonetic>"            e.g. "have Echo"
 //   - "with the ATIS"
 //   - "with current weather"
-//   - "have the numbers"           (non-ATIS field substitute)
+//   - "have the numbers"           (only accepted if no active letter is known)
 //
 // When a current ATIS letter is known, the matched phonetic must equal it for
 // the confirmation to be considered "correct"; otherwise any valid phonetic
@@ -47,8 +47,7 @@ export interface AtisIntentResult {
   spokenPhonetic: string | null;
   /**
    * True only when a `currentAtisLetter` was provided AND the pilot stated
-   * that exact letter (or said "with the ATIS" / "with current weather" /
-   * "have the numbers"). When no current ATIS is known, any token counts.
+   * that exact letter. When no current ATIS is known, any token counts.
    */
   matchesCurrent: boolean;
 }
@@ -101,10 +100,10 @@ export function detectAtisIntent(
     return { hasToken: true, spokenPhonetic: spoken, matchesCurrent: true };
   }
 
-  // "with the ATIS" / "with current weather" / "have the numbers" — generic
-  // tokens with no phonetic. Treat as matching current.
+  // "with the ATIS" / "with current weather" / "have the numbers" are generic
+  // tokens with no current letter. If an active letter is known, require it.
   if (!spoken) {
-    return { hasToken: true, spokenPhonetic: null, matchesCurrent: true };
+    return { hasToken: true, spokenPhonetic: null, matchesCurrent: false };
   }
 
   const matchesCurrent = norm(spoken) === norm(currentAtisLetter);
