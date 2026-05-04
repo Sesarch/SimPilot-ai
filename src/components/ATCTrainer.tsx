@@ -1168,7 +1168,7 @@ const ATCTrainer = () => {
         // played as audio. In that case we render the text only.
         const isRealAtis = data.source === "datis" || data.source === "vatsim";
         if (!livePlaying && !cancelled && isRealAtis) {
-          void speakATC(data.text);
+          void speakATC(formatAtisForSpeech(data.text));
         } else if (!livePlaying && !cancelled) {
           toast.info("No live ATIS broadcast available for this airport", {
             description: `${targetIcao} · showing weather-derived summary only (not an official broadcast).`,
