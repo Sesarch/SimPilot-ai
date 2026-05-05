@@ -38,8 +38,24 @@ const AuthPage = () => {
   const handleSignIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      // Send welcome email on first successful sign-in (post-verification).
+      // Idempotency key ensures it only ever sends once per user.
+      if (data.user) {
+        const fullName =
+          (data.user.user_metadata?.full_name as string | undefined) ?? undefined;
+        supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "welcome-signup",
+            recipientEmail: data.user.email ?? email,
+            idempotencyKey: `welcome-signup-${data.user.id}`,
+            templateData: { name: fullName },
+          },
+        }).catch((err) => console.error("Welcome email failed:", err));
+      }
+
       toast.success("Welcome back, pilot!");
       navigate(redirectTo, { replace: true });
     } catch (err) {
@@ -69,14 +85,10 @@ const AuthPage = () => {
           .update({ terms_agreed_at: new Date().toISOString() })
           .eq("user_id", data.user.id);
 
-        supabase.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: "welcome-signup",
-            recipientEmail: email,
-            idempotencyKey: `welcome-signup-${data.user.id}`,
-            templateData: { name: fullName || undefined },
-          },
-        }).catch((err) => console.error("Welcome email failed:", err));
+        // NOTE: Welcome email is intentionally NOT sent here. It is sent on the
+        // user's first successful sign-in (after they verify their email) so they
+        // don't mistake the welcome CTA for the verification link.
+
 
         supabase.functions.invoke("sync-omnisend-contact", {
           body: {
