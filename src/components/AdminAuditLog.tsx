@@ -156,6 +156,41 @@ const AdminAuditLog = () => {
         </div>
       </div>
 
+      {/* Quick filters */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={actionFilter.startsWith("ai_orchestrator") ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            setActionFilter(ALL);
+            setSearch("ai_orchestrator");
+          }}
+        >
+          Orchestrator access
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSearch("denied")}
+        >
+          Denied attempts
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSearch("ban")}
+        >
+          User bans
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSearch("refund")}
+        >
+          Refunds
+        </Button>
+      </div>
+
       {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
