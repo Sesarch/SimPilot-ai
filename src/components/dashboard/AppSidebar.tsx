@@ -32,6 +32,18 @@ const navItems = [
 
 const bridgeItem = { title: "SimConnect Bridge", url: "/flight-deck/bridge", icon: Cable };
 
+const glowTooltip = (label: string) => ({
+  children: (
+    <span className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))]">
+      {label}
+    </span>
+  ),
+  className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words border-accent/40 bg-background/95",
+  sideOffset: 12,
+  collisionPadding: 12,
+  avoidCollisions: true,
+});
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
