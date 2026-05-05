@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable, Radar, Zap, Cloud } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Link, useLocation } from "react-router-dom";
