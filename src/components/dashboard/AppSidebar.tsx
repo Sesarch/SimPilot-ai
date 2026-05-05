@@ -93,7 +93,7 @@ export function AppSidebar() {
         {/* SimConnect Bridge — framed for visual emphasis */}
         <SidebarGroup>
           <SidebarGroupContent className="px-2">
-            <div className="rounded-md border-2 border-primary/40 bg-sidebar-accent/10 p-1 opacity-60">
+            <div className="rounded-md border-2 border-primary/40 bg-sidebar-accent/10 p-1">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
