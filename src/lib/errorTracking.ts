@@ -97,7 +97,7 @@ export async function reportError(r: ErrorReport): Promise<void> {
       endpoint: r.endpoint ?? null,
       fingerprint: fp,
       metadata: r.metadata || {},
-    });
+    }]);
   } catch {
     // Never throw from the error reporter
   }
