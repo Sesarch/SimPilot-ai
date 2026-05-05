@@ -93,7 +93,7 @@ export function AppSidebar() {
         {/* SimConnect Bridge — framed for visual emphasis */}
         <SidebarGroup>
           <SidebarGroupContent className="px-2">
-            <div className="rounded-md border-2 border-primary/40 bg-sidebar-accent/10 p-1 opacity-60">
+            <div className="rounded-md border-2 border-primary/40 bg-sidebar-accent/10 p-1">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -107,7 +107,7 @@ export function AppSidebar() {
                       {!collapsed && <span>{bridgeItem.title}</span>}
                     </div>
                     {!collapsed && (
-                      <span className="pl-[30px] text-[10px] font-display tracking-[0.15em] uppercase text-accent/80">
+                      <span className="pl-[30px] text-[10px] font-display tracking-[0.15em] uppercase text-accent">
                         Coming soon!
                       </span>
                     )}
