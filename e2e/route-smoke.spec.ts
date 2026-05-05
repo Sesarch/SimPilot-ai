@@ -87,11 +87,14 @@ function attachErrorCollectors(page: Page) {
     const text = msg.text();
     if (isIgnored(text)) return;
     if (!fromAppCode(msg)) return;
-    if (type === "error") consoleErrors.push(text);
-    else consoleWarnings.push(text);
+    const loc = msg.location();
+    const where = loc?.url ? ` @ ${loc.url}:${loc.lineNumber}:${loc.columnNumber}` : "";
+    const entry = `${text}${where}`;
+    if (type === "error") consoleErrors.push(entry);
+    else consoleWarnings.push(entry);
   };
   const onPageError = (err: Error) => {
-    pageErrors.push(err.message);
+    pageErrors.push(`${err.message}\n${err.stack ?? ""}`);
   };
 
   page.on("console", onConsole);
