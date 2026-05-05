@@ -1,6 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { installErrorTracking } from "./lib/errorTracking";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+installErrorTracking();
 
 // Hide splash screen once React mounts
 const hideSplash = () => {
@@ -15,5 +19,9 @@ const hideSplash = () => {
   }
 };
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>,
+);
 hideSplash();
