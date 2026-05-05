@@ -31,6 +31,14 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(
+      process.env.VITE_APP_VERSION || new Date().toISOString().slice(0, 10),
+    ),
+  },
+  build: {
+    sourcemap: true,
+  },
   plugins: [react(), sitemapPlugin(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
