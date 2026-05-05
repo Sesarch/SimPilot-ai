@@ -111,17 +111,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     disabled
                     aria-disabled="true"
-                    tooltip={{
-                      children: (
-                        <span className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))]">
-                          {bridgeItem.title} — Coming soon!
-                        </span>
-                      ),
-                      className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words border-accent/40 bg-background/95",
-                      sideOffset: 12,
-                      collisionPadding: 12,
-                      avoidCollisions: true,
-                    }}
+                    tooltip={glowTooltip(`${bridgeItem.title} — Coming soon!`)}
                     className="h-10 cursor-not-allowed opacity-100 hover:bg-transparent hover:text-current"
                   >
                     <div className="flex w-full items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase">
