@@ -213,6 +213,12 @@ const SlotCard = ({
 };
 
 const AdminOrchestratorTester = () => {
+  // Audit panel open events so we can see who *accessed* orchestrator tools (not only who ran tests)
+  useEffect(() => {
+    void supabase.functions.invoke("admin-log-access", {
+      body: { action: "ai_orchestrator_test.view", target_type: "ai_orchestrator" },
+    });
+  }, []);
   const [task, setTask] = useState<TaskType>("auto");
   const [compareTask, setCompareTask] = useState<TaskType>("operational");
   const [prompt, setPrompt] = useState(SAMPLES.technical);
