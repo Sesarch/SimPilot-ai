@@ -100,20 +100,20 @@ export function AppSidebar() {
                     disabled
                     aria-disabled="true"
                     tooltip={`${bridgeItem.title} — Coming soon`}
-                    className="h-auto py-1.5 cursor-not-allowed pointer-events-none flex-col items-start gap-0.5"
+                    className="h-10 cursor-not-allowed opacity-100 hover:bg-transparent hover:text-current"
                   >
-                    <div className="flex items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase">
+                    <div className="flex w-full items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase">
                       <bridgeItem.icon className="w-[18px] h-[18px] shrink-0" />
                       {!collapsed && <span>{bridgeItem.title}</span>}
                     </div>
-                    {!collapsed && (
-                      <span className="pl-[30px] text-[10px] font-display tracking-[0.15em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))]">
-                        Coming soon!
-                      </span>
-                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
+              {!collapsed && (
+                <div className="px-2 pb-1 pt-0.5 pl-[38px] text-[10px] font-display tracking-[0.15em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))]">
+                  Coming soon!
+                </div>
+              )}
             </div>
           </SidebarGroupContent>
         </SidebarGroup>
