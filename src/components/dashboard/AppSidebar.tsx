@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable, Radar, Zap, Cloud } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Link, useLocation } from "react-router-dom";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 
 const navItems = [
@@ -32,15 +34,27 @@ const navItems = [
 
 const bridgeItem = { title: "SimConnect Bridge", url: "/flight-deck/bridge", icon: Cable };
 
-const glowTooltip = (label: string) => ({
+// Responsive offset/padding presets keep the tooltip clear of the trigger
+// and viewport edges across mobile, tablet, and desktop breakpoints.
+const TOOLTIP_SPACING = {
+  mobile:  { sideOffset: 8,  collisionPadding: 8,  maxWidth: 220 },
+  tablet:  { sideOffset: 12, collisionPadding: 12, maxWidth: 260 },
+  desktop: { sideOffset: 16, collisionPadding: 16, maxWidth: 320 },
+} as const;
+
+const glowTooltip = (
+  label: string,
+  spacing: { sideOffset: number; collisionPadding: number; maxWidth: number },
+) => ({
   children: (
-    <span className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))]">
+    <span className="block font-display text-[11px] leading-snug font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))] [overflow-wrap:anywhere] [hyphens:auto]">
       {label}
     </span>
   ),
-  className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words border-accent/40 bg-background/95",
-  sideOffset: 12,
-  collisionPadding: 12,
+  className: "whitespace-normal break-words leading-snug overflow-visible border-accent/40 bg-background/95 px-3 py-2",
+  style: { maxWidth: `min(${spacing.maxWidth}px, calc(100vw - 1.5rem))` },
+  sideOffset: spacing.sideOffset,
+  collisionPadding: spacing.collisionPadding,
   avoidCollisions: true,
 });
 
@@ -50,6 +64,21 @@ export function AppSidebar() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const [isTablet, setIsTablet] = React.useState(false);
+  React.useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px) and (max-width: 1023px)");
+    const update = () => setIsTablet(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
+  const tooltipSpacing = isMobile
+    ? TOOLTIP_SPACING.mobile
+    : isTablet
+      ? TOOLTIP_SPACING.tablet
+      : TOOLTIP_SPACING.desktop;
+  const tip = (label: string) => glowTooltip(label, tooltipSpacing);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -84,7 +113,7 @@ export function AppSidebar() {
                       : location.pathname.startsWith(pathOnly);
                 return (
                   <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={glowTooltip(item.title)} className="h-10">
+                    <SidebarMenuButton asChild isActive={active} tooltip={tip(item.title)} className="h-10">
                       <NavLink
                         to={item.url}
                         end={item.url === "/dashboard"}
@@ -111,7 +140,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     disabled
                     aria-disabled="true"
-                    tooltip={glowTooltip(`${bridgeItem.title} — Coming soon!`)}
+                    tooltip={tip(`${bridgeItem.title} — Coming soon!`)}
                     className="h-10 cursor-not-allowed opacity-100 hover:bg-transparent hover:text-current"
                   >
                     <div className="flex w-full items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase">
@@ -139,7 +168,7 @@ export function AppSidebar() {
                 await signOut();
                 navigate("/");
               }}
-              tooltip={glowTooltip("Sign Out")}
+              tooltip={tip("Sign Out")}
               className="h-10 font-display text-[13px] font-semibold tracking-[0.1em] uppercase text-muted-foreground hover:text-destructive"
             >
               <LogOut className="w-[18px] h-[18px] shrink-0" />
