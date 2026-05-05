@@ -8,11 +8,13 @@
 
 name: Route Smoke
 
+# Workflow disabled — only manual runs allowed to stop GitHub failure emails.
+# Re-enable by restoring the push/pull_request triggers below.
 on:
   workflow_dispatch:
-  push:
-    branches: [main, develop]
-  pull_request:
+  # push:
+  #   branches: [main, develop]
+  # pull_request:
 
 jobs:
   route-smoke:
