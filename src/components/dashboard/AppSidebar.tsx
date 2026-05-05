@@ -107,7 +107,7 @@ export function AppSidebar() {
                       {!collapsed && <span>{bridgeItem.title}</span>}
                     </div>
                     {!collapsed && (
-                      <span className="pl-[30px] text-[10px] font-display tracking-[0.15em] uppercase text-accent">
+                      <span className="pl-[30px] text-[10px] font-display tracking-[0.15em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))]">
                         Coming soon!
                       </span>
                     )}
