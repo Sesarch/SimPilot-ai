@@ -333,6 +333,75 @@ export type Database = {
         }
         Relationships: []
       }
+      error_events: {
+        Row: {
+          browser: string | null
+          component_stack: string | null
+          created_at: string
+          endpoint: string | null
+          environment: string
+          fingerprint: string | null
+          id: string
+          level: string
+          message: string
+          metadata: Json | null
+          os: string | null
+          release: string | null
+          route: string | null
+          session_id: string | null
+          source: string
+          stack: string | null
+          status_code: number | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          component_stack?: string | null
+          created_at?: string
+          endpoint?: string | null
+          environment?: string
+          fingerprint?: string | null
+          id?: string
+          level?: string
+          message: string
+          metadata?: Json | null
+          os?: string | null
+          release?: string | null
+          route?: string | null
+          session_id?: string | null
+          source: string
+          stack?: string | null
+          status_code?: number | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          component_stack?: string | null
+          created_at?: string
+          endpoint?: string | null
+          environment?: string
+          fingerprint?: string | null
+          id?: string
+          level?: string
+          message?: string
+          metadata?: Json | null
+          os?: string | null
+          release?: string | null
+          route?: string | null
+          session_id?: string | null
+          source?: string
+          stack?: string | null
+          status_code?: number | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       exam_scores: {
         Row: {
           acs_codes: Json | null

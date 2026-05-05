@@ -35,6 +35,7 @@ import AdminKnowledgeBase from "@/components/AdminKnowledgeBase";
 import AdminPayments from "@/components/AdminPayments";
 import AdminReports from "@/components/AdminReports";
 import AdminAuditLog from "@/components/AdminAuditLog";
+import AdminErrorEvents from "@/components/AdminErrorEvents";
 import AdminSeo from "@/components/AdminSeo";
 
 type AdminUser = {
@@ -382,12 +383,13 @@ const AdminPage = () => {
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 mb-8">
+          <TabsList className="w-full grid grid-cols-4 sm:grid-cols-7 lg:grid-cols-13 mb-8">
             <TabsTrigger value="overview" className="font-display text-xs tracking-wider">Overview</TabsTrigger>
             <TabsTrigger value="payments" className="font-display text-xs tracking-wider">Payments</TabsTrigger>
             <TabsTrigger value="reports" className="font-display text-xs tracking-wider">Reports</TabsTrigger>
             <TabsTrigger value="users" className="font-display text-xs tracking-wider">Users</TabsTrigger>
             <TabsTrigger value="audit" className="font-display text-xs tracking-wider">Audit</TabsTrigger>
+            <TabsTrigger value="errors" className="font-display text-xs tracking-wider">Errors</TabsTrigger>
             <TabsTrigger value="leads" className="font-display text-xs tracking-wider">Leads</TabsTrigger>
             <TabsTrigger value="schools" className="font-display text-xs tracking-wider">Schools</TabsTrigger>
             <TabsTrigger value="emails" className="font-display text-xs tracking-wider">Emails</TabsTrigger>
@@ -448,6 +450,7 @@ const AdminPage = () => {
           <TabsContent value="payments"><AdminPayments /></TabsContent>
           <TabsContent value="reports"><AdminReports /></TabsContent>
           <TabsContent value="audit"><AdminAuditLog /></TabsContent>
+          <TabsContent value="errors"><AdminErrorEvents /></TabsContent>
 
           <TabsContent value="users">
             {/* Invite */}
