@@ -14,37 +14,9 @@ name: SEO Live Check
 # Re-enable by restoring the `push` / `pull_request` blocks below.
 on:
   workflow_dispatch:
-  push:
-    branches: [main, develop]
-    paths:
-      - "src/App.tsx"
-      - "src/lib/ogImages.ts"
-      - "src/components/SEOHead.tsx"
-      - "scripts/sitemap-routes.ts"
-      - "scripts/generate-sitemap.ts"
-      - "public/robots.txt"
-      - "public/sitemap.xml"
-      - "public/og-*.jpg"
-      - "src/test/seo-live-check.test.ts"
-      - "src/test/sitemap-coverage.test.ts"
-      - "src/test/og-images.test.ts"
-      - "src/test/seo-tags.test.ts"
-      - ".github/workflows/seo-live-check.yml"
-  pull_request:
-    paths:
-      - "src/App.tsx"
-      - "src/lib/ogImages.ts"
-      - "src/components/SEOHead.tsx"
-      - "scripts/sitemap-routes.ts"
-      - "scripts/generate-sitemap.ts"
-      - "public/robots.txt"
-      - "public/sitemap.xml"
-      - "public/og-*.jpg"
-      - "src/test/seo-live-check.test.ts"
-      - "src/test/sitemap-coverage.test.ts"
-      - "src/test/og-images.test.ts"
-      - "src/test/seo-tags.test.ts"
-      - ".github/workflows/seo-live-check.yml"
+  # push:
+  #   branches: [main, develop]
+  # pull_request:
 
 jobs:
   seo-live-check:

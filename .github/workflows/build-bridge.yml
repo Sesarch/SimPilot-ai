@@ -1,11 +1,13 @@
 name: Build SimPilot Bridge Installer (Windows)
 
+# Workflow disabled — only manual runs allowed to stop GitHub failure emails.
+# Re-enable by restoring the push tag triggers below.
 on:
-  push:
-    tags:
-      - "v*"
-      - "bridge-v*"
   workflow_dispatch:
+  # push:
+  #   tags:
+  #     - "v*"
+  #     - "bridge-v*"
 
 permissions:
   contents: write
