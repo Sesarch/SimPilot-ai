@@ -1,4 +1,4 @@
-import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable, Radar, Zap, Cloud, FlaskConical } from "lucide-react";
+import { Gauge, BookOpen, Mic, Radio, ClipboardList, LineChart, LogOut, Cable, Radar, Zap, Cloud } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -28,7 +28,6 @@ const navItems = [
   { title: "Weather Briefing", url: "/weather-briefing", icon: Cloud },
   { title: "Logbook", url: "/logbook", icon: ClipboardList },
   { title: "Analytics", url: "/progress", icon: LineChart },
-  { title: "Test Mode", url: "/test-mode", icon: FlaskConical },
 ];
 
 const bridgeItem = { title: "SimConnect Bridge", url: "/flight-deck/bridge", icon: Cable };
