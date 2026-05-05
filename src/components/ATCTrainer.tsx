@@ -2997,10 +2997,6 @@ ${transcript}`;
                   </span>
                   .
                 </div>
-                <RuleTester
-                  defaultTransmission={pendingCorrection.attempted ?? ""}
-                  className="mt-2"
-                />
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
                 {/* One-click: tune to the expected facility AND pre-fill the
