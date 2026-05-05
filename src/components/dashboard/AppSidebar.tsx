@@ -32,6 +32,18 @@ const navItems = [
 
 const bridgeItem = { title: "SimConnect Bridge", url: "/flight-deck/bridge", icon: Cable };
 
+const glowTooltip = (label: string) => ({
+  children: (
+    <span className="block font-display text-[11px] leading-snug font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))] [overflow-wrap:anywhere] [hyphens:auto]">
+      {label}
+    </span>
+  ),
+  className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words leading-snug overflow-visible border-accent/40 bg-background/95 px-3 py-2",
+  sideOffset: 12,
+  collisionPadding: 12,
+  avoidCollisions: true,
+});
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -72,7 +84,7 @@ export function AppSidebar() {
                       : location.pathname.startsWith(pathOnly);
                 return (
                   <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={item.title} className="h-10">
+                    <SidebarMenuButton asChild isActive={active} tooltip={glowTooltip(item.title)} className="h-10">
                       <NavLink
                         to={item.url}
                         end={item.url === "/dashboard"}
@@ -99,17 +111,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     disabled
                     aria-disabled="true"
-                    tooltip={{
-                      children: (
-                        <span className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))]">
-                          {bridgeItem.title} — Coming soon!
-                        </span>
-                      ),
-                      className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words border-accent/40 bg-background/95",
-                      sideOffset: 12,
-                      collisionPadding: 12,
-                      avoidCollisions: true,
-                    }}
+                    tooltip={glowTooltip(`${bridgeItem.title} — Coming soon!`)}
                     className="h-10 cursor-not-allowed opacity-100 hover:bg-transparent hover:text-current"
                   >
                     <div className="flex w-full items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase">
@@ -137,7 +139,7 @@ export function AppSidebar() {
                 await signOut();
                 navigate("/");
               }}
-              tooltip="Sign Out"
+              tooltip={glowTooltip("Sign Out")}
               className="h-10 font-display text-[13px] font-semibold tracking-[0.1em] uppercase text-muted-foreground hover:text-destructive"
             >
               <LogOut className="w-[18px] h-[18px] shrink-0" />
