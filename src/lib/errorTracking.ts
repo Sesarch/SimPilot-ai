@@ -78,7 +78,7 @@ export async function reportError(r: ErrorReport): Promise<void> {
       userId = data.session?.user?.id ?? null;
     } catch { /* ignore */ }
 
-    await supabase.from("error_events").insert({
+    await supabase.from("error_events").insert([{
       user_id: userId,
       session_id: SESSION_ID,
       release: RELEASE,
