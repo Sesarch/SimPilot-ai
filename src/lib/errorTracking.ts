@@ -96,7 +96,7 @@ export async function reportError(r: ErrorReport): Promise<void> {
       status_code: r.statusCode ?? null,
       endpoint: r.endpoint ?? null,
       fingerprint: fp,
-      metadata: r.metadata || {},
+      metadata: (r.metadata || {}) as never,
     }]);
   } catch {
     // Never throw from the error reporter
