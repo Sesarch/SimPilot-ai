@@ -78,7 +78,7 @@ export function AppSidebar() {
     : isTablet
       ? TOOLTIP_SPACING.tablet
       : TOOLTIP_SPACING.desktop;
-  const tip = (label: string) => glowTooltip(label, tooltipSpacing);
+  const tip = (label: string) => tip(label, tooltipSpacing);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -113,7 +113,7 @@ export function AppSidebar() {
                       : location.pathname.startsWith(pathOnly);
                 return (
                   <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={glowTooltip(item.title)} className="h-10">
+                    <SidebarMenuButton asChild isActive={active} tooltip={tip(item.title)} className="h-10">
                       <NavLink
                         to={item.url}
                         end={item.url === "/dashboard"}
@@ -140,7 +140,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     disabled
                     aria-disabled="true"
-                    tooltip={glowTooltip(`${bridgeItem.title} — Coming soon!`)}
+                    tooltip={tip(`${bridgeItem.title} — Coming soon!`)}
                     className="h-10 cursor-not-allowed opacity-100 hover:bg-transparent hover:text-current"
                   >
                     <div className="flex w-full items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase">
@@ -168,7 +168,7 @@ export function AppSidebar() {
                 await signOut();
                 navigate("/");
               }}
-              tooltip={glowTooltip("Sign Out")}
+              tooltip={tip("Sign Out")}
               className="h-10 font-display text-[13px] font-semibold tracking-[0.1em] uppercase text-muted-foreground hover:text-destructive"
             >
               <LogOut className="w-[18px] h-[18px] shrink-0" />
