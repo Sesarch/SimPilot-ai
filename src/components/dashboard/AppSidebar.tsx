@@ -93,23 +93,24 @@ export function AppSidebar() {
         {/* SimConnect Bridge — framed for visual emphasis */}
         <SidebarGroup>
           <SidebarGroupContent className="px-2">
-            <div className="rounded-md border-2 border-primary/40 bg-sidebar-accent/10 p-1">
+            <div className="rounded-md border-2 border-primary/40 bg-sidebar-accent/10 p-1 opacity-60">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname.startsWith(bridgeItem.url)}
-                    tooltip={bridgeItem.title}
-                    className="h-10"
+                    disabled
+                    aria-disabled="true"
+                    tooltip={`${bridgeItem.title} — Coming soon`}
+                    className="h-auto py-1.5 cursor-not-allowed pointer-events-none flex-col items-start gap-0.5"
                   >
-                    <NavLink
-                      to={bridgeItem.url}
-                      className="flex items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase"
-                      activeClassName="text-accent"
-                    >
+                    <div className="flex items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase">
                       <bridgeItem.icon className="w-[18px] h-[18px] shrink-0" />
                       {!collapsed && <span>{bridgeItem.title}</span>}
-                    </NavLink>
+                    </div>
+                    {!collapsed && (
+                      <span className="pl-[30px] text-[10px] font-display tracking-[0.15em] uppercase text-accent/80">
+                        Coming soon!
+                      </span>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
