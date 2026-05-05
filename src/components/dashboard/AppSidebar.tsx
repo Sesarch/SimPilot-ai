@@ -105,7 +105,10 @@ export function AppSidebar() {
                           {bridgeItem.title} — Coming soon!
                         </span>
                       ),
-                      className: "border-accent/40 bg-background/95",
+                      className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words border-accent/40 bg-background/95",
+                      sideOffset: 12,
+                      collisionPadding: 12,
+                      avoidCollisions: true,
                     }}
                     className="h-10 cursor-not-allowed opacity-100 hover:bg-transparent hover:text-current"
                   >
