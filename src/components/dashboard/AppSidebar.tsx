@@ -45,17 +45,22 @@ const TOOLTIP_SPACING = {
 const glowTooltip = (
   label: string,
   spacing: { sideOffset: number; collisionPadding: number; maxWidth: number },
+  collapsed: boolean,
 ) => ({
   children: (
     <span className="block font-display text-[11px] leading-snug font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))] [overflow-wrap:anywhere] [hyphens:auto]">
       {label}
     </span>
   ),
-  className: "whitespace-normal break-words leading-snug overflow-visible border-accent/40 bg-background/95 px-3 py-2",
+  // z-[60] keeps the tooltip above the collapsed sidebar's icon strip.
+  className: "z-[60] whitespace-normal break-words leading-snug overflow-visible border-accent/40 bg-background/95 px-3 py-2 shadow-lg",
   style: { maxWidth: `min(${spacing.maxWidth}px, calc(100vw - 1.5rem))` },
-  sideOffset: spacing.sideOffset,
+  // Push tooltip further right when collapsed so it clears the icons.
+  sideOffset: collapsed ? spacing.sideOffset + 6 : spacing.sideOffset,
   collisionPadding: spacing.collisionPadding,
   avoidCollisions: true,
+  side: "right" as const,
+  align: "center" as const,
 });
 
 export function AppSidebar() {
