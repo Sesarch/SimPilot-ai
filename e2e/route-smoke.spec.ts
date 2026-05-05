@@ -100,19 +100,43 @@ function attachErrorCollectors(page: Page) {
   return { consoleErrors, consoleWarnings, pageErrors };
 }
 
+function logFailures(route: string, label: string, items: string[]) {
+  if (items.length === 0) return;
+  // GitHub Actions ::error annotations show in the PR/commit checks UI.
+  console.log(`\n::group::❌ ${label} on ${route} (${items.length})`);
+  for (const [i, item] of items.entries()) {
+    console.log(`::error title=${label} on ${route}::[${i + 1}] ${item}`);
+    console.log(`  [${i + 1}] ${item}`);
+  }
+  console.log("::endgroup::");
+}
+
 async function smokeRoute(page: Page, route: string) {
   const { consoleErrors, consoleWarnings, pageErrors } =
     attachErrorCollectors(page);
 
   const response = await page.goto(route, { waitUntil: "domcontentloaded" });
   expect(response, `no response for ${route}`).not.toBeNull();
-  expect(response!.status(), `bad status for ${route}`).toBeLessThan(500);
+  const status = response!.status();
+  if (status >= 500) {
+    console.log(`::error title=HTTP ${status} on ${route}::Navigation returned ${status}`);
+  }
+  expect(status, `bad status for ${route}`).toBeLessThan(500);
 
   // Wait for the React root to mount.
-  await page.waitForSelector("#root *", { timeout: 10_000 });
+  try {
+    await page.waitForSelector("#root *", { timeout: 10_000 });
+  } catch (err) {
+    console.log(`::error title=Mount timeout on ${route}::#root never populated within 10s`);
+    throw err;
+  }
 
   // Give the SPA a beat to flush initial effects / lazy chunks.
   await page.waitForTimeout(500);
+
+  logFailures(route, "Uncaught exception", pageErrors);
+  logFailures(route, "Console error", consoleErrors);
+  logFailures(route, "Console warning", consoleWarnings);
 
   expect(pageErrors, `uncaught exceptions on ${route}`).toEqual([]);
   expect(consoleErrors, `console errors on ${route}`).toEqual([]);
