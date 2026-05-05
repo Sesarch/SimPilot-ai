@@ -63,6 +63,21 @@ export function AppSidebar() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const [isTablet, setIsTablet] = React.useState(false);
+  React.useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px) and (max-width: 1023px)");
+    const update = () => setIsTablet(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
+  const tooltipSpacing = isMobile
+    ? TOOLTIP_SPACING.mobile
+    : isTablet
+      ? TOOLTIP_SPACING.tablet
+      : TOOLTIP_SPACING.desktop;
+  const tip = (label: string) => glowTooltip(label, tooltipSpacing);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
