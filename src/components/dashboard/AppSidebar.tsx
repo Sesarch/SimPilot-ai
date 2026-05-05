@@ -34,11 +34,11 @@ const bridgeItem = { title: "SimConnect Bridge", url: "/flight-deck/bridge", ico
 
 const glowTooltip = (label: string) => ({
   children: (
-    <span className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))]">
+    <span className="block font-display text-[11px] leading-snug font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))] [overflow-wrap:anywhere] [hyphens:auto]">
       {label}
     </span>
   ),
-  className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words border-accent/40 bg-background/95",
+  className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words leading-snug overflow-visible border-accent/40 bg-background/95 px-3 py-2",
   sideOffset: 12,
   collisionPadding: 12,
   avoidCollisions: true,
