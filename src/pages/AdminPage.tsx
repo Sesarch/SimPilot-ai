@@ -450,6 +450,7 @@ const AdminPage = () => {
           <TabsContent value="payments"><AdminPayments /></TabsContent>
           <TabsContent value="reports"><AdminReports /></TabsContent>
           <TabsContent value="audit"><AdminAuditLog /></TabsContent>
+          <TabsContent value="errors"><AdminErrorEvents /></TabsContent>
 
           <TabsContent value="users">
             {/* Invite */}
