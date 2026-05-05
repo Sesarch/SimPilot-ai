@@ -84,7 +84,7 @@ export function AppSidebar() {
                       : location.pathname.startsWith(pathOnly);
                 return (
                   <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={item.title} className="h-10">
+                    <SidebarMenuButton asChild isActive={active} tooltip={glowTooltip(item.title)} className="h-10">
                       <NavLink
                         to={item.url}
                         end={item.url === "/dashboard"}
