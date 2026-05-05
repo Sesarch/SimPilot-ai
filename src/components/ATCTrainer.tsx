@@ -35,7 +35,7 @@ import { generateATCTranscriptPDF } from "@/lib/atcTranscriptReport";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
-import { RuleTester } from "@/components/atc/RuleTester";
+
 import { SessionReviewModal } from "@/components/atc/SessionReviewModal";
 import { Link } from "react-router-dom";
 import { useSimBridge, PTT_DOWN_EVENT, PTT_UP_EVENT, type PttEventDetail } from "@/hooks/useSimBridge";
@@ -2997,10 +2997,6 @@ ${transcript}`;
                   </span>
                   .
                 </div>
-                <RuleTester
-                  defaultTransmission={pendingCorrection.attempted ?? ""}
-                  className="mt-2"
-                />
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
                 {/* One-click: tune to the expected facility AND pre-fill the
