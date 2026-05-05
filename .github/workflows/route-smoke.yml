@@ -1,0 +1,42 @@
+# ============================================================================
+#  Route Smoke Test
+#
+#  Builds the production bundle, boots `vite preview`, and walks every public
+#  and auth-gated route in a headless Chromium browser to verify each one
+#  mounts without runtime errors (no uncaught exceptions, no console errors).
+# ============================================================================
+
+name: Route Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  route-smoke:
+    name: Headless route render check
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Build production bundle
+        run: bun run build
+
+      - name: Run route smoke suite
+        run: bun run e2e:smoke

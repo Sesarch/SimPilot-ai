@@ -9,8 +9,7 @@
  * Runs against `vite preview` (production bundle) started by Playwright's
  * webServer config when executed via `bun run e2e:smoke`.
  */
-import { test, expect } from "../playwright-fixture";
-import type { ConsoleMessage, Page } from "@playwright/test";
+import { test, expect, type ConsoleMessage, type Page } from "@playwright/test";
 
 // Public routes — should render without redirect.
 const PUBLIC_ROUTES = [
