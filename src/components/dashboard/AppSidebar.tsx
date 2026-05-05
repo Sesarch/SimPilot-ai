@@ -139,7 +139,7 @@ export function AppSidebar() {
                 await signOut();
                 navigate("/");
               }}
-              tooltip="Sign Out"
+              tooltip={glowTooltip("Sign Out")}
               className="h-10 font-display text-[13px] font-semibold tracking-[0.1em] uppercase text-muted-foreground hover:text-destructive"
             >
               <LogOut className="w-[18px] h-[18px] shrink-0" />
