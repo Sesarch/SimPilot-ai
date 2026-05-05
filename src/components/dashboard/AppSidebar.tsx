@@ -33,15 +33,27 @@ const navItems = [
 
 const bridgeItem = { title: "SimConnect Bridge", url: "/flight-deck/bridge", icon: Cable };
 
-const glowTooltip = (label: string) => ({
+// Responsive offset/padding presets keep the tooltip clear of the trigger
+// and viewport edges across mobile, tablet, and desktop breakpoints.
+const TOOLTIP_SPACING = {
+  mobile:  { sideOffset: 8,  collisionPadding: 8,  maxWidth: 220 },
+  tablet:  { sideOffset: 12, collisionPadding: 12, maxWidth: 260 },
+  desktop: { sideOffset: 16, collisionPadding: 16, maxWidth: 320 },
+} as const;
+
+const glowTooltip = (
+  label: string,
+  spacing: { sideOffset: number; collisionPadding: number; maxWidth: number },
+) => ({
   children: (
     <span className="block font-display text-[11px] leading-snug font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))] [overflow-wrap:anywhere] [hyphens:auto]">
       {label}
     </span>
   ),
-  className: "max-w-[min(260px,calc(100vw-1.5rem))] whitespace-normal break-words leading-snug overflow-visible border-accent/40 bg-background/95 px-3 py-2",
-  sideOffset: 12,
-  collisionPadding: 12,
+  className: "whitespace-normal break-words leading-snug overflow-visible border-accent/40 bg-background/95 px-3 py-2",
+  style: { maxWidth: `min(${spacing.maxWidth}px, calc(100vw - 1.5rem))` },
+  sideOffset: spacing.sideOffset,
+  collisionPadding: spacing.collisionPadding,
   avoidCollisions: true,
 });
 
