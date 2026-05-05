@@ -78,7 +78,7 @@ export function AppSidebar() {
     : isTablet
       ? TOOLTIP_SPACING.tablet
       : TOOLTIP_SPACING.desktop;
-  const tip = (label: string) => tip(label, tooltipSpacing);
+  const tip = (label: string) => glowTooltip(label, tooltipSpacing);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
