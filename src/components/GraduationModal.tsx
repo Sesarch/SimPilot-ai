@@ -5,6 +5,7 @@ import { GraduationCap, Check, ShieldAlert, Loader2, Clock, ArrowRight, Building
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useStripePlans, formatPrice, type StripePlan } from "@/hooks/useStripePlans";
+import PlanDetailsDrawer from "@/components/PlanDetailsDrawer";
 import type { TrialActivity } from "@/hooks/useTrialStatus";
 
 interface GraduationModalProps {
@@ -16,6 +17,7 @@ interface GraduationModalProps {
 export default function GraduationModal({ open, displayName }: GraduationModalProps) {
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
   const [showPlans, setShowPlans] = useState(false);
+  const [detailsPlan, setDetailsPlan] = useState<StripePlan | null>(null);
   const { plans, loading: plansLoading } = useStripePlans();
 
   const handleSubscribe = async (plan: StripePlan) => {
@@ -137,20 +139,29 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                           ))}
                         </ul>
                       )}
-                      <Button
-                        onClick={() => handleSubscribe(plan)}
-                        disabled={loadingPriceId !== null}
-                        variant={plan.highlighted ? "default" : "outline"}
-                        className={plan.highlighted
-                          ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-semibold mt-auto"
-                          : "w-full font-semibold mt-auto"}
-                      >
-                        {isLoading ? (
-                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening checkout…</>
-                        ) : (
-                          `Choose ${plan.name}`
-                        )}
-                      </Button>
+                      <div className="mt-auto space-y-2">
+                        <Button
+                          onClick={() => handleSubscribe(plan)}
+                          disabled={loadingPriceId !== null}
+                          variant={plan.highlighted ? "default" : "outline"}
+                          className={plan.highlighted
+                            ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-semibold"
+                            : "w-full font-semibold"}
+                        >
+                          {isLoading ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening checkout…</>
+                          ) : (
+                            `Choose ${plan.name}`
+                          )}
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => setDetailsPlan(plan)}
+                          className="w-full text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+                        >
+                          View details
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -187,6 +198,13 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
           </>
         )}
       </DialogContent>
+      <PlanDetailsDrawer
+        plan={detailsPlan}
+        open={detailsPlan !== null}
+        onOpenChange={(o) => { if (!o) setDetailsPlan(null); }}
+        onSubscribe={(p) => { setDetailsPlan(null); handleSubscribe(p); }}
+        loading={loadingPriceId !== null}
+      />
     </Dialog>
   );
 }
