@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown } from "lucide-react";
+import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import PlanComparisonTable from "./PlanComparisonTable";
 import PricingFAQ from "./PricingFAQ";
 import ForSchoolsSection from "./ForSchoolsSection";
