@@ -202,17 +202,21 @@ const PricingSection = () => {
                     </span>
                   )}
                 </div>
-                {annual && (
-                  <p className="text-[11px] text-muted-foreground mb-1">
-                    Billed ${price * 12}/year
-                    {plan.name === "Flight School" && " per seat"}
-                  </p>
-                )}
+                <p className={`text-[11px] text-muted-foreground mb-1 min-h-[16px] ${annual ? "" : "invisible"}`}>
+                  {annual ? (
+                    <>
+                      Billed ${price * 12}/year
+                      {plan.name === "Flight School" && " per seat"}
+                    </>
+                  ) : (
+                    "placeholder"
+                  )}
+                </p>
                 <span className="inline-block text-[10px] font-display font-semibold tracking-widest uppercase px-3 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/25 mb-4 w-fit">
                   7-Day Free Trial
                 </span>
 
-                <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
+                <p className="text-sm text-muted-foreground mb-6 min-h-[40px]">{plan.description}</p>
 
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((feature) => (
