@@ -159,8 +159,52 @@ const PricingSection = () => {
   };
 
   return (
-    <section id="pricing" className="py-24 relative bg-gradient-hero scroll-mt-20">
+    <section
+      id="pricing"
+      data-qa-mode={qaMode || undefined}
+      data-qa-force-hover={qaForceHover || undefined}
+      data-qa-reduced-motion={qaReducedMotion || undefined}
+      className={`py-24 relative bg-gradient-hero scroll-mt-20 ${
+        qaReducedMotion ? "[&_*]:!transition-none [&_*]:!animate-none" : ""
+      } ${qaForceHover ? "[&_[data-qa-card]]:!border-primary/40" : ""}`}
+    >
       <div className="absolute top-0 left-0 right-0 hud-line" />
+      {qaMode && (
+        <div className="fixed top-4 right-4 z-[100] w-64 rounded-lg border border-primary/40 bg-background/95 backdrop-blur p-3 shadow-2xl text-xs font-mono">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-display tracking-widest uppercase text-[10px] text-primary">
+              QA Mode
+            </span>
+            <button
+              type="button"
+              onClick={() => setQaMode(false)}
+              className="text-muted-foreground hover:text-foreground text-[10px]"
+              aria-label="Close QA panel"
+            >
+              ✕
+            </button>
+          </div>
+          <label className="flex items-center gap-2 mb-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={qaForceHover}
+              onChange={(e) => setQaForceHover(e.target.checked)}
+            />
+            <span>Force hover state</span>
+          </label>
+          <label className="flex items-center gap-2 mb-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={qaReducedMotion}
+              onChange={(e) => setQaReducedMotion(e.target.checked)}
+            />
+            <span>Reduced motion</span>
+          </label>
+          <p className="text-[10px] text-muted-foreground leading-snug">
+            Alt+Shift+Q to toggle. Cards show z-index; badge has dashed outline.
+          </p>
+        </div>
+      )}
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
