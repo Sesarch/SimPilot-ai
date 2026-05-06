@@ -164,8 +164,8 @@ const PricingSection = () => {
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="font-display text-[10px] tracking-widest uppercase px-4 py-1 rounded-full bg-primary text-primary-foreground font-semibold">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <span className="block whitespace-nowrap font-display text-[10px] leading-none tracking-widest uppercase px-4 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-md">
                       Most Popular
                     </span>
                   </div>
