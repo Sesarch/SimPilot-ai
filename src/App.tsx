@@ -30,6 +30,8 @@ import ContactPage from "./pages/ContactPage.tsx";
 import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 import CompetitorsPage from "./pages/CompetitorsPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
+import MfaChallengePage from "./pages/MfaChallengePage.tsx";
+import MfaGate from "./components/MfaGate.tsx";
 import UnsubscribePage from "./pages/UnsubscribePage.tsx";
 import MobileChatPage from "./pages/MobileChatPage.tsx";
 import PublicProfilePage from "./pages/PublicProfilePage.tsx";
@@ -97,7 +99,8 @@ const App = () => (
               <Route path="/for-schools" element={<ForSchoolsPage />} />
               <Route path="/for-schools/success" element={<ForSchoolsSuccessPage />} />
               <Route path="/intake" element={<IntakePage />} />
-              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin" element={<MfaGate requireMfa><AdminPage /></MfaGate>} />
+              <Route path="/mfa" element={<MfaChallengePage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route path="/pilot/:userId" element={<PublicProfilePage />} />
               <Route path="*" element={<NotFound />} />

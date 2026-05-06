@@ -15,6 +15,7 @@ import { template as welcomeSignup } from './welcome-signup.tsx'
 import { template as intakeConfirmation } from './intake-confirmation.tsx'
 import { template as trialEndingReminder } from './trial-ending-reminder.tsx'
 import { template as intakeTeamNotification } from './intake-team-notification.tsx'
+import { template as mfaCode } from './mfa-code.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-confirmation': contactConfirmation,
@@ -23,4 +24,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'intake-confirmation': intakeConfirmation,
   'trial-ending-reminder': trialEndingReminder,
   'intake-team-notification': intakeTeamNotification,
+  'mfa-code': mfaCode,
 }
