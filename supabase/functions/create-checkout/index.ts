@@ -18,9 +18,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { plan } = await req.json().catch(() => ({}));
-    if (!plan || !PRICE_IDS[plan]) {
-      return new Response(JSON.stringify({ error: "Invalid plan. Must be 'pro' or 'ultra'." }), {
+    const { plan, price_id } = await req.json().catch(() => ({}));
+    const resolvedPrice = price_id || (plan ? PRICE_IDS[plan] : null);
+    if (!resolvedPrice) {
+      return new Response(JSON.stringify({ error: "Missing 'plan' or 'price_id'." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
