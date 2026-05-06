@@ -18,6 +18,7 @@ const MfaChallengePage = () => {
     typeof (location.state as any).redirectTo === "string"
       ? (location.state as any).redirectTo
       : "/dashboard";
+  const sessionFlag: string | undefined = (location.state as any)?.sessionFlag;
 
   const [status, setStatus] = useState<Awaited<ReturnType<typeof mfaApi.status>> | null>(null);
   const [mode, setMode] = useState<Mode>("email");
