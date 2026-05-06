@@ -7,48 +7,36 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  .light {
     --background: 210 25% 95%;
     --foreground: 220 30% 12%;
-
     --card: 210 20% 97%;
     --card-foreground: 220 30% 12%;
-
     --popover: 210 20% 97%;
     --popover-foreground: 220 30% 12%;
-
-    --primary: 192 100% 30%;
+    --primary: 187 95% 38%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 210 18% 88%;
     --secondary-foreground: 220 20% 18%;
-
     --muted: 210 15% 90%;
     --muted-foreground: 215 15% 38%;
-
     --accent: 32 95% 45%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 210 18% 82%;
     --input: 210 18% 82%;
-    --ring: 192 100% 30%;
-
-    --radius: 0.5rem;
-
+    --ring: 187 95% 38%;
+    --radius: 1rem;
     --sidebar-background: 210 20% 93%;
     --sidebar-foreground: 220 30% 12%;
-    --sidebar-primary: 192 100% 30%;
+    --sidebar-primary: 187 95% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 18% 88%;
     --sidebar-accent-foreground: 220 30% 12%;
     --sidebar-border: 210 18% 82%;
-    --sidebar-ring: 192 100% 30%;
-
-    /* Custom tokens */
-    --cyan-glow: 192 100% 30%;
+    --sidebar-ring: 187 95% 38%;
+    --cyan-glow: 187 95% 38%;
     --amber-instrument: 32 95% 45%;
     --navy-deep: 210 25% 93%;
     --navy-mid: 210 20% 88%;
