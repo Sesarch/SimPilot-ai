@@ -139,20 +139,29 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                           ))}
                         </ul>
                       )}
-                      <Button
-                        onClick={() => handleSubscribe(plan)}
-                        disabled={loadingPriceId !== null}
-                        variant={plan.highlighted ? "default" : "outline"}
-                        className={plan.highlighted
-                          ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-semibold mt-auto"
-                          : "w-full font-semibold mt-auto"}
-                      >
-                        {isLoading ? (
-                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening checkout…</>
-                        ) : (
-                          `Choose ${plan.name}`
-                        )}
-                      </Button>
+                      <div className="mt-auto space-y-2">
+                        <Button
+                          onClick={() => handleSubscribe(plan)}
+                          disabled={loadingPriceId !== null}
+                          variant={plan.highlighted ? "default" : "outline"}
+                          className={plan.highlighted
+                            ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-semibold"
+                            : "w-full font-semibold"}
+                        >
+                          {isLoading ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening checkout…</>
+                          ) : (
+                            `Choose ${plan.name}`
+                          )}
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => setDetailsPlan(plan)}
+                          className="w-full text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+                        >
+                          View details
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
