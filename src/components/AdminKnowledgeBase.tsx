@@ -195,7 +195,7 @@ export default function AdminKnowledgeBase() {
           }`}
         >
           <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-          <p className="font-medium">{pendingFile ? pendingFile.name : "Drop a PDF here, or click to browse"}</p>
+          <p className="">{pendingFile ? pendingFile.name : "Drop a PDF here, or click to browse"}</p>
           <p className="text-xs text-muted-foreground mt-1">AIM, PHAK, AFH, IFH, POH (max 50 MB)</p>
           <input
             ref={fileInputRef}
@@ -248,7 +248,7 @@ export default function AdminKnowledgeBase() {
                 <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium truncate">{d.title}</p>
+                    <p className="truncate">{d.title}</p>
                     <Badge variant="outline" className="text-xs">{d.source_label}</Badge>
                     {statusBadge(d.status)}
                   </div>
@@ -292,7 +292,7 @@ export default function AdminKnowledgeBase() {
             ) : testResults.map((r: any, i: number) => (
               <div key={r.id} className="p-3 border border-border rounded-lg text-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium">[{i + 1}] {r.source_label}{r.section ? ` — ${r.section}` : ""}{r.page ? ` (p. ${r.page})` : ""}</span>
+                  <span className="">[{i + 1}] {r.source_label}{r.section ? ` — ${r.section}` : ""}{r.page ? ` (p. ${r.page})` : ""}</span>
                   <Badge variant="outline" className="text-xs">sim {Number(r.similarity).toFixed(3)}</Badge>
                 </div>
                 <p className="text-muted-foreground line-clamp-3">{r.content}</p>

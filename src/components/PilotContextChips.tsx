@@ -135,7 +135,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
       </div>
 
       <p className={`text-center text-muted-foreground ${compact ? "text-[10px]" : "text-xs"}`}>
-        {currentField.icon} Select your <span className="text-foreground font-medium">{currentField.label}</span>
+        {currentField.icon} Select your <span className="text-foreground ">{currentField.label}</span>
         {completedCount > 0 && (
           <span className="text-muted-foreground/60"> ({completedCount}/{fields.length})</span>
         )}
@@ -175,12 +175,12 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
           {pohUploaded ? (
             <p className="flex items-center justify-center gap-1.5 not-italic">
               <CheckCircle2 className={`text-hud-green ${compact ? "w-3 h-3" : "w-3.5 h-3.5"}`} />
-              <span className="text-hud-green font-medium">POH uploaded</span>
+              <span className="text-hud-green ">POH uploaded</span>
               <span className="text-muted-foreground/50">— AI responses will reference your aircraft manual.</span>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-primary/70 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors font-medium ml-1"
+                className="text-primary/70 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors ml-1"
               >
                 Replace
               </button>
@@ -188,7 +188,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
                 <button
                   type="button"
                   onClick={() => setShowRemoveConfirm(true)}
-                  className="text-destructive/60 hover:text-destructive underline underline-offset-2 decoration-destructive/30 hover:decoration-destructive/60 transition-colors font-medium ml-1"
+                  className="text-destructive/60 hover:text-destructive underline underline-offset-2 decoration-destructive/30 hover:decoration-destructive/60 transition-colors ml-1"
                 >
                   Remove
                 </button>
@@ -200,7 +200,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-0.5 text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors not-italic font-medium"
+                className="inline-flex items-center gap-0.5 text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors not-italic "
               >
                 <Upload className={`${compact ? "w-2.5 h-2.5" : "w-3 h-3"}`} />
                 upload your aircraft's POH

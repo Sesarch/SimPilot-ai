@@ -99,13 +99,13 @@ const RecommendedModulesPanel = () => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
-          <h2 className="font-display text-[14px] font-bold tracking-[0.22em] uppercase text-foreground">
+          <h2 className="font-display text-[14px] tracking-[0.22em] uppercase text-foreground">
             Recommended Modules
           </h2>
         </div>
         <Link
           to="/ground-school"
-          className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-primary hover:underline flex items-center gap-1"
+          className="font-display text-[11px] tracking-[0.18em] uppercase text-primary hover:underline flex items-center gap-1"
         >
           All modules <ArrowRight className="w-3 h-3" />
         </Link>
@@ -133,14 +133,14 @@ const RecommendedModulesPanel = () => {
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="text-2xl leading-none">{r.icon}</span>
-                <span className="font-display text-[10px] font-semibold tracking-[0.18em] uppercase text-primary">
+                <span className="font-display text-[10px] tracking-[0.18em] uppercase text-primary">
                   {r.acs}
                 </span>
               </div>
-              <h3 className="text-sm font-semibold text-foreground line-clamp-2">{r.title}</h3>
+              <h3 className="text-sm text-foreground line-clamp-2">{r.title}</h3>
               <p className="text-xs text-muted-foreground line-clamp-2">{r.description}</p>
               <div className="mt-1 flex items-center justify-between">
-                <span className="font-display text-[10px] font-semibold tracking-[0.18em] uppercase text-accent">
+                <span className="font-display text-[10px] tracking-[0.18em] uppercase text-accent">
                   {r.reason}
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />

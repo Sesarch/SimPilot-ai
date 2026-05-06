@@ -91,7 +91,7 @@ export const PercentileSparkline = ({
           style={{ left: `calc(${pos}% - 4px)`, backgroundColor: trackColor }}
         />
       </div>
-      <span className={`tabular-nums font-display font-bold ${isTop ? "text-primary" : isLow ? "text-destructive" : "text-accent"}`}>
+      <span className={`tabular-nums font-display ${isTop ? "text-primary" : isLow ? "text-destructive" : "text-accent"}`}>
         {pos}%
       </span>
       <span className="text-muted-foreground">
@@ -99,7 +99,7 @@ export const PercentileSparkline = ({
       </span>
       {topTier && (
         <span
-          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[9px] font-display font-bold uppercase tracking-widest animate-[pulse_3s_ease-in-out_infinite] ${topTier.classes}`}
+          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[9px] font-display uppercase tracking-widest animate-[pulse_3s_ease-in-out_infinite] ${topTier.classes}`}
           title={`Achievement: ${topTier.label} of anonymized SimPilot exams of this type`}
           aria-label={`Achievement: ${topTier.label}`}
         >

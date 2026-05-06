@@ -36,7 +36,7 @@ const StudyTrackBadge = ({ track, onClick }: { track: string; onClick?: () => vo
     className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-[0_0_12px_hsl(var(--cyan-glow)/0.3)] transition-all"
   >
     <GraduationCap size={12} />
-    <span className="font-display text-[10px] font-bold tracking-widest uppercase">{track}</span>
+    <span className="font-display text-[10px] tracking-widest uppercase">{track}</span>
   </Link>
 );
 
@@ -81,7 +81,7 @@ const Navbar = () => {
                 key={item.label}
                 to={item.href}
                 title={`SimPilot.AI ${item.label} — AI pilot training module`}
-                className="relative flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
+                className="relative flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
               >
                 {item.live && (
                   <span className="relative flex h-2 w-2">
@@ -97,7 +97,7 @@ const Navbar = () => {
             <button
               onClick={handleInstall}
               title="Install SimPilot.AI app"
-              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-300 tracking-wide uppercase"
             >
               <Download size={14} />
               Install App
@@ -109,7 +109,7 @@ const Navbar = () => {
             <Link
               to="/dashboard"
               title="Access your SimPilot.AI pilot training dashboard"
-              className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300"
+              className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300"
             >
               Dashboard
             </Link>
@@ -117,7 +117,7 @@ const Navbar = () => {
             <Link
               to="/auth"
               title="Sign in to SimPilot.AI — start your AI pilot training"
-              className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300"
+              className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300"
             >
               Sign In
             </Link>
@@ -150,7 +150,7 @@ const Navbar = () => {
                     to={item.href}
                     onClick={() => setIsOpen(false)}
                     title={`SimPilot.AI ${item.label} — AI pilot training module`}
-                    className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
                   >
                     {item.live && (
                       <span className="relative flex h-2 w-2">
@@ -165,7 +165,7 @@ const Navbar = () => {
               {!isInstalled && (
                 <button
                   onClick={() => { handleInstall(); setIsOpen(false); }}
-                  className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
                 >
                   <Download size={14} />
                   Install App
@@ -180,7 +180,7 @@ const Navbar = () => {
                   to={user ? "/dashboard" : "/auth"}
                   onClick={() => setIsOpen(false)}
                   title={user ? "Access your SimPilot.AI pilot training dashboard" : "Sign in to SimPilot.AI — start your AI pilot training"}
-                  className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded text-center"
+                  className="px-5 py-2 bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase rounded text-center"
                 >
                   {user ? "Dashboard" : "Sign In"}
                 </Link>

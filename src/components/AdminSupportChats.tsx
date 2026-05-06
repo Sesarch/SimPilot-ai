@@ -81,7 +81,7 @@ const AdminSupportChats = () => {
   return (
     <div className="mt-10">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+        <h2 className="font-display text-lg text-foreground flex items-center gap-2">
           <MessageCircle className="w-5 h-5 text-primary" /> Support Chats
           <Badge variant="secondary" className="ml-2 text-xs">{chats.length}</Badge>
         </h2>
@@ -96,7 +96,7 @@ const AdminSupportChats = () => {
           <div className="flex items-center gap-2">
             <MessageCircle className="w-4 h-4 text-primary" />
             <div>
-              <p className="text-xl font-display font-bold text-foreground">{chats.length}</p>
+              <p className="text-xl font-display text-foreground">{chats.length}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</p>
             </div>
           </div>
@@ -105,7 +105,7 @@ const AdminSupportChats = () => {
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-accent" />
             <div>
-              <p className="text-xl font-display font-bold text-foreground">
+              <p className="text-xl font-display text-foreground">
                 {chats.filter(c => c.escalated).length}
               </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Escalated</p>
@@ -116,7 +116,7 @@ const AdminSupportChats = () => {
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-muted-foreground" />
             <div>
-              <p className="text-xl font-display font-bold text-foreground">
+              <p className="text-xl font-display text-foreground">
                 {chats.filter(c => {
                   const d = new Date(c.created_at);
                   const now = new Date();
@@ -139,7 +139,7 @@ const AdminSupportChats = () => {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{chat.email}</p>
+                  <p className="text-sm text-foreground truncate">{chat.email}</p>
                   {chat.escalated && (
                     <Badge className="bg-accent/20 text-accent border-accent/30 text-[10px] shrink-0">
                       <AlertTriangle className="w-3 h-3 mr-1" /> Escalated

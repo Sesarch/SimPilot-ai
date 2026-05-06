@@ -69,7 +69,7 @@ const CookieConsent = () => {
               <Cookie className="h-5 w-5" />
             </div>
             <div className="space-y-3">
-              <p className="text-sm text-foreground font-medium">We use cookies</p>
+              <p className="text-sm text-foreground ">We use cookies</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 We use cookies to improve your experience, analyze traffic, and personalize content. Read our{" "}
                 <Link to="/privacy" title="Read the SimPilot.AI Privacy Policy" className="text-primary hover:underline">

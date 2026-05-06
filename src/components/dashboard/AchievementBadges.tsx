@@ -193,7 +193,7 @@ const AchievementBadges = () => {
                     </div>
                     <div className="min-w-0 relative">
                       <div
-                        className="font-display text-[11px] uppercase tracking-wider font-bold leading-tight truncate"
+                        className="font-display text-[11px] uppercase tracking-wider leading-tight truncate"
                         style={{ color: meta.accent, textShadow: `0 0 8px ${meta.accent}55` }}
                       >
                         {meta.label}
@@ -220,7 +220,7 @@ const AchievementBadges = () => {
                     }}
                   >
                     <div
-                      className="font-display text-[11px] uppercase tracking-wider font-bold"
+                      className="font-display text-[11px] uppercase tracking-wider "
                       style={{ color: meta.accent }}
                     >
                       {meta.label}
@@ -232,21 +232,21 @@ const AchievementBadges = () => {
                   <div className="px-3 py-2 space-y-1">
                     <div className="flex items-center justify-between gap-3 text-[10px] font-display uppercase tracking-wider">
                       <span className="text-muted-foreground">Discipline</span>
-                      <span className="text-foreground font-semibold">{formatExamType(a.exam_type)}</span>
+                      <span className="text-foreground ">{formatExamType(a.exam_type)}</span>
                     </div>
                     {a.percentile !== null && (
                       <div className="flex items-center justify-between gap-3 text-[10px] font-display uppercase tracking-wider">
                         <span className="text-muted-foreground">Percentile</span>
-                        <span className="text-foreground font-semibold">{a.percentile}%</span>
+                        <span className="text-foreground ">{a.percentile}%</span>
                       </div>
                     )}
                     <div className="flex items-center justify-between gap-3 text-[10px] font-display uppercase tracking-wider">
                       <span className="text-muted-foreground">Earned</span>
-                      <span className="text-foreground font-semibold">{earnedFull}</span>
+                      <span className="text-foreground ">{earnedFull}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3 text-[10px] font-display uppercase tracking-wider">
                       <span className="text-muted-foreground">Time</span>
-                      <span className="text-foreground font-semibold">{earnedTime}</span>
+                      <span className="text-foreground ">{earnedTime}</span>
                     </div>
                   </div>
                 </TooltipContent>

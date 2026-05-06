@@ -49,7 +49,7 @@ const PricingFAQ = () => {
       viewport={{ once: true }}
       className="max-w-3xl mx-auto mt-16"
     >
-      <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground text-center mb-2">
+      <h3 className="font-display text-2xl md:text-3xl text-foreground text-center mb-2">
         Frequently Asked <span className="text-primary text-glow-cyan">Questions</span>
       </h3>
       <p className="text-muted-foreground text-center text-sm mb-8">
@@ -63,7 +63,7 @@ const PricingFAQ = () => {
             value={`faq-${i}`}
             className="rounded-lg border border-border bg-gradient-card px-5 data-[state=open]:border-primary/30"
           >
-            <AccordionTrigger className="font-display text-sm font-semibold tracking-wide text-foreground hover:text-primary hover:no-underline py-4">
+            <AccordionTrigger className="font-display text-sm tracking-wide text-foreground hover:text-primary hover:no-underline py-4">
               {faq.q}
             </AccordionTrigger>
             <AccordionContent className="text-sm text-muted-foreground pb-4 leading-relaxed">

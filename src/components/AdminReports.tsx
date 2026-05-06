@@ -71,7 +71,7 @@ const AdminReports = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold flex items-center gap-2">
+        <h2 className="font-display text-lg flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-primary" /> Reports & Analytics
         </h2>
         <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ const AdminReports = () => {
 
       {data && (
         <div className="bg-card/50 border border-border rounded-xl p-5">
-          <h3 className="font-display text-sm font-semibold mb-3">Signups — Last 30 Days</h3>
+          <h3 className="font-display text-sm mb-3">Signups — Last 30 Days</h3>
           <div className="flex items-end gap-[2px] h-32">
             {data.signup_trend.map((t) => (
               <div key={t.date} title={`${t.date}: ${t.signups} signups`} className="flex-1 bg-primary/70 rounded-t-sm hover:bg-primary transition-colors min-w-0"
@@ -109,7 +109,7 @@ const AdminReports = () => {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="bg-card/50 border border-border rounded-xl p-5">
-          <h3 className="font-display text-sm font-semibold mb-3 flex items-center gap-2"><GraduationCap className="w-4 h-4 text-primary" /> Exam Activity (30d)</h3>
+          <h3 className="font-display text-sm mb-3 flex items-center gap-2"><GraduationCap className="w-4 h-4 text-primary" /> Exam Activity (30d)</h3>
           <Row label="Exams completed" value={data?.exams_taken_30d ?? "—"} />
           <Row label="Avg score" value={data ? `${data.avg_exam_score_pct}%` : "—"} />
           <Row label="Pass rate (≥70%)" value={data ? `${data.exam_pass_rate_pct}%` : "—"} />
@@ -117,7 +117,7 @@ const AdminReports = () => {
         </div>
 
         <div className="bg-card/50 border border-border rounded-xl p-5">
-          <h3 className="font-display text-sm font-semibold mb-3 flex items-center gap-2"><School className="w-4 h-4 text-primary" /> Top Schools</h3>
+          <h3 className="font-display text-sm mb-3 flex items-center gap-2"><School className="w-4 h-4 text-primary" /> Top Schools</h3>
           {data?.top_schools.length ? (
             <ul className="space-y-2 text-sm">
               {data.top_schools.map((s) => (
@@ -139,13 +139,13 @@ const Card = ({ label, value, icon }: { label: string; value: React.ReactNode; i
     <div className="flex items-center justify-between mb-1 text-muted-foreground">
       <span className="text-xs uppercase tracking-wider">{label}</span>{icon}
     </div>
-    <p className="text-2xl font-display font-bold text-foreground">{value}</p>
+    <p className="text-2xl font-display text-foreground">{value}</p>
   </div>
 );
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="flex justify-between py-1.5 border-b border-border/40 last:border-0 text-sm">
-    <span className="text-muted-foreground">{label}</span><span className="font-medium">{value}</span>
+    <span className="text-muted-foreground">{label}</span><span className="">{value}</span>
   </div>
 );
 

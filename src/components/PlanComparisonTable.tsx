@@ -73,7 +73,7 @@ const categories: { title: string; rows: ComparisonRow[] }[] = [
 
 const CellContent = ({ value }: { value: CellValue }) => {
   if (typeof value === "string") {
-    return <span className="text-xs font-medium text-foreground">{value}</span>;
+    return <span className="text-xs text-foreground">{value}</span>;
   }
   if (value === true) {
     return <Check className="w-4 h-4 text-primary mx-auto" />;
@@ -90,7 +90,7 @@ const PlanComparisonTable = () => {
       className="mt-20 max-w-6xl mx-auto"
     >
       <div className="text-center mb-10">
-        <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+        <h3 className="font-display text-2xl md:text-3xl text-foreground">
           Compare <span className="text-primary text-glow-cyan">Plans</span> in Detail
         </h3>
         <p className="text-muted-foreground mt-2 text-sm max-w-lg mx-auto">
@@ -109,11 +109,11 @@ const PlanComparisonTable = () => {
             <p className="text-[10px] text-muted-foreground mt-0.5">$29/mo</p>
           </div>
           <div className="p-4 text-center border-l border-primary/30 bg-primary/5">
-            <span className="font-display text-xs tracking-widest uppercase text-primary font-bold">Pro Pilot</span>
+            <span className="font-display text-xs tracking-widest uppercase text-primary ">Pro Pilot</span>
             <p className="text-[10px] text-primary/70 mt-0.5">$59/mo</p>
           </div>
           <div className="p-4 text-center border-l border-accent/30 bg-accent/5">
-            <span className="font-display text-xs tracking-widest uppercase text-accent font-bold">Gold Seal CFI</span>
+            <span className="font-display text-xs tracking-widest uppercase text-accent ">Gold Seal CFI</span>
             <p className="text-[10px] text-accent/70 mt-0.5">$99/mo</p>
           </div>
           <div className="p-4 text-center border-l border-border">
@@ -126,7 +126,7 @@ const PlanComparisonTable = () => {
           <div key={category.title}>
             <div className="grid grid-cols-5 min-w-[700px] border-b border-border bg-secondary/30">
               <div className="col-span-5 p-3 px-4">
-                <span className="font-display text-xs font-bold tracking-wider uppercase text-accent">
+                <span className="font-display text-xs tracking-wider uppercase text-accent">
                   {category.title}
                 </span>
               </div>
@@ -165,7 +165,7 @@ const PlanComparisonTable = () => {
           <div className="p-4 text-center border-l border-border">
             <a
               href="#contact"
-              className="inline-block px-4 py-2 rounded font-display text-[10px] font-semibold tracking-widest uppercase border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary transition-all"
+              className="inline-block px-4 py-2 rounded font-display text-[10px] tracking-widest uppercase border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary transition-all"
             >
               Start Free Trial
             </a>
@@ -173,7 +173,7 @@ const PlanComparisonTable = () => {
           <div className="p-4 text-center border-l border-primary/30 bg-primary/5">
             <a
               href="#contact"
-              className="inline-block px-4 py-2 rounded font-display text-[10px] font-semibold tracking-widest uppercase bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] transition-all"
+              className="inline-block px-4 py-2 rounded font-display text-[10px] tracking-widest uppercase bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] transition-all"
             >
               Go Pro
             </a>
@@ -181,7 +181,7 @@ const PlanComparisonTable = () => {
           <div className="p-4 text-center border-l border-accent/30 bg-accent/5">
             <a
               href="#contact"
-              className="inline-block px-4 py-2 rounded font-display text-[10px] font-semibold tracking-widest uppercase bg-accent text-accent-foreground hover:shadow-[0_0_25px_hsl(var(--accent)/0.4)] transition-all"
+              className="inline-block px-4 py-2 rounded font-display text-[10px] tracking-widest uppercase bg-accent text-accent-foreground hover:shadow-[0_0_25px_hsl(var(--accent)/0.4)] transition-all"
             >
               Go Gold Seal
             </a>
@@ -189,7 +189,7 @@ const PlanComparisonTable = () => {
           <div className="p-4 text-center border-l border-border">
             <a
               href="#contact"
-              className="inline-block px-4 py-2 rounded font-display text-[10px] font-semibold tracking-widest uppercase border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary transition-all"
+              className="inline-block px-4 py-2 rounded font-display text-[10px] tracking-widest uppercase border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary transition-all"
             >
               Contact Sales
             </a>

@@ -42,7 +42,7 @@ const ServicesSection = () => {
           <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">
             What We Offer
           </p>
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground">
+          <h2 className="font-display text-3xl md:text-5xl text-foreground">
             AI-Driven <span className="text-primary text-glow-cyan">Services</span>
           </h2>
         </motion.div>
@@ -60,7 +60,7 @@ const ServicesSection = () => {
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <service.icon className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-display text-sm font-semibold tracking-wider uppercase text-foreground mb-3">
+              <h3 className="font-display text-sm tracking-wider uppercase text-foreground mb-3">
                 {service.title}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">

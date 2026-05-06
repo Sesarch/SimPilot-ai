@@ -98,7 +98,7 @@ const ForSchoolsSection = () => {
           <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">
             For Flight Schools
           </p>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+          <h2 className="font-display text-3xl md:text-4xl text-foreground">
             Equip Your Whole Program — <span className="text-primary text-glow-cyan">One Invoice, Individual Accounts</span>
           </h2>
           <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
@@ -123,7 +123,7 @@ const ForSchoolsSection = () => {
                   <b.icon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-display text-sm font-semibold tracking-wider uppercase text-foreground mb-1">
+                  <h3 className="font-display text-sm tracking-wider uppercase text-foreground mb-1">
                     {b.title}
                   </h3>
                   <p className="text-sm text-muted-foreground">{b.body}</p>
@@ -159,14 +159,14 @@ const ForSchoolsSection = () => {
             {submitted ? (
               <div className="text-center py-10">
                 <CheckCircle2 className="w-14 h-14 text-primary mx-auto mb-4" />
-                <h3 className="font-display text-xl font-bold text-foreground mb-2">Inquiry Received</h3>
+                <h3 className="font-display text-xl text-foreground mb-2">Inquiry Received</h3>
                 <p className="text-muted-foreground text-sm max-w-sm mx-auto">
                   Thanks — our team will reach out within 1 business day with pricing tailored to your program.
                 </p>
               </div>
             ) : (
               <>
-                <h3 className="font-display text-lg font-bold text-foreground mb-1">
+                <h3 className="font-display text-lg text-foreground mb-1">
                   Talk to Bulk Sales
                 </h3>
                 <p className="text-sm text-muted-foreground mb-6">
@@ -296,7 +296,7 @@ const ForSchoolsSection = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full px-6 py-3 rounded font-display text-xs font-semibold tracking-widest uppercase bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-6 py-3 rounded font-display text-xs tracking-widest uppercase bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {submitting ? (
                       <>

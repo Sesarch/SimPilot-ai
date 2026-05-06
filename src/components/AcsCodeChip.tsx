@@ -78,7 +78,7 @@ export const AcsCodeChip = ({ code, onClick, className }: AcsCodeChipProps) => {
     >
       {cert && (
         <span
-          className={`font-display font-bold text-[9px] tracking-wider uppercase px-1.5 py-0.5 rounded border ${cert.className}`}
+          className={`font-display text-[9px] tracking-wider uppercase px-1.5 py-0.5 rounded border ${cert.className}`}
           aria-label={cert.full}
           title={cert.full}
         >
@@ -98,9 +98,9 @@ export const AcsCodeChip = ({ code, onClick, className }: AcsCodeChipProps) => {
     <TooltipContent side="top" className="max-w-xs">
       <div className="space-y-1">
         {cert && (
-          <p className="text-[10px] uppercase tracking-wider opacity-70 font-semibold">{cert.full}</p>
+          <p className="text-[10px] uppercase tracking-wider opacity-70 ">{cert.full}</p>
         )}
-        <p className="font-display font-bold text-xs">{label}</p>
+        <p className="font-display text-xs">{label}</p>
         {info?.area && <p className="text-[10px] uppercase tracking-wider opacity-70">{info.area}</p>}
         <p className="text-[11px] leading-snug">{subtext}</p>
         {onClick && info && <p className="text-[10px] italic opacity-70 pt-1">Click to drill this task</p>}

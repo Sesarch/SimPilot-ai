@@ -143,7 +143,7 @@ const AccountSettings = () => {
       </div>
 
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
-        <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+        <h3 className="font-display text-sm text-foreground mb-1 flex items-center gap-2">
           <GraduationCap className="w-4 h-4 text-primary" /> Study Track
         </h3>
         <p className="text-xs text-muted-foreground mb-4">
@@ -160,17 +160,17 @@ const AccountSettings = () => {
           </SelectContent>
         </Select>
         <div className="mt-3 space-y-1 text-xs text-muted-foreground">
-          <p><span className="font-semibold text-foreground">PPL</span> — VFR fundamentals, basic aerodynamics, Part 91</p>
-          <p><span className="font-semibold text-foreground">IR</span> — IFR procedures, approach plates, weather minima</p>
-          <p><span className="font-semibold text-foreground">CPL</span> — Commercial maneuvers, complex aircraft, Part 119</p>
-          <p><span className="font-semibold text-foreground">ATP</span> — High-altitude, multi-crew CRM, Part 121/135</p>
+          <p><span className="text-foreground">PPL</span> — VFR fundamentals, basic aerodynamics, Part 91</p>
+          <p><span className="text-foreground">IR</span> — IFR procedures, approach plates, weather minima</p>
+          <p><span className="text-foreground">CPL</span> — Commercial maneuvers, complex aircraft, Part 119</p>
+          <p><span className="text-foreground">ATP</span> — High-altitude, multi-crew CRM, Part 121/135</p>
         </div>
       </div>
 
       {/* Public Profile Privacy */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <div className="flex items-start justify-between gap-4 mb-1">
-          <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+          <h3 className="font-display text-sm text-foreground flex items-center gap-2">
             <Globe className="w-4 h-4 text-primary" /> Public Profile
           </h3>
           <Switch
@@ -203,7 +203,7 @@ const AccountSettings = () => {
 
       {/* Change Email */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
-        <h3 className="font-display text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+        <h3 className="font-display text-sm text-foreground mb-1 flex items-center gap-2">
           <Mail className="w-4 h-4 text-primary" /> Change Email
         </h3>
         <p className="text-xs text-muted-foreground mb-4">
@@ -225,7 +225,7 @@ const AccountSettings = () => {
 
       {/* Change Password */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
-        <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+        <h3 className="font-display text-sm text-foreground mb-4 flex items-center gap-2">
           <KeyRound className="w-4 h-4 text-primary" /> Change Password
         </h3>
         <div className="space-y-3">
@@ -253,7 +253,7 @@ const AccountSettings = () => {
 
       {/* Delete Account */}
       <div className="bg-destructive/5 rounded-xl border border-destructive/20 p-6">
-        <h3 className="font-display text-sm font-semibold text-destructive mb-1 flex items-center gap-2">
+        <h3 className="font-display text-sm text-destructive mb-1 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" /> Danger Zone
         </h3>
         <p className="text-xs text-muted-foreground mb-4">

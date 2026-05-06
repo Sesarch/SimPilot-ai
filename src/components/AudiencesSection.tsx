@@ -61,7 +61,7 @@ const AudiencesSection = () => {
               <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">
                 Who We Serve
               </p>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+              <h2 className="font-display text-3xl md:text-4xl text-foreground">
                 Built for <span className="text-primary text-glow-cyan">Every Aviator</span>
               </h2>
             </motion.div>
@@ -81,7 +81,7 @@ const AudiencesSection = () => {
                       <audience.icon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-display text-sm font-semibold tracking-wider uppercase text-foreground mb-1">
+                      <h3 className="font-display text-sm tracking-wider uppercase text-foreground mb-1">
                         {audience.title}
                       </h3>
                       <p className="text-sm text-muted-foreground leading-relaxed mb-3">

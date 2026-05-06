@@ -215,19 +215,19 @@ const PricingSection = () => {
           <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">
             Pricing
           </p>
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground">
+          <h2 className="font-display text-3xl md:text-5xl text-foreground">
             Choose Your <span className="text-primary text-glow-cyan">Flight Plan</span>
           </h2>
           <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
             Transparent pricing for every level of aviator. Start free, upgrade when you're ready.
           </p>
-          <p className="mt-3 font-display text-sm font-bold tracking-wide text-primary">
+          <p className="mt-3 font-display text-sm tracking-wide text-primary">
             ✦ 7-Day Free Trial · No Credit Card Required
           </p>
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-3 mt-6">
-            <span className={`text-sm font-medium transition-colors ${!annual ? "text-foreground" : "text-muted-foreground"}`}>
+            <span className={`text-sm transition-colors ${!annual ? "text-foreground" : "text-muted-foreground"}`}>
               Monthly
             </span>
             <button
@@ -241,7 +241,7 @@ const PricingSection = () => {
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </button>
-            <span className={`text-sm font-medium transition-colors ${annual ? "text-foreground" : "text-muted-foreground"}`}>
+            <span className={`text-sm transition-colors ${annual ? "text-foreground" : "text-muted-foreground"}`}>
               Annual
             </span>
             <AnimatePresence>
@@ -250,7 +250,7 @@ const PricingSection = () => {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="text-[10px] font-display font-bold tracking-widest uppercase px-2.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25"
+                  className="text-[10px] font-display tracking-widest uppercase px-2.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25"
                 >
                   Save 20%+
                 </motion.span>
@@ -293,7 +293,7 @@ const PricingSection = () => {
                         badge z:30
                       </span>
                     )}
-                    <span className="block whitespace-nowrap font-display text-[9px] xs:text-[10px] leading-[1] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-lg ring-1 ring-background/40">
+                    <span className="block whitespace-nowrap font-display text-[9px] xs:text-[10px] leading-[1] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-primary text-primary-foreground shadow-lg ring-1 ring-background/40">
                       Most Popular
                     </span>
                   </div>
@@ -309,7 +309,7 @@ const PricingSection = () => {
                       className={`w-5 h-5 ${plan.highlighted ? "text-primary" : "text-accent"}`}
                     />
                   </div>
-                  <h3 className="font-display text-sm font-semibold tracking-wider uppercase text-foreground">
+                  <h3 className="font-display text-sm tracking-wider uppercase text-foreground">
                     {plan.name}
                   </h3>
                 </div>
@@ -319,7 +319,7 @@ const PricingSection = () => {
                     key={price}
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="font-display text-4xl font-bold text-foreground"
+                    className="font-display text-4xl text-foreground"
                   >
                     ${price}
                   </motion.span>
@@ -340,7 +340,7 @@ const PricingSection = () => {
                     "placeholder"
                   )}
                 </p>
-                <span className="inline-block text-[10px] font-display font-semibold tracking-widest uppercase px-3 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/25 mb-4 w-fit">
+                <span className="inline-block text-[10px] font-display tracking-widest uppercase px-3 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/25 mb-4 w-fit">
                   7-Day Free Trial
                 </span>
 
@@ -364,7 +364,7 @@ const PricingSection = () => {
                   onClick={() => handleCtaClick(plan)}
                   disabled={loadingPlan === plan.name}
                   aria-busy={loadingPlan === plan.name}
-                  className={`inline-flex items-center justify-center gap-2 h-12 w-full px-6 rounded font-display text-xs font-semibold tracking-widest uppercase transition-all duration-300 disabled:opacity-80 disabled:cursor-not-allowed ${
+                  className={`inline-flex items-center justify-center gap-2 h-12 w-full px-6 rounded font-display text-xs tracking-widest uppercase transition-all duration-300 disabled:opacity-80 disabled:cursor-not-allowed ${
                     plan.highlighted
                       ? "bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)]"
                       : "border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary"
@@ -407,7 +407,7 @@ const PricingSection = () => {
           viewport={{ once: true }}
           className="max-w-3xl mx-auto mt-16 mb-12 rounded-xl border border-primary/30 border-glow-cyan bg-gradient-card p-8"
         >
-          <h3 className="font-display text-lg md:text-xl font-bold text-foreground text-center mb-6">
+          <h3 className="font-display text-lg md:text-xl text-foreground text-center mb-6">
             How SimPilot.AI Compares to Traditional Training
           </h3>
           <div className="grid md:grid-cols-2 gap-6 items-center">
@@ -415,7 +415,7 @@ const PricingSection = () => {
               <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
                 Ground One-on-One + CFI Tutoring
               </p>
-              <p className="font-display text-4xl md:text-5xl font-bold text-destructive">$2,500+</p>
+              <p className="font-display text-4xl md:text-5xl text-destructive">$2,500+</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Sporty's $299 + King Schools $349 + CFI tutoring hours
               </p>
@@ -424,14 +424,14 @@ const PricingSection = () => {
               <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
                 SimPilot.AI Pro Pilot Plan
               </p>
-              <p className="font-display text-4xl md:text-5xl font-bold text-primary text-glow-cyan">$59/mo</p>
+              <p className="font-display text-4xl md:text-5xl text-primary text-glow-cyan">$59/mo</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Unlimited AI coaching · Oral Exam prep · Chart analysis · 24/7
               </p>
             </div>
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6">
-            <span className="text-accent font-semibold">Traditional ground school alone costs $300–$600</span> — SimPilot.AI adds unlimited AI tutoring, exam prep, and sim debriefs for just $59/month.
+            <span className="text-accent ">Traditional ground school alone costs $300–$600</span> — SimPilot.AI adds unlimited AI tutoring, exam prep, and sim debriefs for just $59/month.
           </p>
         </motion.div>
 

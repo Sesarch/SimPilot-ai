@@ -96,7 +96,7 @@ const TaskBadge = ({ task }: { task: string }) => {
   return (
     <span className="inline-flex items-center gap-1.5">
       <Icon className="w-3.5 h-3.5 text-primary" />
-      <span className="text-xs font-semibold text-foreground">{task}</span>
+      <span className="text-xs text-foreground">{task}</span>
     </span>
   );
 };
@@ -120,7 +120,7 @@ const SlotCard = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground ">
           {label} · forced: {slot.task}
         </p>
         {onClose && (
@@ -151,7 +151,7 @@ const SlotCard = ({
               <Clock className="w-3.5 h-3.5 text-primary" />
               <div>
                 <p className="text-[10px] text-muted-foreground uppercase">Latency</p>
-                <p className="text-xs font-semibold text-foreground">{slot.result.latency_ms} ms</p>
+                <p className="text-xs text-foreground">{slot.result.latency_ms} ms</p>
               </div>
             </div>
           </div>
@@ -181,7 +181,7 @@ const SlotCard = ({
             )}
             {audit && (
               <div className="space-y-2">
-                <p className={`text-xs font-semibold ${sevColor}`}>
+                <p className={`text-xs ${sevColor}`}>
                   {audit.status.toUpperCase()}
                   {audit.severity != null && ` · Severity ${audit.severity}`}
                 </p>
@@ -596,7 +596,7 @@ const AdminOrchestratorTester = () => {
     <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-primary/30 p-5">
       <div className="flex items-center gap-2 mb-1">
         <FlaskConical className="w-4 h-4 text-primary" />
-        <h2 className="font-display text-sm font-semibold text-foreground">
+        <h2 className="font-display text-sm text-foreground">
           Orchestrator Test Console
         </h2>
       </div>
@@ -671,7 +671,7 @@ const AdminOrchestratorTester = () => {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <History className="w-4 h-4 text-primary" />
-            <h3 className="font-display text-xs font-semibold text-foreground uppercase tracking-wider">
+            <h3 className="font-display text-xs text-foreground uppercase tracking-wider">
               Run history
             </h3>
             <span className="text-[10px] text-muted-foreground">
@@ -941,17 +941,17 @@ const AdminOrchestratorTester = () => {
             <table className="w-full text-[11px]">
               <thead className="bg-muted/30 text-muted-foreground uppercase text-[10px]">
                 <tr>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Time</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Prompt</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Forced → routed</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Model</th>
-                  <th className="text-right px-2.5 py-1.5 font-semibold">Latency</th>
-                  <th className="text-left px-2.5 py-1.5 font-semibold">Audit</th>
+                  <th className="text-left px-2.5 py-1.5 ">Time</th>
+                  <th className="text-left px-2.5 py-1.5 ">Prompt</th>
+                  <th className="text-left px-2.5 py-1.5 ">Forced → routed</th>
+                  <th className="text-left px-2.5 py-1.5 ">Model</th>
+                  <th className="text-right px-2.5 py-1.5 ">Latency</th>
+                  <th className="text-left px-2.5 py-1.5 ">Audit</th>
                   {(["audit_notes", "contradiction", "poh_reference"] as const).map(colKey => {
                     const label = colKey === "audit_notes" ? "Notes" : colKey === "contradiction" ? "Contradiction" : "POH ref";
                     const info = sortInfo(colKey);
                     return (
-                      <th key={colKey} className="text-left px-2.5 py-1.5 font-semibold">
+                      <th key={colKey} className="text-left px-2.5 py-1.5 ">
                         <button
                           type="button"
                           onClick={(e) => toggleSort(colKey, e.shiftKey)}
@@ -990,7 +990,7 @@ const AdminOrchestratorTester = () => {
                       <td className="px-2.5 py-1.5 whitespace-nowrap">
                         <span className="text-muted-foreground">{h.forced_task}</span>
                         <span className="text-muted-foreground mx-1">→</span>
-                        <span className="text-foreground font-semibold">{h.routed_task}</span>
+                        <span className="text-foreground ">{h.routed_task}</span>
                       </td>
                       <td className="px-2.5 py-1.5 font-mono text-foreground/90 max-w-[200px] truncate" title={h.model}>
                         {h.model}
@@ -998,7 +998,7 @@ const AdminOrchestratorTester = () => {
                       <td className="px-2.5 py-1.5 text-right whitespace-nowrap text-foreground">
                         {h.latency_ms} ms
                       </td>
-                      <td className={`px-2.5 py-1.5 whitespace-nowrap font-semibold ${auditColor}`}>
+                      <td className={`px-2.5 py-1.5 whitespace-nowrap ${auditColor}`}>
                         {h.audit_status}
                         {h.audit_severity != null && ` · S${h.audit_severity}`}
                       </td>
@@ -1127,7 +1127,7 @@ const AdminOrchestratorTester = () => {
             return (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground ">
                     Full audit payload
                   </p>
                   <Button
@@ -1181,7 +1181,7 @@ const AdminOrchestratorTester = () => {
             <ScrollArea className="max-h-[65vh] pr-3">
               <div className="space-y-4">
                 <section>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
                     Prompt
                   </p>
                   <p className="text-xs text-foreground/90 whitespace-pre-wrap rounded-md border border-border bg-background/40 p-2.5">
@@ -1190,7 +1190,7 @@ const AdminOrchestratorTester = () => {
                 </section>
 
                 <section>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
                     Audit notes
                   </p>
                   {detailsEntry.audit_raw?.audit_notes ? (
@@ -1208,7 +1208,7 @@ const AdminOrchestratorTester = () => {
                 </section>
 
                 <section>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
                     Contradiction
                   </p>
                   {detailsEntry.audit_raw?.contradiction ? (
@@ -1221,7 +1221,7 @@ const AdminOrchestratorTester = () => {
                 </section>
 
                 <section>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
                     POH reference
                   </p>
                   {detailsEntry.audit_raw?.poh_reference ? (

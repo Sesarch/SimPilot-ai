@@ -119,7 +119,7 @@ const AdminEmailDashboard = () => {
   return (
     <div className="mt-10">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+        <h2 className="font-display text-lg text-foreground flex items-center gap-2">
           <Mail className="w-5 h-5 text-primary" /> Email Dashboard
         </h2>
         <div className="flex gap-2">
@@ -157,7 +157,7 @@ const AdminEmailDashboard = () => {
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-primary" />
             <div>
-              <p className="text-xl font-display font-bold text-foreground">{stats.total}</p>
+              <p className="text-xl font-display text-foreground">{stats.total}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</p>
             </div>
           </div>
@@ -166,7 +166,7 @@ const AdminEmailDashboard = () => {
           <div className="flex items-center gap-2">
             <Send className="w-4 h-4 text-green-500" />
             <div>
-              <p className="text-xl font-display font-bold text-foreground">{stats.sent}</p>
+              <p className="text-xl font-display text-foreground">{stats.sent}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sent</p>
             </div>
           </div>
@@ -175,7 +175,7 @@ const AdminEmailDashboard = () => {
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-red-500" />
             <div>
-              <p className="text-xl font-display font-bold text-foreground">{stats.failed}</p>
+              <p className="text-xl font-display text-foreground">{stats.failed}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed</p>
             </div>
           </div>
@@ -184,7 +184,7 @@ const AdminEmailDashboard = () => {
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-yellow-500" />
             <div>
-              <p className="text-xl font-display font-bold text-foreground">{stats.pending}</p>
+              <p className="text-xl font-display text-foreground">{stats.pending}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Pending</p>
             </div>
           </div>

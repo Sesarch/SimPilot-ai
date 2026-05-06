@@ -101,12 +101,12 @@ const ComparisonSection = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
-          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-4">
+          <span className="inline-block px-3 py-1 rounded-full text-[11px] tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-4">
             Why SimPilot.AI
           </span>
           <h2
             id="comparison-heading"
-            className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
+            className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground mb-4"
           >
             Not All AI Is Built to{" "}
             <span className="text-primary">Teach You to Fly</span>
@@ -130,14 +130,14 @@ const ComparisonSection = () => {
             <div />
             <div className="text-center">
               <div className="inline-flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 border border-primary/30">
-                <span className="font-display text-xs md:text-sm font-bold text-primary tracking-wide">
+                <span className="font-display text-xs md:text-sm text-primary tracking-wide">
                   SimPilot.AI
                 </span>
               </div>
             </div>
             <div className="text-center">
               <div className="inline-flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-secondary/60 border border-border/40">
-                <span className="font-display text-xs md:text-sm font-medium text-muted-foreground tracking-wide">
+                <span className="font-display text-xs md:text-sm text-muted-foreground tracking-wide">
                   General AI
                 </span>
               </div>
@@ -162,7 +162,7 @@ const ComparisonSection = () => {
                       <Icon className="w-4 h-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className="text-sm text-foreground">
                         {feature.label}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
@@ -205,13 +205,13 @@ const ComparisonSection = () => {
           >
             <p className="text-muted-foreground text-sm mb-4">
               General AI gives you answers.{" "}
-              <span className="text-primary font-semibold">
+              <span className="text-primary ">
                 SimPilot.AI teaches you to fly.
               </span>
             </p>
             <a
               href="#hero-chat"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
               title="Try SimPilot.AI flight training assistant for free"
             >
               <Zap className="w-4 h-4" />

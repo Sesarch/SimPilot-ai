@@ -111,7 +111,7 @@ const CookiePreferencesPage = () => {
           <div className="p-2 rounded-lg bg-primary/10 text-primary">
             <Cookie className="h-6 w-6" />
           </div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Cookie Preferences</h1>
+          <h1 className="font-display text-3xl text-foreground">Cookie Preferences</h1>
         </div>
 
         <p className="text-muted-foreground text-sm leading-relaxed mb-8">
@@ -130,7 +130,7 @@ const CookiePreferencesPage = () => {
               className="flex items-start justify-between gap-4 p-4 rounded-lg border border-border bg-card"
             >
               <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">{cat.label}</p>
+                <p className="text-sm text-foreground">{cat.label}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{cat.description}</p>
               </div>
               <Switch

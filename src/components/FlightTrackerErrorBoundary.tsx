@@ -27,7 +27,7 @@ class FlightTrackerErrorBoundary extends Component<Props, State> {
         <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-muted/30 rounded-lg border border-border p-8 text-center">
           <AlertTriangle className="h-10 w-10 text-amber-500" />
           <div>
-            <h3 className="text-base font-semibold text-foreground mb-1">Flight Tracker encountered an error</h3>
+            <h3 className="text-base text-foreground mb-1">Flight Tracker encountered an error</h3>
             <p className="text-sm text-muted-foreground">Something went wrong while rendering the map.</p>
           </div>
           <Button

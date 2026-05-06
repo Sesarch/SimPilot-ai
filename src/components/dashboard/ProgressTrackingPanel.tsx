@@ -26,10 +26,10 @@ const ProgressTrackingPanel = () => {
   return (
     <section className="g3000-bezel rounded-xl p-5 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-[14px] font-bold tracking-[0.22em] uppercase text-foreground">
+        <h2 className="font-display text-[14px] tracking-[0.22em] uppercase text-foreground">
           Progress Tracking
         </h2>
-        <span className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-muted-foreground">
+        <span className="font-display text-[11px] tracking-[0.18em] uppercase text-muted-foreground">
           {loading ? "—" : `${completedTopics}/${totalTopics} topics`}
         </span>
       </div>
@@ -44,10 +44,10 @@ const ProgressTrackingPanel = () => {
         <>
           <div className="mb-5">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-foreground/80">
+              <span className="font-display text-[11px] tracking-[0.18em] uppercase text-foreground/80">
                 Overall Curriculum
               </span>
-              <span className="font-display text-sm font-bold text-primary tabular-nums">
+              <span className="font-display text-sm text-primary tabular-nums">
                 {overallTopicPct}%
               </span>
             </div>
@@ -63,7 +63,7 @@ const ProgressTrackingPanel = () => {
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
-                      <span className="font-display text-[11px] font-semibold tracking-[0.16em] uppercase text-foreground/80">
+                      <span className="font-display text-[11px] tracking-[0.16em] uppercase text-foreground/80">
                         {label}
                       </span>
                     </div>
@@ -72,7 +72,7 @@ const ProgressTrackingPanel = () => {
                       <span className="text-xs text-muted-foreground tabular-nums">
                         {c.topicCompleted}/{c.topicTotal}
                       </span>
-                      <span className="text-xs font-semibold text-foreground tabular-nums w-9 text-right">
+                      <span className="text-xs text-foreground tabular-nums w-9 text-right">
                         {topicPct}%
                       </span>
                     </div>

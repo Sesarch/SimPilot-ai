@@ -168,12 +168,12 @@ const ProgressPage = () => {
             <TrendingUp className="w-6 h-6 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="font-display text-2xl font-bold text-foreground">Training Progress</h1>
+            <h1 className="font-display text-2xl text-foreground">Training Progress</h1>
             <p className="text-sm text-muted-foreground">Track your ground school and oral exam performance</p>
           </div>
           {streakCount >= 2 && streakResult && (
             <div
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-display font-bold uppercase tracking-wider shrink-0 ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-display uppercase tracking-wider shrink-0 ${
                 streakResult === "PASS"
                   ? "bg-primary/10 border-primary/40 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.2)]"
                   : "bg-destructive/10 border-destructive/40 text-destructive"
@@ -195,15 +195,15 @@ const ProgressPage = () => {
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="bg-gradient-card rounded-xl border border-border p-4 text-center">
-            <p className="text-3xl font-display font-bold text-primary">{completionPct}%</p>
+            <p className="text-3xl font-display text-primary">{completionPct}%</p>
             <p className="text-xs text-muted-foreground mt-1">Ground One-on-One</p>
           </div>
           <div className="bg-gradient-card rounded-xl border border-border p-4 text-center">
-            <p className="text-3xl font-display font-bold text-accent">{examScores.length}</p>
+            <p className="text-3xl font-display text-accent">{examScores.length}</p>
             <p className="text-xs text-muted-foreground mt-1">Exams Taken</p>
           </div>
           <div className="bg-gradient-card rounded-xl border border-border p-4 text-center sm:col-span-1 col-span-2">
-            <p className="text-3xl font-display font-bold text-foreground">{avgScore}%</p>
+            <p className="text-3xl font-display text-foreground">{avgScore}%</p>
             <p className="text-xs text-muted-foreground mt-1">Avg Score</p>
           </div>
         </div>
@@ -212,7 +212,7 @@ const ProgressPage = () => {
         <div>
           <div className="flex items-center gap-2 mb-4">
             <BookOpen className="w-5 h-5 text-primary" />
-            <h2 className="font-display text-lg font-semibold text-foreground">Ground One-on-One Topics</h2>
+            <h2 className="font-display text-lg text-foreground">Ground One-on-One Topics</h2>
           </div>
           <div className="mb-3">
             <Progress value={completionPct} className="h-2" />
@@ -239,7 +239,7 @@ const ProgressPage = () => {
                   )}
                   <span className="text-lg mr-2">{topic.icon}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${done ? "text-primary" : "text-foreground"}`}>
+                    <p className={`text-sm ${done ? "text-primary" : "text-foreground"}`}>
                       {topic.title}
                     </p>
                     <p className="text-xs text-muted-foreground">{topic.acs}</p>
@@ -254,7 +254,7 @@ const ProgressPage = () => {
         <div>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-accent" />
-            <h2 className="font-display text-lg font-semibold text-foreground">Score Trend</h2>
+            <h2 className="font-display text-lg text-foreground">Score Trend</h2>
           </div>
           {examScores.length < 2 ? (
             <div className="bg-gradient-card rounded-xl border border-border p-8 text-center">
@@ -309,7 +309,7 @@ const ProgressPage = () => {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <ShieldCheck className="w-5 h-5 text-primary" />
-                <h2 className="font-display text-lg font-semibold text-foreground">Checkride Readiness History</h2>
+                <h2 className="font-display text-lg text-foreground">Checkride Readiness History</h2>
               </div>
               <div className="space-y-3">
                 {checkrides.map((exam) => {
@@ -345,7 +345,7 @@ const ProgressPage = () => {
                               >
                                 {exam.result}
                               </Badge>
-                              <span className="font-display text-lg font-bold text-foreground tabular-nums">
+                              <span className="font-display text-lg text-foreground tabular-nums">
                                 {pct}%
                               </span>
                               <span className="text-xs text-muted-foreground">
@@ -397,7 +397,7 @@ const ProgressPage = () => {
                                   },
                                 })
                               }
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-primary/40 bg-primary/10 text-primary text-xs font-display font-semibold uppercase tracking-wider hover:bg-primary/20 hover:border-primary/60 transition-colors"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-primary/40 bg-primary/10 text-primary text-xs font-display uppercase tracking-wider hover:bg-primary/20 hover:border-primary/60 transition-colors"
                               title="Start a new oral exam with the same Stress Mode and timer length"
                             >
                               <RotateCcw className="w-3 h-3" />
@@ -409,7 +409,7 @@ const ProgressPage = () => {
 
                       {acsCodes.length > 0 && (
                         <div>
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
                             ACS Codes Flagged for Review
                             <span className="ml-1.5 normal-case font-normal opacity-70">— hover for task name, click to drill</span>
                           </p>
@@ -446,7 +446,7 @@ const ProgressPage = () => {
         <div>
           <div className="flex items-center gap-2 mb-4">
             <Award className="w-5 h-5 text-accent" />
-            <h2 className="font-display text-lg font-semibold text-foreground">Exam &amp; Drill History</h2>
+            <h2 className="font-display text-lg text-foreground">Exam &amp; Drill History</h2>
           </div>
           {examScores.length === 0 ? (
             <div className="bg-gradient-card rounded-xl border border-border p-8 text-center">
@@ -468,12 +468,12 @@ const ProgressPage = () => {
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
                       isPassing ? "bg-primary/20" : "bg-destructive/20"
                     }`}>
-                      <span className={`text-sm font-bold ${isPassing ? "text-primary" : "text-destructive"}`}>
+                      <span className={`text-sm ${isPassing ? "text-primary" : "text-destructive"}`}>
                         {pct}%
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm text-foreground">
                         {EXAM_TYPE_LABELS[exam.exam_type] || exam.exam_type}
                       </p>
                       <p className="text-xs text-muted-foreground">

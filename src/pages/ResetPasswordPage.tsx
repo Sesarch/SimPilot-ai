@@ -54,7 +54,7 @@ const ResetPasswordPage = () => {
         </Link>
 
         <div className="bg-gradient-card rounded-xl border border-border p-8">
-          <h1 className="font-display text-xl font-bold text-foreground text-center mb-2">
+          <h1 className="font-display text-xl text-foreground text-center mb-2">
             Set New Password
           </h1>
 
@@ -96,7 +96,7 @@ const ResetPasswordPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-primary text-primary-foreground font-display text-sm font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-50"
+                className="w-full py-2.5 bg-primary text-primary-foreground font-display text-sm tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-50"
               >
                 {loading ? "Updating..." : "Update Password"}
               </button>

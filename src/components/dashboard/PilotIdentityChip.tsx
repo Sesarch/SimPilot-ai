@@ -72,16 +72,16 @@ const PilotIdentityChip = () => {
             {profile?.avatar_url ? (
               <AvatarImage src={profile.avatar_url} alt={callsign} />
             ) : null}
-            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/10 text-[11px] font-display font-bold tracking-wider text-primary">
+            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/10 text-[11px] font-display tracking-wider text-primary">
               {initials || <User className="w-4 h-4" />}
             </AvatarFallback>
           </Avatar>
           <div className="hidden min-w-0 flex-col justify-center gap-0.5 sm:flex">
-            <span className="max-w-[160px] truncate font-display text-[12px] font-semibold leading-none tracking-[0.16em] uppercase text-foreground">
+            <span className="max-w-[160px] truncate font-display text-[12px] leading-none tracking-[0.16em] uppercase text-foreground">
               {callsign}
             </span>
             <span
-              className="max-w-[160px] truncate font-display text-[10px] font-semibold leading-none tracking-[0.18em] uppercase text-muted-foreground"
+              className="max-w-[160px] truncate font-display text-[10px] leading-none tracking-[0.18em] uppercase text-muted-foreground"
               style={{ color: "hsl(var(--amber-instrument))" }}
             >
               {cert}

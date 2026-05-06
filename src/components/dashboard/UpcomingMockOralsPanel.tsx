@@ -138,7 +138,7 @@ const UpcomingMockOralsPanel = () => {
   return (
     <section className="g3000-bezel rounded-xl p-5 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-[14px] font-bold tracking-[0.22em] uppercase text-foreground">
+        <h2 className="font-display text-[14px] tracking-[0.22em] uppercase text-foreground">
           Upcoming Mock Orals
         </h2>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -231,7 +231,7 @@ const UpcomingMockOralsPanel = () => {
           </p>
           <Link
             to="/oral-exam"
-            className="font-display text-[11px] font-semibold tracking-[0.18em] uppercase text-primary hover:underline inline-flex items-center gap-1"
+            className="font-display text-[11px] tracking-[0.18em] uppercase text-primary hover:underline inline-flex items-center gap-1"
           >
             Or start one now <ArrowRight className="w-3 h-3" />
           </Link>
@@ -248,21 +248,21 @@ const UpcomingMockOralsPanel = () => {
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="flex-shrink-0 w-12 text-center">
-                    <div className="font-display text-[10px] font-semibold tracking-[0.14em] uppercase text-primary">
+                    <div className="font-display text-[10px] tracking-[0.14em] uppercase text-primary">
                       {format(date, "MMM")}
                     </div>
-                    <div className="text-xl font-bold text-foreground tabular-nums leading-none">
+                    <div className="text-xl text-foreground tabular-nums leading-none">
                       {format(date, "d")}
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-foreground truncate">
+                    <div className="text-sm text-foreground truncate">
                       {examLabel}
                       {s.focus_area ? <span className="text-muted-foreground font-normal"> · {s.focus_area}</span> : null}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {format(date, "EEE")} · {format(date, "h:mm a")}
-                      {isToday(date) ? <span className="ml-2 text-accent font-semibold">Today</span> : null}
+                      {isToday(date) ? <span className="ml-2 text-accent ">Today</span> : null}
                     </div>
                     {s.notes ? <div className="text-xs text-muted-foreground/80 truncate mt-0.5">{s.notes}</div> : null}
                   </div>

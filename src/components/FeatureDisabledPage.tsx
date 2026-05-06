@@ -8,7 +8,7 @@ const FeatureDisabledPage = ({ feature }: { feature: string }) => (
     <Navbar />
     <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
       <Ban className="w-14 h-14 text-muted-foreground mb-5" />
-      <h1 className="font-display text-2xl font-bold text-foreground mb-2">
+      <h1 className="font-display text-2xl text-foreground mb-2">
         {feature} is Temporarily Unavailable
       </h1>
       <p className="text-muted-foreground max-w-md mb-6">

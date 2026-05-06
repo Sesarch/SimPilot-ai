@@ -48,7 +48,7 @@ const glowTooltip = (
   collapsed: boolean,
 ) => ({
   children: (
-    <span className="block font-display text-[11px] leading-snug font-semibold tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))] [overflow-wrap:anywhere] [hyphens:auto]">
+    <span className="block font-display text-[11px] leading-snug tracking-[0.18em] uppercase text-white drop-shadow-[0_0_6px_hsl(var(--accent))] [overflow-wrap:anywhere] [hyphens:auto]">
       {label}
     </span>
   ),
@@ -101,7 +101,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="font-display text-[11px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+          <SidebarGroupLabel className="font-display text-[11px] tracking-[0.22em] text-muted-foreground uppercase">
             {!collapsed && "Avionics"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -122,7 +122,7 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end={item.url === "/dashboard"}
-                        className="flex items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase"
+                        className="flex items-center gap-3 font-display text-[13px] tracking-[0.1em] uppercase"
                         activeClassName="text-accent"
                       >
                         <item.icon className="w-[18px] h-[18px] shrink-0" />
@@ -148,7 +148,7 @@ export function AppSidebar() {
                     tooltip={tip(`${bridgeItem.title} — Coming soon!`)}
                     className="h-10 cursor-not-allowed opacity-100 hover:bg-transparent hover:text-current"
                   >
-                    <div className="flex w-full items-center gap-3 font-display text-[13px] font-semibold tracking-[0.1em] uppercase">
+                    <div className="flex w-full items-center gap-3 font-display text-[13px] tracking-[0.1em] uppercase">
                       <bridgeItem.icon className="w-[18px] h-[18px] shrink-0" />
                       {!collapsed && <span>{bridgeItem.title}</span>}
                     </div>
@@ -174,7 +174,7 @@ export function AppSidebar() {
                 navigate("/");
               }}
               tooltip={tip("Sign Out")}
-              className="h-10 font-display text-[13px] font-semibold tracking-[0.1em] uppercase text-muted-foreground hover:text-destructive"
+              className="h-10 font-display text-[13px] tracking-[0.1em] uppercase text-muted-foreground hover:text-destructive"
             >
               <LogOut className="w-[18px] h-[18px] shrink-0" />
               {!collapsed && <span>Sign Out</span>}

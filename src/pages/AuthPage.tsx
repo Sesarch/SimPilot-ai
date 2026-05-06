@@ -158,7 +158,7 @@ const AuthPage = () => {
         <AuthBrand />
 
         <div className="bg-gradient-card rounded-xl border border-border p-8">
-          <h1 className="font-display text-xl font-bold text-foreground text-center mb-2 tracking-wide">
+          <h1 className="font-display text-xl text-foreground text-center mb-2 tracking-wide">
             {isLogin ? "Welcome Back" : "Join SimPilot"}
           </h1>
           <p className="text-sm text-muted-foreground text-center mb-6">
@@ -196,7 +196,7 @@ const AuthPage = () => {
               {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline font-medium"
+                className="text-primary hover:underline "
               >
                 {isLogin ? (settings.signup_enabled ? "Sign up" : "Sign up (disabled)") : "Sign in"}
               </button>

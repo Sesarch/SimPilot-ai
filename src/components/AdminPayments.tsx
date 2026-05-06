@@ -223,7 +223,7 @@ const AdminPayments = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold flex items-center gap-2">
+        <h2 className="font-display text-lg flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-primary" /> Payments & Revenue
         </h2>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
@@ -244,7 +244,7 @@ const AdminPayments = () => {
       {metrics && (
         <div className="bg-card/50 border border-border rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-display text-sm font-semibold">30-Day Subscription Flow</h3>
+            <h3 className="font-display text-sm ">30-Day Subscription Flow</h3>
             <div className="flex gap-3 text-xs">
               <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-green-500" />New: {metrics.new_last_30d}</span>
               <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-destructive" />Lost: {metrics.canceled_last_30d}</span>
@@ -464,7 +464,7 @@ const MetricCard = ({ label, value, icon, accent }: { label: string; value: Reac
     <div className="flex items-center justify-between mb-1 text-muted-foreground">
       <span className="text-xs uppercase tracking-wider">{label}</span>{icon}
     </div>
-    <p className="text-2xl font-display font-bold text-foreground">{value}</p>
+    <p className="text-2xl font-display text-foreground">{value}</p>
   </div>
 );
 

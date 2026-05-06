@@ -79,7 +79,7 @@ const ForSchoolsPage = () => {
               <GraduationCap className="h-3.5 w-3.5 text-accent" />
               <span className="text-xs font-display tracking-widest uppercase text-accent">For Flight Schools</span>
             </div>
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground tracking-wide mb-4">
+            <h1 className="font-display text-3xl md:text-5xl text-foreground tracking-wide mb-4">
               Equip your <span className="text-accent">entire student body</span>
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -96,10 +96,10 @@ const ForSchoolsPage = () => {
               { n: 3, title: "Students self-register", desc: "Each student creates their own account using their code." },
             ].map((s) => (
               <div key={s.n} className="bg-secondary/30 border border-border rounded-lg p-5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent text-accent-foreground font-bold mb-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent text-accent-foreground mb-3">
                   {s.n}
                 </div>
-                <h3 className="font-display font-semibold mb-1">{s.title}</h3>
+                <h3 className="font-display mb-1">{s.title}</h3>
                 <p className="text-sm text-muted-foreground">{s.desc}</p>
               </div>
             ))}
@@ -109,7 +109,7 @@ const ForSchoolsPage = () => {
           <div className="grid md:grid-cols-2 gap-8 items-start">
             {/* Calculator card */}
             <div className="bg-card border border-border rounded-xl p-6">
-              <h2 className="font-display text-xl font-bold mb-1">Bulk Discount Tiers</h2>
+              <h2 className="font-display text-xl mb-1">Bulk Discount Tiers</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 Volume discounts are applied automatically.
               </p>
@@ -120,9 +120,9 @@ const ForSchoolsPage = () => {
                   { range: "26+ seats", off: "25% off", per: "$74.25/seat" },
                 ].map((t) => (
                   <div key={t.range} className="flex items-center justify-between p-3 rounded-md bg-secondary/40 border border-border/50">
-                    <span className="text-sm font-medium">{t.range}</span>
+                    <span className="text-sm ">{t.range}</span>
                     <div className="text-right">
-                      <div className="text-xs text-accent font-semibold">{t.off}</div>
+                      <div className="text-xs text-accent ">{t.off}</div>
                       <div className="text-xs text-muted-foreground">{t.per}</div>
                     </div>
                   </div>
@@ -139,13 +139,13 @@ const ForSchoolsPage = () => {
 
             {/* Checkout form */}
             <form onSubmit={handleCheckout} className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h2 className="font-display text-xl font-bold mb-1">Get Your Quote</h2>
+              <h2 className="font-display text-xl mb-1">Get Your Quote</h2>
               <p className="text-sm text-muted-foreground mb-2">
                 Instant checkout — codes delivered immediately.
               </p>
 
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">School Name</label>
+                <label className="text-xs uppercase tracking-wider text-muted-foreground mb-1 block">School Name</label>
                 <input
                   type="text"
                   required
@@ -157,7 +157,7 @@ const ForSchoolsPage = () => {
               </div>
 
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">Contact Name (Optional)</label>
+                <label className="text-xs uppercase tracking-wider text-muted-foreground mb-1 block">Contact Name (Optional)</label>
                 <input
                   type="text"
                   value={contactName}
@@ -168,7 +168,7 @@ const ForSchoolsPage = () => {
               </div>
 
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">Contact Email (Receipt + Codes)</label>
+                <label className="text-xs uppercase tracking-wider text-muted-foreground mb-1 block">Contact Email (Receipt + Codes)</label>
                 <input
                   type="email"
                   required
@@ -180,7 +180,7 @@ const ForSchoolsPage = () => {
               </div>
 
               <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">
+                <label className="text-xs uppercase tracking-wider text-muted-foreground mb-1 block">
                   Number of Students
                 </label>
                 <div className="flex items-center gap-3">
@@ -216,7 +216,7 @@ const ForSchoolsPage = () => {
                     <span>−${pricing.discountAmount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-display font-bold text-lg pt-2 border-t border-border">
+                <div className="flex justify-between font-display text-lg pt-2 border-t border-border">
                   <span>Total</span>
                   <span>${pricing.total.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">USD / year</span></span>
                 </div>
@@ -228,7 +228,7 @@ const ForSchoolsPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-accent text-accent-foreground font-display font-semibold tracking-widest uppercase rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-accent text-accent-foreground font-display tracking-widest uppercase rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Users className="h-4 w-4" />}
                 {loading ? "Redirecting…" : "Continue to Checkout"}
@@ -241,7 +241,7 @@ const ForSchoolsPage = () => {
 
           {/* FAQ */}
           <div className="mt-16 max-w-3xl mx-auto">
-            <h2 className="font-display text-2xl font-bold text-center mb-6">Common Questions</h2>
+            <h2 className="font-display text-2xl text-center mb-6">Common Questions</h2>
             <div className="space-y-3">
               {[
                 { q: "Do students get their own accounts?", a: "Yes — every student creates their own login with their own email and password. Their progress, logbook, and exam history belong to them." },
@@ -251,7 +251,7 @@ const ForSchoolsPage = () => {
                 { q: "Need an invoice / PO for accounting?", a: "Stripe automatically issues a tax-compliant invoice to your contact email. For purchase orders or wire transfer, contact us first." },
               ].map((f) => (
                 <details key={f.q} className="group bg-card border border-border rounded-lg p-4">
-                  <summary className="cursor-pointer font-medium text-foreground group-open:text-accent">{f.q}</summary>
+                  <summary className="cursor-pointer text-foreground group-open:text-accent">{f.q}</summary>
                   <p className="mt-2 text-sm text-muted-foreground">{f.a}</p>
                 </details>
               ))}

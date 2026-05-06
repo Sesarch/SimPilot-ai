@@ -141,12 +141,12 @@ const HeroChatBox = () => {
         <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
           <Bot className="w-3.5 h-3.5 text-primary" />
         </div>
-        <p className="font-display text-[11px] font-semibold tracking-widest uppercase text-primary">
+        <p className="font-display text-[11px] tracking-widest uppercase text-primary">
           SimPilot AI — Try it now
         </p>
         <div className="ml-auto flex items-center gap-2">
           {limit.remaining <= 3 && limit.remaining > 0 && (
-            <span className="text-[10px] text-accent font-medium">
+            <span className="text-[10px] text-accent ">
               {limit.remaining} msg{limit.remaining !== 1 ? "s" : ""} left
             </span>
           )}

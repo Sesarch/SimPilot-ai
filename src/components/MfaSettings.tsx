@@ -139,7 +139,7 @@ const MfaSettings = () => {
       <div className="flex items-start gap-3">
         <Shield className="w-5 h-5 text-primary mt-0.5" />
         <div>
-          <h2 className="font-display text-lg font-bold tracking-wide">Two-Factor Authentication</h2>
+          <h2 className="font-display text-lg tracking-wide">Two-Factor Authentication</h2>
           <p className="text-sm text-muted-foreground">
             {status.isAdmin
               ? "Required for your admin account."
@@ -161,7 +161,7 @@ const MfaSettings = () => {
           <div className="flex items-center gap-3">
             <Smartphone className="w-4 h-4 text-primary" />
             <div>
-              <p className="text-sm font-semibold">Authenticator app</p>
+              <p className="text-sm ">Authenticator app</p>
               <p className="text-xs text-muted-foreground">Google Authenticator, 1Password, Authy</p>
             </div>
           </div>
@@ -212,7 +212,7 @@ const MfaSettings = () => {
           <div className="flex items-center gap-3">
             <Mail className="w-4 h-4 text-primary" />
             <div>
-              <p className="text-sm font-semibold">Email codes</p>
+              <p className="text-sm ">Email codes</p>
               <p className="text-xs text-muted-foreground">6-digit code sent to your email</p>
             </div>
           </div>
@@ -250,7 +250,7 @@ const MfaSettings = () => {
           <div className="flex items-center gap-3">
             <KeyRound className="w-4 h-4 text-primary" />
             <div>
-              <p className="text-sm font-semibold">Recovery codes</p>
+              <p className="text-sm ">Recovery codes</p>
               <p className="text-xs text-muted-foreground">{status.recovery_codes_count} unused codes</p>
             </div>
           </div>

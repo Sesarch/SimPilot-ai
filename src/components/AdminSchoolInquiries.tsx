@@ -124,7 +124,7 @@ const AdminSchoolInquiries = () => {
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-primary" />
-          <h2 className="font-display text-sm font-semibold text-foreground tracking-wider uppercase">
+          <h2 className="font-display text-sm text-foreground tracking-wider uppercase">
             Flight School Inquiries
           </h2>
           {newCount > 0 && (
@@ -155,7 +155,7 @@ const AdminSchoolInquiries = () => {
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-display text-base font-semibold text-foreground">
+                    <h3 className="font-display text-base text-foreground">
                       {inq.school_name}
                     </h3>
                     <Badge className={`text-[10px] ${statusVariant(inq.status)}`}>

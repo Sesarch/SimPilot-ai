@@ -79,7 +79,7 @@ const SignUpForm = ({ onSubmit, loading }: Props) => {
       <button
         type="submit"
         disabled={loading || !agreedToTerms}
-        className="w-full py-2.5 bg-primary text-primary-foreground font-display text-sm font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-50"
+        className="w-full py-2.5 bg-primary text-primary-foreground font-display text-sm tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-50"
       >
         {loading ? "Processing..." : "Create Account"}
       </button>

@@ -55,7 +55,7 @@ const NewsletterSection = () => {
           <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">
             Stay in the Loop
           </p>
-          <h2 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-3">
+          <h2 className="font-display text-2xl md:text-4xl text-foreground mb-3">
             Pilot <span className="text-primary text-glow-cyan">Briefings</span>
           </h2>
           <p className="text-muted-foreground text-sm md:text-base mb-8 leading-relaxed">
@@ -77,12 +77,12 @@ const NewsletterSection = () => {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 h-11 rounded border border-primary/40 bg-background/80 px-4 text-sm font-medium text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="flex-1 h-11 rounded border border-primary/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="h-11 px-6 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="h-11 px-6 bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase rounded border border-primary/50 hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
                 Subscribe

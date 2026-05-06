@@ -92,7 +92,7 @@ const LeadCaptureSection = () => {
     <section id="get-in-touch" className="py-20 bg-background">
       <div className="container mx-auto px-6 max-w-5xl">
         <div className="text-center mb-10">
-          <h2 className="font-orbitron text-3xl md:text-4xl font-bold text-foreground mb-3">
+          <h2 className="font-orbitron text-3xl md:text-4xl text-foreground mb-3">
             Talk to SimPilot.AI
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -104,7 +104,7 @@ const LeadCaptureSection = () => {
           {done ? (
             <div className="flex flex-col items-center text-center py-10">
               <CheckCircle2 className="h-12 w-12 text-primary mb-4" />
-              <h3 className="font-orbitron text-2xl font-semibold mb-2">Thanks — we got it.</h3>
+              <h3 className="font-orbitron text-2xl mb-2">Thanks — we got it.</h3>
               <p className="text-muted-foreground max-w-md">
                 Our team will follow up shortly. In the meantime, explore the platform or finish a more detailed intake.
               </p>
@@ -127,7 +127,7 @@ const LeadCaptureSection = () => {
                 >
                   <Plane className="h-5 w-5 text-primary" />
                   <div>
-                    <div className="font-medium text-sm">Individual Pilot</div>
+                    <div className="text-sm">Individual Pilot</div>
                     <div className="text-xs text-muted-foreground">Student or rated</div>
                   </div>
                 </button>
@@ -143,7 +143,7 @@ const LeadCaptureSection = () => {
                 >
                   <GraduationCap className="h-5 w-5 text-primary" />
                   <div>
-                    <div className="font-medium text-sm">Flight School</div>
+                    <div className="text-sm">Flight School</div>
                     <div className="text-xs text-muted-foreground">Onboard students</div>
                   </div>
                 </button>

@@ -39,7 +39,7 @@ export default function PlanDetailsDrawer({ plan, open, onOpenChange, onSubscrib
             )}
           </div>
           <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-bold text-foreground">{formatPrice(plan.amount, plan.currency)}</span>
+            <span className="text-3xl text-foreground">{formatPrice(plan.amount, plan.currency)}</span>
             <span className="text-sm text-muted-foreground">{intervalLabel}</span>
           </div>
           {plan.tagline && (
@@ -50,7 +50,7 @@ export default function PlanDetailsDrawer({ plan, open, onOpenChange, onSubscrib
         <div className="mt-6 space-y-6">
           {plan.description && (
             <section>
-              <h4 className="font-display text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+              <h4 className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-2">
                 Description
               </h4>
               <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
@@ -61,7 +61,7 @@ export default function PlanDetailsDrawer({ plan, open, onOpenChange, onSubscrib
 
           {plan.features.length > 0 && (
             <section>
-              <h4 className="font-display text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+              <h4 className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-2">
                 What's included
               </h4>
               <ul className="space-y-2">
@@ -77,7 +77,7 @@ export default function PlanDetailsDrawer({ plan, open, onOpenChange, onSubscrib
 
           {extraMeta.length > 0 && (
             <section>
-              <h4 className="font-display text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+              <h4 className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-2">
                 Plan details
               </h4>
               <dl className="grid grid-cols-1 gap-2 text-sm rounded-lg border border-border bg-card/30 p-3">
@@ -92,7 +92,7 @@ export default function PlanDetailsDrawer({ plan, open, onOpenChange, onSubscrib
           )}
 
           <section>
-            <h4 className="font-display text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+            <h4 className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-2">
               Billing
             </h4>
             <dl className="grid grid-cols-1 gap-2 text-sm rounded-lg border border-border bg-card/30 p-3">
@@ -119,8 +119,8 @@ export default function PlanDetailsDrawer({ plan, open, onOpenChange, onSubscrib
             onClick={() => onSubscribe(plan)}
             disabled={loading}
             className={plan.highlighted
-              ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-semibold"
-              : "w-full font-semibold"}
+              ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background "
+              : "w-full "}
             variant={plan.highlighted ? "default" : "outline"}
           >
             {loading ? (

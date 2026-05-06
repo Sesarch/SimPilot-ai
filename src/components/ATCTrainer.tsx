@@ -2532,7 +2532,7 @@ ${transcript}`;
                   />
                   <div className="flex items-baseline gap-1.5 leading-none">
                     <span
-                      className="font-display text-2xl font-bold tabular-nums"
+                      className="font-display text-2xl tabular-nums"
                       style={{ color: accent, textShadow: `0 0 10px ${accent}cc, 0 0 2px ${accent}` }}
                     >
                       {streak}
@@ -2542,7 +2542,7 @@ ${transcript}`;
                     </span>
                   </div>
                   <div className="flex flex-col items-end leading-none gap-0.5 border-l pl-2" style={{ borderColor: `${accent}33` }}>
-                    <span className="font-display text-[9px] tracking-[0.2em] uppercase font-semibold" style={{ color: accent }}>
+                    <span className="font-display text-[9px] tracking-[0.2em] uppercase " style={{ color: accent }}>
                       {tierLabel}
                     </span>
                     <span className="font-display text-[8px] tracking-[0.2em] uppercase text-muted-foreground/80">
@@ -2756,7 +2756,7 @@ ${transcript}`;
               {guidedScenariosEnabled && (
               <div className="border-t border-border pt-4">
                 <div className="text-center mb-4 space-y-2 sm:space-y-2.5 px-3 sm:px-4">
-                  <div className="font-display text-xs sm:text-sm md:text-base tracking-[0.2em] sm:tracking-[0.3em] uppercase text-foreground/90 font-medium leading-snug sm:leading-relaxed">
+                  <div className="font-display text-xs sm:text-sm md:text-base tracking-[0.2em] sm:tracking-[0.3em] uppercase text-foreground/90 leading-snug sm:leading-relaxed">
                     Or pick a guided scenario
                   </div>
                   <div className="text-sm sm:text-base md:text-lg text-foreground font-normal leading-snug sm:leading-relaxed tracking-normal sm:tracking-wide max-w-[18rem] sm:max-w-md mx-auto text-balance">
@@ -2782,7 +2782,7 @@ ${transcript}`;
                         title={s.description}
                       >
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <span className="font-display text-[11px] tracking-[0.2em] uppercase text-foreground font-semibold group-hover:text-primary">
+                          <span className="font-display text-[11px] tracking-[0.2em] uppercase text-foreground group-hover:text-primary">
                             {s.label}
                           </span>
                           {isLast && (
@@ -2819,7 +2819,7 @@ ${transcript}`;
                         🎓
                       </div>
                       <div className="min-w-0">
-                        <div className="font-display text-[11px] tracking-[0.25em] uppercase text-primary font-bold">
+                        <div className="font-display text-[11px] tracking-[0.25em] uppercase text-primary ">
                           Switch to Checkride Oral Exam
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
@@ -3377,7 +3377,7 @@ ${transcript}`;
                       </span>
                       <span
                         className={cn(
-                          "font-display text-[14px] font-bold tracking-[0.18em] uppercase rounded px-2 py-0.5 border",
+                          "font-display text-[14px] tracking-[0.18em] uppercase rounded px-2 py-0.5 border",
                           tunedToAtis
                             ? "border-sky-500/60 text-sky-500 bg-sky-500/10"
                             : "border-border text-foreground",
@@ -3606,12 +3606,12 @@ ${transcript}`;
                 <div className="flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 shrink-0 text-destructive mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-display text-[11px] tracking-[0.3em] uppercase text-destructive font-bold">
+                    <div className="font-display text-[11px] tracking-[0.3em] uppercase text-destructive ">
                       Transmissions Blocked
                     </div>
                     <div className="mt-1 text-sm text-foreground">
                       {fac ? (
-                        <>You're tuned to <span className="font-mono tabular-nums">{formatFreq(parseFloat(activeFreq))}</span> — <span className="font-semibold">{fac.kind}</span> is a one-way broadcast. Switch to a two-way controller to talk.</>
+                        <>You're tuned to <span className="font-mono tabular-nums">{formatFreq(parseFloat(activeFreq))}</span> — <span className="">{fac.kind}</span> is a one-way broadcast. Switch to a two-way controller to talk.</>
                       ) : (
                         <>You're tuned to <span className="font-mono tabular-nums">{formatFreq(parseFloat(activeFreq))}</span> — no published station at {liveAirport.icao}. ATC will not respond.</>
                       )}
@@ -3674,11 +3674,11 @@ ${transcript}`;
                 <div className="flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-display text-[11px] tracking-[0.3em] uppercase text-amber-500 font-bold">
+                    <div className="font-display text-[11px] tracking-[0.3em] uppercase text-amber-500 ">
                       Frequency Mismatch
                     </div>
                     <div className="mt-1 text-sm text-foreground">
-                      You're calling <span className="font-semibold">{wantNice}</span> on a <span className="font-semibold">{haveNice}</span> frequency
+                      You're calling <span className="">{wantNice}</span> on a <span className="">{haveNice}</span> frequency
                       (<span className="font-mono tabular-nums">{formatFreq(parseFloat(activeFreq))}</span>).
                       {expectedFac
                         ? <> Tune <span className="font-mono tabular-nums">{formatFreq(expectedFac.freq)}</span> for {expectedFac.name}.</>
@@ -3790,7 +3790,7 @@ ${transcript}`;
                     Phraseology Score
                   </div>
                   <div className={cn(
-                    "font-display text-base font-bold tracking-wider",
+                    "font-display text-base tracking-wider",
                     phraseologyScore.result === "PASS" ? "text-[hsl(var(--hud-green))]" : "text-destructive",
                   )}>
                     {phraseologyScore.score}/{phraseologyScore.total} · {phraseologyScore.result}
@@ -3842,7 +3842,7 @@ ${transcript}`;
                 <ul className="space-y-1">
                   {phraseologyScore.weak_areas.map((w, i) => (
                     <li key={i} className="text-xs text-foreground/90">
-                      <span className="font-semibold text-accent">{w.category}:</span>{" "}
+                      <span className="text-accent">{w.category}:</span>{" "}
                       <span>{w.issue}</span>
                       {w.example && (
                         <span className="block text-[11px] text-muted-foreground font-mono mt-0.5">
@@ -3904,7 +3904,7 @@ ${transcript}`;
                   Microphone Required
                 </div>
                 <p className="text-[11px] leading-relaxed text-muted-foreground">
-                  ATC Trainer needs your mic for push-to-talk. When you press PTT, your browser will ask for permission — click <span className="text-foreground font-medium">Allow</span>.
+                  ATC Trainer needs your mic for push-to-talk. When you press PTT, your browser will ask for permission — click <span className="text-foreground ">Allow</span>.
                 </p>
                 <p className="text-[10px] leading-relaxed text-muted-foreground/80">
                   If blocked, click the 🔒 icon in your address bar → set Microphone to <span className="text-foreground">Allow</span> → reload.
@@ -4629,7 +4629,7 @@ const G3000ComRadio = ({
             </span>
           </div>
           <div
-            className="font-mono font-bold tabular-nums leading-none text-[hsl(var(--cyan-glow))] text-3xl sm:text-4xl tracking-wider"
+            className="font-mono tabular-nums leading-none text-[hsl(var(--cyan-glow))] text-3xl sm:text-4xl tracking-wider"
             style={{ textShadow: "0 0 12px hsl(var(--cyan-glow) / 0.55)" }}
           >
             {active}
@@ -4642,7 +4642,7 @@ const G3000ComRadio = ({
             Status
           </span>
           <span
-            className="font-display text-xs tracking-[0.25em] uppercase font-bold"
+            className="font-display text-xs tracking-[0.25em] uppercase "
             style={{
               color: statusColor,
               textShadow: ptt || speaking ? `0 0 8px ${statusColor}` : "none",
@@ -4680,7 +4680,7 @@ const G3000ComRadio = ({
           </div>
           <div
             className={cn(
-              "font-mono font-bold tabular-nums leading-none text-foreground/90 text-xl sm:text-2xl tracking-wider transition-opacity",
+              "font-mono tabular-nums leading-none text-foreground/90 text-xl sm:text-2xl tracking-wider transition-opacity",
               swapping && "opacity-40",
             )}
             style={{ textShadow: "0 0 6px rgba(255,255,255,0.15)" }}

@@ -115,7 +115,7 @@ const AdminAuditLog = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold flex items-center gap-2">
+        <h2 className="font-display text-lg flex items-center gap-2">
           <ScrollText className="w-5 h-5 text-primary" /> Audit Log
           <Badge variant="secondary" className="text-xs ml-2">
             {filtered.length}{filtered.length !== entries.length ? ` / ${entries.length}` : ""}
