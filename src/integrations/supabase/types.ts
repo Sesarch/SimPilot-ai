@@ -246,6 +246,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_otp_challenges: {
+        Row: {
+          attempts: number
+          code_hash: string
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          used: boolean
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose?: string
+          used?: boolean
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          used?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -1326,6 +1359,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_mfa_settings: {
+        Row: {
+          created_at: string
+          email_otp_enabled: boolean
+          preferred_method: string
+          recovery_codes_generated_at: string | null
+          recovery_codes_hashed: string[]
+          totp_enrolled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_otp_enabled?: boolean
+          preferred_method?: string
+          recovery_codes_generated_at?: string | null
+          recovery_codes_hashed?: string[]
+          totp_enrolled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_otp_enabled?: boolean
+          preferred_method?: string
+          recovery_codes_generated_at?: string | null
+          recovery_codes_hashed?: string[]
+          totp_enrolled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1455,6 +1521,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      user_requires_mfa: { Args: { _user_id: string }; Returns: boolean }
       validate_seat_code: {
         Args: { _code: string }
         Returns: {
