@@ -100,6 +100,7 @@ const App = () => (
               <Route path="/for-schools" element={<ForSchoolsPage />} />
               <Route path="/for-schools/success" element={<ForSchoolsSuccessPage />} />
               <Route path="/intake" element={<IntakePage />} />
+              <Route path="/theme-qa" element={<ThemeQAPage />} />
               <Route path="/admin" element={<MfaGate requireMfa><AdminPage /></MfaGate>} />
               <Route path="/mfa" element={<MfaChallengePage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
