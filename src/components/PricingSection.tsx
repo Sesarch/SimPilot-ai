@@ -97,6 +97,28 @@ const PricingSection = () => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  // Visual QA mode — toggle with Alt+Shift+Q (or ?qa=1 in URL).
+  // Renders z-index labels on each card, outlines the badge, and lets you
+  // force-hover and reduced-motion to inspect layering interactions.
+  const [qaMode, setQaMode] = useState(false);
+  const [qaForceHover, setQaForceHover] = useState(false);
+  const [qaReducedMotion, setQaReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("qa") === "1") {
+      setQaMode(true);
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey && e.shiftKey && (e.key === "Q" || e.key === "q")) {
+        e.preventDefault();
+        setQaMode((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const handleCtaClick = async (plan: typeof plans[number]) => {
     if (loadingPlan) return;
 
