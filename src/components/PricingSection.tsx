@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
