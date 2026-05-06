@@ -198,6 +198,13 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
           </>
         )}
       </DialogContent>
+      <PlanDetailsDrawer
+        plan={detailsPlan}
+        open={detailsPlan !== null}
+        onOpenChange={(o) => { if (!o) setDetailsPlan(null); }}
+        onSubscribe={(p) => { setDetailsPlan(null); handleSubscribe(p); }}
+        loading={loadingPriceId !== null}
+      />
     </Dialog>
   );
 }
