@@ -42,6 +42,7 @@ import ForSchoolsPage from "./pages/ForSchoolsPage.tsx";
 import ForSchoolsSuccessPage from "./pages/ForSchoolsSuccessPage.tsx";
 import IntakePage from "./pages/IntakePage.tsx";
 import TestModePage from "./pages/TestModePage.tsx";
+import ThemeQAPage from "./pages/ThemeQAPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
@@ -99,6 +100,7 @@ const App = () => (
               <Route path="/for-schools" element={<ForSchoolsPage />} />
               <Route path="/for-schools/success" element={<ForSchoolsSuccessPage />} />
               <Route path="/intake" element={<IntakePage />} />
+              <Route path="/theme-qa" element={<ThemeQAPage />} />
               <Route path="/admin" element={<MfaGate requireMfa><AdminPage /></MfaGate>} />
               <Route path="/mfa" element={<MfaChallengePage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
