@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e:smoke": "playwright test --config=playwright.smoke.config.ts"
+    "e2e:smoke": "playwright test --config=playwright.smoke.config.ts",
+    "e2e:pricing-badge": "playwright test --config=playwright.pricing-badge.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
