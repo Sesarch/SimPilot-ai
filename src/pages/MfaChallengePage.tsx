@@ -97,6 +97,7 @@ const MfaChallengePage = () => {
         navigate(redirectTo, { replace: true });
       } else if (mode === "email") {
         await mfaApi.verifyEmailCode(code, "login");
+        if (sessionFlag) sessionStorage.setItem(sessionFlag, "1");
         toast.success("Verified");
         navigate(redirectTo, { replace: true });
       } else {
