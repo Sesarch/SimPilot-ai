@@ -118,6 +118,118 @@ const ThemeQAPage = () => {
       </header>
 
       <main className="container mx-auto space-y-10 px-6 py-10">
+        {/* System mode live monitor */}
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-xl">System Mode Monitor</h2>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={theme === "light" ? "default" : "outline"}
+                onClick={() => setTheme("light")}
+              >
+                Light
+              </Button>
+              <Button
+                size="sm"
+                variant={theme === "dark" ? "default" : "outline"}
+                onClick={() => setTheme("dark")}
+              >
+                Dark
+              </Button>
+              <Button
+                size="sm"
+                variant={theme === "system" ? "default" : "outline"}
+                onClick={() => setTheme("system")}
+              >
+                System
+              </Button>
+            </div>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Live prefers-color-scheme</CardTitle>
+              <CardDescription>
+                Toggle your OS appearance (macOS System Settings → Appearance,
+                Windows Settings → Personalization → Colors, or DevTools →
+                Rendering → Emulate CSS prefers-color-scheme) and watch the
+                values update without a refresh.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="text-muted-foreground">
+                      Stored preference (<code>theme</code>)
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{mounted ? theme : "—"}</Badge>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-muted-foreground">
+                      OS <code>prefers-color-scheme</code>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{osPrefers}</Badge>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-muted-foreground">
+                      next-themes <code>systemTheme</code>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {mounted ? systemTheme ?? "—" : "—"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-muted-foreground">
+                      Active <code>resolvedTheme</code>
+                    </TableCell>
+                    <TableCell>
+                      <Badge>{mounted ? resolvedTheme ?? "—" : "—"}</Badge>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-muted-foreground">
+                      Last OS change detected
+                    </TableCell>
+                    <TableCell className="tabular-nums">
+                      {lastChangeAt ?? (
+                        <span className="text-muted-foreground">
+                          Waiting for change…
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-muted-foreground">
+                      System mapping check
+                    </TableCell>
+                    <TableCell>
+                      {!inSystemMode ? (
+                        <Badge variant="outline">
+                          Not in System mode (switch above to verify)
+                        </Badge>
+                      ) : systemMatchesResolved ? (
+                        <Badge>OK — resolvedTheme matches OS</Badge>
+                      ) : (
+                        <Badge variant="destructive">
+                          Mismatch ({systemTheme} vs {resolvedTheme})
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Color tokens */}
         <section className="space-y-4">
           <h2 className="font-display text-xl">Color Tokens</h2>
