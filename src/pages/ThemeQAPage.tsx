@@ -67,9 +67,29 @@ const Swatch = ({ name, varName }: { name: string; varName: string }) => (
 );
 
 const ThemeQAPage = () => {
-  const { theme, resolvedTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [mqMatches, setMqMatches] = useState<boolean | null>(null);
+  const [lastChangeAt, setLastChangeAt] = useState<string | null>(null);
+
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    setMqMatches(mq.matches);
+    const handler = (e: MediaQueryListEvent) => {
+      setMqMatches(e.matches);
+      setLastChangeAt(new Date().toLocaleTimeString());
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  const osPrefers = mqMatches === null ? "—" : mqMatches ? "dark" : "light";
+  const inSystemMode = theme === "system";
+  const systemMatchesResolved =
+    inSystemMode && systemTheme && resolvedTheme === systemTheme;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
