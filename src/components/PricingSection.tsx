@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown } from "lucide-react";
+import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import PlanComparisonTable from "./PlanComparisonTable";
 import PricingFAQ from "./PricingFAQ";
 import ForSchoolsSection from "./ForSchoolsSection";
@@ -44,6 +47,7 @@ const plans = [
     ],
     cta: "Go Pro",
     highlighted: true,
+    checkoutPlan: "pro" as const,
   },
   {
     icon: Crown,
@@ -64,6 +68,7 @@ const plans = [
     ],
     cta: "Go Gold Seal",
     highlighted: false,
+    checkoutPlan: "ultra" as const,
   },
   {
     icon: GraduationCap,
@@ -89,6 +94,47 @@ const plans = [
 
 const PricingSection = () => {
   const [annual, setAnnual] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleCtaClick = async (plan: typeof plans[number]) => {
+    if (loadingPlan) return;
+
+    if (plan.name === "Flight School") {
+      navigate("/for-schools");
+      return;
+    }
+
+    if (!plan.checkoutPlan) {
+      navigate("/auth");
+      return;
+    }
+
+    setLoadingPlan(plan.name);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.info("Please sign in to start your subscription.");
+        navigate(`/auth?redirect=/dashboard&plan=${plan.checkoutPlan}`);
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { plan: plan.checkoutPlan },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err) {
+      console.error("[PricingSection] checkout error", err);
+      toast.error("Could not start checkout. Please try again.");
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   return (
     <section id="pricing" className="py-24 relative bg-gradient-hero scroll-mt-20">
@@ -231,16 +277,26 @@ const PricingSection = () => {
                   ))}
                 </ul>
 
-                <a
-                  href="#contact"
-                  className={`block text-center px-6 py-3 rounded font-display text-xs font-semibold tracking-widest uppercase transition-all duration-300 ${
+                <button
+                  type="button"
+                  onClick={() => handleCtaClick(plan)}
+                  disabled={loadingPlan === plan.name}
+                  aria-busy={loadingPlan === plan.name}
+                  className={`inline-flex items-center justify-center gap-2 h-12 w-full px-6 rounded font-display text-xs font-semibold tracking-widest uppercase transition-all duration-300 disabled:opacity-80 disabled:cursor-not-allowed ${
                     plan.highlighted
                       ? "bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)]"
                       : "border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary"
                   }`}
                 >
-                  {plan.cta}
-                </a>
+                  {loadingPlan === plan.name ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                      <span>Opening checkout…</span>
+                    </>
+                  ) : (
+                    <span>{plan.cta}</span>
+                  )}
+                </button>
 
                 {/* Trust badges */}
                 <div className="mt-4 flex flex-col items-center gap-1.5">
