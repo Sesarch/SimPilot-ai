@@ -94,6 +94,47 @@ const plans = [
 
 const PricingSection = () => {
   const [annual, setAnnual] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleCtaClick = async (plan: typeof plans[number]) => {
+    if (loadingPlan) return;
+
+    if (plan.name === "Flight School") {
+      navigate("/for-schools");
+      return;
+    }
+
+    if (!plan.checkoutPlan) {
+      navigate("/auth");
+      return;
+    }
+
+    setLoadingPlan(plan.name);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.info("Please sign in to start your subscription.");
+        navigate(`/auth?redirect=/dashboard&plan=${plan.checkoutPlan}`);
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { plan: plan.checkoutPlan },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err) {
+      console.error("[PricingSection] checkout error", err);
+      toast.error("Could not start checkout. Please try again.");
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   return (
     <section id="pricing" className="py-24 relative bg-gradient-hero scroll-mt-20">
