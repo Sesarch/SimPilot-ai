@@ -126,7 +126,7 @@ const MfaChallengePage = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <SEOHead title="Two-factor verification — SimPilot.AI" description="Verify your identity." canonical="/mfa" noIndex />
+      <SEOHead title="Two-factor verification — SimPilot.AI" description="Verify your identity." keywords="2fa, mfa, verification" canonical="/mfa" noIndex />
       <div className="w-full max-w-md">
         <div className="bg-gradient-card rounded-xl border border-border p-8">
           <div className="flex items-center gap-3 mb-2">
