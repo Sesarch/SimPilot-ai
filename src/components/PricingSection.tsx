@@ -277,16 +277,26 @@ const PricingSection = () => {
                   ))}
                 </ul>
 
-                <a
-                  href="#contact"
-                  className={`block text-center px-6 py-3 rounded font-display text-xs font-semibold tracking-widest uppercase transition-all duration-300 ${
+                <button
+                  type="button"
+                  onClick={() => handleCtaClick(plan)}
+                  disabled={loadingPlan === plan.name}
+                  aria-busy={loadingPlan === plan.name}
+                  className={`inline-flex items-center justify-center gap-2 h-12 w-full px-6 rounded font-display text-xs font-semibold tracking-widest uppercase transition-all duration-300 disabled:opacity-80 disabled:cursor-not-allowed ${
                     plan.highlighted
                       ? "bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)]"
                       : "border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary"
                   }`}
                 >
-                  {plan.cta}
-                </a>
+                  {loadingPlan === plan.name ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                      <span>Opening checkout…</span>
+                    </>
+                  ) : (
+                    <span>{plan.cta}</span>
+                  )}
+                </button>
 
                 {/* Trust badges */}
                 <div className="mt-4 flex flex-col items-center gap-1.5">
