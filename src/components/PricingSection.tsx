@@ -193,7 +193,7 @@ const PricingSection = () => {
           </div>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch pt-10 px-1 overflow-visible">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-6xl mx-auto items-stretch pt-12 px-1 overflow-visible">
           {plans.map((plan, i) => {
             const price = annual ? plan.annual : plan.monthly;
             return (
@@ -203,10 +203,10 @@ const PricingSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12 }}
-                className={`relative flex flex-col rounded-xl px-6 pb-6 border transition-all duration-500 overflow-visible isolate ${
+                className={`relative flex flex-col rounded-xl px-6 pt-10 pb-6 border transition-all duration-500 overflow-visible isolate ${
                   plan.highlighted
-                    ? "pt-9 border-primary/50 border-glow-cyan bg-gradient-card scale-[1.02] z-20"
-                    : "pt-6 border-border bg-gradient-card hover:border-primary/20 z-10"
+                    ? "border-primary/50 border-glow-cyan bg-gradient-card scale-[1.02] z-20"
+                    : "border-border bg-gradient-card hover:border-primary/20 z-10"
                 }`}
               >
                 {plan.highlighted && (
