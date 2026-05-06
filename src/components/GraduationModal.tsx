@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Plane, User, Check, ShieldAlert, Loader2, Clock, ArrowRight, Building2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { GraduationCap, Check, ShieldAlert, Loader2, Clock, ArrowRight, Building2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useStripePlans, formatPrice, type StripePlan } from "@/hooks/useStripePlans";
 import type { TrialActivity } from "@/hooks/useTrialStatus";
 
 interface GraduationModalProps {
@@ -13,111 +13,32 @@ interface GraduationModalProps {
   activity: TrialActivity;
 }
 
-type PlanKey = "student" | "pro" | "ultra";
-
-interface PlanCard {
-  key: PlanKey;
-  name: string;
-  price: number;
-  tagline: string;
-  icon: typeof Plane;
-  accent: string; // tailwind color classes for icon + check
-  border: string;
-  badge?: string;
-  features: string[];
-  buttonClass: string;
-  variant?: "default" | "outline";
-}
-
-const PLANS: PlanCard[] = [
-  {
-    key: "student",
-    name: "Student",
-    price: 29,
-    tagline: "Everything to pass your checkride",
-    icon: Plane,
-    accent: "text-emerald-400",
-    border: "border-border",
-    features: [
-      "19 Ground School modules (FAA ACS)",
-      "Oral Exam simulator",
-      "ATC communication trainer",
-      "Live Flight Tracker & Weather",
-      "Performance dashboard",
-      "Session history (30 days)",
-    ],
-    buttonClass: "w-full border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-300 font-semibold",
-    variant: "outline",
-  },
-  {
-    key: "pro",
-    name: "Pro Pilot",
-    price: 59,
-    tagline: "For active student & private pilots",
-    icon: User,
-    accent: "text-[#04C3EC]",
-    border: "border-2 border-[#04C3EC]",
-    badge: "Most Popular",
-    features: [
-      "Everything in Student",
-      "Unlimited AI coaching",
-      "POH upload & aircraft-specific answers",
-      "VFR/IFR chart image analysis",
-      "Sim debrief (.FLT files)",
-      "Unlimited session history",
-    ],
-    buttonClass: "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-semibold",
-  },
-  {
-    key: "ultra",
-    name: "Gold Seal CFI",
-    price: 99,
-    tagline: "For CFIs & checkride-ready pilots",
-    icon: GraduationCap,
-    accent: "text-amber-400",
-    border: "border-border",
-    features: [
-      "Everything in Pro",
-      "Custom training scenarios & curricula",
-      "24/7 priority 1-on-1 support",
-      "Advanced checkride readiness analytics",
-      "Multi-aircraft POH library",
-      "Personalized study plan generation",
-    ],
-    buttonClass: "w-full border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-300 font-semibold",
-    variant: "outline",
-  },
-];
-
 export default function GraduationModal({ open, displayName }: GraduationModalProps) {
-  const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
+  const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
   const [showPlans, setShowPlans] = useState(false);
-  const navigate = useNavigate();
+  const { plans, loading: plansLoading } = useStripePlans();
 
-  const handleSubscribe = async (plan: PlanKey) => {
-    setLoadingPlan(plan);
+  const handleSubscribe = async (plan: StripePlan) => {
+    setLoadingPriceId(plan.price_id);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { plan },
+        body: { price_id: plan.price_id },
       });
       if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      } else {
-        throw new Error("No checkout URL returned");
-      }
+      if (data?.url) window.open(data.url, "_blank");
+      else throw new Error("No checkout URL returned");
     } catch (err) {
       console.error("Checkout error:", err);
       toast.error("Could not start checkout. Please try again.");
     } finally {
-      setLoadingPlan(null);
+      setLoadingPriceId(null);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={() => { /* non-dismissible */ }}>
       <DialogContent
-        className="max-w-5xl max-h-[92vh] overflow-y-auto p-0 border-border bg-background"
+        className="max-w-6xl max-h-[92vh] overflow-y-auto p-0 border-border bg-background"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -163,64 +84,85 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                 Choose Your Plan
               </h2>
               <p className="text-center mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
-                Pick the plan that fits your training and unlock SimPilot again.
+                Live pricing synced from Stripe. Pick the plan that fits your training.
               </p>
             </div>
 
-            <div className="px-6 pt-8 pb-4 grid md:grid-cols-3 gap-4">
-              {PLANS.map((plan) => {
-                const Icon = plan.icon;
-                return (
-                  <div
-                    key={plan.key}
-                    className={`relative rounded-xl ${plan.border} bg-card/40 p-5 flex flex-col`}
-                  >
-                    {plan.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#04C3EC] text-background text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full whitespace-nowrap">
-                        {plan.badge}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 mb-1">
-                      <Icon className={`h-5 w-5 ${plan.accent}`} />
-                      <h3 className="font-display text-lg font-bold">{plan.name}</h3>
-                    </div>
-                    <div className="flex items-baseline gap-1 mb-1">
-                      <span className="text-3xl font-bold text-foreground">${plan.price}</span>
-                      <span className="text-sm text-muted-foreground">/month</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-4">{plan.tagline}</p>
-                    <ul className="space-y-2 mb-5 flex-1">
-                      {plan.features.map((f) => (
-                        <li key={f} className="flex items-start gap-2 text-sm">
-                          <Check className={`h-4 w-4 ${plan.accent} mt-0.5 shrink-0`} />
-                          <span className="text-foreground/90">{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      onClick={() => handleSubscribe(plan.key)}
-                      disabled={loadingPlan !== null}
-                      variant={plan.variant}
-                      className={plan.buttonClass}
+            {plansLoading ? (
+              <div className="px-6 py-16 flex items-center justify-center text-muted-foreground">
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" /> Loading live plans…
+              </div>
+            ) : plans.length === 0 ? (
+              <div className="px-6 py-12 text-center text-sm text-muted-foreground">
+                No active plans found. Please contact support.
+              </div>
+            ) : (
+              <div
+                className="px-6 pt-8 pb-4 grid gap-4"
+                style={{ gridTemplateColumns: `repeat(auto-fit, minmax(240px, 1fr))` }}
+              >
+                {plans.map((plan) => {
+                  const isLoading = loadingPriceId === plan.price_id;
+                  const intervalLabel = plan.interval_count > 1
+                    ? `/${plan.interval_count} ${plan.interval}s`
+                    : `/${plan.interval}`;
+                  return (
+                    <div
+                      key={plan.price_id}
+                      className={`relative rounded-xl ${plan.highlighted ? "border-2 border-[#04C3EC]" : "border border-border"} bg-card/40 p-5 flex flex-col`}
                     >
-                      {loadingPlan === plan.key ? (
-                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening checkout…</>
-                      ) : (
-                        `Choose ${plan.name}`
+                      {plan.badge && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#04C3EC] text-background text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full whitespace-nowrap">
+                          {plan.badge}
+                        </div>
                       )}
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Sparkles className={`h-5 w-5 ${plan.highlighted ? "text-[#04C3EC]" : "text-muted-foreground"}`} />
+                        <h3 className="font-display text-lg font-bold">{plan.name}</h3>
+                      </div>
+                      <div className="flex items-baseline gap-1 mb-1">
+                        <span className="text-3xl font-bold text-foreground">{formatPrice(plan.amount, plan.currency)}</span>
+                        <span className="text-sm text-muted-foreground">{intervalLabel}</span>
+                      </div>
+                      {(plan.tagline || plan.description) && (
+                        <p className="text-xs text-muted-foreground mb-4">{plan.tagline ?? plan.description}</p>
+                      )}
+                      {plan.features.length > 0 && (
+                        <ul className="space-y-2 mb-5 flex-1">
+                          {plan.features.map((f) => (
+                            <li key={f} className="flex items-start gap-2 text-sm">
+                              <Check className={`h-4 w-4 ${plan.highlighted ? "text-[#04C3EC]" : "text-emerald-400"} mt-0.5 shrink-0`} />
+                              <span className="text-foreground/90">{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <Button
+                        onClick={() => handleSubscribe(plan)}
+                        disabled={loadingPriceId !== null}
+                        variant={plan.highlighted ? "default" : "outline"}
+                        className={plan.highlighted
+                          ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-semibold mt-auto"
+                          : "w-full font-semibold mt-auto"}
+                      >
+                        {isLoading ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening checkout…</>
+                        ) : (
+                          `Choose ${plan.name}`
+                        )}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
-            {/* Flight School option */}
             <div className="mx-6 mb-4 rounded-lg border border-border bg-card/30 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
               <div className="flex items-start gap-3">
                 <Building2 className="h-5 w-5 text-[#04C3EC] shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-foreground">Flight School / Team plan</p>
-                  <p className="text-xs text-muted-foreground">Train your entire program from $39/seat/mo with bulk seat management.</p>
+                  <p className="text-xs text-muted-foreground">Train your entire program with bulk seat management.</p>
                 </div>
               </div>
               <Button
