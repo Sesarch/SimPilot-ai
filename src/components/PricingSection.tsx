@@ -265,21 +265,34 @@ const PricingSection = () => {
             return (
               <motion.div
                 key={plan.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                data-qa-card
+                initial={qaReducedMotion ? false : { opacity: 0, y: 30 }}
+                whileInView={qaReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.12 }}
+                transition={{ delay: qaReducedMotion ? 0 : i * 0.12 }}
                 className={`relative flex flex-col rounded-xl px-6 pt-10 pb-6 border transition-all duration-500 overflow-visible isolate ${
                   plan.highlighted
                     ? "border-primary/50 border-glow-cyan bg-gradient-card scale-[1.02] z-20"
                     : "border-border bg-gradient-card hover:border-primary/20 z-10"
-                }`}
+                } ${qaMode ? "outline outline-1 outline-dashed outline-accent/60" : ""}`}
               >
+                {qaMode && (
+                  <span className="absolute top-1 right-1 z-40 px-1.5 py-0.5 rounded bg-accent text-accent-foreground text-[9px] font-mono pointer-events-none">
+                    z:{plan.highlighted ? 20 : 10}
+                  </span>
+                )}
                 {plan.highlighted && (
                   <div
-                    className="absolute left-1/2 z-30 pointer-events-none w-max max-w-[calc(100%-2rem)] flex justify-center"
+                    className={`absolute left-1/2 z-30 pointer-events-none w-max max-w-[calc(100%-2rem)] flex justify-center ${
+                      qaMode ? "outline outline-1 outline-dashed outline-primary" : ""
+                    }`}
                     style={{ top: 0, transform: "translate(-50%, -100%) translateY(8px)" }}
                   >
+                    {qaMode && (
+                      <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-primary text-primary-foreground text-[9px] font-mono whitespace-nowrap">
+                        badge z:30
+                      </span>
+                    )}
                     <span className="block whitespace-nowrap font-display text-[9px] xs:text-[10px] leading-[1] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-lg ring-1 ring-background/40">
                       Most Popular
                     </span>
