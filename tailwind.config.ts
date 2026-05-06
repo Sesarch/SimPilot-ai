@@ -21,8 +21,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Orbitron", "sans-serif"],
-        body: ["Inter", "sans-serif"],
+        display: ['"Clash Display"', '"Cabinet Grotesk"', '"Plus Jakarta Sans"', "Orbitron", "sans-serif"],
+        body: ['"Plus Jakarta Sans"', "Inter", "system-ui", "sans-serif"],
+        mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
