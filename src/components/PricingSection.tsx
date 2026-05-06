@@ -210,8 +210,11 @@ const PricingSection = () => {
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none max-w-[calc(100%-1.5rem)]">
-                    <span className="block whitespace-nowrap font-display text-[10px] leading-[1] tracking-widest uppercase px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-lg ring-1 ring-background/40">
+                  <div
+                    className="absolute left-1/2 z-30 pointer-events-none w-max max-w-[calc(100%-2rem)] flex justify-center"
+                    style={{ top: 0, transform: "translate(-50%, -100%) translateY(8px)" }}
+                  >
+                    <span className="block whitespace-nowrap font-display text-[9px] xs:text-[10px] leading-[1] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-lg ring-1 ring-background/40">
                       Most Popular
                     </span>
                   </div>
