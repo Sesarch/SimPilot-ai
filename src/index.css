@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&f[]=clash-display@400,500,600,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -5,98 +7,88 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  .light {
     --background: 210 25% 95%;
     --foreground: 220 30% 12%;
-
     --card: 210 20% 97%;
     --card-foreground: 220 30% 12%;
-
     --popover: 210 20% 97%;
     --popover-foreground: 220 30% 12%;
-
-    --primary: 192 100% 30%;
+    --primary: 187 95% 38%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 210 18% 88%;
     --secondary-foreground: 220 20% 18%;
-
     --muted: 210 15% 90%;
     --muted-foreground: 215 15% 38%;
-
     --accent: 32 95% 45%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 210 18% 82%;
     --input: 210 18% 82%;
-    --ring: 192 100% 30%;
-
-    --radius: 0.5rem;
-
+    --ring: 187 95% 38%;
+    --radius: 1rem;
     --sidebar-background: 210 20% 93%;
     --sidebar-foreground: 220 30% 12%;
-    --sidebar-primary: 192 100% 30%;
+    --sidebar-primary: 187 95% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 18% 88%;
     --sidebar-accent-foreground: 220 30% 12%;
     --sidebar-border: 210 18% 82%;
-    --sidebar-ring: 192 100% 30%;
-
-    /* Custom tokens */
-    --cyan-glow: 192 100% 30%;
+    --sidebar-ring: 187 95% 38%;
+    --cyan-glow: 187 95% 38%;
     --amber-instrument: 32 95% 45%;
     --navy-deep: 210 25% 93%;
     --navy-mid: 210 20% 88%;
     --hud-green: 150 80% 30%;
   }
 
-  .dark {
-    --background: 220 25% 6%;
-    --foreground: 210 20% 92%;
+  .dark, :root {
+    /* Deep Cockpit — rich slate-navy black with vibrant aviation cyan */
+    --background: 222 39% 7%;          /* #0b0f19 */
+    --foreground: 210 30% 96%;
 
-    --card: 220 20% 10%;
-    --card-foreground: 210 20% 92%;
+    --card: 222 32% 10%;               /* slightly lifted slate */
+    --card-foreground: 210 30% 96%;
 
-    --popover: 220 20% 10%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 222 34% 9%;
+    --popover-foreground: 210 30% 96%;
 
-    --primary: 190 100% 50%;
-    --primary-foreground: 220 25% 6%;
+    --primary: 187 95% 52%;            /* aviation cyan / teal */
+    --primary-foreground: 222 39% 7%;
 
-    --secondary: 220 15% 18%;
-    --secondary-foreground: 210 20% 85%;
+    --secondary: 220 22% 14%;
+    --secondary-foreground: 210 25% 90%;
 
-    --muted: 220 15% 15%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 220 22% 12%;
+    --muted-foreground: 215 18% 62%;
 
-    --accent: 35 100% 55%;
-    --accent-foreground: 220 25% 6%;
+    --accent: 187 95% 52%;
+    --accent-foreground: 222 39% 7%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 18%;
-    --ring: 190 100% 50%;
+    --border: 220 18% 18%;             /* thin elegant border */
+    --input: 220 18% 16%;
+    --ring: 187 95% 52%;
 
-    --sidebar-background: 220 20% 8%;
-    --sidebar-foreground: 210 20% 92%;
-    --sidebar-primary: 190 100% 50%;
-    --sidebar-primary-foreground: 220 25% 6%;
-    --sidebar-accent: 220 15% 15%;
-    --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 190 100% 50%;
+    --radius: 1rem;                    /* rounded-2xl bento aesthetic */
 
-    /* Custom tokens */
-    --cyan-glow: 190 100% 50%;
-    --amber-instrument: 35 100% 55%;
-    --navy-deep: 220 30% 8%;
-    --navy-mid: 220 20% 14%;
-    --hud-green: 150 80% 45%;
+    --sidebar-background: 222 38% 6%;
+    --sidebar-foreground: 210 28% 90%;
+    --sidebar-primary: 187 95% 52%;
+    --sidebar-primary-foreground: 222 39% 7%;
+    --sidebar-accent: 220 22% 12%;
+    --sidebar-accent-foreground: 187 95% 52%;
+    --sidebar-border: 220 18% 16%;
+    --sidebar-ring: 187 95% 52%;
+
+    --cyan-glow: 187 95% 52%;
+    --amber-instrument: 35 100% 60%;
+    --navy-deep: 222 42% 5%;
+    --navy-mid: 222 32% 10%;
+    --hud-green: 152 80% 50%;
   }
 }
 
@@ -105,12 +97,32 @@
     @apply border-border;
   }
 
+  html {
+    color-scheme: dark;
+  }
+
   body {
     @apply bg-background text-foreground font-body antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "ss01", "cv11";
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
+    @apply font-display tracking-tight;
+  }
+
+  /* Smooth global transitions on interactive surfaces */
+  button, a, [role="button"], input, select, textarea {
+    transition: color 0.2s ease, background-color 0.2s ease,
+                border-color 0.2s ease, box-shadow 0.2s ease,
+                transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  /* Premium aviation data styling */
+  .font-mono, code, kbd, samp, pre {
+    font-feature-settings: "zero", "ss01";
+    letter-spacing: 0.01em;
   }
 }
 
@@ -149,6 +161,83 @@
       hsl(var(--cyan-glow) / 0.02) 4px
     );
     pointer-events: none;
+  }
+
+  /* ===== Premium "Deep Cockpit" utilities ===== */
+
+  /* Bento card — subtle border, lifted gradient, soft glow on hover */
+  .bento {
+    @apply rounded-2xl border border-white/10 bg-card/60 backdrop-blur-sm;
+    background-image: linear-gradient(180deg, hsl(var(--card) / 0.85) 0%, hsl(var(--card) / 0.55) 100%);
+    box-shadow:
+      0 1px 0 hsl(0 0% 100% / 0.04) inset,
+      0 20px 40px -20px hsl(0 0% 0% / 0.5);
+  }
+  .bento-hover {
+    @apply transition-all duration-300;
+  }
+  .bento-hover:hover {
+    border-color: hsl(var(--primary) / 0.35);
+    box-shadow:
+      0 1px 0 hsl(0 0% 100% / 0.06) inset,
+      0 0 0 1px hsl(var(--primary) / 0.15),
+      0 0 32px -8px hsl(var(--primary) / 0.25),
+      0 24px 48px -20px hsl(0 0% 0% / 0.6);
+    transform: translateY(-2px);
+  }
+
+  /* Aviation glow shadows */
+  .glow-cyan {
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.3),
+      0 0 24px hsl(var(--primary) / 0.35),
+      0 0 60px hsl(var(--primary) / 0.15);
+  }
+  .glow-cyan-soft {
+    box-shadow:
+      0 0 18px hsl(var(--primary) / 0.18),
+      inset 0 0 12px hsl(var(--primary) / 0.06);
+  }
+  .glow-amber {
+    box-shadow:
+      0 0 0 1px hsl(var(--amber-instrument) / 0.3),
+      0 0 24px hsl(var(--amber-instrument) / 0.3),
+      0 0 60px hsl(var(--amber-instrument) / 0.12);
+  }
+  .glow-green {
+    box-shadow:
+      0 0 0 1px hsl(var(--hud-green) / 0.35),
+      0 0 18px hsl(var(--hud-green) / 0.35);
+  }
+
+  /* Status dot — pulsing live indicator */
+  .status-dot {
+    @apply inline-block h-2 w-2 rounded-full;
+    background: hsl(var(--hud-green));
+    box-shadow: 0 0 0 0 hsl(var(--hud-green) / 0.6);
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+  @keyframes status-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--hud-green) / 0.5); }
+    50% { box-shadow: 0 0 0 6px hsl(var(--hud-green) / 0); }
+  }
+
+  /* Frequency / ATIS readout — tabular monospace with subtle cyan luminance */
+  .freq-readout {
+    @apply font-mono tracking-wider text-primary;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 12px hsl(var(--primary) / 0.45);
+  }
+
+  /* Smooth scale + glow on primary CTAs */
+  .premium-cta {
+    @apply transition-all duration-300;
+  }
+  .premium-cta:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.4),
+      0 8px 24px -8px hsl(var(--primary) / 0.55);
   }
 }
 

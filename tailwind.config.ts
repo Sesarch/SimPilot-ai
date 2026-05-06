@@ -21,8 +21,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Orbitron", "sans-serif"],
-        body: ["Inter", "sans-serif"],
+        display: ['"Clash Display"', '"Cabinet Grotesk"', '"Plus Jakarta Sans"', "Orbitron", "sans-serif"],
+        body: ['"Plus Jakarta Sans"', "Inter", "system-ui", "sans-serif"],
+        mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -83,9 +84,16 @@ export default {
         },
       },
       borderRadius: {
+        "2xl": "1.25rem",
+        xl: "1rem",
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 8px)",
+      },
+      boxShadow: {
+        "glow-cyan": "0 0 24px hsl(var(--primary) / 0.35), 0 0 60px hsl(var(--primary) / 0.15)",
+        "glow-amber": "0 0 24px hsl(var(--amber-instrument) / 0.3), 0 0 60px hsl(var(--amber-instrument) / 0.12)",
+        bento: "0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 20px 40px -20px hsl(0 0% 0% / 0.5)",
       },
       keyframes: {
         "accordion-down": {
