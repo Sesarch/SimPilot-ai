@@ -24,10 +24,21 @@ serve(async (req) => {
       expand: ["data.product"],
     });
 
+    const url = new URL(req.url);
+    const audienceFilter = url.searchParams.get("audience") ?? "consumer";
+
     const plans = prices.data
       .filter((p) => {
         const prod = p.product as Stripe.Product;
-        return prod && typeof prod === "object" && prod.active !== false;
+        if (!prod || typeof prod !== "object" || prod.active === false) return false;
+        const md = (prod.metadata || {}) as Record<string, string>;
+        const priceMd = (p.metadata || {}) as Record<string, string>;
+        // Hidden plans never surface
+        if (md.hidden === "true" || priceMd.hidden === "true") return false;
+        // Audience filter: default 'consumer' excludes school/team plans unless requested
+        const audience = (md.audience || priceMd.audience || "consumer").toLowerCase();
+        if (audienceFilter !== "all" && audience !== audienceFilter) return false;
+        return true;
       })
       .map((p) => {
         const prod = p.product as Stripe.Product;
