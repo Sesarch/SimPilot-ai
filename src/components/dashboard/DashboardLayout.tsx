@@ -55,13 +55,13 @@ const DashboardLayout = () => {
             <header className="sticky top-0 z-40 flex h-20 items-center gap-4 border-b border-border bg-background/90 px-4">
               <SidebarTrigger className="self-center text-muted-foreground hover:text-primary" />
               <div className="h-6 w-px self-center bg-border" />
-              <span className="flex items-center self-center font-display text-[13px] font-semibold leading-none tracking-[0.22em] uppercase text-foreground">
+              <span className="flex items-center self-center font-display text-[13px] leading-none tracking-[0.22em] uppercase text-foreground">
                 SimPilot Avionics Suite
               </span>
               <div className="ml-auto flex h-full items-center gap-4 self-center">
                 <div className="hidden items-center gap-2 md:flex">
                   <span className="h-2 w-2 rounded-full bg-[hsl(var(--hud-green))] animate-pulse" />
-                  <span className="flex items-center font-display text-[12px] font-semibold leading-none tracking-[0.2em] uppercase text-foreground/80">
+                  <span className="flex items-center font-display text-[12px] leading-none tracking-[0.2em] uppercase text-foreground/80">
                     System Nominal
                   </span>
                 </div>

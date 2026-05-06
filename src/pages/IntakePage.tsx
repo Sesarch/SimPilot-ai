@@ -231,7 +231,7 @@ const IntakePage = () => {
         <div className="container mx-auto px-6 max-w-3xl">
           <div className="mb-8 text-center">
             <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">Intake</p>
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+            <h1 className="font-display text-3xl md:text-4xl text-foreground">
               Tell us about your <span className="text-primary text-glow-cyan">training</span>
             </h1>
             <p className="text-muted-foreground mt-3">
@@ -252,7 +252,7 @@ const IntakePage = () => {
                       }`}
                     >
                       <span
-                        className={`w-7 h-7 inline-flex items-center justify-center rounded-full border text-xs font-display font-bold tracking-wider ${
+                        className={`w-7 h-7 inline-flex items-center justify-center rounded-full border text-xs font-display tracking-wider ${
                           active
                             ? "border-primary bg-primary/10"
                             : complete
@@ -284,7 +284,7 @@ const IntakePage = () => {
                   <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent/10 border border-accent/40 text-accent mb-4">
                     <Check size={28} />
                   </div>
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">You're cleared for takeoff ✈️</h2>
+                  <h2 className="font-display text-2xl text-foreground mb-2">You're cleared for takeoff ✈️</h2>
                   <p className="text-muted-foreground mb-6">
                     We've received your intake and emailed a confirmation to{" "}
                     <span className="text-foreground">{form.contact_email}</span>. Our crew will follow up shortly.
@@ -312,7 +312,7 @@ const IntakePage = () => {
                 >
                   {step === 0 && (
                     <div>
-                      <h2 className="font-display text-xl font-bold text-foreground mb-1">Who is this for?</h2>
+                      <h2 className="font-display text-xl text-foreground mb-1">Who is this for?</h2>
                       <p className="text-sm text-muted-foreground mb-6">Choose the option that fits best.</p>
                       <div className="grid sm:grid-cols-2 gap-4">
                         <button
@@ -325,7 +325,7 @@ const IntakePage = () => {
                           }`}
                         >
                           <Plane className="text-primary mb-3" size={22} />
-                          <div className="font-display font-bold text-foreground">Individual pilot</div>
+                          <div className="font-display text-foreground">Individual pilot</div>
                           <p className="text-sm text-muted-foreground mt-1">
                             Personalized AI training for your certificate, aircraft, and goals.
                           </p>
@@ -340,7 +340,7 @@ const IntakePage = () => {
                           }`}
                         >
                           <GraduationCap className="text-primary mb-3" size={22} />
-                          <div className="font-display font-bold text-foreground">Flight school</div>
+                          <div className="font-display text-foreground">Flight school</div>
                           <p className="text-sm text-muted-foreground mt-1">
                             Equip your students with AI ground school, oral exam prep, and progress tracking.
                           </p>
@@ -351,7 +351,7 @@ const IntakePage = () => {
 
                   {step === 1 && (
                     <div className="space-y-4">
-                      <h2 className="font-display text-xl font-bold text-foreground mb-1">Contact details</h2>
+                      <h2 className="font-display text-xl text-foreground mb-1">Contact details</h2>
                       <p className="text-sm text-muted-foreground mb-4">How should we reach you?</p>
                       {isSchool && (
                         <div>
@@ -433,7 +433,7 @@ const IntakePage = () => {
 
                   {step === 2 && (
                     <div className="space-y-5">
-                      <h2 className="font-display text-xl font-bold text-foreground mb-1">Training profile</h2>
+                      <h2 className="font-display text-xl text-foreground mb-1">Training profile</h2>
                       <p className="text-sm text-muted-foreground mb-2">
                         {isSchool ? "Tell us about your typical student cohort." : "Tell us about you as a pilot."}
                       </p>
@@ -520,7 +520,7 @@ const IntakePage = () => {
 
                   {step === 3 && (
                     <div className="space-y-5">
-                      <h2 className="font-display text-xl font-bold text-foreground mb-1">Goals & timeline</h2>
+                      <h2 className="font-display text-xl text-foreground mb-1">Goals & timeline</h2>
                       <p className="text-sm text-muted-foreground mb-2">What are you trying to achieve?</p>
                       <div>
                         <Label htmlFor="training_goals">Training goals</Label>
@@ -557,7 +557,7 @@ const IntakePage = () => {
 
                   {step === 4 && (
                     <div>
-                      <h2 className="font-display text-xl font-bold text-foreground mb-1">Review & submit</h2>
+                      <h2 className="font-display text-xl text-foreground mb-1">Review & submit</h2>
                       <p className="text-sm text-muted-foreground mb-5">
                         Quick check before we file your flight plan.
                       </p>
@@ -657,7 +657,7 @@ const Chip = ({
   <button
     type="button"
     onClick={onClick}
-    className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
+    className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
       active
         ? "border-primary bg-primary/10 text-primary"
         : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"

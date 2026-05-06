@@ -454,11 +454,11 @@
   h1, h2, h3, h4, h5, h6,
   th,
   optgroup,
-  .font-bold,
-  .font-semibold,
-  .font-extrabold,
-  .font-black,
-  .font-medium {
+  .,
+  .,
+  .,
+  .,
+  .{
     font-weight: 400 !important;
   }
 }

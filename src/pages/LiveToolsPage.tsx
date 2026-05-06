@@ -82,7 +82,7 @@ const LiveToolsPage = () => {
               </div>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-wider">
+                  <h1 className="font-display text-xl sm:text-2xl text-foreground tracking-wider">
                     LIVE <span className="text-accent">SKY</span>
                   </h1>
                   <p className="text-muted-foreground text-xs sm:text-sm mt-1">

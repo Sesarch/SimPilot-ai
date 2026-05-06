@@ -491,12 +491,12 @@ const PmdgDebriefModal = ({
                   key={s.label}
                   className="rounded-md border border-border bg-background/40 p-3 text-center"
                 >
-                  <div className="font-display text-[10px] font-bold tracking-[0.22em] uppercase text-foreground/70">
+                  <div className="font-display text-[10px] tracking-[0.22em] uppercase text-foreground/70">
                     {s.label}
                   </div>
                   <div
                     className={cn(
-                      "font-display text-2xl font-extrabold tabular-nums mt-1",
+                      "font-display text-2xl tabular-nums mt-1",
                       scoreColor(s.value),
                     )}
                   >
@@ -513,7 +513,7 @@ const PmdgDebriefModal = ({
             {/* Automation */}
             {debrief.automation && (
               <section className="space-y-2">
-                <h4 className="font-display text-[11px] font-bold tracking-[0.22em] uppercase text-primary">
+                <h4 className="font-display text-[11px] tracking-[0.22em] uppercase text-primary">
                   Automation Discipline
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -547,18 +547,18 @@ const PmdgDebriefModal = ({
             {/* Flap schedule */}
             {debrief.flap_schedule?.findings && debrief.flap_schedule.findings.length > 0 && (
               <section className="space-y-2">
-                <h4 className="font-display text-[11px] font-bold tracking-[0.22em] uppercase text-primary">
+                <h4 className="font-display text-[11px] tracking-[0.22em] uppercase text-primary">
                   Flap Speed Schedule
                 </h4>
                 <div className="overflow-x-auto rounded-md border border-border">
                   <table className="w-full text-sm">
                     <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-2 text-left font-medium">Time</th>
-                        <th className="px-3 py-2 text-left font-medium">Flap</th>
-                        <th className="px-3 py-2 text-left font-medium">IAS</th>
-                        <th className="px-3 py-2 text-left font-medium">Placard</th>
-                        <th className="px-3 py-2 text-left font-medium">Verdict</th>
+                        <th className="px-3 py-2 text-left ">Time</th>
+                        <th className="px-3 py-2 text-left ">Flap</th>
+                        <th className="px-3 py-2 text-left ">IAS</th>
+                        <th className="px-3 py-2 text-left ">Placard</th>
+                        <th className="px-3 py-2 text-left ">Verdict</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -578,7 +578,7 @@ const PmdgDebriefModal = ({
                             <td className="px-3 py-2">
                               <span
                                 className={cn(
-                                  "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                                  "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] uppercase tracking-wider",
                                   v.className,
                                 )}
                               >
@@ -599,7 +599,7 @@ const PmdgDebriefModal = ({
             {/* Stable approach */}
             {debrief.stable_approach?.verdict && (
               <section className="space-y-2">
-                <h4 className="font-display text-[11px] font-bold tracking-[0.22em] uppercase text-primary">
+                <h4 className="font-display text-[11px] tracking-[0.22em] uppercase text-primary">
                   Stable Approach
                 </h4>
                 {(() => {
@@ -609,7 +609,7 @@ const PmdgDebriefModal = ({
                     <div className="flex items-start gap-3 rounded-md border border-border bg-background/40 p-3">
                       <span
                         className={cn(
-                          "inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider shrink-0",
+                          "inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-[10px] uppercase tracking-wider shrink-0",
                           v.className,
                         )}
                       >
@@ -630,7 +630,7 @@ const PmdgDebriefModal = ({
             {/* Recommendations */}
             {debrief.recommendations && debrief.recommendations.length > 0 && (
               <section className="space-y-2">
-                <h4 className="font-display text-[11px] font-bold tracking-[0.22em] uppercase text-primary">
+                <h4 className="font-display text-[11px] tracking-[0.22em] uppercase text-primary">
                   Next Leg · Action Items
                 </h4>
                 <ul className="list-decimal pl-5 text-sm text-foreground/90 space-y-1.5">

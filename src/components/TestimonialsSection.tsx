@@ -58,7 +58,7 @@ const TestimonialsSection = () => {
     <section className="py-20 px-4 bg-secondary/30">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-bold font-orbitron text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl font-orbitron text-foreground mb-4">
             What Pilots Are Saying
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -92,12 +92,12 @@ const TestimonialsSection = () => {
                 </div>
                 <div className="flex items-center gap-3 pt-2 border-t border-border">
                   <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs ">
                       {t.initials}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-sm text-foreground">
                       {t.name}
                     </p>
                     <p className="text-xs text-muted-foreground">{t.role}</p>

@@ -102,7 +102,7 @@ const TailNumberSearch = () => {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Search className="w-4 h-4 text-primary shrink-0" />
-        <h3 className="font-display text-sm font-semibold tracking-wider uppercase text-foreground">
+        <h3 className="font-display text-sm tracking-wider uppercase text-foreground">
           Tail / Callsign Lookup
         </h3>
       </div>
@@ -153,7 +153,7 @@ const TailNumberSearch = () => {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-lg text-foreground">{result.ident}</span>
+                  <span className="font-mono text-lg text-foreground">{result.ident}</span>
                   {result.is_live ? (
                     <Badge className="bg-red-500/20 text-red-400 border-red-500/40 text-[10px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mr-1" />
@@ -169,7 +169,7 @@ const TailNumberSearch = () => {
               </div>
               {result.is_live && result.live_flight && (
                 <div className="text-right text-xs">
-                  <div className="font-mono font-medium text-foreground">
+                  <div className="font-mono text-foreground">
                     {result.live_flight.origin || "?"} → {result.live_flight.destination || "?"}
                   </div>
                   {result.live_flight.progress_percent != null && (
@@ -221,7 +221,7 @@ const TailNumberSearch = () => {
                     className="flex items-center justify-between gap-2 text-xs py-1.5 px-2 rounded hover:bg-muted/30"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono font-medium text-foreground shrink-0">
+                      <span className="font-mono text-foreground shrink-0">
                         {f.ident || result.ident}
                       </span>
                       <span className="font-mono text-muted-foreground truncate">

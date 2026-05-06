@@ -37,7 +37,7 @@ const Footer = () => {
 
           {/* Links */}
           <div className="flex flex-col gap-3 items-center md:items-start">
-            <h4 className="font-display text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-1">
+            <h4 className="font-display text-xs tracking-[0.2em] uppercase text-foreground mb-1">
               Quick Links
             </h4>
             {["Services", "Features"].map((item) => (
@@ -56,7 +56,7 @@ const Footer = () => {
 
           {/* Legal */}
           <div className="flex flex-col gap-3 items-center md:items-start">
-            <h4 className="font-display text-xs font-semibold tracking-[0.2em] uppercase text-foreground mb-1">
+            <h4 className="font-display text-xs tracking-[0.2em] uppercase text-foreground mb-1">
               Legal
             </h4>
             <FooterLink to="/terms" title="SimPilot.AI Terms & Conditions">Terms &amp; Conditions</FooterLink>

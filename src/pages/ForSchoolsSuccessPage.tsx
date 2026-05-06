@@ -101,7 +101,7 @@ const ForSchoolsSuccessPage = () => {
           {error && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6 text-center">
               <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-              <h2 className="font-display text-xl font-bold text-destructive mb-2">Something went wrong</h2>
+              <h2 className="font-display text-xl text-destructive mb-2">Something went wrong</h2>
               <p className="text-sm text-muted-foreground mb-4">{error}</p>
               <Link to="/contact" title="Contact SimPilot.AI support for help with your bulk purchase" className="text-sm text-accent hover:underline">Contact support →</Link>
             </div>
@@ -113,9 +113,9 @@ const ForSchoolsSuccessPage = () => {
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent/20 text-accent mb-4">
                   <Check className="h-7 w-7" />
                 </div>
-                <h1 className="font-display text-3xl font-bold mb-2">Payment Confirmed</h1>
+                <h1 className="font-display text-3xl mb-2">Payment Confirmed</h1>
                 <p className="text-muted-foreground">
-                  {result.seats} seats activated for <span className="text-foreground font-semibold">{result.school_name}</span>.
+                  {result.seats} seats activated for <span className="text-foreground ">{result.school_name}</span>.
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Codes valid until {result.expires_at ? new Date(result.expires_at).toLocaleDateString() : ""}. A copy was emailed to {result.contact_email}.
@@ -124,7 +124,7 @@ const ForSchoolsSuccessPage = () => {
 
               <div className="bg-card border border-border rounded-xl p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-display font-bold">Student Signup Codes</h2>
+                  <h2 className="font-display ">Student Signup Codes</h2>
                   <div className="flex gap-2">
                     <button onClick={copyAll} className="text-xs px-3 py-1.5 rounded-md bg-secondary hover:bg-secondary/80 flex items-center gap-1.5">
                       <Copy className="h-3 w-3" /> Copy all
@@ -144,7 +144,7 @@ const ForSchoolsSuccessPage = () => {
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-border space-y-2 text-sm text-muted-foreground">
-                  <p className="font-semibold text-foreground">How to share with your students:</p>
+                  <p className="text-foreground">How to share with your students:</p>
                   <p>1. Send each student one code (the CSV has columns for student emails).</p>
                   <p>2. Direct them to <code className="bg-secondary px-1.5 py-0.5 rounded text-foreground">{window.location.origin}/auth</code> to sign up.</p>
                   <p>3. After signup, they paste the code in <strong>Account → Redeem School Code</strong> to activate their year of access.</p>

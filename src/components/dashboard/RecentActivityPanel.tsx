@@ -118,11 +118,11 @@ const RecentActivityPanel = () => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Activity className="w-[18px] h-[18px] text-primary" />
-          <h2 className="font-display text-[14px] font-bold tracking-[0.24em] uppercase text-foreground">
+          <h2 className="font-display text-[14px] tracking-[0.24em] uppercase text-foreground">
             Recent Activity
           </h2>
         </div>
-        <span className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/70">
+        <span className="font-display text-[12px] tracking-[0.24em] uppercase text-foreground/70">
           Last 5 Events
         </span>
       </div>
@@ -140,7 +140,7 @@ const RecentActivityPanel = () => {
             </div>
           ))
         ) : items.length === 0 ? (
-          <div className="py-8 text-center font-display text-[14px] font-bold tracking-[0.24em] uppercase text-foreground/70">
+          <div className="py-8 text-center font-display text-[14px] tracking-[0.24em] uppercase text-foreground/70">
             No activity logged yet
           </div>
         ) : (
@@ -165,21 +165,21 @@ const RecentActivityPanel = () => {
                   <Icon className="w-4 h-4" style={{ color: accent }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-display text-sm font-semibold uppercase tracking-[0.12em] text-foreground truncate group-hover:text-primary transition-colors">
+                  <div className="font-display text-sm uppercase tracking-[0.12em] text-foreground truncate group-hover:text-primary transition-colors">
                     {it.title}
                   </div>
-                  <div className="font-display text-[11px] font-medium tracking-[0.18em] uppercase text-muted-foreground truncate">
+                  <div className="font-display text-[11px] tracking-[0.18em] uppercase text-muted-foreground truncate">
                     {it.subtitle}
                   </div>
                 </div>
                 <div className="flex flex-col items-end shrink-0">
                   <span
-                    className="font-display text-base font-bold tabular-nums"
+                    className="font-display text-base tabular-nums"
                     style={{ color: it.metricColor, textShadow: `0 0 10px ${it.metricColor}50` }}
                   >
                     {it.metric}
                   </span>
-                  <span className="font-display text-[10px] font-medium tracking-[0.18em] uppercase text-muted-foreground">
+                  <span className="font-display text-[10px] tracking-[0.18em] uppercase text-muted-foreground">
                     {formatAgo(it.at)}
                   </span>
                 </div>

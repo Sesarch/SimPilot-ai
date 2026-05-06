@@ -71,19 +71,19 @@ const MonthlyHoursChart = ({ logs }: Props) => {
         <div className="flex items-end gap-4 text-right">
           <div>
             <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">Radio</div>
-            <div className="font-display text-lg font-bold tabular-nums" style={{ color: AMBER, textShadow: `0 0 6px ${AMBER}88` }}>
+            <div className="font-display text-lg tabular-nums" style={{ color: AMBER, textShadow: `0 0 6px ${AMBER}88` }}>
               {totals.radio.toFixed(1)}<span className="text-[9px] ml-0.5 text-muted-foreground">hr</span>
             </div>
           </div>
           <div>
             <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">Study</div>
-            <div className="font-display text-lg font-bold tabular-nums" style={{ color: GREEN, textShadow: `0 0 6px ${GREEN} / 0.5` }}>
+            <div className="font-display text-lg tabular-nums" style={{ color: GREEN, textShadow: `0 0 6px ${GREEN} / 0.5` }}>
               {totals.study.toFixed(1)}<span className="text-[9px] ml-0.5 text-muted-foreground">hr</span>
             </div>
           </div>
           <div>
             <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">12-Mo Total</div>
-            <div className="font-display text-2xl font-bold tabular-nums" style={{ color: WHITE }}>
+            <div className="font-display text-2xl tabular-nums" style={{ color: WHITE }}>
               {totals.total.toFixed(1)}<span className="text-[10px] ml-0.5 text-muted-foreground">hr</span>
             </div>
           </div>

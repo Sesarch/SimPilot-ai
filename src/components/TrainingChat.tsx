@@ -305,7 +305,7 @@ export const TrainingChat = ({
       <div
         role="note"
         aria-label="Safety disclaimer"
-        className="px-3 py-1.5 border-b border-border bg-muted/40 text-[10px] leading-snug text-muted-foreground text-center font-medium"
+        className="px-3 py-1.5 border-b border-border bg-muted/40 text-[10px] leading-snug text-muted-foreground text-center "
       >
         I'm a study tool, not a CFI or dispatcher. AI can be confidently wrong. Under <span className="text-foreground">14 CFR §91.3</span>, the PIC is the final authority.
       </div>
@@ -332,7 +332,7 @@ export const TrainingChat = ({
               <button
                 onClick={handleStart}
                 disabled={!pilotCtx.isComplete}
-                className="px-6 py-3 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-40"
+                className="px-6 py-3 bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-40"
               >
                 Begin Session
               </button>
@@ -403,7 +403,7 @@ export const TrainingChat = ({
                 ? "bg-[hsl(var(--amber-instrument)/0.08)] border border-[hsl(var(--amber-instrument)/0.45)] shadow-[0_0_18px_hsl(var(--amber-instrument)/0.35)] animate-pulse"
                 : "bg-transparent border border-transparent"
             }`}>
-              <div className={`flex items-center justify-between mb-1.5 text-[11px] font-display font-bold uppercase tracking-wider ${
+              <div className={`flex items-center justify-between mb-1.5 text-[11px] font-display uppercase tracking-wider ${
                 isCritical ? "text-destructive" : isUrgent ? "text-[hsl(var(--amber-instrument))] text-glow-amber" : isWarning ? "text-accent" : "text-muted-foreground"
               }`}>
                 <span className="flex items-center gap-1.5">
@@ -456,7 +456,7 @@ export const TrainingChat = ({
                   : ""
               }`
             )}
-            className="w-full mb-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent/10 border border-accent/30 text-accent rounded-lg text-xs font-display font-semibold tracking-wider uppercase hover:bg-accent/20 transition-all"
+            className="w-full mb-3 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent/10 border border-accent/30 text-accent rounded-lg text-xs font-display tracking-wider uppercase hover:bg-accent/20 transition-all"
           >
             <ClipboardCheck className="w-4 h-4" />
             End Exam &amp; Generate Report

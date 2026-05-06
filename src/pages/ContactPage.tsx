@@ -131,7 +131,7 @@ const ContactPage = () => {
           <div className="p-2 rounded-lg bg-primary/10 text-primary">
             <Mail className="h-6 w-6" />
           </div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Contact Us</h1>
+          <h1 className="font-display text-3xl text-foreground">Contact Us</h1>
         </div>
 
         <p className="text-muted-foreground text-sm leading-relaxed mb-8">
@@ -216,12 +216,12 @@ const ContactPage = () => {
         <div className="mt-16">
           <div className="flex items-center gap-2 mb-6">
             <HelpCircle className="h-5 w-5 text-primary" />
-            <h2 className="font-display text-xl font-bold text-foreground">Frequently Asked Questions</h2>
+            <h2 className="font-display text-xl text-foreground">Frequently Asked Questions</h2>
           </div>
           <Accordion type="single" collapsible className="space-y-2">
             {faqs.map((faq, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-lg px-4">
-                <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
+                <AccordionTrigger className="text-sm text-foreground hover:no-underline">
                   {faq.q}
                 </AccordionTrigger>
                 <AccordionContent className="text-sm text-muted-foreground leading-relaxed">

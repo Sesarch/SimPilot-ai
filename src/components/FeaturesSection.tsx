@@ -24,7 +24,7 @@ const FeaturesSection = () => {
           <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">
             Why SimPilot.ai
           </p>
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground">
+          <h2 className="font-display text-3xl md:text-5xl text-foreground">
             The <span className="text-primary text-glow-cyan">Advantage</span>
           </h2>
         </motion.div>
@@ -43,7 +43,7 @@ const FeaturesSection = () => {
                 <f.icon className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <h3 className="font-display text-xs font-semibold tracking-wider uppercase text-foreground mb-1">
+                <h3 className="font-display text-xs tracking-wider uppercase text-foreground mb-1">
                   {f.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">{f.desc}</p>

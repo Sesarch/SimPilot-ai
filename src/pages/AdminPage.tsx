@@ -367,7 +367,7 @@ const AdminPage = () => {
             </Link>
             <Link to="/" title="SimPilot.AI home" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
               <Shield className="w-8 h-8 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)] shrink-0 translate-y-[1px]" />
-              <span className="font-display text-3xl font-black leading-[1] text-foreground tracking-[0.18em] drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">
+              <span className="font-display text-3xl leading-[1] text-foreground tracking-[0.18em] drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">
                 ADMIN<span className="text-primary">PANEL</span>
               </span>
             </Link>
@@ -408,7 +408,7 @@ const AdminPage = () => {
                   <div className="flex items-center gap-3">
                     <Users className="w-5 h-5 text-primary" />
                     <div>
-                      <p className="text-2xl font-display font-bold text-foreground">{users.length}</p>
+                      <p className="text-2xl font-display text-foreground">{users.length}</p>
                       <p className="text-xs text-muted-foreground">Total Users</p>
                     </div>
                   </div>
@@ -417,7 +417,7 @@ const AdminPage = () => {
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-500" />
                     <div>
-                      <p className="text-2xl font-display font-bold text-foreground">{users.filter(u => !u.is_banned).length}</p>
+                      <p className="text-2xl font-display text-foreground">{users.filter(u => !u.is_banned).length}</p>
                       <p className="text-xs text-muted-foreground">Active</p>
                     </div>
                   </div>
@@ -426,7 +426,7 @@ const AdminPage = () => {
                   <div className="flex items-center gap-3">
                     <Ban className="w-5 h-5 text-destructive" />
                     <div>
-                      <p className="text-2xl font-display font-bold text-foreground">{users.filter(u => u.is_banned).length}</p>
+                      <p className="text-2xl font-display text-foreground">{users.filter(u => u.is_banned).length}</p>
                       <p className="text-xs text-muted-foreground">Suspended</p>
                     </div>
                   </div>
@@ -435,7 +435,7 @@ const AdminPage = () => {
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-accent" />
                     <div>
-                      <p className="text-2xl font-display font-bold text-foreground">{leads.length}</p>
+                      <p className="text-2xl font-display text-foreground">{leads.length}</p>
                       <p className="text-xs text-muted-foreground">Leads</p>
                     </div>
                   </div>
@@ -455,7 +455,7 @@ const AdminPage = () => {
           <TabsContent value="users">
             {/* Invite */}
             <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5 mb-6">
-              <h2 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h2 className="font-display text-sm text-foreground mb-3 flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-primary" /> Invite New User
               </h2>
               <div className="flex gap-3">
@@ -508,7 +508,7 @@ const AdminPage = () => {
                     {filteredUsers.map((u) => (
                       <tr key={u.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
                         <td className="p-3">
-                          <p className="font-medium text-foreground">{u.display_name || "—"}</p>
+                          <p className="text-foreground">{u.display_name || "—"}</p>
                           <p className="text-xs text-muted-foreground">{u.email}</p>
                         </td>
                         <td className="p-3">
@@ -607,7 +607,7 @@ const AdminPage = () => {
           {/* Leads Tab */}
           <TabsContent value="leads">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+              <h2 className="font-display text-lg text-foreground flex items-center gap-2">
                 <Mail className="w-5 h-5 text-primary" /> Lead Emails
                 <Badge variant="secondary" className="ml-2 text-xs">{leads.length}</Badge>
               </h2>
@@ -633,7 +633,7 @@ const AdminPage = () => {
                   <tbody>
                     {leads.map((lead) => (
                       <tr key={lead.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
-                        <td className="p-3 font-medium text-foreground">{lead.email}</td>
+                        <td className="p-3 text-foreground">{lead.email}</td>
                         <td className="p-3 text-xs text-muted-foreground">{new Date(lead.created_at).toLocaleString()}</td>
                         <td className="p-3">
                           {lead.pilot_context ? (
@@ -791,7 +791,7 @@ const AdminPage = () => {
               <CalendarClock className="w-4 h-4 text-cyan-500" /> Extend Free Trial
             </DialogTitle>
             <DialogDescription>
-              Extend <span className="font-medium text-foreground">{extendDialog?.email}</span>'s
+              Extend <span className="text-foreground">{extendDialog?.email}</span>'s
               free trial by any number of months. While the trial is active, the user has full
               access (equivalent to Ultra). This bypasses Stripe and is logged to the audit log.
             </DialogDescription>
@@ -799,7 +799,7 @@ const AdminPage = () => {
           <div className="space-y-4 py-2">
             <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
               Current trial ends:{" "}
-              <span className="font-medium text-foreground">
+              <span className="text-foreground">
                 {extendDialog?.currentEndsAt
                   ? new Date(extendDialog.currentEndsAt).toLocaleDateString()
                   : "—"}

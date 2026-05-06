@@ -210,7 +210,7 @@ const SupportChatWidget = () => {
             aria-label="Open support chat"
           >
             <MessageCircle className="w-4 h-4 rotate-90" />
-            <span className="text-xs font-display font-semibold tracking-widest uppercase">Support</span>
+            <span className="text-xs font-display tracking-widest uppercase">Support</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -231,7 +231,7 @@ const SupportChatWidget = () => {
                   <MessageCircle className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold tracking-wider uppercase">SimPilot Support</p>
+                  <p className="text-xs tracking-wider uppercase">SimPilot Support</p>
                   <p className="text-[10px] opacity-80">We typically reply instantly</p>
                 </div>
               </div>
@@ -247,7 +247,7 @@ const SupportChatWidget = () => {
                   <Mail className="w-7 h-7 text-primary" />
                 </div>
                 <div className="text-center space-y-1">
-                  <h3 className="font-display text-base font-semibold text-foreground">Welcome to SimPilot Support</h3>
+                  <h3 className="font-display text-base text-foreground">Welcome to SimPilot Support</h3>
                   <p className="text-xs text-muted-foreground">Enter your email so we can follow up if needed.</p>
                 </div>
                 <form onSubmit={handleEmailSubmit} className="w-full space-y-3">
@@ -314,10 +314,10 @@ const SupportChatWidget = () => {
                   {/* Escalation card */}
                   {escalated && (
                     <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 space-y-2">
-                      <p className="text-xs font-medium text-foreground">Need more help? Reach our team directly:</p>
+                      <p className="text-xs text-foreground">Need more help? Reach our team directly:</p>
                       <a
                         href={`mailto:support@simpilot.ai?subject=Support Request&body=Email: ${email}%0A%0A`}
-                        className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-lg px-4 py-2 text-xs font-medium hover:bg-primary/90 transition-colors"
+                        className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-lg px-4 py-2 text-xs hover:bg-primary/90 transition-colors"
                       >
                         <Mail className="w-3.5 h-3.5" />
                         Email support@simpilot.ai

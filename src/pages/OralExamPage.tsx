@@ -227,9 +227,9 @@ const OralExamPage = () => {
               <span className="text-2xl">{selectedExam.icon}</span>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="font-display text-sm font-bold text-foreground">{selectedExam.title}</h2>
+                  <h2 className="font-display text-sm text-foreground">{selectedExam.title}</h2>
                   {stressMode && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/30 text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-accent/15 text-accent border border-accent/30 text-[10px] uppercase tracking-wider">
                       <Flame className="w-3 h-3" /> Stress Mode · {stressTimerSeconds}s
                     </span>
                   )}
@@ -260,7 +260,7 @@ const OralExamPage = () => {
         <div className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-6 py-8 max-w-3xl">
             <div className="mb-8">
-              <h1 className="font-display text-2xl font-bold text-foreground mb-2">
+              <h1 className="font-display text-2xl text-foreground mb-2">
                 Oral Exam Prep
               </h1>
               <p className="text-sm text-muted-foreground">
@@ -287,8 +287,8 @@ const OralExamPage = () => {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-display text-sm font-bold text-foreground">Stress Mode</h3>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${stressMode ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                    <h3 className="font-display text-sm text-foreground">Stress Mode</h3>
+                    <span className={`text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded ${stressMode ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
                       {stressMode ? "ON" : "OFF"}
                     </span>
                   </div>
@@ -303,7 +303,7 @@ const OralExamPage = () => {
 
               {stressMode && (
                 <div className="px-4 pb-4 -mt-1 flex items-center gap-3 flex-wrap border-t border-accent/20 pt-3">
-                  <span className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-[11px] font-display uppercase tracking-wider text-muted-foreground">
                     Answer Window
                   </span>
                   <div className="inline-flex rounded-lg border border-accent/30 bg-background/40 p-0.5">
@@ -312,7 +312,7 @@ const OralExamPage = () => {
                         key={s}
                         type="button"
                         onClick={() => setStressTimerSeconds(s)}
-                        className={`px-3 py-1.5 text-xs font-display font-semibold tracking-wider uppercase rounded-md transition-all ${
+                        className={`px-3 py-1.5 text-xs font-display tracking-wider uppercase rounded-md transition-all ${
                           stressTimerSeconds === s
                             ? "bg-accent text-accent-foreground shadow-[0_0_10px_hsl(var(--amber-instrument)/0.4)]"
                             : "text-muted-foreground hover:text-foreground"
@@ -340,7 +340,7 @@ const OralExamPage = () => {
                   <div className="flex items-start gap-3">
                     <span className="text-3xl">{exam.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-display text-sm font-bold text-foreground group-hover:text-accent transition-colors mb-1">
+                      <h3 className="font-display text-sm text-foreground group-hover:text-accent transition-colors mb-1">
                         {exam.title}
                       </h3>
                       <p className="text-xs text-muted-foreground line-clamp-3">

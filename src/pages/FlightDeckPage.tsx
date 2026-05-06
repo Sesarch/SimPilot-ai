@@ -90,14 +90,14 @@ const FlightDeckPage = () => {
         {/* Header strip */}
         <div className="flex items-center justify-between mb-7">
           <div>
-            <h1 className="font-display text-3xl font-extrabold tracking-[0.16em] uppercase text-foreground">
+            <h1 className="font-display text-3xl tracking-[0.16em] uppercase text-foreground">
               Flight Deck
             </h1>
-            <p className="font-display text-[12px] font-semibold tracking-[0.25em] uppercase text-muted-foreground mt-2">
+            <p className="font-display text-[12px] tracking-[0.25em] uppercase text-muted-foreground mt-2">
               Pilot Readiness Overview
             </p>
           </div>
-          <div className="hidden sm:flex items-center gap-5 font-display text-[12px] font-semibold tracking-[0.18em] uppercase text-foreground/80">
+          <div className="hidden sm:flex items-center gap-5 font-display text-[12px] tracking-[0.18em] uppercase text-foreground/80">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[hsl(var(--cyan-glow))]" /> Live Data
             </div>
@@ -116,7 +116,7 @@ const FlightDeckPage = () => {
             <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary/60" />
             <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary/60" />
 
-            <div className="font-display text-[12px] font-semibold tracking-[0.3em] uppercase text-foreground/80 mb-3">
+            <div className="font-display text-[12px] tracking-[0.3em] uppercase text-foreground/80 mb-3">
               Primary Flight Display
             </div>
             {loading ? (
@@ -125,39 +125,39 @@ const FlightDeckPage = () => {
               <ReadinessGauge score={overall} />
             )}
             {!loading && !hasData && (
-              <p className="mt-4 font-display text-[12px] font-medium tracking-[0.16em] uppercase text-muted-foreground text-center max-w-md">
+              <p className="mt-4 font-display text-[12px] tracking-[0.16em] uppercase text-muted-foreground text-center max-w-md">
                 Complete ground school topics or take an oral exam to populate your readiness score.
               </p>
             )}
             <div className="mt-7 grid grid-cols-3 gap-6 text-center">
               <div>
-                <div className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/80">
+                <div className="font-display text-[12px] tracking-[0.24em] uppercase text-foreground/80">
                   Topics Done
                 </div>
-                <div className="font-display text-3xl font-extrabold text-foreground tabular-nums mt-2">
+                <div className="font-display text-3xl text-foreground tabular-nums mt-2">
                   {Object.values(categories).reduce((a, c) => a + c.topicCompleted, 0)}
-                  <span className="text-muted-foreground text-xl font-bold">
+                  <span className="text-muted-foreground text-xl ">
                     /{Object.values(categories).reduce((a, c) => a + c.topicTotal, 0)}
                   </span>
                 </div>
               </div>
               <div className="border-x border-border">
-                <div className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/80">
+                <div className="font-display text-[12px] tracking-[0.24em] uppercase text-foreground/80">
                   Exams Logged
                 </div>
                 <div
-                  className="font-display text-3xl font-extrabold text-accent tabular-nums mt-2"
+                  className="font-display text-3xl text-accent tabular-nums mt-2"
                   style={{ textShadow: "0 0 12px hsl(var(--amber-instrument) / 0.5)" }}
                 >
                   {Object.values(categories).reduce((a, c) => a + c.examCount, 0)}
                 </div>
               </div>
               <div>
-                <div className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/80">
+                <div className="font-display text-[12px] tracking-[0.24em] uppercase text-foreground/80">
                   Overall
                 </div>
                 <div
-                  className="font-display text-3xl font-extrabold text-primary tabular-nums mt-2"
+                  className="font-display text-3xl text-primary tabular-nums mt-2"
                   style={{ textShadow: "0 0 12px hsl(var(--cyan-glow) / 0.5)" }}
                 >
                   {loading ? "—" : `${overall}%`}
@@ -209,7 +209,7 @@ const FlightDeckPage = () => {
         </div>
 
         {/* Footer status bar */}
-        <div className="mt-6 g3000-bezel rounded-lg px-5 py-4 flex items-center justify-between font-display text-[14px] font-bold tracking-[0.22em] uppercase text-foreground">
+        <div className="mt-6 g3000-bezel rounded-lg px-5 py-4 flex items-center justify-between font-display text-[14px] tracking-[0.22em] uppercase text-foreground">
           <span className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${loading ? "bg-[hsl(var(--amber-instrument))] animate-pulse" : "bg-[hsl(var(--cyan-glow))] shadow-[0_0_8px_hsl(var(--cyan-glow))]"}`} />
             STATUS · <span className={loading ? "text-[hsl(var(--amber-instrument))]" : "text-[hsl(var(--cyan-glow))]"}>{loading ? "SYNCING" : "OK"}</span>

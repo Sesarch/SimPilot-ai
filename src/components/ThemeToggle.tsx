@@ -35,7 +35,7 @@ const ThemeToggle = () => {
       title={`Theme: ${label}`}
     >
       {icon}
-      <span className="text-xs font-medium uppercase tracking-wide">
+      <span className="text-xs uppercase tracking-wide">
         {label}
       </span>
     </button>

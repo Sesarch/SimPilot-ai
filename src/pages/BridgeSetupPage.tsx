@@ -205,7 +205,7 @@ export default function BridgeSetupPage() {
           <Radio className="h-6 w-6 text-primary" />
           <Badge variant="outline" className="font-mono text-xs border-primary/50 text-primary">v{BRIDGE_VERSION} · STABLE</Badge>
         </div>
-        <h1 className="font-orbitron text-3xl md:text-4xl font-bold tracking-tight mb-3">
+        <h1 className="font-orbitron text-3xl md:text-4xl tracking-tight mb-3">
           SimPilot Bridge Setup
         </h1>
         <p className="text-muted-foreground max-w-2xl mb-6">
@@ -217,7 +217,7 @@ export default function BridgeSetupPage() {
         <Card className="mb-6 border-border/60">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-orbitron">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm font-bold">1</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm ">1</span>
               Download &amp; install
             </CardTitle>
           </CardHeader>
@@ -226,7 +226,7 @@ export default function BridgeSetupPage() {
               <p className="text-sm text-muted-foreground">
                 Download the installer for your platform, run the bridge app, and leave it open while you fly.
               </p>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono font-semibold text-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono text-primary">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 Pinned v{BRIDGE_VERSION}
               </span>
@@ -237,7 +237,7 @@ export default function BridgeSetupPage() {
                 type="button"
                 onClick={handleDownload}
                 disabled={downloadDisabled}
-                className="h-11 px-8 gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all font-semibold text-sm disabled:opacity-60 disabled:hover:scale-100"
+                className="h-11 px-8 gap-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] transition-all text-sm disabled:opacity-60 disabled:hover:scale-100"
               >
                 {download.status === "starting" || download.status === "saving" ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -265,7 +265,7 @@ export default function BridgeSetupPage() {
               <span
                 title="Windows Only"
                 aria-disabled="true"
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed font-semibold text-sm opacity-60"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed text-sm opacity-60"
               >
                 <Lock className="h-4 w-4" />
                 macOS · Windows Only
@@ -273,7 +273,7 @@ export default function BridgeSetupPage() {
               <span
                 title="Windows Only"
                 aria-disabled="true"
-                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed font-semibold text-sm opacity-60"
+                className="inline-flex items-center gap-2 h-11 rounded-md px-6 border border-border bg-muted/40 text-muted-foreground cursor-not-allowed text-sm opacity-60"
               >
                 <Lock className="h-4 w-4" />
                 Linux · Windows Only
@@ -321,13 +321,13 @@ export default function BridgeSetupPage() {
               >
                 <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
                 <div className="space-y-1">
-                  <p className="font-semibold">Download failed</p>
+                  <p className="">Download failed</p>
                   <p>{download.message}</p>
                   {download.hint && <p className="text-destructive/80">{download.hint}</p>}
                   <button
                     type="button"
                     onClick={handleDownload}
-                    className="underline font-semibold hover:text-destructive/80"
+                    className="underline hover:text-destructive/80"
                   >
                     Retry download
                   </button>
@@ -350,7 +350,7 @@ export default function BridgeSetupPage() {
         <Card className="mb-6 border-border/60">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-orbitron">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm font-bold">2</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm ">2</span>
               Configure your sim
             </CardTitle>
           </CardHeader>
@@ -417,7 +417,7 @@ EnableDataBroadcast=1`}
         <Card className="mb-6 border-primary/40 bg-primary/[0.03]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-orbitron">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm font-bold">3</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary text-sm ">3</span>
               <Sparkles className="h-4 w-4 text-primary" />
               Pair with one click
             </CardTitle>

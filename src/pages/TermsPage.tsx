@@ -27,21 +27,21 @@ const TermsPage = () => {
       <Navbar />
 
       <div className="container mx-auto px-6 py-12 pt-24 max-w-3xl">
-        <h1 className="font-display text-3xl font-bold text-foreground mb-2">Terms & Conditions</h1>
+        <h1 className="font-display text-3xl text-foreground mb-2">Terms & Conditions</h1>
         <p className="text-sm text-muted-foreground mb-8">Last updated: March 27, 2026</p>
 
-        <div className="prose prose-sm prose-invert max-w-none space-y-8 [&_h2]:font-display [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h3]:font-display [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2 [&_p]:text-secondary-foreground [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-secondary-foreground [&_li]:text-sm [&_strong]:text-foreground">
+        <div className="prose prose-sm prose-invert max-w-none space-y-8 [&_h2]:font-display [&_h2]:text-lg [&_h2]:[&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h3]:font-display [&_h3]:text-sm [&_h3]:[&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2 [&_p]:text-secondary-foreground [&_p]:text-sm [&_p]:leading-relaxed [&_li]:text-secondary-foreground [&_li]:text-sm [&_strong]:text-foreground">
 
           {/* CRITICAL DISCLAIMER */}
           <div className="bg-destructive/10 border-2 border-destructive/40 rounded-xl p-6">
             <h2 className="!text-destructive !mt-0 text-base uppercase tracking-wider">⚠️ Critical Disclaimer — Please Read Carefully</h2>
-            <p className="!text-foreground font-semibold">
+            <p className="!text-foreground ">
               SimPilot.AI is <strong className="!text-destructive">NOT approved, endorsed, certified, or affiliated with the Federal Aviation Administration (FAA)</strong>, any Civil Aviation Authority (CAA), the International Civil Aviation Organization (ICAO), or any governmental aviation regulatory body worldwide.
             </p>
-            <p className="!text-foreground font-semibold">
+            <p className="!text-foreground ">
               This platform is <strong className="!text-destructive">NOT a substitute for official flight training</strong>. It does not replace, supplement, or serve as equivalent to instruction from an FAA-certificated flight instructor (CFI), an FAA-approved Part 61 or Part 141 flight school, or any officially recognized aviation training organization.
             </p>
-            <p className="!text-foreground font-semibold">
+            <p className="!text-foreground ">
               <strong className="!text-destructive">You MUST receive proper flight training from an authorized flight school and a certificated flight instructor</strong> before acting as pilot in command of any aircraft. Failure to do so is a violation of federal aviation regulations and may endanger your life and the lives of others.
             </p>
           </div>
@@ -117,7 +117,7 @@ const TermsPage = () => {
 
           <h2>6. Safety & Risk Acknowledgment</h2>
           <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
-            <p className="!text-foreground font-semibold">
+            <p className="!text-foreground ">
               Aviation is inherently dangerous. <strong className="!text-destructive">Improper training or reliance on unverified information can result in serious injury or death.</strong>
             </p>
             <p>
@@ -184,7 +184,7 @@ const TermsPage = () => {
 
           {/* Final reminder */}
           <div className="bg-primary/10 border border-primary/30 rounded-xl p-6 mt-8">
-            <p className="!text-foreground font-semibold text-center">
+            <p className="!text-foreground text-center">
               By creating an account on SimPilot.AI — whether free, trial, or paid — you confirm that you have <strong>read, understood, and agree</strong> to all terms above. You acknowledge that <strong>this platform is not FAA-approved</strong> and that <strong>you must obtain official flight training from certificated instructors and approved schools</strong>.
             </p>
           </div>

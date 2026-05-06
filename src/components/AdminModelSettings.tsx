@@ -146,7 +146,7 @@ const AdminModelSettings = () => {
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-primary/30 p-5">
         <div className="flex items-center gap-2 mb-1">
           <Brain className="w-4 h-4 text-primary" />
-          <h2 className="font-display text-sm font-semibold text-foreground">
+          <h2 className="font-display text-sm text-foreground">
             Multi-Brain Orchestrator (Deep Vertical Engine)
           </h2>
         </div>
@@ -174,7 +174,7 @@ const AdminModelSettings = () => {
         </div>
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
           <div>
-            <p className="text-xs font-semibold text-foreground">Shadow Audit</p>
+            <p className="text-xs text-foreground">Shadow Audit</p>
             <p className="text-[11px] text-muted-foreground">Async review of every Technical/Operational response. Severity 1 → user banner.</p>
           </div>
           <Switch checked={s.shadow_audit_enabled} onCheckedChange={(v) => setS({ ...s, shadow_audit_enabled: v })} />
@@ -186,7 +186,7 @@ const AdminModelSettings = () => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-primary" />
-            <h2 className="font-display text-sm font-semibold text-foreground">Model Connection Health</h2>
+            <h2 className="font-display text-sm text-foreground">Model Connection Health</h2>
           </div>
           <Button size="sm" variant="outline" onClick={runHealthCheck} disabled={healthLoading}>
             {healthLoading ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Activity className="w-3 h-3 mr-1.5" />}
@@ -206,7 +206,7 @@ const AdminModelSettings = () => {
               <div key={r.brain} className={`p-3 rounded-lg border text-xs ${r.ok ? "border-emerald-500/30 bg-emerald-500/5" : "border-destructive/30 bg-destructive/5"}`}>
                 <div className="flex items-center gap-2 flex-wrap">
                   {r.ok ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <XCircle className="w-4 h-4 text-destructive" />}
-                  <span className="font-semibold text-foreground">{r.brain}</span>
+                  <span className="text-foreground">{r.brain}</span>
                   <span className="text-muted-foreground">→ {r.model}</span>
                   <span className="ml-auto text-[10px] text-muted-foreground">
                     {r.status ? `HTTP ${r.status}` : "no response"} · {r.latency_ms}ms
@@ -214,7 +214,7 @@ const AdminModelSettings = () => {
                 </div>
                 {!r.ok && (
                   <div className="mt-2 ml-6 space-y-1">
-                    {r.hint && <p className="text-[11px] text-foreground"><span className="font-semibold">What to do: </span>{r.hint}</p>}
+                    {r.hint && <p className="text-[11px] text-foreground"><span className="">What to do: </span>{r.hint}</p>}
                     {r.error && <p className="text-[10px] text-muted-foreground font-mono break-all">{r.error}</p>}
                   </div>
                 )}
@@ -228,7 +228,7 @@ const AdminModelSettings = () => {
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5">
         <div className="flex items-center gap-2 mb-3">
           <Brain className="w-4 h-4 text-primary" />
-          <h2 className="font-display text-sm font-semibold text-foreground">Legacy Primary / Reviewer</h2>
+          <h2 className="font-display text-sm text-foreground">Legacy Primary / Reviewer</h2>
         </div>
         <p className="text-xs text-muted-foreground mb-3">
           Used by the existing pilot-chat streaming endpoint. The Orchestrator above supersedes this for new call sites.
@@ -267,7 +267,7 @@ const AdminModelSettings = () => {
           <div>
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
-              <h2 className="font-display text-sm font-semibold text-foreground">Aviation Guardrails</h2>
+              <h2 className="font-display text-sm text-foreground">Aviation Guardrails</h2>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Never invent emergency procedures or performance data; recommend POH/CFI when uncertain.
@@ -288,7 +288,7 @@ const AdminModelSettings = () => {
 
       {/* ---------- Recent audit log ---------- */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5">
-        <h2 className="font-display text-sm font-semibold text-foreground mb-3">Recent Shadow Audits</h2>
+        <h2 className="font-display text-sm text-foreground mb-3">Recent Shadow Audits</h2>
         {audits.length === 0 ? (
           <p className="text-xs text-muted-foreground">No audits yet. Once users chat, the Safety Auditor's results will appear here.</p>
         ) : (
@@ -296,7 +296,7 @@ const AdminModelSettings = () => {
             {audits.map((a) => (
               <div key={a.id} className="text-[11px] flex items-center gap-2 py-1.5 px-2 rounded bg-background/40">
                 <span className={
-                  a.status === "flagged" ? "text-destructive font-semibold" :
+                  a.status === "flagged" ? "text-destructive " :
                   a.status === "clean" ? "text-emerald-500" :
                   a.status === "error" ? "text-amber-500" : "text-muted-foreground"
                 }>

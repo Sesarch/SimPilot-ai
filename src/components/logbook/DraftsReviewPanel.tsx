@@ -58,7 +58,7 @@ export default function DraftsReviewPanel({
     >
       <div className="flex items-center justify-between mb-3">
         <div>
-          <div className="font-display text-[11px] tracking-[0.25em] uppercase font-bold text-amber-400">
+          <div className="font-display text-[11px] tracking-[0.25em] uppercase text-amber-400">
             Drafts Awaiting Review · {sorted.length}
           </div>
           <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground mt-0.5">

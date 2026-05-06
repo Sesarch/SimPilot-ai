@@ -117,7 +117,7 @@ const SessionHistoryPage = () => {
             <Clock className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">Session History</h1>
+            <h1 className="font-display text-2xl text-foreground">Session History</h1>
             <p className="text-sm text-muted-foreground">Review your past training conversations</p>
           </div>
         </div>
@@ -133,7 +133,7 @@ const SessionHistoryPage = () => {
             </button>
 
             <div className="bg-gradient-card rounded-xl border border-border p-4 mb-4">
-              <h2 className="font-display text-lg font-semibold text-foreground">{selectedSession.title}</h2>
+              <h2 className="font-display text-lg text-foreground">{selectedSession.title}</h2>
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-xs text-muted-foreground">
                   {modeLabels[selectedSession.mode]?.label || selectedSession.mode}
@@ -207,7 +207,7 @@ const SessionHistoryPage = () => {
                         <Icon className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{session.title}</p>
+                        <p className="text-sm text-foreground truncate">{session.title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs text-muted-foreground">{meta.label}</span>
                           <span className="text-xs text-muted-foreground/50">•</span>

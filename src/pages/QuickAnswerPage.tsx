@@ -228,7 +228,7 @@ export default function QuickAnswerPage() {
       <div className="flex flex-wrap items-center gap-3 border-b border-border pb-3">
         <Zap className="w-5 h-5 text-accent" />
         <div className="flex-1 min-w-[180px]">
-          <h1 className="font-display text-lg font-semibold tracking-[0.15em] uppercase">Quick Answer</h1>
+          <h1 className="font-display text-lg tracking-[0.15em] uppercase">Quick Answer</h1>
           <p className="text-xs text-muted-foreground">Short FAA answers grounded in PHAK, FAR, and AIM.</p>
         </div>
         <div className="hidden md:flex items-center gap-2">

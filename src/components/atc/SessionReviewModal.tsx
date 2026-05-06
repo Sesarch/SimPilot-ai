@@ -128,7 +128,7 @@ export function SessionReviewModal({
                   </div>
                   <div
                     className={cn(
-                      "font-display text-base font-bold tracking-wider",
+                      "font-display text-base tracking-wider",
                       score.result === "PASS"
                         ? "text-[hsl(var(--hud-green))]"
                         : "text-destructive",
@@ -208,7 +208,7 @@ export function SessionReviewModal({
                   {row.feedback && (
                     <div className="max-w-[88%] flex items-start gap-1.5 text-[11px] text-amber-700 dark:text-amber-400 pr-1">
                       <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
-                      <span><span className="font-semibold">Coach:</span> {row.feedback}</span>
+                      <span><span className="">Coach:</span> {row.feedback}</span>
                     </div>
                   )}
                 </div>
@@ -228,7 +228,7 @@ export function SessionReviewModal({
                 <ul className="space-y-1.5">
                   {score.weak_areas.map((w, i) => (
                     <li key={i} className="text-xs text-foreground/90">
-                      <span className="font-semibold text-accent">{w.category}:</span> {w.issue}
+                      <span className="text-accent">{w.category}:</span> {w.issue}
                       {w.example && (
                         <div className="mt-0.5 text-[11px] text-muted-foreground font-mono">
                           → "{w.example}"

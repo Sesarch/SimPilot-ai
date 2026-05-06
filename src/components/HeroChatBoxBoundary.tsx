@@ -39,7 +39,7 @@ class HeroChatBoxBoundary extends Component<Props, State> {
             <AlertTriangle className="w-5 h-5 text-destructive" aria-hidden="true" />
           </div>
         </div>
-        <h2 className="font-display text-sm font-semibold tracking-wide uppercase text-foreground">
+        <h2 className="font-display text-sm tracking-wide uppercase text-foreground">
           Chat temporarily unavailable
         </h2>
         <p className="text-xs text-muted-foreground">

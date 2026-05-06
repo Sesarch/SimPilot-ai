@@ -33,7 +33,7 @@ const CategoryCard = ({ icon: Icon, label, score, trend, accent = "cyan", href }
         </div>
         {typeof trend === "number" && (
           <span
-            className="font-display text-xs font-semibold tracking-wider tabular-nums"
+            className="font-display text-xs tracking-wider tabular-nums"
             style={{ color: trend >= 0 ? "hsl(var(--hud-green))" : "hsl(var(--destructive))" }}
           >
             {trend >= 0 ? "▲" : "▼"} {Math.abs(trend)}
@@ -41,18 +41,18 @@ const CategoryCard = ({ icon: Icon, label, score, trend, accent = "cyan", href }
         )}
       </div>
 
-      <div className="font-display text-[13px] font-bold tracking-[0.22em] uppercase text-foreground/90">
+      <div className="font-display text-[13px] tracking-[0.22em] uppercase text-foreground/90">
         {label}
       </div>
 
       <div className="flex items-baseline gap-1.5 mt-2">
         <span
-          className="font-display text-[44px] leading-none font-extrabold tabular-nums"
+          className="font-display text-[44px] leading-none tabular-nums"
           style={{ color, textShadow: `0 0 14px ${color}55` }}
         >
           {score}
         </span>
-        <span className="font-display text-lg font-bold text-foreground/60">/100</span>
+        <span className="font-display text-lg text-foreground/60">/100</span>
       </div>
 
       {/* progress bar */}

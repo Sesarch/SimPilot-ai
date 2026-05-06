@@ -18,7 +18,7 @@ export const SafetyAlertBanner = () => {
         <ShieldAlert className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-display text-sm font-semibold text-destructive">
+            <span className="font-display text-sm text-destructive">
               Safety Alert: Information flagged for POH verification
             </span>
             <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-destructive/20 text-destructive">

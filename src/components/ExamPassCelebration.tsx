@@ -102,10 +102,10 @@ export default function ExamPassCelebration({
               >
                 <Trophy className="w-10 h-10 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" />
               </motion.div>
-              <p className="font-display text-xs font-bold tracking-[0.2em] uppercase text-primary">
+              <p className="font-display text-xs tracking-[0.2em] uppercase text-primary">
                 Exam Passed
               </p>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-2xl text-foreground">
                 {score}/{total}
               </p>
               <p className="text-muted-foreground text-xs">Tap to dismiss</p>

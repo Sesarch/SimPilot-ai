@@ -133,7 +133,7 @@ const MfaChallengePage = () => {
         <div className="bg-gradient-card rounded-xl border border-border p-8">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-5 h-5 text-primary" />
-            <h1 className="font-display text-xl font-bold tracking-wide">Two-factor verification</h1>
+            <h1 className="font-display text-xl tracking-wide">Two-factor verification</h1>
           </div>
           <p className="text-sm text-muted-foreground mb-6">
             {status.required ? "Required for admin access. " : ""}
@@ -194,7 +194,7 @@ const MfaChallengePage = () => {
             <button
               type="submit"
               disabled={busy}
-              className="w-full py-2.5 bg-primary text-primary-foreground font-display text-sm font-semibold tracking-widest uppercase rounded-lg disabled:opacity-50"
+              className="w-full py-2.5 bg-primary text-primary-foreground font-display text-sm tracking-widest uppercase rounded-lg disabled:opacity-50"
             >
               {busy ? "Verifying…" : "Verify"}
             </button>

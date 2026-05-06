@@ -106,7 +106,7 @@ Produce the briefing in EXACTLY this structure:
           </div>
           <div className="flex items-center gap-2">
             <Cloud className="w-4 h-4 text-primary" />
-            <span className="font-display text-sm font-semibold tracking-wider uppercase text-foreground">
+            <span className="font-display text-sm tracking-wider uppercase text-foreground">
               Pre-Flight Briefing
             </span>
           </div>
@@ -117,7 +117,7 @@ Produce the briefing in EXACTLY this structure:
         {/* Departure Input */}
         <div className="border-b border-border bg-secondary/30 px-6 py-4 shrink-0">
           <div className="container mx-auto max-w-3xl">
-            <h1 className="font-display text-lg font-bold text-foreground mb-1 flex items-center gap-2">
+            <h1 className="font-display text-lg text-foreground mb-1 flex items-center gap-2">
               <Plane className="w-5 h-5 text-primary" />
               Local Pre-Flight Briefing
             </h1>
@@ -155,7 +155,7 @@ Produce the briefing in EXACTLY this structure:
                 <button
                   onClick={handleFetch}
                   disabled={!departure.trim() || loading}
-                  className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-40"
+                  className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2 bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase rounded-lg hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all disabled:opacity-40"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                   Brief
@@ -179,7 +179,7 @@ Produce the briefing in EXACTLY this structure:
               <div className="bg-gradient-card rounded-xl border border-border p-4 mb-3">
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin className="w-4 h-4 text-primary" />
-                  <h3 className="font-display text-sm font-bold text-foreground">{data.departure}</h3>
+                  <h3 className="font-display text-sm text-foreground">{data.departure}</h3>
                 </div>
                 {data.metar && (
                   <div className="mb-2">
@@ -230,7 +230,7 @@ Produce the briefing in EXACTLY this structure:
               {!showAnalysis && (
                 <button
                   onClick={() => setShowAnalysis(true)}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-display text-xs font-semibold tracking-widest uppercase rounded-xl hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all mb-6"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase rounded-xl hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.3)] transition-all mb-6"
                 >
                   <Cloud className="w-4 h-4" />
                   Run CFI Go / No-Go Brief
@@ -258,7 +258,7 @@ Produce the briefing in EXACTLY this structure:
           <div className="flex-1 flex items-center justify-center px-6">
             <div className="text-center max-w-md">
               <Cloud className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="font-display text-lg font-semibold text-foreground mb-2">
+              <h2 className="font-display text-lg text-foreground mb-2">
                 Ready for your pre-flight brief
               </h2>
               <p className="text-sm text-muted-foreground">

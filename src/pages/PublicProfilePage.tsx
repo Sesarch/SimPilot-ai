@@ -372,7 +372,7 @@ const PublicProfilePage = () => {
                         </div>
                         <div className="min-w-0">
                           <div
-                            className="font-display text-[11px] uppercase tracking-wider font-semibold leading-tight"
+                            className="font-display text-[11px] uppercase tracking-wider leading-tight"
                             style={{ color: meta.accent }}
                           >
                             {meta.label}

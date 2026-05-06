@@ -68,7 +68,7 @@ const BridgeVerifiedStatusPanel = ({ className }: Props) => {
       <div className={`${base} border-border`} aria-live="polite">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-          <span className="font-display text-[12px] font-semibold tracking-[0.2em] uppercase">
+          <span className="font-display text-[12px] tracking-[0.2em] uppercase">
             Verifying installer status…
           </span>
         </div>
@@ -86,7 +86,7 @@ const BridgeVerifiedStatusPanel = ({ className }: Props) => {
         <div className="flex items-start gap-2">
           <ShieldAlert className="h-4 w-4 mt-0.5 text-destructive" aria-hidden />
           <div className="space-y-0.5">
-            <p className="font-display text-[12px] font-semibold tracking-[0.18em] uppercase text-destructive">
+            <p className="font-display text-[12px] tracking-[0.18em] uppercase text-destructive">
               {state.title}
             </p>
             <p className="text-xs text-muted-foreground">{state.message}</p>
@@ -108,7 +108,7 @@ const BridgeVerifiedStatusPanel = ({ className }: Props) => {
       <div className="flex items-start gap-2.5">
         <ShieldCheck className="h-4 w-4 mt-0.5 text-primary" aria-hidden />
         <div className="flex-1 space-y-1.5">
-          <p className="font-display text-[12px] font-semibold tracking-[0.2em] uppercase text-primary">
+          <p className="font-display text-[12px] tracking-[0.2em] uppercase text-primary">
             Verified Installer Status
           </p>
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">

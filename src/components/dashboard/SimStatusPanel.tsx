@@ -50,7 +50,7 @@ const SimStatusPanel = () => {
           ) : (
             <Plug className="w-[18px] h-[18px] text-muted-foreground" />
           )}
-          <span className="font-display text-[12px] font-semibold tracking-[0.22em] uppercase text-foreground/90">
+          <span className="font-display text-[12px] tracking-[0.22em] uppercase text-foreground/90">
             SimPilot Bridge · Telemetry Link
           </span>
         </div>
@@ -58,7 +58,7 @@ const SimStatusPanel = () => {
           <span className={cn("w-2 h-2 rounded-full", statusDot)} />
           <span
             className={cn(
-              "font-display text-[12px] font-semibold tracking-[0.22em] uppercase",
+              "font-display text-[12px] tracking-[0.22em] uppercase",
               isConnected
                 ? "text-[hsl(var(--cyan-glow))]"
                 : isConnecting
@@ -69,7 +69,7 @@ const SimStatusPanel = () => {
             {statusLabel}
           </span>
           {isFlightActive && (
-            <span className="ml-1 inline-flex items-center gap-1 rounded-sm border border-primary/40 bg-primary/10 px-2 py-0.5 font-display text-[11px] font-semibold tracking-[0.2em] uppercase text-primary">
+            <span className="ml-1 inline-flex items-center gap-1 rounded-sm border border-primary/40 bg-primary/10 px-2 py-0.5 font-display text-[11px] tracking-[0.2em] uppercase text-primary">
               <Plane className="w-3 h-3" /> In Flight
             </span>
           )}
@@ -77,7 +77,7 @@ const SimStatusPanel = () => {
             <Link
               to="/flight-deck/bridge"
               title={`Bridge v${bridgeVersion} → ${latestTag} available`}
-              className="ml-1 inline-flex items-center gap-1 rounded-sm border border-[hsl(var(--amber-instrument))]/50 bg-[hsl(var(--amber-instrument))]/10 px-2 py-0.5 font-display text-[11px] font-semibold tracking-[0.2em] uppercase text-[hsl(var(--amber-instrument))] hover:bg-[hsl(var(--amber-instrument))]/20 transition-colors"
+              className="ml-1 inline-flex items-center gap-1 rounded-sm border border-[hsl(var(--amber-instrument))]/50 bg-[hsl(var(--amber-instrument))]/10 px-2 py-0.5 font-display text-[11px] tracking-[0.2em] uppercase text-[hsl(var(--amber-instrument))] hover:bg-[hsl(var(--amber-instrument))]/20 transition-colors"
             >
               <ArrowUpCircle className="w-3 h-3" /> Update {latestTag}
             </Link>
@@ -96,12 +96,12 @@ const SimStatusPanel = () => {
             key={item.label}
             className="rounded-md border border-border bg-background/40 px-3 py-3 text-center"
           >
-            <div className="font-display text-[12px] font-bold tracking-[0.24em] uppercase text-foreground/80">
+            <div className="font-display text-[12px] tracking-[0.24em] uppercase text-foreground/80">
               {item.label}
             </div>
             <div
               className={cn(
-                "font-display text-3xl font-extrabold tabular-nums mt-1.5",
+                "font-display text-3xl tabular-nums mt-1.5",
                 isConnected ? "text-[hsl(var(--cyan-glow))]" : "text-muted-foreground/70",
               )}
               style={isConnected ? { textShadow: "0 0 12px hsl(var(--cyan-glow) / 0.5)" } : undefined}
@@ -116,13 +116,13 @@ const SimStatusPanel = () => {
       <div className="flex items-center justify-between rounded-md border border-border bg-background/40 px-3 py-2.5 mb-4">
         <div className="flex items-center gap-2">
           <Radio className="w-4 h-4 text-[hsl(var(--amber-instrument))]" />
-          <span className="font-display text-[12px] font-semibold tracking-[0.22em] uppercase text-foreground/90">
+          <span className="font-display text-[12px] tracking-[0.22em] uppercase text-foreground/90">
             COM1 · ATC Radio Sync
           </span>
         </div>
         <span
           className={cn(
-            "font-display text-base font-bold tabular-nums",
+            "font-display text-base tabular-nums",
             isConnected && telemetry?.com1
               ? "text-[hsl(var(--amber-instrument))]"
               : "text-muted-foreground/60",
@@ -138,11 +138,11 @@ const SimStatusPanel = () => {
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span className="font-display text-[11px] font-semibold tracking-[0.22em] uppercase text-primary">
+              <span className="font-display text-[11px] tracking-[0.22em] uppercase text-primary">
                 {telemetry.pmdg.variant} · MCP / FCU
               </span>
             </div>
-            <div className="flex items-center gap-2 font-display text-[10px] font-semibold tracking-[0.2em] uppercase">
+            <div className="flex items-center gap-2 font-display text-[10px] tracking-[0.2em] uppercase">
               <span
                 className={cn(
                   "px-1.5 py-0.5 rounded-sm border",
@@ -176,11 +176,11 @@ const SimStatusPanel = () => {
                 key={item.label}
                 className="rounded-sm border border-border bg-background/50 px-2 py-2 text-center"
               >
-                <div className="font-display text-[10px] font-bold tracking-[0.22em] uppercase text-foreground/70">
+                <div className="font-display text-[10px] tracking-[0.22em] uppercase text-foreground/70">
                   {item.label}
                 </div>
                 <div
-                  className="font-display text-lg font-extrabold tabular-nums mt-0.5 text-primary"
+                  className="font-display text-lg tabular-nums mt-0.5 text-primary"
                   style={{ textShadow: "0 0 10px hsl(var(--primary) / 0.45)" }}
                 >
                   {item.value}
@@ -192,7 +192,7 @@ const SimStatusPanel = () => {
       )}
 
       {/* Status footer */}
-      <div className="mt-3 pt-3 border-t border-border font-display text-[12px] font-semibold tracking-[0.22em] uppercase text-foreground/70">
+      <div className="mt-3 pt-3 border-t border-border font-display text-[12px] tracking-[0.22em] uppercase text-foreground/70">
         {isConnecting
           ? `Linking ws://localhost:8080…`
           : isConnected && lastUpdate

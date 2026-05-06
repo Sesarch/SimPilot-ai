@@ -81,7 +81,7 @@ const UnsubscribePage = () => {
         {status === "valid" && (
           <>
             <MailX className="h-12 w-12 text-primary mx-auto" />
-            <h1 className="font-display text-2xl font-bold text-foreground">Unsubscribe</h1>
+            <h1 className="font-display text-2xl text-foreground">Unsubscribe</h1>
             <p className="text-muted-foreground">
               Are you sure you want to unsubscribe from SimPilot.AI app emails?
             </p>
@@ -95,7 +95,7 @@ const UnsubscribePage = () => {
         {status === "success" && (
           <>
             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
-            <h1 className="font-display text-2xl font-bold text-foreground">Unsubscribed</h1>
+            <h1 className="font-display text-2xl text-foreground">Unsubscribed</h1>
             <p className="text-muted-foreground">
               You've been successfully unsubscribed from SimPilot.AI app emails.
             </p>
@@ -105,7 +105,7 @@ const UnsubscribePage = () => {
         {status === "already" && (
           <>
             <CheckCircle2 className="h-12 w-12 text-muted-foreground mx-auto" />
-            <h1 className="font-display text-2xl font-bold text-foreground">Already Unsubscribed</h1>
+            <h1 className="font-display text-2xl text-foreground">Already Unsubscribed</h1>
             <p className="text-muted-foreground">
               You've already been unsubscribed from these emails.
             </p>
@@ -115,7 +115,7 @@ const UnsubscribePage = () => {
         {status === "invalid" && (
           <>
             <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
-            <h1 className="font-display text-2xl font-bold text-foreground">Invalid Link</h1>
+            <h1 className="font-display text-2xl text-foreground">Invalid Link</h1>
             <p className="text-muted-foreground">
               This unsubscribe link is invalid or has expired.
             </p>
@@ -125,7 +125,7 @@ const UnsubscribePage = () => {
         {status === "error" && (
           <>
             <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
-            <h1 className="font-display text-2xl font-bold text-foreground">Something went wrong</h1>
+            <h1 className="font-display text-2xl text-foreground">Something went wrong</h1>
             <p className="text-muted-foreground">
               We couldn't process your request. Please try again later.
             </p>

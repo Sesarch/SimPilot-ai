@@ -30,17 +30,17 @@ const ChatGateModal = ({ type, onDismiss }: Props) => {
             <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
               <LogIn className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="font-display text-lg font-bold text-foreground mb-2">
+            <h3 className="font-display text-lg text-foreground mb-2">
               You're enjoying SimPilot AI!
             </h3>
             <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
               Create a free account to keep chatting with your AI flight instructor.
-              Get <span className="text-primary font-semibold">20 messages per day</span> — completely free.
-              Plus, enjoy a <span className="text-accent font-semibold">7-day free trial</span> of our premium plans — no credit card required.
+              Get <span className="text-primary ">20 messages per day</span> — completely free.
+              Plus, enjoy a <span className="text-accent ">7-day free trial</span> of our premium plans — no credit card required.
             </p>
             <button
               onClick={() => navigate("/auth")}
-              className="w-full px-6 py-3 bg-primary text-primary-foreground font-display text-sm font-semibold tracking-widest uppercase rounded hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] transition-all"
+              className="w-full px-6 py-3 bg-primary text-primary-foreground font-display text-sm tracking-widest uppercase rounded hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] transition-all"
             >
               Sign Up Free
             </button>
@@ -56,18 +56,18 @@ const ChatGateModal = ({ type, onDismiss }: Props) => {
             <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-6 h-6 text-accent" />
             </div>
-            <h3 className="font-display text-lg font-bold text-foreground mb-2">
+            <h3 className="font-display text-lg text-foreground mb-2">
               Daily Limit Reached
             </h3>
             <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-              You've used all <span className="text-primary font-semibold">20 free messages</span> for today.
-              Upgrade to unlock <span className="text-accent font-semibold">unlimited access</span>, ground school lessons, oral exam prep, and more.
-              Start with a <span className="text-accent font-semibold">7-day free trial</span> — no credit card required.
+              You've used all <span className="text-primary ">20 free messages</span> for today.
+              Upgrade to unlock <span className="text-accent ">unlimited access</span>, ground school lessons, oral exam prep, and more.
+              Start with a <span className="text-accent ">7-day free trial</span> — no credit card required.
             </p>
             <a
               href="#pricing"
               onClick={onDismiss}
-              className="block w-full px-6 py-3 bg-accent text-accent-foreground font-display text-sm font-semibold tracking-widest uppercase rounded hover:shadow-[0_0_25px_hsl(var(--amber-instrument)/0.4)] transition-all"
+              className="block w-full px-6 py-3 bg-accent text-accent-foreground font-display text-sm tracking-widest uppercase rounded hover:shadow-[0_0_25px_hsl(var(--amber-instrument)/0.4)] transition-all"
             >
               View Plans
             </a>

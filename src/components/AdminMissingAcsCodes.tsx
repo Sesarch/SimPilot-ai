@@ -91,7 +91,7 @@ const AdminMissingAcsCodes = () => {
     <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5 space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+          <h2 className="font-display text-sm text-foreground flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-accent" />
             Missing ACS Codes
           </h2>
@@ -136,7 +136,7 @@ const AdminMissingAcsCodes = () => {
               return (
                 <tr key={r.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
                   <td className="p-3">
-                    <span className={`font-display font-bold text-[9px] tracking-wider uppercase px-1.5 py-0.5 rounded border ${cert.className}`}>
+                    <span className={`font-display text-[9px] tracking-wider uppercase px-1.5 py-0.5 rounded border ${cert.className}`}>
                       {cert.label}
                     </span>
                   </td>

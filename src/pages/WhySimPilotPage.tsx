@@ -143,7 +143,7 @@ const WhySimPilotPage = () => {
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-block px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-6"
+            className="inline-block px-3 py-1 rounded-full text-[11px] tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-6"
           >
             Why SimPilot.AI
           </motion.span>
@@ -151,7 +151,7 @@ const WhySimPilotPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6"
+            className="font-display text-4xl md:text-5xl lg:text-6xl text-foreground mb-6"
           >
             General AI Answers Questions.{" "}
             <span className="text-primary">SimPilot.AI Teaches You to Fly.</span>
@@ -175,14 +175,14 @@ const WhySimPilotPage = () => {
             <Link
               to="/auth"
               title="Start your free SimPilot.AI pilot training trial"
-              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg bg-primary text-primary-foreground text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
             >
               <Zap className="w-4 h-4" /> Get Started Free
             </Link>
             <a
               href="#comparison-detail"
               title="View detailed comparison between SimPilot.AI and general AI"
-              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg border border-border text-foreground font-semibold text-sm hover:border-primary/40 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg border border-border text-foreground text-sm hover:border-primary/40 transition-colors"
             >
               See the Comparison
             </a>
@@ -197,7 +197,7 @@ const WhySimPilotPage = () => {
       <section id="comparison-detail" className="py-20 bg-secondary/20" aria-labelledby="comparison-detail-heading">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <h2 id="comparison-detail-heading" className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 id="comparison-detail-heading" className="font-display text-3xl md:text-4xl text-foreground mb-4">
               Feature-by-Feature Comparison
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -210,12 +210,12 @@ const WhySimPilotPage = () => {
               <div />
               <div className="text-center">
                 <div className="inline-flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 border border-primary/30">
-                  <span className="font-display text-xs md:text-sm font-bold text-primary tracking-wide">SimPilot.AI</span>
+                  <span className="font-display text-xs md:text-sm text-primary tracking-wide">SimPilot.AI</span>
                 </div>
               </div>
               <div className="text-center">
                 <div className="inline-flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-secondary/60 border border-border/40">
-                  <span className="font-display text-xs md:text-sm font-medium text-muted-foreground tracking-wide">General AI</span>
+                  <span className="font-display text-xs md:text-sm text-muted-foreground tracking-wide">General AI</span>
                 </div>
               </div>
             </div>
@@ -236,7 +236,7 @@ const WhySimPilotPage = () => {
                         <Icon className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-foreground">{f.label}</p>
+                        <p className="text-sm text-foreground">{f.label}</p>
                         <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">{f.desc}</p>
                       </div>
                     </div>
@@ -262,7 +262,7 @@ const WhySimPilotPage = () => {
       <section className="py-20" aria-labelledby="use-cases-heading">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <h2 id="use-cases-heading" className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 id="use-cases-heading" className="font-display text-3xl md:text-4xl text-foreground mb-4">
               Built for Every Pilot's Journey
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -286,9 +286,9 @@ const WhySimPilotPage = () => {
                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
                         <Icon className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="font-display text-lg font-bold text-foreground">{uc.title}</h3>
+                      <h3 className="font-display text-lg text-foreground">{uc.title}</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed flex-1">{uc.description}</p>
-                      <p className="text-xs font-semibold text-primary">{uc.highlight}</p>
+                      <p className="text-xs text-primary">{uc.highlight}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -302,10 +302,10 @@ const WhySimPilotPage = () => {
       <section className="py-20 bg-secondary/20" aria-labelledby="cost-comparison-heading">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-accent/10 text-accent border border-accent/20 mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] tracking-widest uppercase bg-accent/10 text-accent border border-accent/20 mb-4">
               <DollarSign className="w-3.5 h-3.5" /> Cost Comparison
             </div>
-            <h2 id="cost-comparison-heading" className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 id="cost-comparison-heading" className="font-display text-3xl md:text-4xl text-foreground mb-4">
               SimPilot.AI vs Hiring a CFI
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -317,14 +317,14 @@ const WhySimPilotPage = () => {
             <div className="overflow-hidden rounded-xl border border-border bg-card">
               {/* Table header */}
               <div className="grid grid-cols-3 bg-secondary/40 border-b border-border">
-                <div className="p-4 md:p-5 font-display text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                <div className="p-4 md:p-5 font-display text-xs tracking-wider uppercase text-muted-foreground">
                   Factor
                 </div>
                 <div className="p-4 md:p-5 text-center border-x border-border bg-primary/5">
-                  <span className="font-display text-xs md:text-sm font-bold text-primary tracking-wide">SimPilot.AI</span>
+                  <span className="font-display text-xs md:text-sm text-primary tracking-wide">SimPilot.AI</span>
                 </div>
                 <div className="p-4 md:p-5 text-center">
-                  <span className="font-display text-xs md:text-sm font-medium text-muted-foreground tracking-wide">Traditional CFI</span>
+                  <span className="font-display text-xs md:text-sm text-muted-foreground tracking-wide">Traditional CFI</span>
                 </div>
               </div>
 
@@ -350,15 +350,15 @@ const WhySimPilotPage = () => {
                   className={`grid grid-cols-3 ${i % 2 === 0 ? "bg-card" : "bg-secondary/10"} ${i < 9 ? "border-b border-border/40" : ""}`}
                 >
                   <div className="p-3 md:p-4 flex items-center">
-                    <span className="text-xs md:text-sm font-medium text-foreground">{row.factor}</span>
+                    <span className="text-xs md:text-sm text-foreground">{row.factor}</span>
                   </div>
                   <div className="p-3 md:p-4 text-center border-x border-border/30 bg-primary/[0.02] flex items-center justify-center">
-                    <span className={`text-xs md:text-sm font-semibold ${row.simpilotHighlight ? "text-primary" : "text-muted-foreground"}`}>
+                    <span className={`text-xs md:text-sm ${row.simpilotHighlight ? "text-primary" : "text-muted-foreground"}`}>
                       {row.simpilot}
                     </span>
                   </div>
                   <div className="p-3 md:p-4 text-center flex items-center justify-center">
-                    <span className={`text-xs md:text-sm ${!row.simpilotHighlight ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+                    <span className={`text-xs md:text-sm ${!row.simpilotHighlight ? "text-primary " : "text-muted-foreground"}`}>
                       {row.cfi}
                     </span>
                   </div>
@@ -378,7 +378,7 @@ const WhySimPilotPage = () => {
               </p>
               <Link
                 to="/auth"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
               >
                 <Zap className="w-4 h-4" /> Start Your 7-Day Free Trial
               </Link>
@@ -391,7 +391,7 @@ const WhySimPilotPage = () => {
       <section className="py-20 bg-secondary/30" aria-labelledby="testimonials-heading">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <h2 id="testimonials-heading" className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 id="testimonials-heading" className="font-display text-3xl md:text-4xl text-foreground mb-4">
               Pilots Who Made the Switch
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -419,10 +419,10 @@ const WhySimPilotPage = () => {
                     </div>
                     <div className="flex items-center gap-2 pt-2 border-t border-border">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">{t.initials}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary text-[10px] ">{t.initials}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-xs font-medium text-foreground">{t.name}</p>
+                        <p className="text-xs text-foreground">{t.name}</p>
                         <p className="text-[10px] text-muted-foreground">{t.role}</p>
                       </div>
                     </div>
@@ -438,10 +438,10 @@ const WhySimPilotPage = () => {
       <section className="py-20" aria-labelledby="pricing-faq-heading">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-4">
               <HelpCircle className="w-3.5 h-3.5" /> FAQ
             </div>
-            <h2 id="pricing-faq-heading" className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 id="pricing-faq-heading" className="font-display text-3xl md:text-4xl text-foreground mb-4">
               Pricing & Value Questions
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -460,7 +460,7 @@ const WhySimPilotPage = () => {
                 className="group rounded-xl border border-border bg-card hover:border-primary/20 transition-colors"
               >
                 <summary className="flex items-center justify-between gap-3 p-4 md:p-5 cursor-pointer list-none select-none">
-                  <span className="text-sm md:text-base font-semibold text-foreground">{faq.q}</span>
+                  <span className="text-sm md:text-base text-foreground">{faq.q}</span>
                   <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="px-4 pb-4 md:px-5 md:pb-5 pt-0">
@@ -479,7 +479,7 @@ const WhySimPilotPage = () => {
         </div>
         <div className="container mx-auto px-4 relative z-10 text-center max-w-2xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4">
               Ready to Train with a Real AI CFI?
             </h2>
             <p className="text-muted-foreground mb-8">
@@ -488,7 +488,7 @@ const WhySimPilotPage = () => {
             <Link
               to="/auth"
               title="Sign up for SimPilot.AI — purpose-built AI pilot training"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-primary text-primary-foreground font-semibold hover:shadow-[0_0_30px_hsl(var(--cyan-glow)/0.3)] transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyan-glow)/0.3)] transition-all"
             >
               <Zap className="w-5 h-5" /> Start Training Free
             </Link>

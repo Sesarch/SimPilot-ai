@@ -42,7 +42,7 @@ const RedeemSchoolCode = ({ initialCode = "", onRedeemed }: Props) => {
       <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 flex items-start gap-3">
         <Check className="h-5 w-5 text-accent shrink-0 mt-0.5" />
         <div className="text-sm">
-          <p className="font-semibold text-foreground">School subscription active</p>
+          <p className="text-foreground">School subscription active</p>
           <p className="text-muted-foreground">
             Sponsored by <span className="text-foreground">{redeemed.school}</span> until{" "}
             {new Date(redeemed.expires).toLocaleDateString()}.
@@ -56,7 +56,7 @@ const RedeemSchoolCode = ({ initialCode = "", onRedeemed }: Props) => {
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="flex items-center gap-2 mb-1">
         <Ticket className="h-4 w-4 text-accent" />
-        <h3 className="text-sm font-display font-semibold tracking-wider uppercase">Redeem School Code</h3>
+        <h3 className="text-sm font-display tracking-wider uppercase">Redeem School Code</h3>
       </div>
       <p className="text-xs text-muted-foreground">
         If your flight school provided a SimPilot.AI signup code, enter it here to activate your year of Pro Pilot access.
@@ -73,7 +73,7 @@ const RedeemSchoolCode = ({ initialCode = "", onRedeemed }: Props) => {
         <button
           type="submit"
           disabled={loading || !code.trim()}
-          className="px-4 py-2 bg-accent text-accent-foreground text-sm font-display font-semibold tracking-wider uppercase rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+          className="px-4 py-2 bg-accent text-accent-foreground text-sm font-display tracking-wider uppercase rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
         >
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Redeem"}
         </button>

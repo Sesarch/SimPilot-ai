@@ -387,7 +387,7 @@ export default function TestModePage() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
                           <div className="rounded border border-emerald-500/30 bg-emerald-500/5 p-2">
-                            <div className="font-semibold text-emerald-500 mb-1">
+                            <div className="text-emerald-500 mb-1">
                               EXPECTED ATC must include
                             </div>
                             <div className="font-mono">
@@ -402,7 +402,7 @@ export default function TestModePage() {
                             }`}
                           >
                             <div
-                              className={`font-semibold mb-1 ${
+                              className={`mb-1 ${
                                 r.pass ? "text-foreground" : "text-destructive"
                               }`}
                             >
@@ -478,7 +478,7 @@ export default function TestModePage() {
           <CardContent className="space-y-3">
             <div className="flex items-end justify-between gap-4 flex-wrap">
               <div>
-                <div className={`text-5xl font-display font-bold ${proficiencyGrade.color}`}>
+                <div className={`text-5xl font-display ${proficiencyGrade.color}`}>
                   {proficiency}%
                 </div>
                 <div className={`text-xs uppercase tracking-widest mt-1 ${proficiencyGrade.color}`}>

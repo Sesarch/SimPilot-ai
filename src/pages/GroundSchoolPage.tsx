@@ -138,7 +138,7 @@ const GroundSchoolPage = () => {
               </button>
               <span className="text-2xl">{selectedLesson.icon}</span>
               <div className="flex-1 min-w-0">
-                <h2 className="font-display text-sm font-bold text-foreground">{selectedLesson.title}</h2>
+                <h2 className="font-display text-sm text-foreground">{selectedLesson.title}</h2>
                 <p className="text-xs text-muted-foreground">ACS: {selectedLesson.acs} · Track: {certLevel}</p>
               </div>
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-display tracking-widest uppercase text-primary bg-primary/10 border border-primary/30 px-2 py-1 rounded">
@@ -173,7 +173,7 @@ const GroundSchoolPage = () => {
           </div>
           <div className="container mx-auto px-6 py-8 max-w-3xl relative z-10">
             <div className="mb-6">
-              <h1 className="font-display text-2xl font-bold text-foreground mb-2">
+              <h1 className="font-display text-2xl text-foreground mb-2">
                 Ground One-on-One Lessons
               </h1>
               <p className="text-sm text-muted-foreground">
@@ -202,11 +202,11 @@ const GroundSchoolPage = () => {
                   <Play className="w-5 h-5 text-primary fill-primary" />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-display text-sm font-bold tracking-wider uppercase text-foreground">
+                  <p className="font-display text-sm tracking-wider uppercase text-foreground">
                     Start a Ground Lesson
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
-                    Begin a 1-on-1 session at your <span className="text-primary font-semibold">{certLevel}</span> level
+                    Begin a 1-on-1 session at your <span className="text-primary ">{certLevel}</span> level
                     {activeCategory ? ` — ${CATEGORY_LABELS[activeCategory]} focus` : ""}
                   </p>
                 </div>
@@ -229,7 +229,7 @@ const GroundSchoolPage = () => {
                     <BookOpen className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-display text-sm font-bold tracking-wide text-foreground">
+                    <p className="font-display text-sm tracking-wide text-foreground">
                       How Ground One-on-One Works
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -261,7 +261,7 @@ const GroundSchoolPage = () => {
                   </li>
                 </ol>
                 <p className="text-[11px] text-muted-foreground mt-4 leading-relaxed">
-                  Tip: change your <span className="font-semibold text-foreground">Study Track</span> below to scale
+                  Tip: change your <span className="text-foreground">Study Track</span> below to scale
                   depth from PPL through ATP. Not FAA-approved — supplemental training only.
                 </p>
               </div>
@@ -270,7 +270,7 @@ const GroundSchoolPage = () => {
             {/* Certificate Level Toggle — global state shared across all 19 lessons */}
             <div className="mb-6 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-4">
               <div className="mb-3">
-                <p className="font-display text-xs font-bold tracking-widest uppercase text-foreground">
+                <p className="font-display text-xs tracking-widest uppercase text-foreground">
                   Study Track
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -292,7 +292,7 @@ const GroundSchoolPage = () => {
                           : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
                       }`}
                     >
-                      <div className="font-display text-sm font-bold tracking-wider">{opt.label}</div>
+                      <div className="font-display text-sm tracking-wider">{opt.label}</div>
                       <div className="text-[10px] uppercase tracking-widest opacity-80">{opt.sub}</div>
                     </button>
                   );
@@ -354,7 +354,7 @@ const GroundSchoolPage = () => {
                       <span className="text-3xl">{lesson.icon}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="font-display text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                          <h3 className="font-display text-sm text-foreground group-hover:text-primary transition-colors">
                             {lesson.title}
                           </h3>
                           <span className="text-[10px] font-display tracking-wider text-muted-foreground bg-secondary px-2 py-0.5 rounded">

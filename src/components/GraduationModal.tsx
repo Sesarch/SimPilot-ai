@@ -54,7 +54,7 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                 </div>
               </div>
             </div>
-            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+            <h2 className="font-display text-2xl md:text-3xl tracking-tight text-foreground">
               Sorry{displayName ? `, ${displayName}` : ""}!
             </h2>
             <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-lg mx-auto">
@@ -66,7 +66,7 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
             <Button
               onClick={() => setShowPlans(true)}
               size="lg"
-              className="mt-8 bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-bold tracking-wider uppercase text-sm px-8"
+              className="mt-8 bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background tracking-wider uppercase text-sm px-8"
             >
               See All Plans <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -82,7 +82,7 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                   </div>
                 </div>
               </div>
-              <h2 className="text-center font-display text-xl md:text-2xl font-bold tracking-tight text-foreground">
+              <h2 className="text-center font-display text-xl md:text-2xl tracking-tight text-foreground">
                 Choose Your Plan
               </h2>
               <p className="text-center mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
@@ -114,16 +114,16 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                       className={`relative rounded-xl ${plan.highlighted ? "border-2 border-[#04C3EC]" : "border border-border"} bg-card/40 p-5 flex flex-col`}
                     >
                       {plan.badge && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#04C3EC] text-background text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full whitespace-nowrap">
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#04C3EC] text-background text-[10px] tracking-widest uppercase px-3 py-1 rounded-full whitespace-nowrap">
                           {plan.badge}
                         </div>
                       )}
                       <div className="flex items-center gap-2 mb-1">
                         <Sparkles className={`h-5 w-5 ${plan.highlighted ? "text-[#04C3EC]" : "text-muted-foreground"}`} />
-                        <h3 className="font-display text-lg font-bold">{plan.name}</h3>
+                        <h3 className="font-display text-lg ">{plan.name}</h3>
                       </div>
                       <div className="flex items-baseline gap-1 mb-1">
-                        <span className="text-3xl font-bold text-foreground">{formatPrice(plan.amount, plan.currency)}</span>
+                        <span className="text-3xl text-foreground">{formatPrice(plan.amount, plan.currency)}</span>
                         <span className="text-sm text-muted-foreground">{intervalLabel}</span>
                       </div>
                       {(plan.tagline || plan.description) && (
@@ -145,8 +145,8 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                           disabled={loadingPriceId !== null}
                           variant={plan.highlighted ? "default" : "outline"}
                           className={plan.highlighted
-                            ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background font-semibold"
-                            : "w-full font-semibold"}
+                            ? "w-full bg-[#04C3EC] hover:bg-[#04C3EC]/90 text-background "
+                            : "w-full "}
                         >
                           {isLoading ? (
                             <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening checkout…</>
@@ -172,7 +172,7 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
               <div className="flex items-start gap-3">
                 <Building2 className="h-5 w-5 text-[#04C3EC] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Flight School / Team plan</p>
+                  <p className="text-sm text-foreground">Flight School / Team plan</p>
                   <p className="text-xs text-muted-foreground">Train your entire program with bulk seat management.</p>
                 </div>
               </div>
@@ -189,7 +189,7 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
             <div className="mx-6 mb-6 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 flex gap-3">
               <ShieldAlert className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs md:text-sm text-foreground/80 leading-relaxed">
-                <span className="font-semibold text-amber-300">Keep flying safe.</span>{" "}
+                <span className="text-amber-300">Keep flying safe.</span>{" "}
                 Remember, under <span className="font-mono">§91.3</span>, you are always the final authority in the cockpit.
                 SimPilot is a study aid — not FAA-approved instruction. AI may produce errors; always verify against
                 authoritative sources and your CFI.

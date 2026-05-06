@@ -97,7 +97,7 @@ const AdminSiteSettings = () => {
 
   return (
     <div>
-      <h2 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+      <h2 className="font-display text-lg text-foreground mb-4 flex items-center gap-2">
         <Settings className="w-5 h-5 text-primary" /> Site Settings
       </h2>
 
@@ -108,7 +108,7 @@ const AdminSiteSettings = () => {
             <div className="flex items-center gap-3">
               <Wrench className="w-4 h-4 text-amber-500" />
               <div>
-                <p className="text-sm font-semibold text-foreground">Maintenance Mode</p>
+                <p className="text-sm text-foreground">Maintenance Mode</p>
                 <p className="text-xs text-muted-foreground">Temporarily disable the site for maintenance</p>
               </div>
             </div>
@@ -121,7 +121,7 @@ const AdminSiteSettings = () => {
           <div className="flex items-center gap-3 mb-3">
             <Bell className="w-4 h-4 text-primary" />
             <div>
-              <p className="text-sm font-semibold text-foreground">Site Announcement</p>
+              <p className="text-sm text-foreground">Site Announcement</p>
               <p className="text-xs text-muted-foreground">Display a banner across all pages</p>
             </div>
           </div>
@@ -137,7 +137,7 @@ const AdminSiteSettings = () => {
           <div className="flex items-center gap-3 mb-4">
             <Globe className="w-4 h-4 text-primary" />
             <div>
-              <p className="text-sm font-semibold text-foreground">Feature Toggles</p>
+              <p className="text-sm text-foreground">Feature Toggles</p>
               <p className="text-xs text-muted-foreground">Enable or disable platform features</p>
             </div>
           </div>
@@ -165,7 +165,7 @@ const AdminSiteSettings = () => {
             <div className="flex items-center gap-3">
               <Download className="w-4 h-4 text-primary" />
               <div>
-                <p className="text-sm font-semibold text-foreground">Bridge: Mac/Linux direct downloads</p>
+                <p className="text-sm text-foreground">Bridge: Mac/Linux direct downloads</p>
                 <p className="text-xs text-muted-foreground">
                   Off → buttons open the GitHub release page. On → buttons download the .dmg / .AppImage
                   directly. Only flip on once those assets are published to the pinned release.

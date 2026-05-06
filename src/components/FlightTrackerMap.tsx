@@ -161,7 +161,7 @@ const DetailRow = ({ icon: Icon, label, value, className }: { icon: any; label: 
       <Icon className="h-3.5 w-3.5" />
       <span className="text-xs">{label}</span>
     </div>
-    <span className={`text-xs font-medium ${className || "text-foreground"}`}>{value}</span>
+    <span className={`text-xs ${className || "text-foreground"}`}>{value}</span>
   </div>
 );
 
@@ -484,7 +484,7 @@ const FlightTrackerMap = () => {
             <div className="mt-1 bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden max-h-[300px] overflow-y-auto">
               {searchResults.aircraft.length > 0 && (
                 <div>
-                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/30">
+                  <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground bg-muted/30">
                     <Plane className="h-3 w-3 inline mr-1" />Aircraft
                   </div>
                   {searchResults.aircraft.map(ac => (
@@ -494,7 +494,7 @@ const FlightTrackerMap = () => {
                       className="w-full px-3 py-2 text-left hover:bg-muted/50 flex items-center justify-between transition-colors"
                     >
                       <div>
-                        <div className="text-xs font-medium text-foreground">{ac.callsign || ac.icao24.toUpperCase()}</div>
+                        <div className="text-xs text-foreground">{ac.callsign || ac.icao24.toUpperCase()}</div>
                         <div className="text-[10px] text-muted-foreground">{ac.originCountry} • {Math.round(ac.altitude * 3.281).toLocaleString()} ft</div>
                       </div>
                       <span className="text-[10px] font-mono text-muted-foreground">{ac.icao24.toUpperCase()}</span>
@@ -504,7 +504,7 @@ const FlightTrackerMap = () => {
               )}
               {searchResults.airports.length > 0 && (
                 <div>
-                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/30">
+                  <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground bg-muted/30">
                     <MapPin className="h-3 w-3 inline mr-1" />Airports
                   </div>
                   {searchResults.airports.map(ap => (
@@ -514,7 +514,7 @@ const FlightTrackerMap = () => {
                       className="w-full px-3 py-2 text-left hover:bg-muted/50 flex items-center justify-between transition-colors"
                     >
                       <div>
-                        <div className="text-xs font-medium text-foreground">{ap.icao} / {ap.iata}</div>
+                        <div className="text-xs text-foreground">{ap.icao} / {ap.iata}</div>
                         <div className="text-[10px] text-muted-foreground">{ap.name}</div>
                       </div>
                       <span className="text-[10px] text-muted-foreground">{ap.runways.length} rwy</span>
@@ -535,7 +535,7 @@ const FlightTrackerMap = () => {
               title="Toggle airport markers"
             >
               <MapPin className="h-3 w-3 text-purple-400" />
-              <span className="font-medium hidden sm:inline">Airports</span>
+              <span className="hidden sm:inline">Airports</span>
               {showAirports ? <ToggleRight className="h-3.5 w-3.5 text-primary" /> : <ToggleLeft className="h-3.5 w-3.5 text-muted-foreground" />}
             </button>
             <div
@@ -579,7 +579,7 @@ const FlightTrackerMap = () => {
             </button>
             <div className="bg-background/90 backdrop-blur-sm border border-border rounded-lg px-2 sm:px-3 py-1.5 flex items-center gap-1.5 text-xs">
               <Plane className="h-3 w-3 text-primary" />
-              <span className="font-medium">{filteredAircraft.length}{(statusFilter !== "all" || altRange[0] > 0 || altRange[1] < 60000) ? `/${aircraft.length}` : ""}</span>
+              <span className="">{filteredAircraft.length}{(statusFilter !== "all" || altRange[0] > 0 || altRange[1] < 60000) ? `/${aircraft.length}` : ""}</span>
               {loading && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
             </div>
             <Button size="sm" variant="outline" onClick={refresh} className="h-7 bg-background/90 backdrop-blur-sm">
@@ -592,7 +592,7 @@ const FlightTrackerMap = () => {
             <div className="flex flex-col gap-1 min-w-[120px] sm:min-w-[140px]">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-muted-foreground">ALT</span>
-                <span className="text-[10px] font-medium text-foreground">
+                <span className="text-[10px] text-foreground">
                   {altRange[0] === 0 && altRange[1] === 60000 ? "All" : `${(altRange[0] / 1000).toFixed(0)}k–${(altRange[1] / 1000).toFixed(0)}k ft`}
                 </span>
               </div>
@@ -623,7 +623,7 @@ const FlightTrackerMap = () => {
               <Radio className="h-4 w-4" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-xs mb-0.5">Flight Data Unavailable</p>
+              <p className="text-xs mb-0.5">Flight Data Unavailable</p>
               <p className="text-[11px] opacity-90">{error}</p>
               <Button size="sm" variant="secondary" onClick={refresh} className="mt-2 h-6 text-[11px] px-3">
                 <RefreshCw className="h-3 w-3 mr-1" /> Retry
@@ -638,7 +638,7 @@ const FlightTrackerMap = () => {
             <div className="flex flex-col items-center gap-3 bg-card/90 border border-border rounded-2xl p-6 shadow-xl">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div className="text-center">
-                <p className="text-sm font-semibold text-foreground">Loading Live Flights</p>
+                <p className="text-sm text-foreground">Loading Live Flights</p>
                 <p className="text-xs text-muted-foreground mt-1">Fetching aircraft data from the network…</p>
               </div>
               <div className="flex gap-2 mt-1">
@@ -699,7 +699,7 @@ const FlightTrackerMap = () => {
 
         {/* Demo data indicator */}
         {dataSource === "demo" && !loading && (
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-[1000] bg-primary/90 backdrop-blur-sm text-primary-foreground rounded-lg px-4 py-2 text-xs font-medium shadow-lg border border-primary/50 flex items-center gap-2">
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-[1000] bg-primary/90 backdrop-blur-sm text-primary-foreground rounded-lg px-4 py-2 text-xs shadow-lg border border-primary/50 flex items-center gap-2">
             <Plane className="h-3.5 w-3.5" />
             <span>Showing demo flights — live data temporarily unavailable</span>
           </div>
@@ -719,7 +719,7 @@ const FlightTrackerMap = () => {
         {/* Weather Legend */}
         {showAirports && (
           <div className="absolute bottom-3 left-3 z-[1000] bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
-            <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Airport Weather</div>
+            <div className="text-[9px] uppercase tracking-wider text-muted-foreground mb-1">Airport Weather</div>
             <div className="flex items-center gap-3">
               {[
                 { cat: "VFR", color: "#22c55e" },
@@ -767,7 +767,7 @@ const FlightTrackerMap = () => {
               eventHandlers={{ click: () => handleSelectAirport(ap) }}
             >
               <Popup>
-                <div className="text-sm font-bold">{ap.icao} / {ap.iata}</div>
+                <div className="text-sm ">{ap.icao} / {ap.iata}</div>
                 <div className="text-xs">{ap.name}</div>
               </Popup>
             </Marker>
@@ -786,7 +786,7 @@ const FlightTrackerMap = () => {
               <DrawerHeader className="pb-0">
                 <DrawerTitle className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-lg text-foreground">{selectedAirport.icao} / {selectedAirport.iata}</div>
+                    <div className="text-lg text-foreground">{selectedAirport.icao} / {selectedAirport.iata}</div>
                     <div className="text-xs text-muted-foreground font-normal">{selectedAirport.name}</div>
                   </div>
                 </DrawerTitle>
@@ -800,7 +800,7 @@ const FlightTrackerMap = () => {
           <div className="w-[320px] bg-background border-l border-border flex flex-col overflow-hidden shrink-0">
             <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
               <div>
-                <div className="font-bold text-lg text-foreground leading-tight">{selectedAirport.icao} / {selectedAirport.iata}</div>
+                <div className="text-lg text-foreground leading-tight">{selectedAirport.icao} / {selectedAirport.iata}</div>
                 <div className="text-xs text-muted-foreground">{selectedAirport.name}</div>
               </div>
               <Button size="icon" variant="ghost" onClick={handleClose} className="h-7 w-7"><X className="h-4 w-4" /></Button>
@@ -820,7 +820,7 @@ const FlightTrackerMap = () => {
               <DrawerHeader className="pb-0">
                 <DrawerTitle className="flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-lg text-foreground">{selectedAircraft.callsign || "Unknown"}</div>
+                    <div className="text-lg text-foreground">{selectedAircraft.callsign || "Unknown"}</div>
                     <div className="text-xs text-muted-foreground font-normal font-mono">{selectedAircraft.icao24.toUpperCase()}</div>
                   </div>
                 </DrawerTitle>
@@ -834,7 +834,7 @@ const FlightTrackerMap = () => {
           <div className="w-[320px] bg-background border-l border-border flex flex-col overflow-hidden shrink-0">
             <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
               <div>
-                <div className="font-bold text-lg text-foreground leading-tight">{selectedAircraft.callsign || "Unknown"}</div>
+                <div className="text-lg text-foreground leading-tight">{selectedAircraft.callsign || "Unknown"}</div>
                 <div className="text-xs text-muted-foreground font-mono">{selectedAircraft.icao24.toUpperCase()}</div>
               </div>
               <Button size="icon" variant="ghost" onClick={handleClose} className="h-7 w-7"><X className="h-4 w-4" /></Button>
@@ -861,17 +861,17 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
     <div className="grid grid-cols-3 gap-2 py-3">
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">ELEV</div>
-        <div className="text-sm font-bold text-foreground">{airport.elevation.toLocaleString()}</div>
+        <div className="text-sm text-foreground">{airport.elevation.toLocaleString()}</div>
         <div className="text-[10px] text-muted-foreground">ft</div>
       </div>
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">RWY</div>
-        <div className="text-sm font-bold text-foreground">{airport.runways.length}</div>
+        <div className="text-sm text-foreground">{airport.runways.length}</div>
         <div className="text-[10px] text-muted-foreground">runways</div>
       </div>
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">TWR</div>
-        <div className="text-sm font-bold text-foreground">{airport.tower}</div>
+        <div className="text-sm text-foreground">{airport.tower}</div>
         <div className="text-[10px] text-muted-foreground">MHz</div>
       </div>
     </div>
@@ -882,7 +882,7 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
       </div>
     </div>
     <div className="py-2">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Current Weather (METAR)</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Current Weather (METAR)</div>
       {weatherLoading ? (
         <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
           <Loader2 className="h-3 w-3 animate-spin" /> Fetching METAR...
@@ -892,7 +892,7 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
       ) : metar ? (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+            <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider ${
               metar.flightCategory === "VFR" ? "bg-green-500/15 text-green-500" :
               metar.flightCategory === "MVFR" ? "bg-blue-500/15 text-blue-500" :
               metar.flightCategory === "IFR" ? "bg-red-500/15 text-red-500" :
@@ -903,25 +903,25 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
             <span className="text-[10px] text-muted-foreground">Flight Category</span>
           </div>
           <div className="grid grid-cols-2 gap-1.5">
-            {metar.wind && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">WIND</div><div className="text-xs font-medium text-foreground">{metar.wind}</div></div>}
-            {metar.visibility && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">VIS</div><div className="text-xs font-medium text-foreground">{metar.visibility}</div></div>}
-            {metar.ceiling && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">CEILING</div><div className="text-xs font-medium text-foreground">{metar.ceiling}</div></div>}
-            {metar.temperature && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">TEMP</div><div className="text-xs font-medium text-foreground">{metar.temperature}</div></div>}
-            {metar.dewpoint && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">DEW PT</div><div className="text-xs font-medium text-foreground">{metar.dewpoint}</div></div>}
-            {metar.altimeter && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">ALTIMETER</div><div className="text-xs font-medium text-foreground">{metar.altimeter}</div></div>}
+            {metar.wind && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">WIND</div><div className="text-xs text-foreground">{metar.wind}</div></div>}
+            {metar.visibility && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">VIS</div><div className="text-xs text-foreground">{metar.visibility}</div></div>}
+            {metar.ceiling && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">CEILING</div><div className="text-xs text-foreground">{metar.ceiling}</div></div>}
+            {metar.temperature && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">TEMP</div><div className="text-xs text-foreground">{metar.temperature}</div></div>}
+            {metar.dewpoint && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">DEW PT</div><div className="text-xs text-foreground">{metar.dewpoint}</div></div>}
+            {metar.altimeter && <div className="bg-muted/50 rounded p-1.5"><div className="text-[9px] text-muted-foreground">ALTIMETER</div><div className="text-xs text-foreground">{metar.altimeter}</div></div>}
           </div>
           <div className="bg-muted/30 rounded p-2 font-mono text-[10px] text-muted-foreground break-all leading-relaxed">{metar.raw}</div>
         </div>
       ) : null}
     </div>
     <div className="py-2">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Runways</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Runways</div>
       <div className="space-y-2">
         {airport.runways.map(rwy => (
           <div key={rwy.id} className="bg-muted/30 border border-border/50 rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-sm text-foreground font-mono">{rwy.id}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">{rwy.surface}</span>
+              <span className="text-sm text-foreground font-mono">{rwy.id}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary ">{rwy.surface}</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <span>{rwy.length.toLocaleString()} ft</span>
@@ -964,18 +964,18 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
     <div className="py-2 flex items-center gap-2 flex-wrap">
       {flightStatus ? (
         flightStatus.isLive ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-primary/15 text-primary border border-primary/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider bg-primary/15 text-primary border border-primary/30">
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
             Live Flight
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-amber-500/15 text-amber-500 border border-amber-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider bg-amber-500/15 text-amber-500 border border-amber-500/30">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
             Last Flight{lastSeenLabel ? ` · ${lastSeenLabel}` : ""}
           </span>
         )
       ) : (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider ${
           aircraft.onGround ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"
         }`}>
           <span className={`h-1.5 w-1.5 rounded-full ${aircraft.onGround ? "bg-muted-foreground" : "bg-primary animate-pulse"}`} />
@@ -987,22 +987,22 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
     <div className="grid grid-cols-3 gap-2 py-2">
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">ALT</div>
-        <div className="text-sm font-bold text-foreground">{altFt.toLocaleString()}</div>
+        <div className="text-sm text-foreground">{altFt.toLocaleString()}</div>
         <div className="text-[10px] text-muted-foreground">ft</div>
       </div>
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">GS</div>
-        <div className="text-sm font-bold text-foreground">{spdKts}</div>
+        <div className="text-sm text-foreground">{spdKts}</div>
         <div className="text-[10px] text-muted-foreground">kts</div>
       </div>
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">HDG</div>
-        <div className="text-sm font-bold text-foreground">{Math.round(aircraft.heading)}°</div>
+        <div className="text-sm text-foreground">{Math.round(aircraft.heading)}°</div>
         <div className="text-[10px] text-muted-foreground">mag</div>
       </div>
     </div>
     <div className="py-2">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Flight Details</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Flight Details</div>
       <div className="space-y-0">
         <DetailRow icon={Mountain} label="Altitude" value={`${altFt.toLocaleString()} ft`} />
         <DetailRow icon={Gauge} label="Ground Speed" value={`${spdKts} kts`} />
@@ -1012,7 +1012,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
             {verticalRateArrow(vsFpm)}
             <span className="text-xs">Vertical Rate</span>
           </div>
-          <span className={`text-xs font-medium ${vsFpm > 100 ? "text-green-500" : vsFpm < -100 ? "text-red-500" : "text-foreground"}`}>
+          <span className={`text-xs ${vsFpm > 100 ? "text-green-500" : vsFpm < -100 ? "text-red-500" : "text-foreground"}`}>
             {vsFpm > 0 ? "+" : ""}{vsFpm} fpm
           </span>
         </div>
@@ -1020,7 +1020,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
         {aircraft.squawk && <DetailRow icon={Radio} label="Squawk" value={aircraft.squawk} />}
       </div>
       <div className="mt-3">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Position</div>
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Position</div>
         <div className="bg-muted/50 rounded-lg p-2 font-mono text-xs text-foreground space-y-0.5">
           <div>LAT: {aircraft.latitude.toFixed(4)}°</div>
           <div>LON: {aircraft.longitude.toFixed(4)}°</div>
@@ -1028,7 +1028,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
       </div>
       {positionHistory.length > 1 && (
         <div className="mt-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
             Flight Path ({positionHistory.length} points)
           </div>
           <div className="space-y-1 max-h-[120px] overflow-y-auto">

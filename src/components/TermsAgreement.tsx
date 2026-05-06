@@ -59,7 +59,7 @@ const TermsAgreement = ({ agreed, onAgreeChange }: TermsAgreementProps) => {
       <div className="bg-destructive/15 border-2 border-destructive/50 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <ShieldAlert className="w-5 h-5 text-destructive shrink-0" />
-          <h3 className="text-sm font-bold text-destructive uppercase tracking-wider">
+          <h3 className="text-sm text-destructive uppercase tracking-wider">
             Important Legal Disclaimer
           </h3>
         </div>
@@ -110,12 +110,12 @@ const TermsAgreement = ({ agreed, onAgreeChange }: TermsAgreementProps) => {
             disabled={!hasScrolledToBottom}
             className="mt-0.5"
           />
-          <span className="text-xs text-foreground font-medium leading-relaxed">
+          <span className="text-xs text-foreground leading-relaxed">
             I have read, understood, and agree to the{" "}
             <Link
               to="/terms"
               target="_blank"
-              className="text-primary hover:underline font-semibold"
+              className="text-primary hover:underline "
               onClick={(e) => e.stopPropagation()}
             >
               Terms & Conditions
@@ -124,7 +124,7 @@ const TermsAgreement = ({ agreed, onAgreeChange }: TermsAgreementProps) => {
             <Link
               to="/privacy"
               target="_blank"
-              className="text-primary hover:underline font-semibold"
+              className="text-primary hover:underline "
               onClick={(e) => e.stopPropagation()}
             >
               Privacy Policy

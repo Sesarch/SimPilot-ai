@@ -143,7 +143,7 @@ const CompetitorsPage = () => {
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-block px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-6"
+            className="inline-block px-3 py-1 rounded-full text-[11px] tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-6"
           >
             Market Comparison
           </motion.span>
@@ -151,7 +151,7 @@ const CompetitorsPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6"
+            className="font-display text-4xl md:text-5xl lg:text-6xl text-foreground mb-6"
           >
             How SimPilot.AI{" "}
             <span className="text-primary">Stacks Up</span>
@@ -172,13 +172,13 @@ const CompetitorsPage = () => {
           >
             <Link
               to="/auth"
-              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg bg-primary text-primary-foreground text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
             >
               <Zap className="w-4 h-4" /> Try SimPilot.AI Free
             </Link>
             <a
               href="#comparison-matrix"
-              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg border border-border text-foreground font-semibold text-sm hover:border-primary/40 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg border border-border text-foreground text-sm hover:border-primary/40 transition-colors"
             >
               <ChevronDown className="w-4 h-4" /> View Full Comparison
             </a>
@@ -190,7 +190,7 @@ const CompetitorsPage = () => {
       <section className="py-20 bg-secondary/20">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4">
               What Makes SimPilot.AI <span className="text-primary">Different</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -212,7 +212,7 @@ const CompetitorsPage = () => {
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-display text-lg font-bold text-foreground mb-2">{adv.title}</h3>
+                  <h3 className="font-display text-lg text-foreground mb-2">{adv.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{adv.desc}</p>
                 </motion.div>
               );
@@ -225,10 +225,10 @@ const CompetitorsPage = () => {
       <section id="comparison-matrix" className="py-20">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <span className="inline-block px-5 py-2 rounded-full text-sm md:text-base font-bold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-6">
+            <span className="inline-block px-5 py-2 rounded-full text-sm md:text-base tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-6">
               Feature-by-Feature Competitor Comparison
             </span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4">
               Feature-by-Feature <span className="text-primary">Comparison</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -243,11 +243,11 @@ const CompetitorsPage = () => {
             <table className="w-full text-sm">
               <thead className="sticky top-[68px] z-40 bg-background/95 backdrop-blur-sm">
                 <tr className="border-b border-border">
-                  <th className="text-left py-4 px-3 text-muted-foreground font-medium">Feature</th>
+                  <th className="text-left py-4 px-3 text-muted-foreground ">Feature</th>
                   {competitors.map((c) => (
                     <th key={c.name} className="py-4 px-2 text-center">
                       <div className={`inline-flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl ${c.highlight ? "bg-primary/10 border border-primary/30" : "bg-secondary/60 border border-border/40"}`}>
-                        <span className={`font-display text-xs font-bold tracking-wide ${c.highlight ? "text-primary" : "text-foreground"}`}>{c.name}</span>
+                        <span className={`font-display text-xs tracking-wide ${c.highlight ? "text-primary" : "text-foreground"}`}>{c.name}</span>
                         <span className="text-[10px] text-muted-foreground">{c.tag}</span>
                       </div>
                     </th>
@@ -272,7 +272,7 @@ const CompetitorsPage = () => {
                             <Icon className="w-3.5 h-3.5 text-primary" />
                           </div>
                           <div>
-                            <p className="font-semibold text-foreground">{f.label}</p>
+                            <p className="text-foreground">{f.label}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">{f.desc}</p>
                           </div>
                         </div>
@@ -312,7 +312,7 @@ const CompetitorsPage = () => {
                       <Icon className="w-4 h-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">{f.label}</p>
+                      <p className="text-sm text-foreground truncate">{f.label}</p>
                     </div>
                     <CellIcon value={f.values[0]} />
                     <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
@@ -352,7 +352,7 @@ const CompetitorsPage = () => {
       <section className="py-20 bg-secondary/20">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4">
               The Right Tool for <span className="text-primary">Your Mission</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -375,18 +375,18 @@ const CompetitorsPage = () => {
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-display text-lg font-bold text-foreground mb-3">{a.title}</h3>
+                  <h3 className="font-display text-lg text-foreground mb-3">{a.title}</h3>
                   <div className="space-y-3 text-sm">
                     <div>
-                      <p className="font-semibold text-destructive/80 text-xs uppercase tracking-wider mb-1">The Problem</p>
+                      <p className="text-destructive/80 text-xs uppercase tracking-wider mb-1">The Problem</p>
                       <p className="text-muted-foreground">{a.problem}</p>
                     </div>
                     <div>
-                      <p className="font-semibold text-primary text-xs uppercase tracking-wider mb-1">SimPilot.AI Solution</p>
+                      <p className="text-primary text-xs uppercase tracking-wider mb-1">SimPilot.AI Solution</p>
                       <p className="text-muted-foreground">{a.solution}</p>
                     </div>
                     <div>
-                      <p className="font-semibold text-accent text-xs uppercase tracking-wider mb-1">Why Not Others?</p>
+                      <p className="text-accent text-xs uppercase tracking-wider mb-1">Why Not Others?</p>
                       <p className="text-muted-foreground">{a.competitors}</p>
                     </div>
                   </div>
@@ -401,7 +401,7 @@ const CompetitorsPage = () => {
       <section className="py-20">
         <div className="container mx-auto px-4 text-center max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4">
               Ready to Train Smarter?
             </h2>
             <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
@@ -411,14 +411,14 @@ const CompetitorsPage = () => {
               <Link
                 to="/auth"
                 title="Sign up for SimPilot.AI — start your AI pilot training free trial"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground text-sm hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.3)] transition-all"
               >
                 <Zap className="w-4 h-4" /> Get Started Free
               </Link>
               <Link
                 to="/why-simpilot"
                 title="Learn why SimPilot.AI is the best AI pilot training platform"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg border border-border text-foreground font-semibold text-sm hover:border-primary/40 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg border border-border text-foreground text-sm hover:border-primary/40 transition-colors"
               >
                 Learn More About SimPilot.AI
               </Link>

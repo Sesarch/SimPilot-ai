@@ -131,7 +131,7 @@ const DashboardPage = () => {
             <User className="w-7 h-7 text-primary" />
           </div>
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">
+            <h1 className="font-display text-2xl text-foreground">
               Welcome{profile?.display_name ? `, ${profile.display_name}` : ""}
             </h1>
             <p className="text-sm text-muted-foreground">Your training command center</p>
@@ -155,7 +155,7 @@ const DashboardPage = () => {
                 <m.icon className={`w-5 h-5 ${m.color}`} />
               </div>
               <div className="min-w-0">
-                <h3 className="font-display text-sm font-semibold text-foreground truncate">{m.label}</h3>
+                <h3 className="font-display text-sm text-foreground truncate">{m.label}</h3>
                 <p className="text-[11px] text-muted-foreground truncate">{m.desc}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground/50 ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />

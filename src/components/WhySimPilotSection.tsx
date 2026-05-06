@@ -55,7 +55,7 @@ const WhySimPilotSection = () => {
           <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">
             Why SimPilot.AI
           </p>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4">
             Stop Juggling 5 Apps.{" "}
             <span className="text-primary">Train with One.</span>
           </h2>
@@ -84,7 +84,7 @@ const WhySimPilotSection = () => {
                     <Icon className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-display text-base font-bold text-foreground mb-1.5">
+                    <h3 className="font-display text-base text-foreground mb-1.5">
                       {p.title}
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed mb-3">
@@ -110,9 +110,9 @@ const WhySimPilotSection = () => {
           <div className="rounded-xl border border-border bg-card/60 overflow-hidden">
             {/* Header row */}
             <div className="grid grid-cols-[1fr_80px_80px] px-5 py-3 border-b border-border/50 bg-secondary/30">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Feature</span>
-              <span className="text-xs font-bold text-primary text-center uppercase tracking-wider">SimPilot</span>
-              <span className="text-xs font-medium text-muted-foreground text-center uppercase tracking-wider">Others</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">Feature</span>
+              <span className="text-xs text-primary text-center uppercase tracking-wider">SimPilot</span>
+              <span className="text-xs text-muted-foreground text-center uppercase tracking-wider">Others</span>
             </div>
             {quickCompare.map((row, i) => (
               <div
@@ -144,7 +144,7 @@ const WhySimPilotSection = () => {
         >
           <Link
             to="/competitors"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline underline-offset-4 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline underline-offset-4 transition-colors"
           >
             See the full competitor breakdown <ArrowRight className="w-4 h-4" />
           </Link>

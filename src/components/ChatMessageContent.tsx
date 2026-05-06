@@ -49,7 +49,7 @@ export default function ChatMessageContent({ content }: { content: string }) {
         <div className="mb-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 flex gap-2">
           <Target className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-display font-semibold tracking-widest uppercase text-primary mb-0.5">
+            <p className="text-[10px] font-display tracking-widest uppercase text-primary mb-0.5">
               Key takeaway
             </p>
             <div className="prose prose-sm prose-invert max-w-none text-foreground/90 [&_p]:m-0 [&_p]:text-xs [&_p]:leading-snug">
@@ -65,7 +65,7 @@ export default function ChatMessageContent({ content }: { content: string }) {
         <button
           type="button"
           onClick={() => setSourcesOpen((o) => !o)}
-          className="mt-2 flex items-center gap-1.5 text-[10px] font-medium text-primary hover:text-primary/80 transition-colors w-full"
+          className="mt-2 flex items-center gap-1.5 text-[10px] text-primary hover:text-primary/80 transition-colors w-full"
         >
           <BookOpen className="w-3 h-3" />
           <span>Sources</span>

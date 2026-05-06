@@ -469,7 +469,7 @@ const LogbookPage = () => {
           </div>
           <div className="flex items-baseline gap-3">
             <span
-              className="font-display text-4xl font-bold tabular-nums leading-none"
+              className="font-display text-4xl tabular-nums leading-none"
               style={{ color: streakAccent, textShadow: `0 0 12px ${streakAccent}cc, 0 0 2px ${streakAccent}` }}
             >
               {streak}
@@ -501,7 +501,7 @@ const LogbookPage = () => {
           </div>
           <div className="flex items-baseline gap-3">
             <span
-              className="font-display text-2xl font-bold uppercase tracking-wider leading-none"
+              className="font-display text-2xl uppercase tracking-wider leading-none"
               style={hasIronMic ? { color: "hsl(45 95% 58%)", textShadow: `0 0 10px hsl(45 95% 58% / 0.7)` } : { color: "hsl(var(--muted-foreground))" }}
             >
               {hasIronMic ? "Earned" : "Locked"}
@@ -521,7 +521,7 @@ const LogbookPage = () => {
             </span>
           </div>
           <div className="flex items-baseline gap-3">
-            <span className="font-display text-4xl font-bold tabular-nums leading-none text-primary"
+            <span className="font-display text-4xl tabular-nums leading-none text-primary"
               style={{ textShadow: `0 0 10px hsl(var(--primary) / 0.5)` }}>
               {totals.total.toFixed(1)}
             </span>
@@ -595,7 +595,7 @@ const LogbookPage = () => {
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div>
-                    <div className="font-display text-[11px] tracking-[0.2em] uppercase font-bold" style={{ color: accent }}>
+                    <div className="font-display text-[11px] tracking-[0.2em] uppercase " style={{ color: accent }}>
                       {c.label}
                     </div>
                     <div className="font-display text-[9px] tracking-[0.2em] uppercase text-muted-foreground mt-0.5">
@@ -603,7 +603,7 @@ const LogbookPage = () => {
                     </div>
                   </div>
                   <span
-                    className="font-display text-[10px] tracking-[0.2em] uppercase font-bold px-2 py-0.5 rounded-sm border"
+                    className="font-display text-[10px] tracking-[0.2em] uppercase px-2 py-0.5 rounded-sm border"
                     style={{
                       color: accent,
                       borderColor: `${accent}66`,
@@ -618,7 +618,7 @@ const LogbookPage = () => {
                   <div>
                     <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">{c.mainLabel}</div>
                     <div className="flex items-baseline gap-1">
-                      <span className="font-display text-2xl font-bold tabular-nums" style={{ color: accent }}>
+                      <span className="font-display text-2xl tabular-nums" style={{ color: accent }}>
                         {c.countMain}
                       </span>
                       <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">/ {c.mainTarget}</span>
@@ -626,18 +626,18 @@ const LogbookPage = () => {
                   </div>
                   <div>
                     <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">{c.altLabel}</div>
-                    <span className="font-display text-2xl font-bold tabular-nums text-foreground">{c.countAlt}</span>
+                    <span className="font-display text-2xl tabular-nums text-foreground">{c.countAlt}</span>
                   </div>
                   <div className="ml-auto text-right">
                     {c.current ? (
                       <>
                         <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">Expires In</div>
-                        <span className="font-display text-base font-bold tabular-nums text-foreground">~{c.expiresIn}d</span>
+                        <span className="font-display text-base tabular-nums text-foreground">~{c.expiresIn}d</span>
                       </>
                     ) : (
                       <>
                         <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">Need</div>
-                        <span className="font-display text-base font-bold tabular-nums" style={{ color: accent }}>
+                        <span className="font-display text-base tabular-nums" style={{ color: accent }}>
                           {c.shortBy} more
                         </span>
                       </>
@@ -682,14 +682,14 @@ const LogbookPage = () => {
                       {r.label}
                     </span>
                     <span
-                      className="font-display text-[9px] tracking-[0.2em] uppercase font-bold"
+                      className="font-display text-[9px] tracking-[0.2em] uppercase "
                       style={{ color: accent }}
                     >
                       {r.met ? "Met" : `${r.remaining.toFixed(1)} hr left`}
                     </span>
                   </div>
                   <div className="flex items-baseline gap-1 mt-1">
-                    <span className="font-display text-xl font-bold tabular-nums" style={{ color: accent }}>
+                    <span className="font-display text-xl tabular-nums" style={{ color: accent }}>
                       {r.logged.toFixed(1)}
                     </span>
                     <span className="font-display text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
@@ -733,7 +733,7 @@ const LogbookPage = () => {
           ].map((s) => (
             <div key={s.label} className="rounded-md border border-border/60 px-3 py-2 bg-background/40">
               <div className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">{s.label}</div>
-              <div className="font-display text-lg font-bold tabular-nums text-foreground mt-0.5">{s.value}</div>
+              <div className="font-display text-lg tabular-nums text-foreground mt-0.5">{s.value}</div>
             </div>
           ))}
         </div>

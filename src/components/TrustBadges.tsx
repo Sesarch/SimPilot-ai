@@ -18,7 +18,7 @@ const TrustBadges = () => {
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-8"
+          className="text-center text-sm uppercase tracking-widest text-muted-foreground mb-8"
         >
           Trusted by Student Pilots Everywhere
         </motion.p>
@@ -35,7 +35,7 @@ const TrustBadges = () => {
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors" title={badge.description}>
                 <badge.icon className="w-6 h-6 text-primary" />
               </div>
-              <span className="text-xs font-semibold text-foreground leading-tight">{badge.label}</span>
+              <span className="text-xs text-foreground leading-tight">{badge.label}</span>
               <span className="text-[11px] text-muted-foreground leading-tight">{badge.description}</span>
             </motion.div>
           ))}

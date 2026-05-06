@@ -101,7 +101,7 @@ const MobileChatPage = () => {
         </div>
         <div className="flex items-center gap-1.5">
           {activeTab.icon}
-          <span className="text-xs font-display font-semibold tracking-wider uppercase text-muted-foreground">
+          <span className="text-xs font-display tracking-wider uppercase text-muted-foreground">
             {activeTab.label}
           </span>
         </div>
@@ -136,7 +136,7 @@ const MobileChatPage = () => {
                     onClick={() => switchTab(tab)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                       activeTab.id === tab.id
-                        ? "bg-primary/10 text-primary font-semibold"
+                        ? "bg-primary/10 text-primary "
                         : "text-foreground hover:bg-secondary"
                     }`}
                   >
@@ -261,7 +261,7 @@ const MobileChatPage = () => {
               }`}
             >
               <span className={isActive ? "text-primary" : ""}>{tab.icon}</span>
-              <span className="text-[10px] font-display font-semibold tracking-wider uppercase">
+              <span className="text-[10px] font-display tracking-wider uppercase">
                 {tab.id === "general" ? "Chat" : tab.id === "ground_school" ? "School" : "Exam"}
               </span>
               {isActive && (
@@ -275,7 +275,7 @@ const MobileChatPage = () => {
           className="flex-1 flex flex-col items-center gap-0.5 py-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <User className="w-4 h-4" />
-          <span className="text-[10px] font-display font-semibold tracking-wider uppercase">
+          <span className="text-[10px] font-display tracking-wider uppercase">
             Profile
           </span>
         </Link>

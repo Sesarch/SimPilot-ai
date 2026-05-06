@@ -48,7 +48,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-4"
+          className="font-display text-4xl md:text-6xl lg:text-7xl leading-tight mb-4"
         >
           <span className="text-foreground">Your AI </span>
           <span className="text-primary text-glow-cyan">Co-Pilot</span>
@@ -85,7 +85,7 @@ const HeroSection = () => {
             { value: "24/7", label: "AI Support" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
-              <p className="font-display text-2xl md:text-3xl font-bold text-primary text-glow-cyan">
+              <p className="font-display text-2xl md:text-3xl text-primary text-glow-cyan">
                 {stat.value}
               </p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">

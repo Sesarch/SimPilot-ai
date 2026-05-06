@@ -122,7 +122,7 @@ export const FlightAwareTestButton = () => {
               )}
 
               <div className={`rounded border p-3 ${result.ok ? "border-[hsl(var(--hud-green))]/40 bg-[hsl(var(--hud-green))]/5" : "border-destructive/40 bg-destructive/5"}`}>
-                <p className={`font-medium ${verdictTone}`}>{result.verdict}</p>
+                <p className={`${verdictTone}`}>{result.verdict}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{result.recommendation}</p>
               </div>
 

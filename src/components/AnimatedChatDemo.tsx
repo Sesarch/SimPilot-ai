@@ -95,10 +95,10 @@ const AnimatedChatDemo = () => {
           viewport={{ once: true }}
           className="text-center mb-10"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] tracking-widest uppercase bg-primary/10 text-primary border border-primary/20 mb-4">
             <Sparkles className="w-3.5 h-3.5" /> Live Demo
           </div>
-          <h2 id="demo-heading" className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+          <h2 id="demo-heading" className="font-display text-3xl md:text-4xl text-foreground mb-3">
             See SimPilot.AI in Action
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
@@ -121,7 +121,7 @@ const AnimatedChatDemo = () => {
                 <Bot className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">SimPilot.AI CFI</p>
+                <p className="text-sm text-foreground">SimPilot.AI CFI</p>
                 <p className="text-[10px] text-muted-foreground">Ground One-on-One — Aerodynamics</p>
               </div>
               <div className="ml-auto flex items-center gap-3">
