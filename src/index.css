@@ -441,6 +441,28 @@
   }
 }
 
+/* ============================================================
+   Global: NO BOLD anywhere. Force normal weight on every element,
+   including <b>, <strong>, headings, and Tailwind font-* utilities.
+   ============================================================ */
+@layer base {
+  *,
+  *::before,
+  *::after,
+  b,
+  strong,
+  h1, h2, h3, h4, h5, h6,
+  th,
+  optgroup,
+  .font-bold,
+  .font-semibold,
+  .font-extrabold,
+  .font-black,
+  .font-medium {
+    font-weight: 400 !important;
+  }
+}
+
 @layer utilities {
   /* iOS zooms inputs whose computed font-size < 16px. Force a floor on mobile. */
   @media (max-width: 767px) {
