@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink } from "lucide-react";
 import { usePilotContext } from "@/hooks/usePilotContext";
 import RedeemSchoolCode from "@/components/RedeemSchoolCode";
+import MfaSettings from "@/components/MfaSettings";
 
 const TRACK_OPTIONS = [
   { value: "PPL", label: "PPL — Private Pilot" },
@@ -131,6 +132,11 @@ const AccountSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* Two-Factor Authentication */}
+      <div id="security" className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <MfaSettings />
+      </div>
+
       {/* School Code Redemption */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <RedeemSchoolCode />
