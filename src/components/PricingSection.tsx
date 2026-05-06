@@ -47,6 +47,7 @@ const plans = [
     ],
     cta: "Go Pro",
     highlighted: true,
+    checkoutPlan: "pro" as const,
   },
   {
     icon: Crown,
@@ -67,6 +68,7 @@ const plans = [
     ],
     cta: "Go Gold Seal",
     highlighted: false,
+    checkoutPlan: "ultra" as const,
   },
   {
     icon: GraduationCap,
