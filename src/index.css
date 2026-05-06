@@ -324,3 +324,58 @@
   color: hsl(var(--primary)) !important;
 }
 
+
+/* ============================================================
+   Global Mobile Responsive Polish
+   - Prevents horizontal scroll on every page
+   - Ensures iframes/PDFs sit beneath the fixed navigation
+   - Enforces 16px+ inputs to stop iOS auto-zoom
+   - Bumps interactive touch targets to 44x44 on small screens
+   - Tones down oversize display headings on phones
+   ============================================================ */
+@layer base {
+  html, body, #root {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Keep embedded media below the app chrome (navbar uses z-50) */
+  iframe, embed, object {
+    position: relative;
+    z-index: 0;
+    max-width: 100%;
+  }
+
+  img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@layer utilities {
+  /* iOS zooms inputs whose computed font-size < 16px. Force a floor on mobile. */
+  @media (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+    select,
+    textarea {
+      font-size: 16px !important;
+      min-height: 44px;
+    }
+
+    /* Touch-friendly hit areas for primary interactives */
+    button,
+    [role="button"],
+    a.btn,
+    [data-touch-target] {
+      min-height: 44px;
+    }
+
+    /* Tame oversized display headings on phones */
+    h1 { font-size: clamp(1.75rem, 7vw, 2.25rem); line-height: 1.15; }
+    h2 { font-size: clamp(1.375rem, 5.5vw, 1.75rem); line-height: 1.2; }
+    h3 { font-size: clamp(1.125rem, 4.5vw, 1.375rem); line-height: 1.25; }
+
+    /* Long words / URLs shouldn't blow out the layout */
+    p, li, a, span { overflow-wrap: anywhere; }
+  }
+}
