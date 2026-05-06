@@ -82,16 +82,47 @@ test.describe("Pricing — 'Most Popular' badge", () => {
       );
       expect(clipping.whiteSpace, "badge enforces nowrap").toMatch(/nowrap/);
 
-      // 5. The element actually visible at its center (not occluded).
-      const occluded = await page.evaluate(([cx, cy]) => {
-        const top = document.elementFromPoint(cx, cy);
-        if (!top) return "no-element";
-        return top.textContent?.includes("Most Popular") ||
-          top.closest("[class*='whitespace-nowrap']") !== null
-          ? "ok"
-          : `occluded-by:${top.tagName}.${(top as HTMLElement).className || ""}`;
-      }, [x + width / 2, y + height / 2]);
-      expect(occluded, "badge is the topmost element at its center").toBe("ok");
+      // 5. Sample multiple points across the badge — center + each corner
+      // (inset 2px) — to catch partial occlusion by adjacent card content,
+      // shadows, or sibling cards at narrow widths.
+      const samplePoints: Array<[number, number, string]> = [
+        [x + width / 2, y + height / 2, "center"],
+        [x + 2, y + 2, "top-left"],
+        [x + width - 2, y + 2, "top-right"],
+        [x + 2, y + height - 2, "bottom-left"],
+        [x + width - 2, y + height - 2, "bottom-right"],
+      ];
+      const occlusions = await page.evaluate((pts) => {
+        return (pts as Array<[number, number, string]>).map(([cx, cy, label]) => {
+          const top = document.elementFromPoint(cx, cy);
+          if (!top) return { label, ok: false, by: "no-element" };
+          const ok =
+            (top.textContent ?? "").includes("Most Popular") ||
+            top.closest("[class*='whitespace-nowrap']") !== null;
+          return {
+            label,
+            ok,
+            by: ok
+              ? "badge"
+              : `${top.tagName}.${((top as HTMLElement).className || "").toString().slice(0, 80)}`,
+          };
+        });
+      }, samplePoints);
+      const blocked = occlusions.filter((o) => !o.ok);
+      expect(
+        blocked,
+        `badge occluded at: ${blocked.map((b) => `${b.label}→${b.by}`).join(", ")}`,
+      ).toEqual([]);
+
+      // 6. Z-index sanity — badge stacking context must sit above the card.
+      const zCheck = await badge.evaluate((el) => {
+        const wrap = (el.parentElement as HTMLElement) ?? el;
+        const card = wrap.closest("[class*='rounded-xl']") as HTMLElement | null;
+        const wrapZ = parseInt(getComputedStyle(wrap).zIndex, 10) || 0;
+        const cardZ = card ? parseInt(getComputedStyle(card).zIndex, 10) || 0 : 0;
+        return { wrapZ, cardZ };
+      });
+      expect(zCheck.wrapZ, "badge z-index >= card z-index").toBeGreaterThanOrEqual(zCheck.cardZ);
 
       // Capture a snapshot for manual review when something is off.
       await badge.screenshot({
