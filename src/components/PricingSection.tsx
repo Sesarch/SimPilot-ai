@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -97,6 +97,28 @@ const PricingSection = () => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  // Visual QA mode — toggle with Alt+Shift+Q (or ?qa=1 in URL).
+  // Renders z-index labels on each card, outlines the badge, and lets you
+  // force-hover and reduced-motion to inspect layering interactions.
+  const [qaMode, setQaMode] = useState(false);
+  const [qaForceHover, setQaForceHover] = useState(false);
+  const [qaReducedMotion, setQaReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("qa") === "1") {
+      setQaMode(true);
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey && e.shiftKey && (e.key === "Q" || e.key === "q")) {
+        e.preventDefault();
+        setQaMode((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const handleCtaClick = async (plan: typeof plans[number]) => {
     if (loadingPlan) return;
 
@@ -137,8 +159,52 @@ const PricingSection = () => {
   };
 
   return (
-    <section id="pricing" className="py-24 relative bg-gradient-hero scroll-mt-20">
+    <section
+      id="pricing"
+      data-qa-mode={qaMode || undefined}
+      data-qa-force-hover={qaForceHover || undefined}
+      data-qa-reduced-motion={qaReducedMotion || undefined}
+      className={`py-24 relative bg-gradient-hero scroll-mt-20 ${
+        qaReducedMotion ? "[&_*]:!transition-none [&_*]:!animate-none" : ""
+      } ${qaForceHover ? "[&_[data-qa-card]]:!border-primary/40" : ""}`}
+    >
       <div className="absolute top-0 left-0 right-0 hud-line" />
+      {qaMode && (
+        <div className="fixed top-4 right-4 z-[100] w-64 rounded-lg border border-primary/40 bg-background/95 backdrop-blur p-3 shadow-2xl text-xs font-mono">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-display tracking-widest uppercase text-[10px] text-primary">
+              QA Mode
+            </span>
+            <button
+              type="button"
+              onClick={() => setQaMode(false)}
+              className="text-muted-foreground hover:text-foreground text-[10px]"
+              aria-label="Close QA panel"
+            >
+              ✕
+            </button>
+          </div>
+          <label className="flex items-center gap-2 mb-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={qaForceHover}
+              onChange={(e) => setQaForceHover(e.target.checked)}
+            />
+            <span>Force hover state</span>
+          </label>
+          <label className="flex items-center gap-2 mb-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={qaReducedMotion}
+              onChange={(e) => setQaReducedMotion(e.target.checked)}
+            />
+            <span>Reduced motion</span>
+          </label>
+          <p className="text-[10px] text-muted-foreground leading-snug">
+            Alt+Shift+Q to toggle. Cards show z-index; badge has dashed outline.
+          </p>
+        </div>
+      )}
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -199,19 +265,35 @@ const PricingSection = () => {
             return (
               <motion.div
                 key={plan.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                data-qa-card
+                initial={qaReducedMotion ? false : { opacity: 0, y: 30 }}
+                whileInView={qaReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.12 }}
+                transition={{ delay: qaReducedMotion ? 0 : i * 0.12 }}
                 className={`relative flex flex-col rounded-xl px-6 pt-10 pb-6 border transition-all duration-500 overflow-visible isolate ${
                   plan.highlighted
                     ? "border-primary/50 border-glow-cyan bg-gradient-card scale-[1.02] z-20"
                     : "border-border bg-gradient-card hover:border-primary/20 z-10"
-                }`}
+                } ${qaMode ? "outline outline-1 outline-dashed outline-accent/60" : ""}`}
               >
+                {qaMode && (
+                  <span className="absolute top-1 right-1 z-40 px-1.5 py-0.5 rounded bg-accent text-accent-foreground text-[9px] font-mono pointer-events-none">
+                    z:{plan.highlighted ? 20 : 10}
+                  </span>
+                )}
                 {plan.highlighted && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none max-w-[calc(100%-1.5rem)]">
-                    <span className="block whitespace-nowrap font-display text-[10px] leading-[1] tracking-widest uppercase px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-lg ring-1 ring-background/40">
+                  <div
+                    className={`absolute left-1/2 z-30 pointer-events-none w-max max-w-[calc(100%-2rem)] flex justify-center ${
+                      qaMode ? "outline outline-1 outline-dashed outline-primary" : ""
+                    }`}
+                    style={{ top: 0, transform: "translate(-50%, -100%) translateY(8px)" }}
+                  >
+                    {qaMode && (
+                      <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-primary text-primary-foreground text-[9px] font-mono whitespace-nowrap">
+                        badge z:30
+                      </span>
+                    )}
+                    <span className="block whitespace-nowrap font-display text-[9px] xs:text-[10px] leading-[1] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-lg ring-1 ring-background/40">
                       Most Popular
                     </span>
                   </div>
