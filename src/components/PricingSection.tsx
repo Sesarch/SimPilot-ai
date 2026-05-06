@@ -147,7 +147,7 @@ const PricingSection = () => {
           </div>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch pt-6">
           {plans.map((plan, i) => {
             const price = annual ? plan.annual : plan.monthly;
             return (
@@ -157,15 +157,15 @@ const PricingSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12 }}
-                className={`relative flex flex-col rounded-xl p-6 border transition-all duration-500 ${
+                className={`relative flex flex-col rounded-xl p-6 border transition-all duration-500 overflow-visible ${
                   plan.highlighted
-                    ? "border-primary/50 border-glow-cyan bg-gradient-card scale-[1.02]"
-                    : "border-border bg-gradient-card hover:border-primary/20"
+                    ? "border-primary/50 border-glow-cyan bg-gradient-card scale-[1.02] z-20"
+                    : "border-border bg-gradient-card hover:border-primary/20 z-10"
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <span className="block whitespace-nowrap font-display text-[10px] leading-none tracking-widest uppercase px-4 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-md">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                    <span className="block whitespace-nowrap font-display text-[10px] leading-none tracking-widest uppercase px-4 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold shadow-lg ring-1 ring-background/40">
                       Most Popular
                     </span>
                   </div>
