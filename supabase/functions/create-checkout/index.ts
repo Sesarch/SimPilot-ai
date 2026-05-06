@@ -9,8 +9,9 @@ const corsHeaders = {
 };
 
 const PRICE_IDS: Record<string, string> = {
-  pro: "price_1TQhYjRusIXFsWjc3wGvpiqS",   // SimPilot Pro $59/mo
-  ultra: "price_1TQhZBRusIXFsWjc2jrUeFEi", // SimPilot Ultra $99/mo
+  student: "price_1TNf5ZRusIXFsWjchdY05u0R", // SimPilot Student $29/mo
+  pro: "price_1TQhYjRusIXFsWjc3wGvpiqS",     // SimPilot Pro $59/mo
+  ultra: "price_1TQhZBRusIXFsWjc2jrUeFEi",   // SimPilot Ultra $99/mo
 };
 
 serve(async (req) => {
