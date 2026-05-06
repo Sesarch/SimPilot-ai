@@ -17,6 +17,7 @@ interface GraduationModalProps {
 export default function GraduationModal({ open, displayName }: GraduationModalProps) {
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
   const [showPlans, setShowPlans] = useState(false);
+  const [detailsPlan, setDetailsPlan] = useState<StripePlan | null>(null);
   const { plans, loading: plansLoading } = useStripePlans();
 
   const handleSubscribe = async (plan: StripePlan) => {
