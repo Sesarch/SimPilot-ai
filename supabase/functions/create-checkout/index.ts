@@ -18,9 +18,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { plan } = await req.json().catch(() => ({}));
-    if (!plan || !PRICE_IDS[plan]) {
-      return new Response(JSON.stringify({ error: "Invalid plan. Must be 'pro' or 'ultra'." }), {
+    const { plan, price_id } = await req.json().catch(() => ({}));
+    const resolvedPrice = price_id || (plan ? PRICE_IDS[plan] : null);
+    if (!resolvedPrice) {
+      return new Response(JSON.stringify({ error: "Missing 'plan' or 'price_id'." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -50,11 +51,11 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
+      line_items: [{ price: resolvedPrice, quantity: 1 }],
       mode: "subscription",
       success_url: `${origin}/dashboard?subscribed=1`,
       cancel_url: `${origin}/dashboard?checkout=cancelled`,
-      metadata: { plan, user_id: user.id },
+      metadata: { plan: plan ?? "custom", price_id: resolvedPrice, user_id: user.id },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
