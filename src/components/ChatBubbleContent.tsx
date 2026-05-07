@@ -1,6 +1,7 @@
 import { getTextContent, type MessageContent } from "@/hooks/useChat";
 import ChatMessageContent from "@/components/ChatMessageContent";
 import { stripReportFence } from "@/lib/checkrideReport";
+import { stripGroundQuizFence } from "@/lib/groundQuiz";
 
 /** Renders a user or assistant message, handling both plain text and multimodal content */
 export function ChatBubbleContent({
