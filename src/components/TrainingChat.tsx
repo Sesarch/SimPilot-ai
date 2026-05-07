@@ -381,21 +381,6 @@ export const TrainingChat = ({
           />
         )}
 
-        {latestQuiz && mode === "ground_school" && (
-          <div className="my-2">
-            <GroundQuizCard
-              key={`${topicId ?? "quiz"}-${messages.length}`}
-              quiz={latestQuiz}
-              onComplete={({ passed, score, total }) => {
-                if (passed) {
-                  markTopicComplete();
-                  setCelebration({ score, total });
-                }
-              }}
-            />
-          </div>
-        )}
-
         {isLoading && messages[messages.length - 1]?.role === "user" && (
           <div className="flex justify-start">
             <div className="bg-secondary border border-border rounded-xl px-4 py-3">
@@ -408,6 +393,41 @@ export const TrainingChat = ({
           <div className="text-center text-destructive text-xs py-2">{error}</div>
         )}
       </div>
+
+      {/* Dedicated Quiz section — first-class module, lives outside the chat stream */}
+      {latestQuiz && mode === "ground_school" && (
+        <section
+          aria-label="Knowledge check quiz"
+          className="shrink-0 border-t border-primary/30 bg-gradient-to-b from-primary/[0.04] to-transparent"
+        >
+          <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/15 border border-primary/40 font-display text-[10px] tracking-[0.25em] uppercase text-primary">
+                <ClipboardCheck className="w-3 h-3" />
+                Quiz Module
+              </span>
+              <span className="font-display text-[10px] tracking-widest uppercase text-muted-foreground">
+                {latestQuiz.questions.length}-Question Knowledge Check
+              </span>
+            </div>
+            <span className="hidden sm:inline font-display text-[10px] tracking-widest uppercase text-muted-foreground">
+              Pass ≥ 2/3 to mark topic complete
+            </span>
+          </div>
+          <div className="p-4 pt-2 max-h-[70vh] overflow-y-auto">
+            <GroundQuizCard
+              key={`${topicId ?? "quiz"}-${messages.length}`}
+              quiz={latestQuiz}
+              onComplete={({ passed, score, total }) => {
+                if (passed) {
+                  markTopicComplete();
+                  setCelebration({ score, total });
+                }
+              }}
+            />
+          </div>
+        </section>
+      )}
 
       {/* Pending image preview */}
       {pendingImage && (
