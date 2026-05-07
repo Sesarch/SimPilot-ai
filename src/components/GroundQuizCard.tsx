@@ -430,26 +430,88 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
       </div>
 
       {/* Explanation */}
-      {revealed && (
-        <div
-          id={explanationId}
-          role="note"
-          className={cn(
-            "rounded-xl border p-4 mb-5",
-            selected === current.correct
-              ? "border-primary/40 bg-primary/5"
-              : "border-accent/40 bg-accent/5",
-          )}
-        >
-          <div className="flex items-center gap-2 mb-1.5">
-            <Sparkles className="w-4 h-4 text-accent" aria-hidden="true" />
-            <p className="font-display text-[10px] tracking-widest uppercase text-accent">
-              {selected === current.correct ? "Correct" : "Explanation"}
-            </p>
+      {revealed && (() => {
+        const isRight = selected === current.correct;
+        const { prose, citations } = parseExplanation(current.explanation);
+        return (
+          <div
+            id={explanationId}
+            role="note"
+            className={cn(
+              "rounded-xl border overflow-hidden mb-5",
+              isRight ? "border-primary/40 bg-primary/5" : "border-accent/40 bg-accent/5",
+            )}
+          >
+            <div
+              className={cn(
+                "flex items-center justify-between gap-2 px-4 py-2 border-b",
+                isRight ? "bg-primary/10 border-primary/30" : "bg-accent/10 border-accent/30",
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className={cn("w-4 h-4", isRight ? "text-primary" : "text-accent")} aria-hidden="true" />
+                <p
+                  className={cn(
+                    "font-display text-[10px] tracking-[0.25em] uppercase",
+                    isRight ? "text-primary" : "text-accent",
+                  )}
+                >
+                  {isRight ? "Correct" : "Explanation"}
+                </p>
+              </div>
+              {citations.length > 0 && (
+                <p className="font-display text-[9px] tracking-widest uppercase text-muted-foreground hidden sm:block">
+                  {citations.length} {citations.length === 1 ? "Reference" : "References"}
+                </p>
+              )}
+            </div>
+
+            <div className="p-4 space-y-3">
+              {prose && (
+                <p className="text-sm text-foreground/90 leading-relaxed">{prose}</p>
+              )}
+
+              {citations.length > 0 && (
+                <div
+                  aria-label="Cited references"
+                  className="rounded-lg border border-border/70 bg-background/40 p-3"
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <BookMarked className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+                    <p className="font-display text-[9px] tracking-[0.25em] uppercase text-muted-foreground">
+                      Sources
+                    </p>
+                  </div>
+                  <ul className="flex flex-wrap gap-1.5">
+                    {citations.map((c, i) => {
+                      const Icon = citationIcon(c.kind);
+                      return (
+                        <li key={`${c.kind}-${c.label}-${i}`}>
+                          <span
+                            title={citationFullName(c.kind)}
+                            aria-label={`${citationFullName(c.kind)}: ${c.label}`}
+                            className={cn(
+                              "inline-flex items-stretch rounded-md border overflow-hidden font-mono text-[11px] leading-none",
+                              "border-primary/40 bg-background/70 text-foreground",
+                              "shadow-[0_0_10px_hsl(var(--cyan-glow)/0.08)]",
+                            )}
+                          >
+                            <span className="flex items-center gap-1 px-1.5 py-1 bg-primary/15 text-primary border-r border-primary/30">
+                              <Icon className="w-3 h-3" aria-hidden="true" />
+                              <span className="font-display tracking-widest text-[9px] uppercase">{c.kind}</span>
+                            </span>
+                            <span className="px-2 py-1 font-medium">{c.label.replace(/^(?:14\s*CFR|FAR|AIM|PHAK|AFH|IFH|AC|ACS|POH)\s*/i, "")}</span>
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
-          <p className="text-sm text-foreground/90 leading-relaxed">{current.explanation}</p>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Footer / actions */}
       <div className="flex items-center justify-between gap-3">
