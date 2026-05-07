@@ -1,5 +1,14 @@
-import { useMemo, useState } from "react";
-import { CheckCircle2, XCircle, ClipboardCheck, Sparkles, RotateCcw, ChevronRight, Trophy, AlertTriangle } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  CheckCircle2,
+  XCircle,
+  ClipboardCheck,
+  Sparkles,
+  RotateCcw,
+  ChevronRight,
+  Trophy,
+  AlertTriangle,
+} from "lucide-react";
 import type { GroundQuiz } from "@/lib/groundQuiz";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +30,15 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
   const [revealed, setRevealed] = useState(false);
   const [answers, setAnswers] = useState<number[]>([]);
   const [completed, setCompleted] = useState(false);
+  const [liveMessage, setLiveMessage] = useState("");
+
+  const baseId = useId();
+  const questionId = `${baseId}-question`;
+  const explanationId = `${baseId}-explanation`;
+  const radioRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const questionHeadingRef = useRef<HTMLParagraphElement | null>(null);
+  const primaryActionRef = useRef<HTMLButtonElement | null>(null);
+  const restartRef = useRef<HTMLButtonElement | null>(null);
 
   const current = quiz.questions[index];
   const score = useMemo(
@@ -29,18 +47,48 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
   );
   const passed = score / total >= PASS_RATIO;
 
-  const handleSelect = (i: number) => {
-    if (revealed) return;
-    setSelected(i);
-  };
+  // Move focus to the question heading when a new question loads,
+  // and to the results region when the quiz completes.
+  useEffect(() => {
+    if (completed) {
+      restartRef.current?.focus();
+      return;
+    }
+    questionHeadingRef.current?.focus();
+  }, [index, completed]);
 
-  const handleSubmit = () => {
-    if (selected === null) return;
+  // Move focus to the primary action when the answer is revealed so
+  // keyboard users can hit Enter to advance immediately.
+  useEffect(() => {
+    if (revealed) primaryActionRef.current?.focus();
+  }, [revealed]);
+
+  const focusOption = useCallback((i: number) => {
+    const next = ((i % 4) + 4) % 4;
+    radioRefs.current[next]?.focus();
+  }, []);
+
+  const handleSelect = useCallback(
+    (i: number) => {
+      if (revealed) return;
+      setSelected(i);
+    },
+    [revealed],
+  );
+
+  const handleSubmit = useCallback(() => {
+    if (selected === null || revealed) return;
     setRevealed(true);
     setAnswers((prev) => [...prev, selected]);
-  };
+    const correct = selected === current.correct;
+    setLiveMessage(
+      correct
+        ? `Correct. ${current.explanation}`
+        : `Incorrect. The correct answer is ${LETTERS[current.correct]}. ${current.explanation}`,
+    );
+  }, [selected, revealed, current]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (index + 1 >= total) {
       setCompleted(true);
       const finalAnswers = answers;
@@ -49,21 +97,106 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
         0,
       );
       const finalPassed = finalScore / total >= PASS_RATIO;
+      setLiveMessage(
+        `Quiz complete. You scored ${finalScore} out of ${total}. ${finalPassed ? "Topic passed." : "Review recommended."}`,
+      );
       onComplete?.({ score: finalScore, total, passed: finalPassed, answers: finalAnswers });
       return;
     }
     setIndex((i) => i + 1);
     setSelected(null);
     setRevealed(false);
-  };
+    setLiveMessage(`Question ${index + 2} of ${total}.`);
+  }, [index, total, answers, quiz.questions, onComplete]);
 
-  const handleRestart = () => {
+  const handleRestart = useCallback(() => {
     setIndex(0);
     setSelected(null);
     setRevealed(false);
     setAnswers([]);
     setCompleted(false);
+    setLiveMessage(`Quiz restarted. Question 1 of ${total}.`);
     onRetry?.();
+  }, [total, onRetry]);
+
+  // Radiogroup keyboard model: arrow keys move focus + selection,
+  // Home/End jump to first/last, Space/Enter select, A–D and 1–4 hotkeys.
+  const handleRadioKeyDown = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
+    if (revealed) return;
+    switch (e.key) {
+      case "ArrowDown":
+      case "ArrowRight": {
+        e.preventDefault();
+        const next = (i + 1) % 4;
+        setSelected(next);
+        focusOption(next);
+        break;
+      }
+      case "ArrowUp":
+      case "ArrowLeft": {
+        e.preventDefault();
+        const next = (i + 3) % 4;
+        setSelected(next);
+        focusOption(next);
+        break;
+      }
+      case "Home": {
+        e.preventDefault();
+        setSelected(0);
+        focusOption(0);
+        break;
+      }
+      case "End": {
+        e.preventDefault();
+        setSelected(3);
+        focusOption(3);
+        break;
+      }
+      case " ":
+      case "Spacebar": {
+        e.preventDefault();
+        setSelected(i);
+        break;
+      }
+      case "Enter": {
+        e.preventDefault();
+        if (selected === null) {
+          setSelected(i);
+        } else {
+          handleSubmit();
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
+  // Card-level hotkeys: 1–4 / A–D pick an option; Enter submits / advances.
+  const handleCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (completed) return;
+    const target = e.target as HTMLElement;
+    const isEditing = target.matches("input, textarea, select, [contenteditable='true']");
+    if (isEditing) return;
+
+    const key = e.key.toLowerCase();
+    const letterIdx = ["a", "b", "c", "d"].indexOf(key);
+    const numberIdx = ["1", "2", "3", "4"].indexOf(key);
+    const optionIdx = letterIdx !== -1 ? letterIdx : numberIdx;
+
+    if (optionIdx !== -1 && !revealed) {
+      e.preventDefault();
+      setSelected(optionIdx);
+      focusOption(optionIdx);
+      return;
+    }
+    if (e.key === "Enter") {
+      // Don't hijack Enter when focus is on a button — its own handler runs.
+      if (target.tagName === "BUTTON") return;
+      e.preventDefault();
+      if (revealed) handleNext();
+      else handleSubmit();
+    }
   };
 
   if (completed) {
@@ -71,13 +204,18 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
       <div
         role="region"
         aria-label="Quiz results"
+        aria-live="polite"
         className={cn(
           "rounded-2xl border bg-gradient-to-br from-card via-card to-secondary/30 p-6 shadow-[0_0_40px_hsl(var(--cyan-glow)/0.08)]",
           passed ? "border-primary/40" : "border-destructive/40",
         )}
       >
+        <span className="sr-only" role="status" aria-live="polite">
+          {liveMessage}
+        </span>
         <div className="flex items-start gap-4 mb-5">
           <div
+            aria-hidden="true"
             className={cn(
               "shrink-0 w-12 h-12 rounded-xl flex items-center justify-center border",
               passed
@@ -96,31 +234,32 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">{quiz.topic}</p>
           </div>
-          <div className="text-right shrink-0">
-            <div className="font-display text-3xl text-foreground leading-none">
+          <div className="text-right shrink-0" aria-label={`Score: ${score} out of ${total}, ${Math.round((score / total) * 100)} percent`}>
+            <div className="font-display text-3xl text-foreground leading-none" aria-hidden="true">
               {score}
               <span className="text-muted-foreground text-xl">/{total}</span>
             </div>
-            <p className="text-[10px] font-display tracking-widest uppercase text-muted-foreground mt-1">
+            <p className="text-[10px] font-display tracking-widest uppercase text-muted-foreground mt-1" aria-hidden="true">
               {Math.round((score / total) * 100)}%
             </p>
           </div>
         </div>
 
-        <div className="space-y-2 mb-5">
+        <ol className="space-y-2 mb-5" aria-label="Per-question breakdown">
           {quiz.questions.map((q, i) => {
             const ans = answers[i];
             const ok = ans === q.correct;
             return (
-              <div
+              <li
                 key={i}
                 className="flex items-start gap-3 rounded-lg border border-border bg-background/40 p-3"
               >
                 {ok ? (
-                  <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
                 ) : (
-                  <XCircle className="w-4 h-4 mt-0.5 shrink-0 text-destructive" />
+                  <XCircle className="w-4 h-4 mt-0.5 shrink-0 text-destructive" aria-hidden="true" />
                 )}
+                <span className="sr-only">{ok ? "Correct." : "Incorrect."}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-foreground/90 line-clamp-2">{q.question}</p>
                   {!ok && (
@@ -130,14 +269,14 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
                   )}
                 </div>
                 {q.acs_code && (
-                  <span className="font-display text-[10px] tracking-widest text-muted-foreground shrink-0">
+                  <span className="font-display text-[10px] tracking-widest text-muted-foreground shrink-0" aria-label={`ACS code ${q.acs_code}`}>
                     {q.acs_code}
                   </span>
                 )}
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ol>
 
         <div className="flex items-center justify-between gap-2">
           <p className="text-[11px] text-muted-foreground">
@@ -146,10 +285,12 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
               : "Pass 2 of 3 to mark this topic complete. Review and try again."}
           </p>
           <button
+            ref={restartRef}
+            type="button"
             onClick={handleRestart}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-secondary/60 hover:bg-secondary text-xs font-display tracking-widest uppercase text-foreground transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-secondary/60 hover:bg-secondary text-xs font-display tracking-widest uppercase text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
             Retake Quiz
           </button>
         </div>
@@ -162,12 +303,18 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
   return (
     <div
       role="region"
-      aria-label="Knowledge check quiz"
+      aria-label={`${quiz.topic} knowledge check, question ${index + 1} of ${total}`}
+      onKeyDown={handleCardKeyDown}
       className="rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/[0.04] p-6 shadow-[0_0_40px_hsl(var(--cyan-glow)/0.08)]"
     >
+      {/* Polite live region — narrates correctness, advances, and completion. */}
+      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {liveMessage}
+      </span>
+
       {/* Header */}
       <div className="flex items-start gap-3 mb-4">
-        <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/15 border border-primary/40 flex items-center justify-center">
+        <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/15 border border-primary/40 flex items-center justify-center" aria-hidden="true">
           <ClipboardCheck className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
@@ -176,18 +323,25 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
           </p>
           <h3 className="font-display text-base text-foreground truncate">{quiz.topic}</h3>
         </div>
-        <div className="text-right shrink-0">
-          <p className="font-display text-[10px] tracking-widest uppercase text-muted-foreground">
+        <div className="text-right shrink-0" aria-label={`Question ${index + 1} of ${total}`}>
+          <p className="font-display text-[10px] tracking-widest uppercase text-muted-foreground" aria-hidden="true">
             Question
           </p>
-          <p className="font-display text-sm text-foreground">
+          <p className="font-display text-sm text-foreground" aria-hidden="true">
             {index + 1} <span className="text-muted-foreground">/ {total}</span>
           </p>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 w-full rounded-full bg-secondary/60 overflow-hidden mb-5">
+      <div
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={index + (revealed ? 1 : 0)}
+        aria-valuetext={`Question ${index + 1} of ${total}`}
+        className="h-1.5 w-full rounded-full bg-secondary/60 overflow-hidden mb-5"
+      >
         <div
           className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
           style={{ width: `${progressPct}%` }}
@@ -197,31 +351,53 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
       {/* Question */}
       <div className="mb-5">
         {current.acs_code && (
-          <p className="font-display text-[10px] tracking-widest uppercase text-muted-foreground mb-1.5">
+          <p className="font-display text-[10px] tracking-widest uppercase text-muted-foreground mb-1.5" aria-label={`ACS code ${current.acs_code}`}>
             ACS {current.acs_code}
           </p>
         )}
-        <p className="text-base text-foreground leading-relaxed">{current.question}</p>
+        <p
+          ref={questionHeadingRef}
+          id={questionId}
+          tabIndex={-1}
+          className="text-base text-foreground leading-relaxed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:rounded-md"
+        >
+          {current.question}
+        </p>
       </div>
 
-      {/* Options */}
-      <div role="radiogroup" aria-label="Answer choices" className="space-y-2 mb-5">
+      {/* Options — WAI-ARIA radiogroup with roving tabindex */}
+      <div
+        role="radiogroup"
+        aria-labelledby={questionId}
+        aria-describedby={revealed ? explanationId : undefined}
+        className="space-y-2 mb-5"
+      >
         {current.options.map((opt, i) => {
           const isSelected = selected === i;
           const isCorrect = i === current.correct;
           const showCorrect = revealed && isCorrect;
           const showWrong = revealed && isSelected && !isCorrect;
+          // Roving tabindex: only the checked (or first if none) option is in the tab order.
+          const isTabStop = selected === null ? i === 0 : isSelected;
 
           return (
             <button
               key={i}
+              ref={(el) => {
+                radioRefs.current[i] = el;
+              }}
+              type="button"
               role="radio"
               aria-checked={isSelected}
+              aria-label={`Option ${LETTERS[i]}: ${opt}${showCorrect ? ", correct answer" : showWrong ? ", incorrect" : ""}`}
+              tabIndex={revealed ? -1 : isTabStop ? 0 : -1}
               disabled={revealed}
+              aria-disabled={revealed}
               onClick={() => handleSelect(i)}
+              onKeyDown={(e) => handleRadioKeyDown(e, i)}
               className={cn(
                 "w-full text-left flex items-start gap-3 px-4 py-3 rounded-xl border transition-all",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 !revealed && "hover:border-primary/50 hover:bg-primary/5 cursor-pointer",
                 revealed && "cursor-default",
                 showCorrect &&
@@ -232,6 +408,7 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
               )}
             >
               <span
+                aria-hidden="true"
                 className={cn(
                   "shrink-0 w-8 h-8 rounded-lg border flex items-center justify-center font-display text-sm tracking-wider",
                   showCorrect && "bg-primary text-primary-foreground border-primary",
@@ -243,8 +420,8 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
                 {LETTERS[i]}
               </span>
               <span className="flex-1 text-sm text-foreground leading-relaxed pt-1.5">{opt}</span>
-              {showCorrect && <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />}
-              {showWrong && <XCircle className="w-5 h-5 text-destructive shrink-0 mt-1" />}
+              {showCorrect && <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" aria-hidden="true" />}
+              {showWrong && <XCircle className="w-5 h-5 text-destructive shrink-0 mt-1" aria-hidden="true" />}
             </button>
           );
         })}
@@ -253,6 +430,8 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
       {/* Explanation */}
       {revealed && (
         <div
+          id={explanationId}
+          role="note"
           className={cn(
             "rounded-xl border p-4 mb-5",
             selected === current.correct
@@ -261,7 +440,7 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
           )}
         >
           <div className="flex items-center gap-2 mb-1.5">
-            <Sparkles className="w-4 h-4 text-accent" />
+            <Sparkles className="w-4 h-4 text-accent" aria-hidden="true" />
             <p className="font-display text-[10px] tracking-widest uppercase text-accent">
               {selected === current.correct ? "Correct" : "Explanation"}
             </p>
@@ -272,24 +451,32 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
 
       {/* Footer / actions */}
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground" aria-label={`Score so far: ${score} of ${answers.length} answered`}>
           Score so far: <span className="text-foreground font-display">{score}/{answers.length}</span>
+          <span className="sr-only"> — Tip: use arrow keys, A–D, or 1–4 to choose; press Enter to submit.</span>
         </p>
         {!revealed ? (
           <button
+            ref={primaryActionRef}
+            type="button"
             onClick={handleSubmit}
             disabled={selected === null}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.35)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-disabled={selected === null}
+            aria-keyshortcuts="Enter"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.35)] transition-all disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Submit Answer
           </button>
         ) : (
           <button
+            ref={primaryActionRef}
+            type="button"
             onClick={handleNext}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.35)] transition-all"
+            aria-keyshortcuts="Enter"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase hover:shadow-[0_0_20px_hsl(var(--cyan-glow)/0.35)] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             {index + 1 >= total ? "See Results" : "Next Question"}
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </button>
         )}
       </div>
