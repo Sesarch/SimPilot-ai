@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { CheckCircle2, XCircle, History, ChevronDown, ChevronUp, Trophy, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, History, ChevronDown, ChevronUp, Trophy, AlertTriangle, Settings2, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuizAttempt } from "@/hooks/useTopicQuizAttempts";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuizHistoryLimit } from "@/hooks/useQuizHistoryLimit";
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 
