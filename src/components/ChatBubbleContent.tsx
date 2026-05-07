@@ -12,7 +12,8 @@ export function ChatBubbleContent({
   role: "user" | "assistant";
 }) {
   if (role === "assistant") {
-    return <ChatMessageContent content={stripReportFence(getTextContent(content))} />;
+    const text = stripGroundQuizFence(stripReportFence(getTextContent(content)));
+    return <ChatMessageContent content={text} />;
   }
 
   // User message — may contain images
