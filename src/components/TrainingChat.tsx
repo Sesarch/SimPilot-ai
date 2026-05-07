@@ -220,6 +220,15 @@ export const TrainingChat = ({
     markTopicComplete();
   }, [messages, topicId, user, markTopicComplete]);
 
+  // Per-topic quiz attempt history (Ground One-on-One only)
+  const [historyRefresh, setHistoryRefresh] = useState(0);
+  const { attempts: quizAttempts, loading: attemptsLoading } = useTopicQuizHistory(
+    mode === "ground_school" ? topicId : undefined,
+    user?.id,
+    historyRefresh,
+  );
+  const saveQuizAttempt = useSaveQuizAttempt();
+
   // Stress-Mode timer: starts when assistant finishes, resets on user send, fires TIMEOUT on expiry
   const timerActive = mode === "oral_exam" && stressMode && started && !report;
   const lastAssistantTickRef = useRef(0);
