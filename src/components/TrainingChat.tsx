@@ -381,6 +381,21 @@ export const TrainingChat = ({
           />
         )}
 
+        {latestQuiz && mode === "ground_school" && (
+          <div className="my-2">
+            <GroundQuizCard
+              key={`${topicId ?? "quiz"}-${messages.length}`}
+              quiz={latestQuiz}
+              onComplete={({ passed, score, total }) => {
+                if (passed) {
+                  markTopicComplete();
+                  setCelebration({ score, total });
+                }
+              }}
+            />
+          </div>
+        )}
+
         {isLoading && messages[messages.length - 1]?.role === "user" && (
           <div className="flex justify-start">
             <div className="bg-secondary border border-border rounded-xl px-4 py-3">
