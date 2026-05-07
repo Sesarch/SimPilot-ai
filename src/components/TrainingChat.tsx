@@ -477,6 +477,7 @@ export const TrainingChat = ({
               send("Give me another knowledge check quiz on this topic.");
             }}
           />
+          <AttemptCompare attempts={quizAttempts} />
           <QuizHistoryPanel attempts={quizAttempts} loading={attemptsLoading} />
         </section>
       )}
