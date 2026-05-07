@@ -16,6 +16,8 @@ import ExamPassCelebration from "@/components/ExamPassCelebration";
 import CheckrideReadinessReport from "@/components/CheckrideReadinessReport";
 import { extractCheckrideReport, type CheckrideReport } from "@/lib/checkrideReport";
 import SafetyAlertBanner from "@/components/SafetyAlertBanner";
+import GroundQuizCard from "@/components/GroundQuizCard";
+import { extractGroundQuiz, type GroundQuiz } from "@/lib/groundQuiz";
 
 interface TrainingChatProps {
   mode: ChatMode;
@@ -172,15 +174,23 @@ export const TrainingChat = ({
     prevLoadingRef.current = isLoading;
   }, [isLoading, messages, saveMessage, parseAndSaveScore, voiceActive, voice]);
 
-  // Mark ground school topic complete ONLY when the assistant emits a passing
-  // end-of-lesson quiz result (TOPIC_QUIZ_RESULT: PASS). Simply chatting with a
-  // topic must NOT mark it done — the student has to take and pass the quiz.
-  useEffect(() => {
+  // Extract a structured ground-quiz from the most recent assistant message (if present).
+  const latestQuiz: GroundQuiz | null = (() => {
+    if (mode !== "ground_school") return null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role !== "assistant") continue;
+      const q = extractGroundQuiz(getTextContent(m.content));
+      if (q) return q;
+    }
+    return null;
+  })();
+
+  // Mark ground school topic complete when the in-UI quiz is passed (≥ 2/3).
+  // Falls back to the legacy text-marker (TOPIC_QUIZ_RESULT: PASS) so older
+  // assistant turns that still emit prose quizzes continue to credit the topic.
+  const markTopicComplete = useCallback(() => {
     if (!topicId || !user || topicMarkedRef.current) return;
-    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-    if (!lastAssistant) return;
-    const text = getTextContent(lastAssistant.content);
-    if (!/TOPIC_QUIZ_RESULT\s*:\s*PASS\b/i.test(text)) return;
     topicMarkedRef.current = true;
     supabase
       .from("topic_progress")
@@ -192,12 +202,21 @@ export const TrainingChat = ({
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "user_id,topic_id" }
+        { onConflict: "user_id,topic_id" },
       )
       .then(({ error }) => {
         if (error) console.error("Failed to mark topic complete:", error);
       });
-  }, [messages, topicId, user]);
+  }, [topicId, user]);
+
+  useEffect(() => {
+    if (!topicId || !user || topicMarkedRef.current) return;
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    if (!lastAssistant) return;
+    const text = getTextContent(lastAssistant.content);
+    if (!/TOPIC_QUIZ_RESULT\s*:\s*PASS\b/i.test(text)) return;
+    markTopicComplete();
+  }, [messages, topicId, user, markTopicComplete]);
 
   // Stress-Mode timer: starts when assistant finishes, resets on user send, fires TIMEOUT on expiry
   const timerActive = mode === "oral_exam" && stressMode && started && !report;
@@ -360,6 +379,21 @@ export const TrainingChat = ({
             onClose={() => setReport(null)}
             onRetry={handleReset}
           />
+        )}
+
+        {latestQuiz && mode === "ground_school" && (
+          <div className="my-2">
+            <GroundQuizCard
+              key={`${topicId ?? "quiz"}-${messages.length}`}
+              quiz={latestQuiz}
+              onComplete={({ passed, score, total }) => {
+                if (passed) {
+                  markTopicComplete();
+                  setCelebration({ score, total });
+                }
+              }}
+            />
+          </div>
         )}
 
         {isLoading && messages[messages.length - 1]?.role === "user" && (
