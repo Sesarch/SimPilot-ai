@@ -27,6 +27,9 @@ interface QuizHistoryPanelProps {
 
 export function QuizHistoryPanel({ attempts, loading }: QuizHistoryPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(attempts[0]?.id ?? null);
+  const [showSettings, setShowSettings] = useState(false);
+  const { user } = useAuth();
+  const { limit, save, saving, MIN_LIMIT, MAX_LIMIT } = useQuizHistoryLimit(user?.id);
 
   if (loading) {
     return (
