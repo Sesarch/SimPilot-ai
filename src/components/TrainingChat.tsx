@@ -382,8 +382,10 @@ export const TrainingChat = ({
         )}
 
         {isLoading && messages[messages.length - 1]?.role === "user" && (
-          <div className="flex justify-start hidden">
-            <div />
+          <div className="flex justify-start">
+            <div className="bg-secondary border border-border rounded-xl px-4 py-3">
+              <Loader2 className="w-4 h-4 text-primary animate-spin" />
+            </div>
           </div>
         )}
 
