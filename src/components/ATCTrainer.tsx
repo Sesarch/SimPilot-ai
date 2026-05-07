@@ -531,6 +531,7 @@ const ATCTrainer = () => {
   const liveFreqEnabled = siteSettings.atc_live_frequency_enabled;
   const guidedScenariosEnabled = siteSettings.atc_guided_scenarios_enabled;
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
+  const atc = useATC();
   const [messages, setMessages] = useState<ATCMessage[]>([]);
   const [interim, setInterim] = useState("");
   const [pttActive, setPttActive] = useState(false);
