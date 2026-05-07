@@ -34,8 +34,7 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
   const [answers, setAnswers] = useState<number[]>([]);
   const [completed, setCompleted] = useState(false);
   const [liveMessage, setLiveMessage] = useState("");
-
-  const baseId = useId();
+  const [activeCitation, setActiveCitation] = useState<{ citation: ParsedCitation; context: string } | null>(null);
   const questionId = `${baseId}-question`;
   const explanationId = `${baseId}-explanation`;
   const radioRefs = useRef<(HTMLButtonElement | null)[]>([]);
