@@ -550,6 +550,13 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
           </button>
         )}
       </div>
+
+      <CitationModal
+        citation={activeCitation?.citation ?? null}
+        open={!!activeCitation}
+        onOpenChange={(o) => !o && setActiveCitation(null)}
+        context={activeCitation?.context}
+      />
     </div>
   );
 }
