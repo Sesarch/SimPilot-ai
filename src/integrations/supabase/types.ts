@@ -1285,6 +1285,45 @@ export type Database = {
         }
         Relationships: []
       }
+      topic_quiz_attempts: {
+        Row: {
+          certificate_level: string | null
+          created_at: string
+          id: string
+          passed: boolean
+          questions: Json
+          score: number
+          session_id: string | null
+          topic_id: string
+          total: number
+          user_id: string
+        }
+        Insert: {
+          certificate_level?: string | null
+          created_at?: string
+          id?: string
+          passed: boolean
+          questions?: Json
+          score: number
+          session_id?: string | null
+          topic_id: string
+          total: number
+          user_id: string
+        }
+        Update: {
+          certificate_level?: string | null
+          created_at?: string
+          id?: string
+          passed?: boolean
+          questions?: Json
+          score?: number
+          session_id?: string | null
+          topic_id?: string
+          total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           earned_at: string
