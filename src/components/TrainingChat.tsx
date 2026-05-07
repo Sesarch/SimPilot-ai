@@ -19,6 +19,7 @@ import SafetyAlertBanner from "@/components/SafetyAlertBanner";
 import GroundQuizCard from "@/components/GroundQuizCard";
 import { extractGroundQuiz, type GroundQuiz } from "@/lib/groundQuiz";
 import QuizHistoryPanel from "@/components/QuizHistoryPanel";
+import NextBestAction from "@/components/NextBestAction";
 import { useTopicQuizHistory, useSaveQuizAttempt } from "@/hooks/useTopicQuizAttempts";
 
 interface TrainingChatProps {
