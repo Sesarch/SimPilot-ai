@@ -425,17 +425,40 @@ export const TrainingChat = ({
               Pass ≥ 2/3 to mark topic complete
             </span>
           </div>
-          <div className="p-4 pt-2 max-h-[70vh] overflow-y-auto">
+          <div className="p-4 pt-2 max-h-[70vh] overflow-y-auto space-y-4">
             <GroundQuizCard
               key={`${topicId ?? "quiz"}-${messages.length}`}
               quiz={latestQuiz}
-              onComplete={({ passed, score, total }) => {
+              onComplete={async ({ passed, score, total, answers }) => {
                 if (passed) {
                   markTopicComplete();
                   setCelebration({ score, total });
                 }
+                if (user && topicId) {
+                  const ok = await saveQuizAttempt({
+                    userId: user.id,
+                    topicId,
+                    certificateLevel: certificateOverride ?? null,
+                    score,
+                    total,
+                    passed,
+                    sessionId: sessionId.current ?? null,
+                    questions: latestQuiz.questions.map((q, i) => ({
+                      question: q.question,
+                      options: q.options,
+                      correct: q.correct,
+                      user_answer: answers[i] ?? -1,
+                      acs_code: q.acs_code,
+                      explanation: q.explanation,
+                    })),
+                  });
+                  if (ok) setHistoryRefresh((n) => n + 1);
+                }
               }}
             />
+            {mode === "ground_school" && topicId && (
+              <QuizHistoryPanel attempts={quizAttempts} loading={attemptsLoading} />
+            )}
           </div>
         </section>
       )}
