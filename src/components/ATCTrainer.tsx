@@ -33,6 +33,15 @@ import { detectAtisIntent, toAtisPhonetic } from "@/lib/atisIntent";
 import { detectCallsignIntent } from "@/lib/callsignIntent";
 import { generateATCTranscriptPDF } from "@/lib/atcTranscriptReport";
 import { useATC } from "@/hooks/useATC";
+import { LiveAtisSeekBar } from "@/components/atc/LiveAtisSeekBar";
+import { HotkeyCapture, HotkeyPTT } from "@/components/atc/HotkeyControls";
+import { VUMeter } from "@/components/atc/VUMeter";
+import { PTTRing } from "@/components/atc/PTTRing";
+import { G3000ComRadio } from "@/components/atc/G3000ComRadio";
+import { RadioFX, getRecognizer } from "@/lib/atcRadioFX";
+import { FAA_PROMPT as FAA_PROMPT_EXTERNAL, LIVE_FREQ_PROMPT } from "@/lib/atcPrompts";
+
+export const FAA_PROMPT = FAA_PROMPT_EXTERNAL;
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
