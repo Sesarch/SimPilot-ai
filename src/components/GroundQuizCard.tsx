@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import type { GroundQuiz } from "@/lib/groundQuiz";
 import { cn } from "@/lib/utils";
-import { citationFullName, citationIcon, parseExplanation } from "@/lib/citations";
+import { citationFullName, citationIcon, parseExplanation, type ParsedCitation } from "@/lib/citations";
+import { CitationModal } from "@/components/CitationModal";
 
 interface GroundQuizCardProps {
   quiz: GroundQuiz;
