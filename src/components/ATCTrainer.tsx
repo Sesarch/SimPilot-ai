@@ -1360,6 +1360,7 @@ const ATCTrainer = () => {
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
     setMessages([]);
+    initialContactFreqsRef.current.clear();
     setError(null);
     setPhraseologyScore(null);
     setPendingDraft("");
@@ -1400,6 +1401,7 @@ const ATCTrainer = () => {
     setLiveAirport(airport);
     setSelectedScenario("live");
     setMessages([]);
+    initialContactFreqsRef.current.clear();
     setError(null);
     setPhraseologyScore(null);
     setPendingDraft("");
