@@ -1604,6 +1604,43 @@ const ATCTrainer = () => {
       }
     }
 
+    // ---- Deterministic validation gate (FAA "No-No" filter) -----------------
+    // Runs BEFORE the LLM. If callsign/ATIS/readback/wrong-facility rule
+    // fails, we hard-code the controller's response so the model can never
+    // be lenient. The on-air audio still goes through TTS for realism.
+    {
+      const freqMHz = parseFloat(activeFreq);
+      const lookup = liveAirport ? lookupFacility(liveAirport.icao, freqMHz) : null;
+      const facility = lookup?.facility ?? null;
+      const freqKey = liveAirport ? `${liveAirport.icao}:${freqMHz.toFixed(3)}` : `scn:${selectedScenario}`;
+      const isInitialContactOnFreq = !initialContactFreqsRef.current.has(freqKey);
+      const priorNonSystemTurn = [...messages].reverse().find((m) => m.role !== "system");
+      const lastInstruction = priorNonSystemTurn?.role === "atc" ? priorNonSystemTurn.content : null;
+      const currentAtisLetter =
+        currentAtis && liveAirport && currentAtis.icao === liveAirport.icao ? currentAtis.info : null;
+      const failure = atc.validate({
+        text: trimmed,
+        callsign: "N123AB",
+        facility,
+        isInitialContactOnFreq,
+        currentAtisLetter,
+        lastControllerInstruction: lastInstruction,
+        priorWasAtc: priorNonSystemTurn?.role === "atc",
+      });
+      if (failure) {
+        const userMsgF: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
+        const atcMsgF: ATCMessage = {
+          id: crypto.randomUUID(),
+          role: "atc",
+          content: `${failure.cannedReply}\n[FEEDBACK] ${failure.feedback}`,
+        };
+        setMessages((prev) => [...prev, userMsgF, atcMsgF]);
+        void speakATC(failure.cannedReply);
+        return;
+      }
+      initialContactFreqsRef.current.add(freqKey);
+    }
+
     const userMsg: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
     const updated = [...messages, userMsg];
     setMessages(updated);
