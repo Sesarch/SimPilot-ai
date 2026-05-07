@@ -32,6 +32,7 @@ import { formatAtisForSpeech } from "@/lib/atisSpeech";
 import { detectAtisIntent, toAtisPhonetic } from "@/lib/atisIntent";
 import { detectCallsignIntent } from "@/lib/callsignIntent";
 import { generateATCTranscriptPDF } from "@/lib/atcTranscriptReport";
+import { useATC } from "@/hooks/useATC";
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FrequencyEntry } from "@/components/atc/FrequencyEntry";
@@ -530,6 +531,7 @@ const ATCTrainer = () => {
   const liveFreqEnabled = siteSettings.atc_live_frequency_enabled;
   const guidedScenariosEnabled = siteSettings.atc_guided_scenarios_enabled;
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
+  const atc = useATC();
   const [messages, setMessages] = useState<ATCMessage[]>([]);
   const [interim, setInterim] = useState("");
   const [pttActive, setPttActive] = useState(false);
@@ -553,6 +555,9 @@ const ATCTrainer = () => {
    *  emits a [STATE ...] marker. Used to inject continuity into every
    *  subsequent system prompt so e.g. Tower knows you already taxied. */
   const [flightState, setFlightState] = useState<FlightState>({});
+  /** Per-frequency initial-contact tracker — drives the deterministic ATIS
+   *  validator (only enforce on the pilot's first call after tuning). */
+  const initialContactFreqsRef = useRef<Set<string>>(new Set());
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
@@ -1355,6 +1360,7 @@ const ATCTrainer = () => {
   const startScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
     setMessages([]);
+    initialContactFreqsRef.current.clear();
     setError(null);
     setPhraseologyScore(null);
     setPendingDraft("");
@@ -1395,6 +1401,7 @@ const ATCTrainer = () => {
     setLiveAirport(airport);
     setSelectedScenario("live");
     setMessages([]);
+    initialContactFreqsRef.current.clear();
     setError(null);
     setPhraseologyScore(null);
     setPendingDraft("");
@@ -1510,12 +1517,15 @@ const ATCTrainer = () => {
   const speakATC = async (text: string) => {
     // Strip the [FEEDBACK] coaching line, any [CORRECTION ...] marker, and
     // any [STATE ...] tag so none are read aloud — they're UI-only.
-    const spoken = text
+    const cleaned = text
       .split(/\n?\[FEEDBACK\]/i)[0]
       .replace(/\[CORRECTION[^\]]*\]/gi, "")
       .replace(/\[STATE[^\]]*\]/gi, "")
       .trim();
-    if (!spoken) return;
+    if (!cleaned) return;
+    // Phonetic expansion — letters → NATO words, digits individual ("niner"),
+    // runways/freqs/tail numbers spoken correctly. UI text is unaffected.
+    const spoken = atc.speechFor(cleaned);
 
     try {
       setSpeaking(true);
@@ -1594,6 +1604,43 @@ const ATCTrainer = () => {
         ]);
         return;
       }
+    }
+
+    // ---- Deterministic validation gate (FAA "No-No" filter) -----------------
+    // Runs BEFORE the LLM. If callsign/ATIS/readback/wrong-facility rule
+    // fails, we hard-code the controller's response so the model can never
+    // be lenient. The on-air audio still goes through TTS for realism.
+    {
+      const freqMHz = parseFloat(activeFreq);
+      const lookup = liveAirport ? lookupFacility(liveAirport.icao, freqMHz) : null;
+      const facility = lookup?.facility ?? null;
+      const freqKey = liveAirport ? `${liveAirport.icao}:${freqMHz.toFixed(3)}` : `scn:${selectedScenario}`;
+      const isInitialContactOnFreq = !initialContactFreqsRef.current.has(freqKey);
+      const priorNonSystemTurn = [...messages].reverse().find((m) => m.role !== "system");
+      const lastInstruction = priorNonSystemTurn?.role === "atc" ? priorNonSystemTurn.content : null;
+      const currentAtisLetter =
+        currentAtis && liveAirport && currentAtis.icao === liveAirport.icao ? currentAtis.info : null;
+      const failure = atc.validate({
+        text: trimmed,
+        callsign: "N123AB",
+        facility,
+        isInitialContactOnFreq,
+        currentAtisLetter,
+        lastControllerInstruction: lastInstruction,
+        priorWasAtc: priorNonSystemTurn?.role === "atc",
+      });
+      if (failure) {
+        const userMsgF: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
+        const atcMsgF: ATCMessage = {
+          id: crypto.randomUUID(),
+          role: "atc",
+          content: `${failure.cannedReply}\n[FEEDBACK] ${failure.feedback}`,
+        };
+        setMessages((prev) => [...prev, userMsgF, atcMsgF]);
+        void speakATC(failure.cannedReply);
+        return;
+      }
+      initialContactFreqsRef.current.add(freqKey);
     }
 
     const userMsg: ATCMessage = { id: crypto.randomUUID(), role: "pilot", content: trimmed };
