@@ -18,6 +18,8 @@ import { extractCheckrideReport, type CheckrideReport } from "@/lib/checkrideRep
 import SafetyAlertBanner from "@/components/SafetyAlertBanner";
 import GroundQuizCard from "@/components/GroundQuizCard";
 import { extractGroundQuiz, type GroundQuiz } from "@/lib/groundQuiz";
+import QuizHistoryPanel from "@/components/QuizHistoryPanel";
+import { useTopicQuizHistory, useSaveQuizAttempt } from "@/hooks/useTopicQuizAttempts";
 
 interface TrainingChatProps {
   mode: ChatMode;
@@ -218,6 +220,15 @@ export const TrainingChat = ({
     markTopicComplete();
   }, [messages, topicId, user, markTopicComplete]);
 
+  // Per-topic quiz attempt history (Ground One-on-One only)
+  const [historyRefresh, setHistoryRefresh] = useState(0);
+  const { attempts: quizAttempts, loading: attemptsLoading } = useTopicQuizHistory(
+    mode === "ground_school" ? topicId : undefined,
+    user?.id,
+    historyRefresh,
+  );
+  const saveQuizAttempt = useSaveQuizAttempt();
+
   // Stress-Mode timer: starts when assistant finishes, resets on user send, fires TIMEOUT on expiry
   const timerActive = mode === "oral_exam" && stressMode && started && !report;
   const lastAssistantTickRef = useRef(0);
@@ -414,18 +425,51 @@ export const TrainingChat = ({
               Pass ≥ 2/3 to mark topic complete
             </span>
           </div>
-          <div className="p-4 pt-2 max-h-[70vh] overflow-y-auto">
+          <div className="p-4 pt-2 max-h-[70vh] overflow-y-auto space-y-4">
             <GroundQuizCard
               key={`${topicId ?? "quiz"}-${messages.length}`}
               quiz={latestQuiz}
-              onComplete={({ passed, score, total }) => {
+              onComplete={async ({ passed, score, total, answers }) => {
                 if (passed) {
                   markTopicComplete();
                   setCelebration({ score, total });
                 }
+                if (user && topicId) {
+                  const ok = await saveQuizAttempt({
+                    userId: user.id,
+                    topicId,
+                    certificateLevel: certificateOverride ?? null,
+                    score,
+                    total,
+                    passed,
+                    sessionId: sessionId.current ?? null,
+                    questions: latestQuiz.questions.map((q, i) => ({
+                      question: q.question,
+                      options: q.options,
+                      correct: q.correct,
+                      user_answer: answers[i] ?? -1,
+                      acs_code: q.acs_code,
+                      explanation: q.explanation,
+                    })),
+                  });
+                  if (ok) setHistoryRefresh((n) => n + 1);
+                }
               }}
             />
+            {mode === "ground_school" && topicId && (
+              <QuizHistoryPanel attempts={quizAttempts} loading={attemptsLoading} />
+            )}
           </div>
+        </section>
+      )}
+
+      {/* History panel — also visible before/between quiz attempts on a ground-school topic */}
+      {mode === "ground_school" && topicId && !latestQuiz && quizAttempts.length > 0 && (
+        <section
+          aria-label="Past quiz attempts for this topic"
+          className="shrink-0 border-t border-border px-4 py-3 max-h-[40vh] overflow-y-auto"
+        >
+          <QuizHistoryPanel attempts={quizAttempts} loading={attemptsLoading} />
         </section>
       )}
 
