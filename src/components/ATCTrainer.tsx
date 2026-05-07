@@ -1515,12 +1515,15 @@ const ATCTrainer = () => {
   const speakATC = async (text: string) => {
     // Strip the [FEEDBACK] coaching line, any [CORRECTION ...] marker, and
     // any [STATE ...] tag so none are read aloud — they're UI-only.
-    const spoken = text
+    const cleaned = text
       .split(/\n?\[FEEDBACK\]/i)[0]
       .replace(/\[CORRECTION[^\]]*\]/gi, "")
       .replace(/\[STATE[^\]]*\]/gi, "")
       .trim();
-    if (!spoken) return;
+    if (!cleaned) return;
+    // Phonetic expansion — letters → NATO words, digits individual ("niner"),
+    // runways/freqs/tail numbers spoken correctly. UI text is unaffected.
+    const spoken = atc.speechFor(cleaned);
 
     try {
       setSpeaking(true);
