@@ -553,6 +553,9 @@ const ATCTrainer = () => {
    *  emits a [STATE ...] marker. Used to inject continuity into every
    *  subsequent system prompt so e.g. Tower knows you already taxied. */
   const [flightState, setFlightState] = useState<FlightState>({});
+  /** Per-frequency initial-contact tracker — drives the deterministic ATIS
+   *  validator (only enforce on the pilot's first call after tuning). */
+  const initialContactFreqsRef = useRef<Set<string>>(new Set());
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
