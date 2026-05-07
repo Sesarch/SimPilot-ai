@@ -468,8 +468,14 @@ export const TrainingChat = ({
       {mode === "ground_school" && topicId && !latestQuiz && quizAttempts.length > 0 && (
         <section
           aria-label="Past quiz attempts for this topic"
-          className="shrink-0 border-t border-border px-4 py-3 max-h-[40vh] overflow-y-auto"
+          className="shrink-0 border-t border-border px-4 py-3 max-h-[40vh] overflow-y-auto space-y-3"
         >
+          <NextBestAction
+            attempts={quizAttempts}
+            onRetry={() => {
+              send("Give me another knowledge check quiz on this topic.");
+            }}
+          />
           <QuizHistoryPanel attempts={quizAttempts} loading={attemptsLoading} />
         </section>
       )}
