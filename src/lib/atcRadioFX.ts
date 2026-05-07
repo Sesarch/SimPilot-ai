@@ -127,7 +127,7 @@ export class RadioFX {
 /** Lazily build a Web Speech Recognition instance, or return null when
  *  unsupported (Safari iOS without permissions, etc.). Caller controls
  *  start/stop and result handling. */
-export function getRecognizer(): unknown {
+export function getRecognizer(): any {
   const w = window as unknown as { SpeechRecognition?: new () => unknown; webkitSpeechRecognition?: new () => unknown };
   const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
   if (!SR) return null;
