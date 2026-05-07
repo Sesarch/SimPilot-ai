@@ -922,6 +922,7 @@ export type Database = {
           id: string
           license_level: string | null
           profile_public: boolean
+          quiz_history_limit: number
           rating_focus: string | null
           region: string | null
           school_seat_code_id: string | null
@@ -946,6 +947,7 @@ export type Database = {
           id?: string
           license_level?: string | null
           profile_public?: boolean
+          quiz_history_limit?: number
           rating_focus?: string | null
           region?: string | null
           school_seat_code_id?: string | null
@@ -970,6 +972,7 @@ export type Database = {
           id?: string
           license_level?: string | null
           profile_public?: boolean
+          quiz_history_limit?: number
           rating_focus?: string | null
           region?: string | null
           school_seat_code_id?: string | null
@@ -1287,6 +1290,7 @@ export type Database = {
       }
       topic_quiz_attempts: {
         Row: {
+          archived_at: string | null
           certificate_level: string | null
           created_at: string
           id: string
@@ -1299,6 +1303,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           certificate_level?: string | null
           created_at?: string
           id?: string
@@ -1311,6 +1316,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           certificate_level?: string | null
           created_at?: string
           id?: string

@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { CheckCircle2, XCircle, History, ChevronDown, ChevronUp, Trophy, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, History, ChevronDown, ChevronUp, Trophy, AlertTriangle, Settings2, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuizAttempt } from "@/hooks/useTopicQuizAttempts";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuizHistoryLimit } from "@/hooks/useQuizHistoryLimit";
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 
@@ -25,6 +27,9 @@ interface QuizHistoryPanelProps {
 
 export function QuizHistoryPanel({ attempts, loading }: QuizHistoryPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(attempts[0]?.id ?? null);
+  const [showSettings, setShowSettings] = useState(false);
+  const { user } = useAuth();
+  const { limit, save, saving, MIN_LIMIT, MAX_LIMIT } = useQuizHistoryLimit(user?.id);
 
   if (loading) {
     return (
@@ -58,10 +63,53 @@ export function QuizHistoryPanel({ attempts, loading }: QuizHistoryPanelProps) {
             Attempt History
           </p>
         </div>
-        <p className="font-display text-[10px] tracking-widest uppercase text-muted-foreground">
-          {attempts.length} {attempts.length === 1 ? "attempt" : "attempts"} · {passedCount} passed
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="font-display text-[10px] tracking-widest uppercase text-muted-foreground">
+            {attempts.length} {attempts.length === 1 ? "attempt" : "attempts"} · {passedCount} passed
+          </p>
+          {user && (
+            <button
+              type="button"
+              onClick={() => setShowSettings((v) => !v)}
+              aria-expanded={showSettings}
+              aria-label="History settings"
+              className="inline-flex items-center justify-center w-6 h-6 rounded-md border border-border bg-background/40 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            >
+              <Settings2 className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </header>
+
+      {showSettings && user && (
+        <div className="px-5 py-3 border-b border-border bg-background/30 space-y-2">
+          <div className="flex items-center gap-2">
+            <Archive className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+            <p className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+              Auto-archive older attempts
+            </p>
+          </div>
+          <label className="flex items-center gap-3 text-xs text-foreground/85">
+            <span className="shrink-0">Keep last</span>
+            <input
+              type="range"
+              min={MIN_LIMIT}
+              max={MAX_LIMIT}
+              step={1}
+              value={limit}
+              disabled={saving}
+              onChange={(e) => save(Number(e.target.value))}
+              className="flex-1 accent-primary"
+              aria-label="Number of attempts to keep visible"
+            />
+            <span className="font-display text-sm text-primary tabular-nums w-8 text-right">{limit}</span>
+            <span className="shrink-0 text-muted-foreground">attempts</span>
+          </label>
+          <p className="text-[11px] text-muted-foreground">
+            Older attempts are archived (not deleted) the next time you finish a quiz on this topic.
+          </p>
+        </div>
+      )}
 
       {/* Last attempt highlight */}
       <div className="px-5 py-4 border-b border-border">

@@ -38,8 +38,9 @@ export function useTopicQuizHistory(topicId: string | undefined, userId: string 
       .select("id, topic_id, certificate_level, score, total, passed, questions, created_at")
       .eq("user_id", userId)
       .eq("topic_id", topicId)
+      .is("archived_at", null)
       .order("created_at", { ascending: false })
-      .limit(10)
+      .limit(50)
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error) {
