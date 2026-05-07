@@ -489,21 +489,25 @@ export function GroundQuizCard({ quiz, onComplete, onRetry }: GroundQuizCardProp
                       const Icon = citationIcon(c.kind);
                       return (
                         <li key={`${c.kind}-${c.label}-${i}`}>
-                          <span
-                            title={citationFullName(c.kind)}
-                            aria-label={`${citationFullName(c.kind)}: ${c.label}`}
+                          <button
+                            type="button"
+                            onClick={() => setActiveCitation({ citation: c, context: prose })}
+                            title={`Open ${citationFullName(c.kind)} details`}
+                            aria-label={`Open details for ${citationFullName(c.kind)}: ${c.label}`}
                             className={cn(
-                              "inline-flex items-stretch rounded-md border overflow-hidden font-mono text-[11px] leading-none",
+                              "group inline-flex items-stretch rounded-md border overflow-hidden font-mono text-[11px] leading-none transition-all",
                               "border-primary/40 bg-background/70 text-foreground",
                               "shadow-[0_0_10px_hsl(var(--cyan-glow)/0.08)]",
+                              "hover:border-primary hover:shadow-[0_0_16px_hsl(var(--cyan-glow)/0.25)] cursor-pointer",
+                              "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                             )}
                           >
-                            <span className="flex items-center gap-1 px-1.5 py-1 bg-primary/15 text-primary border-r border-primary/30">
+                            <span className="flex items-center gap-1 px-1.5 py-1 bg-primary/15 text-primary border-r border-primary/30 group-hover:bg-primary/25 transition-colors">
                               <Icon className="w-3 h-3" aria-hidden="true" />
                               <span className="font-display tracking-widest text-[9px] uppercase">{c.kind}</span>
                             </span>
-                            <span className="px-2 py-1 font-medium">{c.label.replace(/^(?:14\s*CFR|FAR|AIM|PHAK|AFH|IFH|AC|ACS|POH)\s*/i, "")}</span>
-                          </span>
+                            <span className="px-2 py-1 font-medium group-hover:text-primary transition-colors">{c.label.replace(/^(?:14\s*CFR|FAR|AIM|PHAK|AFH|IFH|AC|ACS|POH)\s*/i, "")}</span>
+                          </button>
                         </li>
                       );
                     })}
