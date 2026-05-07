@@ -20,6 +20,7 @@ import GroundQuizCard from "@/components/GroundQuizCard";
 import { extractGroundQuiz, type GroundQuiz } from "@/lib/groundQuiz";
 import QuizHistoryPanel from "@/components/QuizHistoryPanel";
 import NextBestAction from "@/components/NextBestAction";
+import AttemptCompare from "@/components/AttemptCompare";
 import { useTopicQuizHistory, useSaveQuizAttempt } from "@/hooks/useTopicQuizAttempts";
 
 interface TrainingChatProps {
@@ -476,6 +477,7 @@ export const TrainingChat = ({
               send("Give me another knowledge check quiz on this topic.");
             }}
           />
+          <AttemptCompare attempts={quizAttempts} />
           <QuizHistoryPanel attempts={quizAttempts} loading={attemptsLoading} />
         </section>
       )}
