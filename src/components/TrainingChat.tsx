@@ -463,6 +463,16 @@ export const TrainingChat = ({
         </section>
       )}
 
+      {/* History panel — also visible before/between quiz attempts on a ground-school topic */}
+      {mode === "ground_school" && topicId && !latestQuiz && quizAttempts.length > 0 && (
+        <section
+          aria-label="Past quiz attempts for this topic"
+          className="shrink-0 border-t border-border px-4 py-3 max-h-[40vh] overflow-y-auto"
+        >
+          <QuizHistoryPanel attempts={quizAttempts} loading={attemptsLoading} />
+        </section>
+      )}
+
       {/* Pending image preview */}
       {pendingImage && (
         <div className="px-4 py-2 border-t border-border bg-secondary/30">
