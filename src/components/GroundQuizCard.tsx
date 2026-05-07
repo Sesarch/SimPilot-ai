@@ -8,9 +8,11 @@ import {
   ChevronRight,
   Trophy,
   AlertTriangle,
+  BookMarked,
 } from "lucide-react";
 import type { GroundQuiz } from "@/lib/groundQuiz";
 import { cn } from "@/lib/utils";
+import { citationFullName, citationIcon, parseExplanation } from "@/lib/citations";
 
 interface GroundQuizCardProps {
   quiz: GroundQuiz;
