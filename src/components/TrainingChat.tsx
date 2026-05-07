@@ -16,6 +16,8 @@ import ExamPassCelebration from "@/components/ExamPassCelebration";
 import CheckrideReadinessReport from "@/components/CheckrideReadinessReport";
 import { extractCheckrideReport, type CheckrideReport } from "@/lib/checkrideReport";
 import SafetyAlertBanner from "@/components/SafetyAlertBanner";
+import GroundQuizCard from "@/components/GroundQuizCard";
+import { extractGroundQuiz, type GroundQuiz } from "@/lib/groundQuiz";
 
 interface TrainingChatProps {
   mode: ChatMode;
