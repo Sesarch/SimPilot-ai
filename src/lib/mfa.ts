@@ -15,31 +15,45 @@ async function call<T = any>(action: string, payload: Record<string, unknown> = 
     body: { action, ...payload },
   });
   if (error) {
-    // supabase.functions.invoke throws a FunctionsHttpError on non-2xx and only
-    // surfaces a generic "Edge Function returned a non-2xx status code" message.
-    // Parse the response body so the real error code (e.g. "incorrect_code",
-    // "no_active_code", "rate_limited") reaches the caller.
-    try {
-      const ctx = (error as any)?.context;
-      if (ctx && typeof ctx.json === "function") {
-        const body = await ctx.json();
-        if (body?.error) throw new Error(String(body.error));
-      } else if (ctx && typeof ctx.text === "function") {
-        const txt = await ctx.text();
-        try {
-          const parsed = JSON.parse(txt);
-          if (parsed?.error) throw new Error(String(parsed.error));
-        } catch {
-          if (txt) throw new Error(txt);
-        }
-      }
-    } catch (parsed) {
-      if (parsed instanceof Error) throw parsed;
-    }
-    throw error;
+    const message = await getFunctionErrorMessage(error);
+    throw new Error(message);
   }
   if ((data as any)?.error) throw new Error((data as any).error);
   return data as T;
+}
+
+async function getFunctionErrorMessage(error: unknown): Promise<string> {
+  const fallback = (error as any)?.message ?? "Verification request failed";
+  const ctx = (error as any)?.context;
+
+  if (!ctx) return fallback;
+
+  try {
+    const response = typeof ctx.clone === "function" ? ctx.clone() : ctx;
+    if (typeof response.text === "function") {
+      const text = await response.text();
+      if (!text) return fallback;
+      try {
+        const body = JSON.parse(text);
+        return String(body?.error ?? body?.message ?? body?.code ?? text);
+      } catch {
+        return text;
+      }
+    }
+  } catch {
+    // Fall through to json() below for runtimes that expose only a parsed reader.
+  }
+
+  try {
+    if (typeof ctx.json === "function") {
+      const body = await ctx.json();
+      return String(body?.error ?? body?.message ?? body?.code ?? fallback);
+    }
+  } catch {
+    return fallback;
+  }
+
+  return fallback;
 }
 
 export const mfaApi = {

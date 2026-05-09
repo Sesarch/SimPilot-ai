@@ -10,7 +10,7 @@ import { Shield, Mail, Smartphone, KeyRound } from "lucide-react";
 type Mode = "totp" | "email" | "recovery";
 
 const MfaChallengePage = () => {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, session, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo =
@@ -28,6 +28,8 @@ const MfaChallengePage = () => {
   const [busy, setBusy] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const sentOnce = useRef(false);
+  const emailPurpose = enrollEmail ? "enroll" : "login";
+  const sendLockKey = `mfa-email-sent:${session?.access_token?.slice(-12) ?? user?.id ?? "pending"}:${emailPurpose}`;
 
   useEffect(() => {
     if (authLoading) return;
@@ -64,16 +66,21 @@ const MfaChallengePage = () => {
   }, [user, authLoading, navigate, redirectTo]);
 
   const sendEmail = async () => {
-    if (sentOnce.current) return;
+    if (sentOnce.current || sessionStorage.getItem(sendLockKey)) {
+      setEmailSent(true);
+      return;
+    }
     sentOnce.current = true;
+    sessionStorage.setItem(sendLockKey, "1");
     setBusy(true);
     try {
-      await mfaApi.sendEmailCode(enrollEmail ? "enroll" : "login");
+      await mfaApi.sendEmailCode(emailPurpose);
       setEmailSent(true);
       toast.success("Code sent — check your email");
     } catch (e: any) {
       toast.error(e?.message === "rate_limited" ? "Too many requests. Wait a minute." : "Failed to send code");
       sentOnce.current = false;
+      sessionStorage.removeItem(sendLockKey);
     } finally {
       setBusy(false);
     }
@@ -104,7 +111,8 @@ const MfaChallengePage = () => {
         toast.success("Verified");
         navigate(redirectTo, { replace: true });
       } else if (mode === "email") {
-        await mfaApi.verifyEmailCode(code, enrollEmail ? "enroll" : "login");
+        await mfaApi.verifyEmailCode(code, emailPurpose);
+        sessionStorage.removeItem(sendLockKey);
         if (sessionFlag) sessionStorage.setItem(sessionFlag, "1");
         toast.success("Verified");
         navigate(redirectTo, { replace: true });
@@ -210,7 +218,7 @@ const MfaChallengePage = () => {
 
           {mode === "email" && (
             <button
-              onClick={() => { sentOnce.current = false; sendEmail(); }}
+              onClick={() => { sentOnce.current = false; sessionStorage.removeItem(sendLockKey); sendEmail(); }}
               disabled={busy}
               className="mt-4 text-xs text-primary hover:underline w-full text-center"
             >
