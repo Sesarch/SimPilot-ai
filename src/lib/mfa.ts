@@ -14,7 +14,30 @@ async function call<T = any>(action: string, payload: Record<string, unknown> = 
   const { data, error } = await supabase.functions.invoke("mfa", {
     body: { action, ...payload },
   });
-  if (error) throw error;
+  if (error) {
+    // supabase.functions.invoke throws a FunctionsHttpError on non-2xx and only
+    // surfaces a generic "Edge Function returned a non-2xx status code" message.
+    // Parse the response body so the real error code (e.g. "incorrect_code",
+    // "no_active_code", "rate_limited") reaches the caller.
+    try {
+      const ctx = (error as any)?.context;
+      if (ctx && typeof ctx.json === "function") {
+        const body = await ctx.json();
+        if (body?.error) throw new Error(String(body.error));
+      } else if (ctx && typeof ctx.text === "function") {
+        const txt = await ctx.text();
+        try {
+          const parsed = JSON.parse(txt);
+          if (parsed?.error) throw new Error(String(parsed.error));
+        } catch {
+          if (txt) throw new Error(txt);
+        }
+      }
+    } catch (parsed) {
+      if (parsed instanceof Error) throw parsed;
+    }
+    throw error;
+  }
   if ((data as any)?.error) throw new Error((data as any).error);
   return data as T;
 }
