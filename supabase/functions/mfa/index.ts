@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
     if (!/^\d{6}$/.test(code)) return json({ error: 'invalid_code_format' }, 400)
     const code_hash = await sha256(code)
 
-    const { data: challenge } = await admin
+    const { data: challenges, error: lookupErr } = await admin
       .from('email_otp_challenges')
       .select('*')
       .eq('user_id', user.id)
@@ -128,20 +128,29 @@ Deno.serve(async (req) => {
       .eq('used', false)
       .gte('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .limit(10)
 
-    if (!challenge) return json({ error: 'no_active_code' }, 400)
-    if (challenge.attempts >= 5) {
-      await admin.from('email_otp_challenges').update({ used: true }).eq('id', challenge.id)
+    if (lookupErr) return json({ error: 'db_error', detail: lookupErr.message }, 500)
+    if (!challenges?.length) return json({ error: 'no_active_code' }, 400)
+
+    const reusableChallenge = challenges.find((challenge) => challenge.code_hash === code_hash && challenge.attempts < 5)
+    if (!reusableChallenge && challenges[0].attempts >= 5) {
+      await admin.from('email_otp_challenges').update({ used: true }).eq('id', challenges[0].id)
       return json({ error: 'too_many_attempts' }, 429)
     }
-    if (challenge.code_hash !== code_hash) {
+
+    if (!reusableChallenge) {
+      const latest = challenges[0]
       await admin.from('email_otp_challenges')
-        .update({ attempts: challenge.attempts + 1 }).eq('id', challenge.id)
+        .update({ attempts: latest.attempts + 1 }).eq('id', latest.id)
       return json({ error: 'incorrect_code' }, 400)
     }
-    await admin.from('email_otp_challenges').update({ used: true }).eq('id', challenge.id)
+
+    await admin.from('email_otp_challenges')
+      .update({ used: true })
+      .eq('user_id', user.id)
+      .eq('purpose', purpose)
+      .eq('used', false)
 
     if (purpose === 'enroll') {
       // Upsert MFA settings
