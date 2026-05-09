@@ -124,16 +124,6 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                 </div>
               )}
             </div>
-                  </div>
-                </div>
-              </div>
-              <h2 className="text-center font-display text-xl md:text-2xl tracking-tight text-foreground">
-                Choose Your Plan
-              </h2>
-              <p className="text-center mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
-                Live pricing synced from Stripe. Pick the plan that fits your training.
-              </p>
-            </div>
 
             {plansLoading ? (
               <div className="px-6 py-16 flex items-center justify-center text-muted-foreground">
