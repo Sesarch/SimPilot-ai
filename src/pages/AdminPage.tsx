@@ -4,8 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
-  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock,
+  LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock, MoreHorizontal,
 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
