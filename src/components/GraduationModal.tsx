@@ -18,7 +18,12 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
   const [showPlans, setShowPlans] = useState(false);
   const [detailsPlan, setDetailsPlan] = useState<StripePlan | null>(null);
+  const [billing, setBilling] = useState<"month" | "year">("month");
   const { plans, loading: plansLoading } = useStripePlans();
+
+  const hasYearly = plans.some((p) => p.interval === "year");
+  const hasMonthly = plans.some((p) => p.interval === "month");
+  const filteredPlans = plans.filter((p) => p.interval === billing);
 
   const handleSubscribe = async (plan: StripePlan) => {
     setLoadingPriceId(plan.price_id);
