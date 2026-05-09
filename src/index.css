@@ -523,10 +523,39 @@
 .admin-scope .text-sm { font-size: 0.9rem; line-height: 1.3rem; font-weight: 500; }
 .admin-scope .text-muted-foreground { color: hsl(var(--muted-foreground)); font-weight: 500; }
 
-/* Tables: sharper headers + readable cells in both themes */
-.admin-scope table { color: hsl(var(--foreground)); }
-.admin-scope th { font-weight: 600; letter-spacing: 0.06em; }
-.admin-scope td { font-weight: 500; }
+/* Tables: roomier rows, calmer line-height, consistent header alignment */
+.admin-scope table {
+  color: hsl(var(--foreground));
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+.admin-scope thead th {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  line-height: 1rem;
+  padding: 0.875rem 0.875rem;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.35);
+}
+.admin-scope thead th:last-child,
+.admin-scope tbody td:last-child { text-align: right; }
+
+.admin-scope tbody td {
+  font-weight: 500;
+  padding: 0.95rem 0.875rem;
+  line-height: 1.5rem;
+  vertical-align: middle;
+  border-bottom: 1px solid hsl(var(--border) / 0.6);
+}
+.admin-scope tbody tr:last-child td { border-bottom: 0; }
+.admin-scope tbody tr:hover td { background: hsl(var(--muted) / 0.25); }
+
 
 /* Form inputs and labels stay legible */
 .admin-scope input,
