@@ -18,7 +18,12 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
   const [showPlans, setShowPlans] = useState(false);
   const [detailsPlan, setDetailsPlan] = useState<StripePlan | null>(null);
+  const [billing, setBilling] = useState<"month" | "year">("month");
   const { plans, loading: plansLoading } = useStripePlans();
+
+  const hasYearly = plans.some((p) => p.interval === "year");
+  const hasMonthly = plans.some((p) => p.interval === "month");
+  const filteredPlans = plans.filter((p) => p.interval === billing);
 
   const handleSubscribe = async (plan: StripePlan) => {
     setLoadingPriceId(plan.price_id);
@@ -40,7 +45,7 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
   return (
     <Dialog open={open} onOpenChange={() => { /* non-dismissible */ }}>
       <DialogContent
-        className="max-w-6xl max-h-[92vh] overflow-y-auto p-0 border-border bg-background"
+        className="max-w-5xl max-h-[92vh] overflow-y-auto p-0 border-border bg-background"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -88,22 +93,49 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
               <p className="text-center mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
                 Live pricing synced from Stripe. Pick the plan that fits your training.
               </p>
+
+              {/* Billing toggle tabs */}
+              {hasMonthly && hasYearly && (
+                <div className="mt-5 flex items-center justify-center">
+                  <div className="inline-flex rounded-full border border-border bg-card/40 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setBilling("month")}
+                      className={`px-5 py-1.5 rounded-full text-xs font-display tracking-widest uppercase transition-all ${
+                        billing === "month"
+                          ? "bg-[#04C3EC] text-background"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBilling("year")}
+                      className={`px-5 py-1.5 rounded-full text-xs font-display tracking-widest uppercase transition-all ${
+                        billing === "year"
+                          ? "bg-[#04C3EC] text-background"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Yearly <span className="ml-1 text-[9px] opacity-80">Save 20%</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {plansLoading ? (
               <div className="px-6 py-16 flex items-center justify-center text-muted-foreground">
                 <Loader2 className="h-5 w-5 mr-2 animate-spin" /> Loading live plans…
               </div>
-            ) : plans.length === 0 ? (
+            ) : filteredPlans.length === 0 ? (
               <div className="px-6 py-12 text-center text-sm text-muted-foreground">
-                No active plans found. Please contact support.
+                No active {billing === "year" ? "yearly" : "monthly"} plans found.
               </div>
             ) : (
-              <div
-                className="px-6 pt-8 pb-4 grid gap-4"
-                style={{ gridTemplateColumns: `repeat(auto-fit, minmax(240px, 1fr))` }}
-              >
-                {plans.map((plan) => {
+              <div className="px-6 pt-8 pb-4 grid gap-5 md:grid-cols-3 max-w-4xl mx-auto">
+                {filteredPlans.map((plan) => {
                   const isLoading = loadingPriceId === plan.price_id;
                   const intervalLabel = plan.interval_count > 1
                     ? `/${plan.interval_count} ${plan.interval}s`
