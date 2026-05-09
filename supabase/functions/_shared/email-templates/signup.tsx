@@ -7,12 +7,16 @@ import {
   Button,
   Container,
   Head,
+  Img,
   Heading,
   Html,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
+
+const LOGO_URL = 'https://simpilot.ai/logo.svg'
 
 interface SignupEmailProps {
   siteName: string
@@ -32,6 +36,9 @@ export const SignupEmail = ({
     <Preview>Confirm your email for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
+          <Img src={LOGO_URL} alt="SimPilot.AI" width="220" style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }} />
+        </Section>
         <Heading style={h1}>Confirm your email</Heading>
         <Text style={text}>
           Thanks for signing up for{' '}
@@ -60,23 +67,23 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
 const container = { padding: '20px 25px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: '#151d2b',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#55575d',
+  color: '#535b6a',
   lineHeight: '1.5',
   margin: '0 0 25px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const link = { color: '#009199', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#009199',
   color: '#ffffff',
   fontSize: '14px',
   borderRadius: '8px',
