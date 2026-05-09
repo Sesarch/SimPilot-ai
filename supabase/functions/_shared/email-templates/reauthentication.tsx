@@ -6,9 +6,9 @@ import {
   Body,
   Container,
   Head,
+  Img,
   Heading,
   Html,
-  Img,
   Preview,
   Section,
   Text,
@@ -23,7 +23,7 @@ interface ReauthenticationEmailProps {
 export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your SimPilot.AI verification code ✈️</Preview>
+    <Preview>Your verification code</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -33,9 +33,8 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
         <Text style={text}>Use the code below to confirm your identity:</Text>
         <Text style={codeStyle}>{token}</Text>
         <Text style={footer}>
-          This code expires shortly. Didn't request it? You can safely ignore this email.
-          <br />
-          Clear skies, The SimPilot.AI crew ✈️
+          This code will expire shortly. If you didn't request this, you can
+          safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -62,8 +61,7 @@ const codeStyle = {
   fontFamily: 'Courier, monospace',
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#009199',
+  color: '#151d2b',
   margin: '0 0 30px',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-

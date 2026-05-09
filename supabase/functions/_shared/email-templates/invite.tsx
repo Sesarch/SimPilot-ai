@@ -7,9 +7,9 @@ import {
   Button,
   Container,
   Head,
+  Img,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -31,7 +31,7 @@ export const InviteEmail = ({
 }: InviteEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>You're cleared to join {siteName} ✈️</Preview>
+    <Preview>You've been invited to join {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -50,9 +50,8 @@ export const InviteEmail = ({
           Accept Invitation
         </Button>
         <Text style={footer}>
-          Not expecting this invite? You can safely ignore this email.
-          <br />
-          Clear skies, The {siteName} crew ✈️
+          If you weren't expecting this invitation, you can safely ignore this
+          email.
         </Text>
       </Container>
     </Body>
@@ -85,4 +84,3 @@ const button = {
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-

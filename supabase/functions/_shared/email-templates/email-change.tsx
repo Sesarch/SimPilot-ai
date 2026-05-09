@@ -7,9 +7,9 @@ import {
   Button,
   Container,
   Head,
+  Img,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -20,6 +20,11 @@ const LOGO_URL = 'https://simpilot.ai/logo.svg'
 
 interface EmailChangeEmailProps {
   siteName: string
+  // oldEmail is the user's current address (HookData.OldEmail). For the
+  // NEW-recipient half of a secure email_change fanout, `email` equals the
+  // recipient (NEW), so the "from" line must render oldEmail to read
+  // "from OLD to NEW" instead of "from NEW to NEW".
+  oldEmail: string
   email: string
   newEmail: string
   confirmationUrl: string
@@ -27,13 +32,13 @@ interface EmailChangeEmailProps {
 
 export const EmailChangeEmail = ({
   siteName,
-  email,
+  oldEmail,
   newEmail,
   confirmationUrl,
 }: EmailChangeEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your new {siteName} email address ✈️</Preview>
+    <Preview>Confirm your email change for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -42,8 +47,8 @@ export const EmailChangeEmail = ({
         <Heading style={h1}>Confirm your email change</Heading>
         <Text style={text}>
           You requested to change your email address for {siteName} from{' '}
-          <Link href={`mailto:${email}`} style={link}>
-            {email}
+          <Link href={`mailto:${oldEmail}`} style={link}>
+            {oldEmail}
           </Link>{' '}
           to{' '}
           <Link href={`mailto:${newEmail}`} style={link}>
@@ -58,9 +63,8 @@ export const EmailChangeEmail = ({
           Confirm Email Change
         </Button>
         <Text style={footer}>
-          Didn't request this change? Please secure your account immediately.
-          <br />
-          Clear skies, The {siteName} crew ✈️
+          If you didn't request this change, please secure your account
+          immediately.
         </Text>
       </Container>
     </Body>
@@ -93,4 +97,3 @@ const button = {
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-

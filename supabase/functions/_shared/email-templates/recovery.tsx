@@ -7,9 +7,9 @@ import {
   Button,
   Container,
   Head,
+  Img,
   Heading,
   Html,
-  Img,
   Preview,
   Section,
   Text,
@@ -28,7 +28,7 @@ export const RecoveryEmail = ({
 }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Reset your {siteName} password and get back in the cockpit ✈️</Preview>
+    <Preview>Reset your password for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -43,9 +43,8 @@ export const RecoveryEmail = ({
           Reset Password
         </Button>
         <Text style={footer}>
-          Didn't request this reset? You can safely ignore this email — your password stays unchanged.
-          <br />
-          Clear skies, The {siteName} crew ✈️
+          If you didn't request a password reset, you can safely ignore this
+          email. Your password will not be changed.
         </Text>
       </Container>
     </Body>
@@ -77,4 +76,3 @@ const button = {
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-

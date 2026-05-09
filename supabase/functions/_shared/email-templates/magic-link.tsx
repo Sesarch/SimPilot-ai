@@ -7,9 +7,9 @@ import {
   Button,
   Container,
   Head,
+  Img,
   Heading,
   Html,
-  Img,
   Preview,
   Section,
   Text,
@@ -28,7 +28,7 @@ export const MagicLinkEmail = ({
 }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your {siteName} flight deck access link ✈️</Preview>
+    <Preview>Your login link for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -43,9 +43,7 @@ export const MagicLinkEmail = ({
           Log In
         </Button>
         <Text style={footer}>
-          Didn't request this link? You can safely ignore this email.
-          <br />
-          Clear skies, The {siteName} crew ✈️
+          If you didn't request this link, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -77,4 +75,3 @@ const button = {
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-

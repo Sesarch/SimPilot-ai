@@ -7,9 +7,9 @@ import {
   Button,
   Container,
   Head,
+  Img,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -33,7 +33,7 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Pre-flight check: confirm your {siteName} email ✈️</Preview>
+    <Preview>Confirm your email for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
@@ -58,9 +58,7 @@ export const SignupEmail = ({
           Verify Email
         </Button>
         <Text style={footer}>
-          If you didn't sign up, you can safely ignore this email — no account will be created.
-          <br />
-          Clear skies, The {siteName} crew ✈️
+          If you didn't create an account, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -93,4 +91,3 @@ const button = {
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-
