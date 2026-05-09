@@ -614,46 +614,43 @@ const AdminPage = () => {
                                 </Button>
                               </div>
 
-                              {/* Mobile: collapsed dropdown menu */}
+                              {/* Mobile: collapsed dropdown menu (auto-closes on select) */}
                               <div className="flex sm:hidden justify-end">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Actions">
-                                      <MoreHorizontal className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-52">
-                                    {!u.roles.includes("admin") ? (
-                                      <DropdownMenuItem onClick={() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "admin" })}>
-                                        <Crown className="w-4 h-4 mr-2" /> Make Admin
+                                <RowActionsMenu>
+                                  {(run) => (
+                                    <>
+                                      {!u.roles.includes("admin") ? (
+                                        <DropdownMenuItem onSelect={run(() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "admin" }))}>
+                                          <Crown className="w-4 h-4 mr-2" /> Make Admin
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <DropdownMenuItem onSelect={run(() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "user" }))}>
+                                          <Crown className="w-4 h-4 mr-2 text-muted-foreground" /> Remove Admin
+                                        </DropdownMenuItem>
+                                      )}
+                                      {u.is_banned ? (
+                                        <DropdownMenuItem onSelect={run(() => setConfirmAction({ type: "unban", userId: u.id, email: u.email }))}>
+                                          <CheckCircle className="w-4 h-4 mr-2 text-green-500" /> Reactivate
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <DropdownMenuItem onSelect={run(() => setConfirmAction({ type: "ban", userId: u.id, email: u.email }))}>
+                                          <Ban className="w-4 h-4 mr-2 text-amber-500" /> Suspend
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuItem onSelect={run(() => { setExtendMonths("1"); setExtendReason(""); setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at }); })}>
+                                        <CalendarClock className="w-4 h-4 mr-2 text-cyan-500" /> Extend trial
                                       </DropdownMenuItem>
-                                    ) : (
-                                      <DropdownMenuItem onClick={() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "user" })}>
-                                        <Crown className="w-4 h-4 mr-2 text-muted-foreground" /> Remove Admin
+                                      <DropdownMenuItem onSelect={run(() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); })}>
+                                        <Gift className="w-4 h-4 mr-2 text-amber-500" /> Grant comp access
                                       </DropdownMenuItem>
-                                    )}
-                                    {u.is_banned ? (
-                                      <DropdownMenuItem onClick={() => setConfirmAction({ type: "unban", userId: u.id, email: u.email })}>
-                                        <CheckCircle className="w-4 h-4 mr-2 text-green-500" /> Reactivate
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem className="text-destructive focus:text-destructive"
+                                        onSelect={run(() => setConfirmAction({ type: "delete", userId: u.id, email: u.email }))}>
+                                        <Trash2 className="w-4 h-4 mr-2" /> Delete user
                                       </DropdownMenuItem>
-                                    ) : (
-                                      <DropdownMenuItem onClick={() => setConfirmAction({ type: "ban", userId: u.id, email: u.email })}>
-                                        <Ban className="w-4 h-4 mr-2 text-amber-500" /> Suspend
-                                      </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuItem onClick={() => { setExtendMonths("1"); setExtendReason(""); setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at }); }}>
-                                      <CalendarClock className="w-4 h-4 mr-2 text-cyan-500" /> Extend trial
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); }}>
-                                      <Gift className="w-4 h-4 mr-2 text-amber-500" /> Grant comp access
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive focus:text-destructive"
-                                      onClick={() => setConfirmAction({ type: "delete", userId: u.id, email: u.email })}>
-                                      <Trash2 className="w-4 h-4 mr-2" /> Delete user
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                    </>
+                                  )}
+                                </RowActionsMenu>
                               </div>
                             </>
                           ) : (
