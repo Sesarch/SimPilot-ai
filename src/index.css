@@ -594,11 +594,28 @@
 /* Admin tabs: brighter labels + strong primary underline on active.
    Force auto height so multi-row grid tablists don't compress vertically. */
 .admin-scope [role="tablist"] {
+  display: flex !important;
+  flex-wrap: wrap !important;
   gap: 0.35rem 0.25rem;
   height: auto !important;
   min-height: 2.5rem;
   row-gap: 0.5rem;
   align-items: stretch;
+  justify-content: flex-start;
+}
+.admin-scope [role="tab"] {
+  flex: 1 1 auto;
+  min-width: max-content;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .admin-scope [role="tablist"] { gap: 0.4rem; }
+  .admin-scope [role="tab"] {
+    flex: 1 1 calc(50% - 0.4rem);
+    font-size: 0.8rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 }
 .admin-scope [role="tab"] {
   color: hsl(var(--foreground) / 0.85);
