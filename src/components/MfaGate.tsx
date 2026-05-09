@@ -34,9 +34,15 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
           return;
         }
 
-        // 2. If MFA enforced (admin) and not enrolled at all → push to enrollment.
+        // 2. If MFA enforced (admin) and not enrolled at all → keep them in the
+        //    admin flow and enroll email 2FA through the challenge screen.
         if (mustEnforce && !status.enrolled) {
-          navigate("/account?tab=security", { replace: true });
+          const { data: { session } } = await supabase.auth.getSession();
+          const flagKey = `mfa-verified:${session?.access_token?.slice(-12) ?? ""}`;
+          navigate("/mfa", {
+            state: { redirectTo: location.pathname, sessionFlag: flagKey, enrollEmail: true },
+            replace: true,
+          });
           return;
         }
 
