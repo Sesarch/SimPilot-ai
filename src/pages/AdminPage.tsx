@@ -549,9 +549,10 @@ const AdminPage = () => {
                           {new Date(u.created_at).toLocaleDateString()}
                         </td>
                         <td className="p-3">
-                          <div className="flex items-center justify-end gap-1">
-                            {u.id !== user?.id ? (
-                              <>
+                          {u.id !== user?.id ? (
+                            <>
+                              {/* Desktop / tablet: inline icon strip */}
+                              <div className="hidden sm:flex items-center justify-end gap-1">
                                 {!u.roles.includes("admin") ? (
                                   <Button variant="ghost" size="sm" className="text-xs h-7" title="Make Admin"
                                     onClick={() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "admin" })}>
@@ -586,11 +587,53 @@ const AdminPage = () => {
                                   onClick={() => setConfirmAction({ type: "delete", userId: u.id, email: u.email })}>
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
-                              </>
-                            ) : (
-                              <span className="text-xs text-muted-foreground italic">You</span>
-                            )}
-                          </div>
+                              </div>
+
+                              {/* Mobile: collapsed dropdown menu */}
+                              <div className="flex sm:hidden justify-end">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Actions">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-52">
+                                    {!u.roles.includes("admin") ? (
+                                      <DropdownMenuItem onClick={() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "admin" })}>
+                                        <Crown className="w-4 h-4 mr-2" /> Make Admin
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem onClick={() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "user" })}>
+                                        <Crown className="w-4 h-4 mr-2 text-muted-foreground" /> Remove Admin
+                                      </DropdownMenuItem>
+                                    )}
+                                    {u.is_banned ? (
+                                      <DropdownMenuItem onClick={() => setConfirmAction({ type: "unban", userId: u.id, email: u.email })}>
+                                        <CheckCircle className="w-4 h-4 mr-2 text-green-500" /> Reactivate
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem onClick={() => setConfirmAction({ type: "ban", userId: u.id, email: u.email })}>
+                                        <Ban className="w-4 h-4 mr-2 text-amber-500" /> Suspend
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem onClick={() => { setExtendMonths("1"); setExtendReason(""); setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at }); }}>
+                                      <CalendarClock className="w-4 h-4 mr-2 text-cyan-500" /> Extend trial
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); }}>
+                                      <Gift className="w-4 h-4 mr-2 text-amber-500" /> Grant comp access
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive"
+                                      onClick={() => setConfirmAction({ type: "delete", userId: u.id, email: u.email })}>
+                                      <Trash2 className="w-4 h-4 mr-2" /> Delete user
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic block text-right">You</span>
+                          )}
                         </td>
                       </tr>
                     ))}
