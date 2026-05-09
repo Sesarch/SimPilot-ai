@@ -56,8 +56,12 @@ const AuthPage = () => {
         }).catch((err) => console.error("Welcome email failed:", err));
       }
 
+      const { data: isAdmin } = data.user
+        ? await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" })
+        : { data: false };
+
       toast.success("Welcome back, pilot!");
-      navigate(redirectTo, { replace: true });
+      navigate(redirectTo === "/dashboard" && isAdmin ? "/admin" : redirectTo, { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Authentication failed";
       toast.error(message);
