@@ -9,14 +9,10 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
-  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
-
-const LOGO_URL = 'https://simpilot.ai/logo.svg'
 
 interface SignupEmailProps {
   siteName: string
@@ -33,12 +29,9 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Pre-flight check: confirm your {siteName} email ✈️</Preview>
+    <Preview>Confirm your email for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
-          <Img src={LOGO_URL} alt="SimPilot.AI" width="220" style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }} />
-        </Section>
         <Heading style={h1}>Confirm your email</Heading>
         <Text style={text}>
           Thanks for signing up for{' '}
@@ -58,9 +51,7 @@ export const SignupEmail = ({
           Verify Email
         </Button>
         <Text style={footer}>
-          If you didn't sign up, you can safely ignore this email — no account will be created.
-          <br />
-          Clear skies, The {siteName} crew ✈️
+          If you didn't create an account, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -69,23 +60,23 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
 const container = { padding: '20px 25px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#151d2b',
+  color: '#000000',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#535b6a',
+  color: '#55575d',
   lineHeight: '1.5',
   margin: '0 0 25px',
 }
-const link = { color: '#009199', textDecoration: 'underline' }
+const link = { color: 'inherit', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#009199',
+  backgroundColor: '#000000',
   color: '#ffffff',
   fontSize: '14px',
   borderRadius: '8px',
@@ -93,4 +84,3 @@ const button = {
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-

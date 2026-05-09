@@ -8,13 +8,9 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Preview,
-  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
-
-const LOGO_URL = 'https://simpilot.ai/logo.svg'
 
 interface ReauthenticationEmailProps {
   token: string
@@ -23,19 +19,15 @@ interface ReauthenticationEmailProps {
 export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your SimPilot.AI verification code ✈️</Preview>
+    <Preview>Your verification code</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
-          <Img src={LOGO_URL} alt="SimPilot.AI" width="220" style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }} />
-        </Section>
         <Heading style={h1}>Confirm reauthentication</Heading>
         <Text style={text}>Use the code below to confirm your identity:</Text>
         <Text style={codeStyle}>{token}</Text>
         <Text style={footer}>
-          This code expires shortly. Didn't request it? You can safely ignore this email.
-          <br />
-          Clear skies, The SimPilot.AI crew ✈️
+          This code will expire shortly. If you didn't request this, you can
+          safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -44,17 +36,17 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
 
 export default ReauthenticationEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
 const container = { padding: '20px 25px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#151d2b',
+  color: '#000000',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#535b6a',
+  color: '#55575d',
   lineHeight: '1.5',
   margin: '0 0 25px',
 }
@@ -62,8 +54,7 @@ const codeStyle = {
   fontFamily: 'Courier, monospace',
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#009199',
+  color: '#000000',
   margin: '0 0 30px',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-
