@@ -65,6 +65,31 @@ type LeadEmail = {
   pilot_context: Record<string, string | null> | null;
 };
 
+/**
+ * Controlled dropdown wrapper: explicitly closes the menu before firing the
+ * action so the row never feels "stuck open" on mobile, and any follow-up
+ * dialog opens cleanly without focus contention.
+ */
+const RowActionsMenu = ({ children }: { children: (run: (fn: () => void) => () => void) => React.ReactNode }) => {
+  const [open, setOpen] = useState(false);
+  const run = (fn: () => void) => () => {
+    setOpen(false);
+    requestAnimationFrame(() => fn());
+  };
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Actions">
+          <MoreHorizontal className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        {children(run)}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const AdminPage = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
