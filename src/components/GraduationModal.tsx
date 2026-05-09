@@ -140,6 +140,20 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                   const intervalLabel = plan.interval_count > 1
                     ? `/${plan.interval_count} ${plan.interval}s`
                     : `/${plan.interval}`;
+
+                  // Compute yearly savings vs same-product monthly plan
+                  let savingsPct: number | null = null;
+                  if (plan.interval === "year" && plan.interval_count === 1) {
+                    const monthlyMatch = plans.find(
+                      (p) => p.product_id === plan.product_id && p.interval === "month",
+                    );
+                    if (monthlyMatch && monthlyMatch.amount > 0) {
+                      const yearlyPerMonth = plan.amount / 12;
+                      const pct = Math.round((1 - yearlyPerMonth / monthlyMatch.amount) * 100);
+                      if (pct > 0) savingsPct = pct;
+                    }
+                  }
+
                   return (
                     <div
                       key={plan.price_id}
@@ -148,6 +162,11 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
                       {plan.badge && (
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#04C3EC] text-background text-[10px] tracking-widest uppercase px-3 py-1 rounded-full whitespace-nowrap">
                           {plan.badge}
+                        </div>
+                      )}
+                      {billing === "year" && savingsPct !== null && (
+                        <div className="absolute -top-3 right-3 bg-emerald-500 text-background text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-full whitespace-nowrap shadow-md">
+                          Save {savingsPct}%
                         </div>
                       )}
                       <div className="flex items-center gap-2 mb-1">
