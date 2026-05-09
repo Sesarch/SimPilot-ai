@@ -19,6 +19,7 @@ const MfaChallengePage = () => {
       ? (location.state as any).redirectTo
       : "/dashboard";
   const sessionFlag: string | undefined = (location.state as any)?.sessionFlag;
+  const enrollEmail = (location.state as any)?.enrollEmail === true;
 
   const [status, setStatus] = useState<Awaited<ReturnType<typeof mfaApi.status>> | null>(null);
   const [mode, setMode] = useState<Mode>("email");
@@ -41,8 +42,15 @@ const MfaChallengePage = () => {
       if (s.totp_enrolled) setMode("totp");
       else setMode("email");
 
-      // If a TOTP factor exists in Supabase but AAL is already met, no challenge needed
+        // If an admin has not enrolled MFA yet, enroll email verification here
+        // so they stay in the Super Admin access flow instead of landing in Account.
       const aal = await getAalGap();
+        if (s.required && !s.enrolled && enrollEmail) {
+          setMode("email");
+          return;
+        }
+
+        // If a TOTP factor exists in Supabase but AAL is already met, no challenge needed
       if (!s.required && !s.enrolled) {
         // Not enrolled and not required — straight through
         navigate(redirectTo, { replace: true });
@@ -60,7 +68,7 @@ const MfaChallengePage = () => {
     sentOnce.current = true;
     setBusy(true);
     try {
-      await mfaApi.sendEmailCode("login");
+      await mfaApi.sendEmailCode(enrollEmail ? "enroll" : "login");
       setEmailSent(true);
       toast.success("Code sent — check your email");
     } catch (e: any) {
@@ -96,7 +104,7 @@ const MfaChallengePage = () => {
         toast.success("Verified");
         navigate(redirectTo, { replace: true });
       } else if (mode === "email") {
-        await mfaApi.verifyEmailCode(code, "login");
+        await mfaApi.verifyEmailCode(code, enrollEmail ? "enroll" : "login");
         if (sessionFlag) sessionStorage.setItem(sessionFlag, "1");
         toast.success("Verified");
         navigate(redirectTo, { replace: true });
