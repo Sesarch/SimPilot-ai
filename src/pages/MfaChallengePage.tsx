@@ -145,7 +145,7 @@ const MfaChallengePage = () => {
           </div>
           <p className="text-sm text-muted-foreground mb-6">
             {status.required ? "Required for admin access. " : ""}
-            Enter the 6-digit code to continue.
+            Enter the 6-digit code sent to {user?.email ?? "your email"}.
           </p>
 
           <div className="flex gap-2 mb-5 text-xs">
@@ -157,7 +157,7 @@ const MfaChallengePage = () => {
                 <Smartphone className="w-3.5 h-3.5 inline mr-1" /> Authenticator
               </button>
             )}
-            {status.email_otp_enabled && (
+            {(status.email_otp_enabled || enrollEmail || mode === "email") && (
               <button
                 onClick={() => setMode("email")}
                 className={`flex-1 py-2 rounded border ${mode === "email" ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
