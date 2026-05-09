@@ -497,11 +497,40 @@
 /* Admin panel readability: brighter muted text + sharper sizing.
    Scoped to .admin-scope so it does not affect the rest of the app. */
 .admin-scope {
-  --muted-foreground: 215 20% 78%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern", "liga", "calt", "ss01";
+  letter-spacing: 0.005em;
+  color: hsl(var(--foreground));
 }
-.admin-scope .text-xs { font-size: 0.8125rem; line-height: 1.15rem; }
-.admin-scope .text-sm { font-size: 0.9rem; line-height: 1.3rem; }
-.admin-scope table, .admin-scope td, .admin-scope th { color: hsl(var(--foreground)); }
-.admin-scope .text-muted-foreground { color: hsl(215 20% 80%); }
+
+/* Dark theme (default for admin): high-contrast cool whites */
+.admin-scope {
+  --foreground: 210 40% 98%;
+  --muted-foreground: 215 22% 82%;
+}
+
+/* Light theme override: deeper inks for crisp contrast on white */
+.light .admin-scope,
+:root:not(.dark) .admin-scope {
+  --foreground: 222 47% 11%;
+  --muted-foreground: 215 25% 32%;
+}
+
+/* Slightly larger, weightier small text */
+.admin-scope .text-xs { font-size: 0.8125rem; line-height: 1.15rem; font-weight: 500; }
+.admin-scope .text-sm { font-size: 0.9rem; line-height: 1.3rem; font-weight: 500; }
+.admin-scope .text-muted-foreground { color: hsl(var(--muted-foreground)); font-weight: 500; }
+
+/* Tables: sharper headers + readable cells in both themes */
+.admin-scope table { color: hsl(var(--foreground)); }
+.admin-scope th { font-weight: 600; letter-spacing: 0.06em; }
+.admin-scope td { font-weight: 500; }
+
+/* Form inputs and labels stay legible */
+.admin-scope input,
+.admin-scope textarea,
+.admin-scope select { color: hsl(var(--foreground)); font-weight: 500; }
+.admin-scope label { font-weight: 600; }
+
