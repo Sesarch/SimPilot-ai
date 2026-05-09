@@ -493,3 +493,15 @@
     p, li, a, span { overflow-wrap: anywhere; }
   }
 }
+
+/* Admin panel readability: brighter muted text + sharper sizing.
+   Scoped to .admin-scope so it does not affect the rest of the app. */
+.admin-scope {
+  --muted-foreground: 215 20% 78%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.admin-scope .text-xs { font-size: 0.8125rem; line-height: 1.15rem; }
+.admin-scope .text-sm { font-size: 0.9rem; line-height: 1.3rem; }
+.admin-scope table, .admin-scope td, .admin-scope th { color: hsl(var(--foreground)); }
+.admin-scope .text-muted-foreground { color: hsl(215 20% 80%); }
