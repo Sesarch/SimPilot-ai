@@ -563,3 +563,30 @@
 .admin-scope select { color: hsl(var(--foreground)); font-weight: 500; }
 .admin-scope label { font-weight: 600; }
 
+
+/* Admin: keep the Actions column visible while horizontal scrolling */
+.admin-scope .admin-table-wrap {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+.admin-scope .admin-table thead th:last-child,
+.admin-scope .admin-table tbody td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: hsl(var(--card));
+  box-shadow: -8px 0 12px -8px hsl(var(--background) / 0.6);
+}
+.admin-scope .admin-table thead th:last-child {
+  background: hsl(var(--muted) / 0.9);
+}
+.admin-scope .admin-table tbody tr:hover td:last-child {
+  background: hsl(var(--card));
+}
+
+/* On small screens, tighten cell padding so action icons stay in view */
+@media (max-width: 640px) {
+  .admin-scope .admin-table thead th,
+  .admin-scope .admin-table tbody td { padding: 0.65rem 0.6rem; }
+  .admin-scope .admin-table tbody td:last-child .flex { gap: 0.125rem; }
+}
