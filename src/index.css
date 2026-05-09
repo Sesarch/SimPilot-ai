@@ -608,13 +608,41 @@
   min-width: max-content;
   white-space: nowrap;
 }
-@media (max-width: 480px) {
-  .admin-scope [role="tablist"] { gap: 0.4rem; }
+@media (max-width: 640px) {
+  /* Switch to horizontal scrolling so every tab is reachable */
+  .admin-scope [role="tablist"] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scroll-padding-left: 2.5rem;
+    scrollbar-width: thin;
+    gap: 0.4rem;
+    padding-bottom: 0.25rem;
+    /* fade hint that there's more to scroll */
+    mask-image: linear-gradient(to right, transparent 0, #000 1.25rem, #000 calc(100% - 1.25rem), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.25rem, #000 calc(100% - 1.25rem), transparent 100%);
+  }
+  .admin-scope [role="tablist"]::-webkit-scrollbar { height: 4px; }
+  .admin-scope [role="tablist"]::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.4);
+    border-radius: 2px;
+  }
   .admin-scope [role="tab"] {
-    flex: 1 1 calc(50% - 0.4rem);
+    flex: 0 0 auto;
+    scroll-snap-align: start;
     font-size: 0.8rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+  /* Keep the active tab pinned to the left edge while scrolling */
+  .admin-scope [role="tab"][data-state="active"] {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: hsl(var(--background));
+    box-shadow: 6px 0 8px -6px hsl(var(--background));
   }
 }
 .admin-scope [role="tab"] {
