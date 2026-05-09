@@ -45,7 +45,7 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
   return (
     <Dialog open={open} onOpenChange={() => { /* non-dismissible */ }}>
       <DialogContent
-        className="max-w-6xl max-h-[92vh] overflow-y-auto p-0 border-border bg-background"
+        className="max-w-5xl max-h-[92vh] overflow-y-auto p-0 border-border bg-background"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -129,16 +129,13 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
               <div className="px-6 py-16 flex items-center justify-center text-muted-foreground">
                 <Loader2 className="h-5 w-5 mr-2 animate-spin" /> Loading live plans…
               </div>
-            ) : plans.length === 0 ? (
+            ) : filteredPlans.length === 0 ? (
               <div className="px-6 py-12 text-center text-sm text-muted-foreground">
-                No active plans found. Please contact support.
+                No active {billing === "year" ? "yearly" : "monthly"} plans found.
               </div>
             ) : (
-              <div
-                className="px-6 pt-8 pb-4 grid gap-4"
-                style={{ gridTemplateColumns: `repeat(auto-fit, minmax(240px, 1fr))` }}
-              >
-                {plans.map((plan) => {
+              <div className="px-6 pt-8 pb-4 grid gap-5 md:grid-cols-3 max-w-4xl mx-auto">
+                {filteredPlans.map((plan) => {
                   const isLoading = loadingPriceId === plan.price_id;
                   const intervalLabel = plan.interval_count > 1
                     ? `/${plan.interval_count} ${plan.interval}s`
