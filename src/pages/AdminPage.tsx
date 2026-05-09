@@ -70,7 +70,7 @@ type LeadEmail = {
  * action so the row never feels "stuck open" on mobile, and any follow-up
  * dialog opens cleanly without focus contention.
  */
-const RowActionsMenu = ({ children }: { children: (run: (fn: () => void) => () => void) => React.ReactNode }) => {
+const RowActionsMenu = ({ children }: { children: (run: (fn: () => void) => () => void) => ReactNode }) => {
   const [open, setOpen] = useState(false);
   const run = (fn: () => void) => () => {
     setOpen(false);
