@@ -93,6 +93,46 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
               <p className="text-center mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
                 Live pricing synced from Stripe. Pick the plan that fits your training.
               </p>
+
+              {/* Billing toggle tabs */}
+              {hasMonthly && hasYearly && (
+                <div className="mt-5 flex items-center justify-center">
+                  <div className="inline-flex rounded-full border border-border bg-card/40 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setBilling("month")}
+                      className={`px-5 py-1.5 rounded-full text-xs font-display tracking-widest uppercase transition-all ${
+                        billing === "month"
+                          ? "bg-[#04C3EC] text-background"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBilling("year")}
+                      className={`px-5 py-1.5 rounded-full text-xs font-display tracking-widest uppercase transition-all ${
+                        billing === "year"
+                          ? "bg-[#04C3EC] text-background"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Yearly <span className="ml-1 text-[9px] opacity-80">Save 20%</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+                  </div>
+                </div>
+              </div>
+              <h2 className="text-center font-display text-xl md:text-2xl tracking-tight text-foreground">
+                Choose Your Plan
+              </h2>
+              <p className="text-center mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
+                Live pricing synced from Stripe. Pick the plan that fits your training.
+              </p>
             </div>
 
             {plansLoading ? (
