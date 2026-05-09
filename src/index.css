@@ -594,17 +594,24 @@
 /* Admin tabs: brighter labels + strong primary underline on active */
 .admin-scope [role="tablist"] { gap: 0.25rem; }
 .admin-scope [role="tab"] {
-  color: hsl(var(--muted-foreground));
-  font-weight: 600;
+  color: hsl(var(--foreground) / 0.85);
+  font-weight: 700 !important;
   letter-spacing: 0.08em;
   position: relative;
   transition: color 150ms ease;
+  text-shadow: 0 1px 2px hsl(0 0% 0% / 0.25);
+}
+.light .admin-scope [role="tab"],
+:root:not(.dark) .admin-scope [role="tab"] {
+  color: hsl(var(--foreground) / 0.78);
+  text-shadow: none;
 }
 .admin-scope [role="tab"]:hover { color: hsl(var(--foreground)); }
 .admin-scope [role="tab"][data-state="active"] {
   color: hsl(var(--foreground));
   background: transparent;
   box-shadow: none;
+  font-weight: 800 !important;
 }
 .admin-scope [role="tab"][data-state="active"]::after {
   content: "";
