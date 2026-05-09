@@ -491,8 +491,8 @@ const AdminPage = () => {
 
             {/* Users Table */}
             <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="admin-table-wrap overflow-x-auto">
+                <table className="admin-table w-full text-sm min-w-[860px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/30">
                       <th className="text-left p-3 font-display text-xs uppercase tracking-wider text-muted-foreground">User</th>
