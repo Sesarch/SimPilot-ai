@@ -590,3 +590,30 @@
   .admin-scope .admin-table tbody td { padding: 0.65rem 0.6rem; }
   .admin-scope .admin-table tbody td:last-child .flex { gap: 0.125rem; }
 }
+
+/* Admin tabs: brighter labels + strong primary underline on active */
+.admin-scope [role="tablist"] { gap: 0.25rem; }
+.admin-scope [role="tab"] {
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  position: relative;
+  transition: color 150ms ease;
+}
+.admin-scope [role="tab"]:hover { color: hsl(var(--foreground)); }
+.admin-scope [role="tab"][data-state="active"] {
+  color: hsl(var(--foreground));
+  background: transparent;
+  box-shadow: none;
+}
+.admin-scope [role="tab"][data-state="active"]::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -2px;
+  height: 3px;
+  border-radius: 3px;
+  background: hsl(var(--primary));
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.6);
+}
