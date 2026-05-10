@@ -5,8 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
   LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock, MoreHorizontal,
-  LayoutDashboard, CreditCard, FileBarChart, ScrollText, AlertTriangle, Sparkles, GraduationCap,
-  Brain, BookOpen, Globe, Settings,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -30,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import SEOHead from "@/components/SEOHead";
 import AdminEmailDashboard from "@/components/AdminEmailDashboard";
+import { AdminTabsStrip } from "@/components/AdminTabsStrip";
 import AdminSupportChats from "@/components/AdminSupportChats";
 import AdminAnalytics from "@/components/AdminAnalytics";
 import AdminSiteSettings from "@/components/AdminSiteSettings";
@@ -538,40 +537,8 @@ const AdminPage = () => {
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          {/*
-            Breakpoint-based grid:
-            - ultra-narrow (default, <640px): 3 per row — small phones
-            - sm (≥640px):                    2 per row — bigger touch targets
-            - md (≥768px):                    7 per row — tablet, two rows
-            - lg (≥1024px):                  13 per row — full strip on desktop
-            h-auto so the TabsList grows with multi-row layouts.
-          */}
-          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-13 gap-1 h-auto mb-8 p-1.5 rounded-lg border border-border/60 bg-card/60 backdrop-blur-sm">
-            {[
-              { value: "overview", label: "Overview", Icon: LayoutDashboard },
-              { value: "payments", label: "Payments", Icon: CreditCard },
-              { value: "reports", label: "Reports", Icon: FileBarChart },
-              { value: "users", label: "Users", Icon: Users },
-              { value: "audit", label: "Audit", Icon: ScrollText },
-              { value: "errors", label: "Errors", Icon: AlertTriangle },
-              { value: "leads", label: "Leads", Icon: Sparkles },
-              { value: "schools", label: "Schools", Icon: GraduationCap },
-              { value: "emails", label: "Emails", Icon: Mail },
-              { value: "models", label: "Models", Icon: Brain },
-              { value: "kb", label: "Knowledge", Icon: BookOpen },
-              { value: "seo", label: "SEO", Icon: Globe },
-              { value: "settings", label: "Settings", Icon: Settings },
-            ].map(({ value, label, Icon }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="gap-1.5 px-2.5 py-1.5 text-[13px] font-medium tracking-normal text-muted-foreground rounded-md transition-all duration-150 hover:text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/30"
-              >
-                <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                <span>{label}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <AdminTabsStrip />
+
 
           {/* Overview Tab */}
           <TabsContent value="overview">
