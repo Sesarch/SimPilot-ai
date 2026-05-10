@@ -341,6 +341,57 @@ const PricingSection = () => {
               )}
             </AnimatePresence>
           </div>
+
+          {/* Pricing breakdown */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mt-6 mx-auto max-w-3xl rounded-xl border border-border/60 bg-card/40 backdrop-blur-sm px-4 py-4 sm:px-6"
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {plans.map((p) => {
+                const monthlyTotal = p.monthly * 12;
+                const annualTotal = p.annual * 12;
+                const savings = monthlyTotal - annualTotal;
+                const active = annual ? "annual" : "monthly";
+                return (
+                  <div key={p.name} className="text-left">
+                    <div className="font-display text-[10px] tracking-[0.18em] uppercase text-muted-foreground truncate">
+                      {p.name}
+                    </div>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span
+                        className={`font-display text-lg ${
+                          active === "monthly" ? "text-primary text-glow-cyan" : "text-foreground/70"
+                        }`}
+                      >
+                        ${p.monthly}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">/mo</span>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span
+                        className={`font-display text-lg ${
+                          active === "annual" ? "text-primary text-glow-cyan" : "text-foreground/70"
+                        }`}
+                      >
+                        ${p.annual}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">/mo billed yearly</span>
+                    </div>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      <span className="font-display tracking-wider">${annualTotal}/yr</span>
+                      <span className="text-emerald-400/90"> · save ${savings}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-[10px] text-center text-muted-foreground tracking-wide">
+              All plans include a 7-day free trial. Cancel anytime.
+            </p>
+          </motion.div>
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-6xl mx-auto items-stretch pt-12 px-1 overflow-visible">
