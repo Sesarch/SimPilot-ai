@@ -108,9 +108,9 @@ const CHECKLIST: Array<{
   },
   {
     key: "charges_enabled",
-    label: "Charges enabled",
-    hint: "Required for the account to actually accept live payments.",
-    fix: "Complete Stripe account verification (Settings → Account details).",
+    label: "Live charges readiness",
+    hint: "Confirms the Stripe account is fully verified for live payments.",
+    fix: "Finish Stripe account verification in Settings → Account details.",
     required: true,
   },
 ];
@@ -169,10 +169,8 @@ const StripeDiagnosticsPanel = () => {
   const isLive = data.mode === "live";
   const modeBadge = (
     <Badge
-      variant={isLive ? "default" : "secondary"}
-      className={`uppercase tracking-wider text-[10px] ${
-        isLive ? "bg-destructive text-destructive-foreground" : ""
-      }`}
+      variant="secondary"
+      className={`uppercase tracking-wider text-[10px] ${isLive ? "border border-primary/40 bg-primary/10 text-primary" : ""}`}
     >
       {data.mode}
     </Badge>
@@ -202,9 +200,9 @@ const StripeDiagnosticsPanel = () => {
     ? acctPermMissing
       ? {
           tone: "warn",
-          label: "Account read blocked",
+          label: "Account read permission needed",
           detail:
-            "Key works for checkout, but lacks Account read scope so branding can't be verified.",
+            "Checkout scopes are working; add Account read to verify branding here.",
         }
       : { tone: "error", label: "Account unreachable", detail: acctErr }
     : !data.account.charges_enabled
@@ -227,9 +225,9 @@ const StripeDiagnosticsPanel = () => {
 
   const connectionStyles =
     connection.tone === "ok"
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+      ? "border-hud-green/30 bg-hud-green/10 text-hud-green"
       : connection.tone === "warn"
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
+        ? "border-amber-instrument/30 bg-amber-instrument/10 text-amber-instrument"
         : "border-destructive/40 bg-destructive/10 text-destructive";
 
   return (
