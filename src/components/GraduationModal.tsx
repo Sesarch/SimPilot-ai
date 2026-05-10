@@ -21,6 +21,7 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
   const [detailsPlan, setDetailsPlan] = useState<StripePlan | null>(null);
   const [billing, setBilling] = useState<"month" | "year">("month");
   const { plans, loading: plansLoading } = useStripePlans();
+  const navigate = useNavigate();
 
   const hasYearly = plans.some((p) => p.interval === "year");
   const hasMonthly = plans.some((p) => p.interval === "month");
@@ -29,14 +30,9 @@ export default function GraduationModal({ open, displayName }: GraduationModalPr
   const handleSubscribe = async (plan: StripePlan) => {
     setLoadingPriceId(plan.price_id);
     try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { price_id: plan.price_id },
-      });
-      if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
-      else throw new Error("No checkout URL returned");
+      navigate("/checkout/redirect", { state: { plan } });
     } catch (err) {
-      console.error("Checkout error:", err);
+      console.error("Checkout navigation error:", err);
       toast.error("Could not start checkout. Please try again.");
     } finally {
       setLoadingPriceId(null);
