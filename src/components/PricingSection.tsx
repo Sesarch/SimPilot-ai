@@ -93,10 +93,41 @@ const plans = [
   },
 ];
 
+const TIER_TO_PLAN_NAME: Record<string, string> = {
+  student: "Student",
+  pro: "Pro Pilot",
+  ultra: "Gold Seal CFI",
+};
+const ACTIVE_STATUSES = new Set(["active", "trialing", "past_due"]);
+
 const PricingSection = () => {
   const [annual, setAnnual] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
+  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      if (!userId) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("subscription_tier, subscription_status")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      const tier = (data.subscription_tier ?? "").toLowerCase();
+      const status = (data.subscription_status ?? "").toLowerCase();
+      if (tier && ACTIVE_STATUSES.has(status) && TIER_TO_PLAN_NAME[tier]) {
+        setCurrentPlanName(TIER_TO_PLAN_NAME[tier]);
+        setCurrentStatus(status);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Visual QA mode — toggle with Alt+Shift+Q (or ?qa=1 in URL).
   // Renders z-index labels on each card, outlines the badge, and lets you
