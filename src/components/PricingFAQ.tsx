@@ -8,6 +8,14 @@ import {
 
 const faqs = [
   {
+    q: "What's included in each plan?",
+    a: "Enthusiast is for curious learners — chat with the AI CFI, basic weather and live-sky tools, and a sample of ground-school modules. Pilot unlocks the full 19-module FAA ACS curriculum, oral-exam DPE mode, chart and instrument vision analysis, POH-grounded answers for your aircraft, and post-flight .FLT debriefs. Flight School includes everything in Pilot for up to 20 student seats, plus an instructor dashboard for tracking student progress, oral-exam scores, and module completion across your roster.",
+  },
+  {
+    q: "How are pilots onboarded?",
+    a: "After signup, every pilot completes a 5-step context flow: certificate level (Student → ATP), training stage, primary aircraft (which loads the matching POH), home airport and region (so the AI cites the correct FAA / EASA / ICAO standards), and training goals. This personalizes every answer from your first message — no generic responses. The whole flow takes under two minutes, and you can update it anytime from your profile.",
+  },
+  {
     q: "How does the 7-day free trial work?",
     a: "Every plan includes a full-featured 7-day free trial — no credit card required. You get complete access to all features in your chosen tier so you can experience the value before committing.",
   },
