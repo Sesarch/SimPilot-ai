@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { CheckCircle2, XCircle, X } from "lucide-react";
+import { useSearchParams, Link } from "react-router-dom";
+import { CheckCircle2, XCircle, X, ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
+import { Button } from "@/components/ui/button";
 
 type Variant = "success" | "cancelled";
 
@@ -120,6 +121,18 @@ const PostCheckoutBrandBanner = ({
             {body}
           </p>
         </div>
+
+        <Button
+          asChild
+          variant={isSuccess ? "outline" : "default"}
+          size="sm"
+          className="mt-1"
+        >
+          <Link to="/#pricing" aria-label="Back to plan selection">
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Back to plans
+          </Link>
+        </Button>
       </div>
     </div>
   );
