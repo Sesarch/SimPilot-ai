@@ -178,7 +178,26 @@ const StripeDiagnosticsPanel = () => {
             Stripe account (drives Checkout branding)
           </div>
           {data.account.error ? (
-            <div className="text-destructive">{data.account.error}</div>
+            /accounts_kyc_basic_read|required permissions/i.test(data.account.error) ? (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] leading-relaxed">
+                <div className="flex items-center gap-1.5 text-amber-500 font-medium mb-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Account read permission missing
+                </div>
+                <p className="text-muted-foreground">
+                  This restricted key can resolve prices but can't read your Stripe account
+                  details (business name, logo, brand color). Checkout still works — only the
+                  branding preview here is unavailable.
+                </p>
+                <p className="text-muted-foreground mt-1.5">
+                  To enable it: Stripe Dashboard → Developers → API keys → edit this restricted
+                  key → grant <span className="font-mono text-foreground">Account</span> read
+                  access (<span className="font-mono">rak_accounts_kyc_basic_read</span>).
+                </p>
+              </div>
+            ) : (
+              <div className="text-destructive text-xs break-words">{data.account.error}</div>
+            )
           ) : (
             <>
               <div className="text-foreground">
