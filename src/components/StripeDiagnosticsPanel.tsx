@@ -459,22 +459,21 @@ const StripeDiagnosticsPanel = () => {
 
         <div className="space-y-1">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Stripe account (drives Checkout branding)
+            Stripe account preview (optional)
           </div>
           {data.account.error ? (
-            /accounts_kyc_basic_read|required permissions/i.test(data.account.error) ? (
-              <div className="rounded-lg border border-amber-instrument/30 bg-amber-instrument/10 p-2.5 text-[11px] leading-relaxed">
-                <div className="flex items-center gap-1.5 text-amber-instrument font-medium mb-1">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  Account read permission needed
+            ACCOUNT_READ_PERMISSION_RE.test(data.account.error) ? (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-2.5 text-[11px] leading-relaxed">
+                <div className="flex items-center gap-1.5 text-primary font-medium mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Checkout is connected
                 </div>
                 <p className="text-muted-foreground">
-                  This restricted key can resolve prices but can't read your Stripe account
-                  details (business name, logo, brand color). Checkout still works — only the
-                  branding preview here is unavailable.
+                  Account read access is only needed to show business name, logo, brand color,
+                  and live verification status in this admin preview.
                 </p>
                 <p className="text-muted-foreground mt-1.5">
-                  To enable it: Stripe Dashboard → Developers → API keys → edit this restricted
+                  To add the preview: Stripe Dashboard → Developers → API keys → edit this restricted
                   key → grant <span className="font-mono text-foreground">Account</span> read
                   access (<span className="font-mono">rak_accounts_kyc_basic_read</span>).
                 </p>
@@ -482,7 +481,7 @@ const StripeDiagnosticsPanel = () => {
                   asChild
                   size="sm"
                   variant="outline"
-                  className="h-7 mt-2 text-[11px] gap-1.5 border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument"
+                  className="h-7 mt-2 text-[11px] gap-1.5 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                 >
                   <a
                     href={stripeUrl("/apikeys", isLive)}
