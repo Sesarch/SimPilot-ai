@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback, type ReactNode } from "react";
+import { useEffect, useState, useCallback, Fragment, type ReactNode } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
   LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock, MoreHorizontal,
+  type LucideIcon,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -358,6 +359,129 @@ const AdminPage = () => {
       (u.display_name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  /**
+   * Single source of truth for per-user row actions.
+   * Both the desktop icon strip AND the mobile dropdown render from this list,
+   * so any future role/permission change only needs to be made here.
+   *
+   * Add gating logic (e.g. `if (!hasPermission("ban")) return;`) inside this
+   * function and both UIs will update automatically.
+   */
+  type RowAction = {
+    key: string;
+    label: string;
+    icon: LucideIcon;
+    iconClassName?: string;
+    tone?: "default" | "success" | "warning" | "info" | "destructive";
+    destructive?: boolean;
+    separatorBefore?: boolean;
+    onSelect: () => void;
+  };
+
+  const userRowActions = (u: AdminUser): RowAction[] => {
+    const actions: RowAction[] = [];
+
+    // Role toggle
+    if (!u.roles.includes("admin")) {
+      actions.push({
+        key: "make-admin",
+        label: "Make Admin",
+        icon: Crown,
+        onSelect: () => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "admin" }),
+      });
+    } else {
+      actions.push({
+        key: "remove-admin",
+        label: "Remove Admin",
+        icon: Crown,
+        iconClassName: "text-muted-foreground",
+        onSelect: () => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "user" }),
+      });
+    }
+
+    // Ban / unban
+    if (u.is_banned) {
+      actions.push({
+        key: "unban",
+        label: "Reactivate",
+        icon: CheckCircle,
+        tone: "success",
+        iconClassName: "text-green-500",
+        onSelect: () => setConfirmAction({ type: "unban", userId: u.id, email: u.email }),
+      });
+    } else {
+      actions.push({
+        key: "ban",
+        label: "Suspend",
+        icon: Ban,
+        tone: "warning",
+        iconClassName: "text-amber-500",
+        onSelect: () => setConfirmAction({ type: "ban", userId: u.id, email: u.email }),
+      });
+    }
+
+    // Trial extension
+    actions.push({
+      key: "extend-trial",
+      label: "Extend trial",
+      icon: CalendarClock,
+      tone: "info",
+      iconClassName: "text-cyan-500",
+      onSelect: () => {
+        setExtendMonths("1");
+        setExtendReason("");
+        setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at });
+      },
+    });
+
+    // Comp grant
+    actions.push({
+      key: "grant-comp",
+      label: "Grant comp access",
+      icon: Gift,
+      tone: "warning",
+      iconClassName: "text-amber-500",
+      onSelect: () => {
+        setGrantTier("pro");
+        setGrantReason("");
+        setGrantDialog({ userId: u.id, email: u.email });
+      },
+    });
+
+    // Delete (always last, separated)
+    actions.push({
+      key: "delete",
+      label: "Delete user",
+      icon: Trash2,
+      tone: "destructive",
+      iconClassName: "text-destructive",
+      destructive: true,
+      separatorBefore: true,
+      onSelect: () => setConfirmAction({ type: "delete", userId: u.id, email: u.email }),
+    });
+
+    return actions;
+  };
+
+  // Tooltip labels for the desktop icon strip (longer than the dropdown label
+  // when it adds useful context).
+  const desktopActionTitle = (action: RowAction): string => {
+    if (action.key === "extend-trial") return "Extend free trial (full access)";
+    return action.label;
+  };
+
+  // Tailwind class for desktop icon button text colour, derived from tone.
+  const toneToClass = (tone?: RowAction["tone"]): string => {
+    switch (tone) {
+      case "success": return "text-green-500";
+      case "warning": return "text-amber-500";
+      case "info": return "text-cyan-500";
+      case "destructive": return "text-destructive";
+      default: return "";
+    }
+  };
+
+
   const exportLeadsCSV = () => {
     if (!leads.length) return;
     const headers = ["Email", "Date", "Pilot Context"];
@@ -576,82 +700,57 @@ const AdminPage = () => {
                         <td className="p-3">
                           {u.id !== user?.id ? (
                             <>
-                              {/* Desktop / tablet: inline icon strip */}
-                              <div className="hidden sm:flex items-center justify-end gap-1">
-                                {!u.roles.includes("admin") ? (
-                                  <Button variant="ghost" size="sm" className="text-xs h-7" title="Make Admin"
-                                    onClick={() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "admin" })}>
-                                    <Crown className="w-3 h-3" />
-                                  </Button>
-                                ) : (
-                                  <Button variant="ghost" size="sm" className="text-xs h-7" title="Remove Admin"
-                                    onClick={() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "user" })}>
-                                    <Crown className="w-3 h-3 text-muted-foreground" />
-                                  </Button>
-                                )}
-                                {u.is_banned ? (
-                                  <Button variant="ghost" size="sm" className="text-xs text-green-500 h-7" title="Reactivate"
-                                    onClick={() => setConfirmAction({ type: "unban", userId: u.id, email: u.email })}>
-                                    <CheckCircle className="w-3 h-3" />
-                                  </Button>
-                                ) : (
-                                  <Button variant="ghost" size="sm" className="text-xs text-amber-500 h-7" title="Suspend"
-                                    onClick={() => setConfirmAction({ type: "ban", userId: u.id, email: u.email })}>
-                                    <Ban className="w-3 h-3" />
-                                  </Button>
-                                )}
-                                <Button variant="ghost" size="sm" className="text-xs text-cyan-500 h-7" title="Extend free trial (full access)"
-                                  onClick={() => { setExtendMonths("1"); setExtendReason(""); setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at }); }}>
-                                  <CalendarClock className="w-3 h-3" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="text-xs text-amber-500 h-7" title="Grant comp access"
-                                  onClick={() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); }}>
-                                  <Gift className="w-3 h-3" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="text-xs text-destructive h-7" title="Delete"
-                                  onClick={() => setConfirmAction({ type: "delete", userId: u.id, email: u.email })}>
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
+                              {(() => {
+                                const actions = userRowActions(u);
+                                return (
+                                  <>
+                                    {/* Desktop / tablet: inline icon strip */}
+                                    <div className="hidden sm:flex items-center justify-end gap-1">
+                                      {actions.map((action) => {
+                                        const Icon = action.icon;
+                                        const toneClass = toneToClass(action.tone);
+                                        return (
+                                          <Button
+                                            key={action.key}
+                                            variant="ghost"
+                                            size="sm"
+                                            className={`text-xs h-7 ${toneClass}`}
+                                            title={desktopActionTitle(action)}
+                                            onClick={action.onSelect}
+                                          >
+                                            <Icon className={`w-3 h-3 ${action.iconClassName ?? ""}`} />
+                                          </Button>
+                                        );
+                                      })}
+                                    </div>
 
-                              {/* Mobile: collapsed dropdown menu (auto-closes on select) */}
-                              <div className="flex sm:hidden justify-end">
-                                <RowActionsMenu>
-                                  {(run) => (
-                                    <>
-                                      {!u.roles.includes("admin") ? (
-                                        <DropdownMenuItem onSelect={run(() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "admin" }))}>
-                                          <Crown className="w-4 h-4 mr-2" /> Make Admin
-                                        </DropdownMenuItem>
-                                      ) : (
-                                        <DropdownMenuItem onSelect={run(() => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "user" }))}>
-                                          <Crown className="w-4 h-4 mr-2 text-muted-foreground" /> Remove Admin
-                                        </DropdownMenuItem>
-                                      )}
-                                      {u.is_banned ? (
-                                        <DropdownMenuItem onSelect={run(() => setConfirmAction({ type: "unban", userId: u.id, email: u.email }))}>
-                                          <CheckCircle className="w-4 h-4 mr-2 text-green-500" /> Reactivate
-                                        </DropdownMenuItem>
-                                      ) : (
-                                        <DropdownMenuItem onSelect={run(() => setConfirmAction({ type: "ban", userId: u.id, email: u.email }))}>
-                                          <Ban className="w-4 h-4 mr-2 text-amber-500" /> Suspend
-                                        </DropdownMenuItem>
-                                      )}
-                                      <DropdownMenuItem onSelect={run(() => { setExtendMonths("1"); setExtendReason(""); setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at }); })}>
-                                        <CalendarClock className="w-4 h-4 mr-2 text-cyan-500" /> Extend trial
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onSelect={run(() => { setGrantTier("pro"); setGrantReason(""); setGrantDialog({ userId: u.id, email: u.email }); })}>
-                                        <Gift className="w-4 h-4 mr-2 text-amber-500" /> Grant comp access
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem className="text-destructive focus:text-destructive"
-                                        onSelect={run(() => setConfirmAction({ type: "delete", userId: u.id, email: u.email }))}>
-                                        <Trash2 className="w-4 h-4 mr-2" /> Delete user
-                                      </DropdownMenuItem>
-                                    </>
-                                  )}
-                                </RowActionsMenu>
-                              </div>
+                                    {/* Mobile: collapsed dropdown menu (auto-closes on select) */}
+                                    <div className="flex sm:hidden justify-end">
+                                      <RowActionsMenu>
+                                        {(run) => (
+                                          <>
+                                            {actions.map((action, idx) => {
+                                              const Icon = action.icon;
+                                              return (
+                                                <Fragment key={action.key}>
+                                                  {action.separatorBefore && idx > 0 && <DropdownMenuSeparator />}
+                                                  <DropdownMenuItem
+                                                    className={action.destructive ? "text-destructive focus:text-destructive" : ""}
+                                                    onSelect={run(action.onSelect)}
+                                                  >
+                                                    <Icon className={`w-4 h-4 mr-2 ${action.iconClassName ?? ""}`} />
+                                                    {action.label}
+                                                  </DropdownMenuItem>
+                                                </Fragment>
+                                              );
+                                            })}
+                                          </>
+                                        )}
+                                      </RowActionsMenu>
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </>
                           ) : (
                             <span className="text-xs text-muted-foreground italic block text-right">You</span>
