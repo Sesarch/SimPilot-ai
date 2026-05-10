@@ -39,12 +39,25 @@ const PostCheckoutBrandBanner = ({
         ? "cancelled"
         : null;
 
+  // Recover the plan from the URL so refreshing or sharing the redirect link
+  // still surfaces the right context. Falls back to a generic label.
+  const planSlug = (params.get("plan") || "").toLowerCase();
+  const planLabel =
+    planSlug === "student"
+      ? "Student"
+      : planSlug === "pro"
+        ? "Pro"
+        : planSlug === "ultra"
+          ? "Ultra"
+          : null;
+
   const [open, setOpen] = useState<boolean>(detected !== null);
 
   useEffect(() => {
     if (!detected || forced || !stripParamsOnShow) return;
-    // Clear the checkout flags from the URL so a refresh doesn't re-show the
-    // banner, but keep any other params the page may rely on.
+    // Clear only the transient checkout flags. Leave `plan`, `price`, and
+    // `session_id` in the URL so a refresh / shared link still recovers the
+    // selected plan context.
     const next = new URLSearchParams(params);
     next.delete("subscribed");
     next.delete("checkout");
@@ -55,13 +68,14 @@ const PostCheckoutBrandBanner = ({
   if (!detected || !open) return null;
 
   const isSuccess = detected === "success";
+  const planSuffix = planLabel ? ` ${planLabel}` : "";
   const headline =
     title ?? (isSuccess ? "Welcome aboard, pilot." : "Checkout cancelled.");
   const body =
     description ??
     (isSuccess
-      ? "Your SimPilot.AI subscription is active. Pre-flight your training below."
-      : "No charge was made. Your seat is still here whenever you're ready.");
+      ? `Your SimPilot.AI${planSuffix} subscription is active. Pre-flight your training below.`
+      : `No charge was made. Your${planSuffix ? planSuffix + " " : " "}seat is still here whenever you're ready.`);
 
   return (
     <div
