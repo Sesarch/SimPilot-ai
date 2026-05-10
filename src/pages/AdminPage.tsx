@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
   LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock, MoreHorizontal,
+  LayoutDashboard, CreditCard, FileBarChart, ScrollText, AlertTriangle, Sparkles, GraduationCap,
+  Brain, BookOpen, Globe, Settings,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -546,26 +548,27 @@ const AdminPage = () => {
           */}
           <TabsList className="w-full grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-13 gap-1 h-auto mb-8 p-1.5 rounded-lg border border-border/60 bg-card/60 backdrop-blur-sm">
             {[
-              ["overview", "Overview"],
-              ["payments", "Payments"],
-              ["reports", "Reports"],
-              ["users", "Users"],
-              ["audit", "Audit"],
-              ["errors", "Errors"],
-              ["leads", "Leads"],
-              ["schools", "Schools"],
-              ["emails", "Emails"],
-              ["models", "Models"],
-              ["kb", "Knowledge"],
-              ["seo", "SEO"],
-              ["settings", "Settings"],
-            ].map(([value, label]) => (
+              { value: "overview", label: "Overview", Icon: LayoutDashboard },
+              { value: "payments", label: "Payments", Icon: CreditCard },
+              { value: "reports", label: "Reports", Icon: FileBarChart },
+              { value: "users", label: "Users", Icon: Users },
+              { value: "audit", label: "Audit", Icon: ScrollText },
+              { value: "errors", label: "Errors", Icon: AlertTriangle },
+              { value: "leads", label: "Leads", Icon: Sparkles },
+              { value: "schools", label: "Schools", Icon: GraduationCap },
+              { value: "emails", label: "Emails", Icon: Mail },
+              { value: "models", label: "Models", Icon: Brain },
+              { value: "kb", label: "Knowledge", Icon: BookOpen },
+              { value: "seo", label: "SEO", Icon: Globe },
+              { value: "settings", label: "Settings", Icon: Settings },
+            ].map(({ value, label, Icon }) => (
               <TabsTrigger
                 key={value}
                 value={value}
-                className="px-2.5 py-1.5 text-[13px] font-medium tracking-normal text-muted-foreground rounded-md transition-colors hover:text-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                className="gap-1.5 px-2.5 py-1.5 text-[13px] font-medium tracking-normal text-muted-foreground rounded-md transition-colors hover:text-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-sm"
               >
-                {label}
+                <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span>{label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
