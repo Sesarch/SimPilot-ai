@@ -304,9 +304,20 @@ const StripeDiagnosticsPanel = () => {
               />
             )}
           </div>
-              <p className="text-[11px] text-current/80 mt-0.5 break-words">
+          <p className="text-[11px] text-current/80 mt-0.5 break-words">
             {connection.detail}
           </p>
+          {connection.action && (
+            <a
+              href={stripeUrl(connection.action.path, isLive)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-medium underline-offset-2 hover:underline"
+            >
+              {connection.action.label}
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
         </div>
       </div>
 
