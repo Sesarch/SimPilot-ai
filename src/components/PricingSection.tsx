@@ -482,7 +482,22 @@ const PricingSection = () => {
           </p>
         </motion.div>
 
-        <PlanQuickCompare />
+        <PlanQuickCompare
+          selectedPlanName={currentPlanName}
+          loadingPlanName={loadingPlan}
+          onSelect={(planName) => {
+            const target = plans.find((p) => p.name === planName);
+            if (!target) return;
+            // Scroll the matching plan card into view so the user sees the
+            // pre-selected tier before checkout opens.
+            if (typeof document !== "undefined") {
+              const grid = document.querySelector('#pricing [data-qa-card]')?.parentElement;
+              const card = grid?.querySelectorAll('[data-qa-card]')[plans.indexOf(target)] as HTMLElement | undefined;
+              card?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+            handleCtaClick(target);
+          }}
+        />
         <PlanComparisonTable />
         <ForSchoolsSection />
         <PricingFAQ />
