@@ -535,7 +535,13 @@ const AdminPage = () => {
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 sm:grid-cols-7 lg:grid-cols-13 mb-8">
+          {/*
+            Responsive layout: flex-wrap below lg lets each trigger size to its
+            label and wrap onto multiple rows (no cramped 4-col grid that
+            squeezes "Knowledge"/"Settings" into ellipsis). At lg+ we switch to
+            an equal 13-col grid so the full strip lines up on one row.
+          */}
+          <TabsList className="w-full flex flex-wrap gap-1 h-auto lg:grid lg:grid-cols-13 lg:gap-0 mb-8">
             <TabsTrigger value="overview" className="font-display text-xs tracking-wider">Overview</TabsTrigger>
             <TabsTrigger value="payments" className="font-display text-xs tracking-wider">Payments</TabsTrigger>
             <TabsTrigger value="reports" className="font-display text-xs tracking-wider">Reports</TabsTrigger>
