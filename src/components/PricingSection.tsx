@@ -296,22 +296,22 @@ const PricingSection = () => {
           </p>
 
           {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-3 mt-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
             <div
               role="tablist"
               aria-label="Billing interval"
-              className="relative inline-flex items-center p-1.5 rounded-full border-2 border-primary/40 bg-card/60 backdrop-blur-sm shadow-[0_0_24px_-6px_hsl(var(--primary)/0.45)]"
+              className="relative inline-flex items-center p-2 rounded-full border-2 border-primary/50 bg-card/70 backdrop-blur-sm shadow-[0_0_40px_-8px_hsl(var(--primary)/0.6)] ring-1 ring-primary/20"
             >
               <motion.div
-                className="absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] rounded-full bg-primary shadow-[0_0_18px_hsl(var(--primary)/0.55)]"
-                animate={{ left: annual ? "calc(50% + 0rem)" : "0.375rem" }}
+                className="absolute top-2 bottom-2 w-[calc(50%-0.5rem)] rounded-full bg-primary shadow-[0_0_28px_hsl(var(--primary)/0.7)]"
+                animate={{ left: annual ? "50%" : "0.5rem" }}
                 transition={{ type: "spring", stiffness: 500, damping: 32 }}
               />
               <button
                 role="tab"
                 aria-selected={!annual}
                 onClick={() => setAnnual(false)}
-                className={`relative z-10 px-6 py-2 rounded-full font-display text-sm tracking-widest uppercase font-bold transition-colors ${
+                className={`relative z-10 px-8 md:px-10 py-3 md:py-3.5 rounded-full font-display text-base md:text-lg tracking-[0.2em] uppercase font-bold transition-colors ${
                   !annual ? "text-background" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -321,7 +321,7 @@ const PricingSection = () => {
                 role="tab"
                 aria-selected={annual}
                 onClick={() => setAnnual(true)}
-                className={`relative z-10 px-6 py-2 rounded-full font-display text-sm tracking-widest uppercase font-bold transition-colors flex items-center gap-2 ${
+                className={`relative z-10 px-8 md:px-10 py-3 md:py-3.5 rounded-full font-display text-base md:text-lg tracking-[0.2em] uppercase font-bold transition-colors ${
                   annual ? "text-background" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -334,7 +334,7 @@ const PricingSection = () => {
                   initial={{ opacity: 0, scale: 0.8, x: -8 }}
                   animate={{ opacity: 1, scale: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.8, x: -8 }}
-                  className="text-[10px] font-display font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-primary/15 text-primary border border-primary/30"
+                  className="text-xs font-display font-bold tracking-widest uppercase px-3 py-1.5 rounded-full bg-primary/20 text-primary border border-primary/40 shadow-[0_0_18px_-4px_hsl(var(--primary)/0.6)]"
                 >
                   Save 20%+
                 </motion.span>
