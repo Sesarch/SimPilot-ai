@@ -926,8 +926,13 @@ export type Database = {
           rating_focus: string | null
           region: string | null
           school_seat_code_id: string | null
+          stripe_customer_id: string | null
+          subscription_current_period_end: string | null
           subscription_expires_at: string | null
+          subscription_id: string | null
           subscription_source: string | null
+          subscription_status: string | null
+          subscription_tier: string | null
           tail_number: string | null
           terms_agreed_at: string | null
           training_progress: Json
@@ -951,8 +956,13 @@ export type Database = {
           rating_focus?: string | null
           region?: string | null
           school_seat_code_id?: string | null
+          stripe_customer_id?: string | null
+          subscription_current_period_end?: string | null
           subscription_expires_at?: string | null
+          subscription_id?: string | null
           subscription_source?: string | null
+          subscription_status?: string | null
+          subscription_tier?: string | null
           tail_number?: string | null
           terms_agreed_at?: string | null
           training_progress?: Json
@@ -976,8 +986,13 @@ export type Database = {
           rating_focus?: string | null
           region?: string | null
           school_seat_code_id?: string | null
+          stripe_customer_id?: string | null
+          subscription_current_period_end?: string | null
           subscription_expires_at?: string | null
+          subscription_id?: string | null
           subscription_source?: string | null
+          subscription_status?: string | null
+          subscription_tier?: string | null
           tail_number?: string | null
           terms_agreed_at?: string | null
           training_progress?: Json
