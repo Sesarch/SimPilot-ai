@@ -279,6 +279,8 @@ const StripeDiagnosticsPanel = () => {
       <div className={`rounded-lg border px-3 py-2.5 flex items-start gap-3 ${connectionStyles}`}>
         {connection.tone === "ok" ? (
           <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+        ) : connection.tone === "info" ? (
+          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-primary" />
         ) : connection.tone === "warn" ? (
           <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
         ) : (
@@ -356,6 +358,7 @@ const StripeDiagnosticsPanel = () => {
         const items = CHECKLIST.map((c) => ({ ...c, result: data.scopes![c.key] }));
         const failing = items.filter((i) => !i.result.ok);
         const requiredFailing = failing.filter((i) => i.required);
+        const setupTips = failing.filter((i) => !i.required);
         const allGreen = failing.length === 0;
         return (
           <div className="rounded-xl border border-border/60 bg-background/30 overflow-hidden">
@@ -372,10 +375,12 @@ const StripeDiagnosticsPanel = () => {
                   <Badge className="bg-amber-instrument/15 text-amber-instrument border-0 text-[10px]">
                     {requiredFailing.length} action needed
                   </Badge>
-                ) : (
-                  <Badge className="bg-amber-instrument/15 text-amber-instrument border-0 text-[10px]">
-                    {failing.length} setup tip
+                ) : setupTips.length > 0 ? (
+                  <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary text-[10px]">
+                    {setupTips.length} setup tip
                   </Badge>
+                ) : (
+                  null
                 )}
               </div>
               <a
