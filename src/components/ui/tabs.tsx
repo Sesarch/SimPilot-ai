@@ -32,9 +32,10 @@ const TabsTrigger = React.forwardRef<
     className={cn(
       // Idle: brighter than muted-foreground (5.99:1 → ~8:1 against bg).
       // Active: real elevation — primary-tinted ring + shadow so the pill pops.
-      // min-h-8 + leading-none locks every trigger to the same height regardless
-      // of label length, font-display tracking, or grid stretching.
-      "inline-flex min-h-8 items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium leading-none text-foreground/70 ring-offset-background transition-all hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-[0_0_0_1px_hsl(var(--primary)/0.45),0_2px_8px_-2px_hsl(var(--primary)/0.35)]",
+      // !min-h-8 + !leading-none use the important modifier so per-page overrides
+      // (e.g. AdminPage's `font-display text-xs tracking-wider`) can't drop the
+      // height lock and reintroduce the vertical-compression bug.
+      "inline-flex !min-h-8 items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium !leading-none text-foreground/70 ring-offset-background transition-all hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-[0_0_0_1px_hsl(var(--primary)/0.45),0_2px_8px_-2px_hsl(var(--primary)/0.35)]",
       className,
     )}
     {...props}
