@@ -57,6 +57,7 @@ type AdminUser = {
   last_transmission_at: string | null;
   total_sim_hours: number;
   comp_grant: { plan_tier: string; expires_at: string | null } | null;
+  extended_months?: number;
 };
 
 type LeadEmail = {
@@ -717,16 +718,26 @@ const AdminPage = () => {
                                       {actions.map((action) => {
                                         const Icon = action.icon;
                                         const toneClass = toneToClass(action.tone);
+                                        const extMonths = action.key === "extend-trial" ? (u.extended_months ?? 0) : 0;
+                                        const showExtBadge = extMonths > 0;
                                         return (
                                           <Button
                                             key={action.key}
                                             variant="ghost"
                                             size="sm"
-                                            className={`text-xs h-7 ${toneClass}`}
-                                            title={desktopActionTitle(action)}
+                                            className={`relative text-xs h-7 ${toneClass}`}
+                                            title={showExtBadge ? `${desktopActionTitle(action)} — extended ${extMonths} mo` : desktopActionTitle(action)}
                                             onClick={action.onSelect}
                                           >
                                             <Icon className={`w-3 h-3 ${action.iconClassName ?? ""}`} />
+                                            {showExtBadge && (
+                                              <span
+                                                aria-label={`Extended ${extMonths} months`}
+                                                className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-[3px] rounded-full bg-green-500 text-[9px] font-semibold leading-[14px] text-white text-center shadow-sm border border-background"
+                                              >
+                                                {extMonths % 1 === 0 ? extMonths : extMonths.toFixed(1)}
+                                              </span>
+                                            )}
                                           </Button>
                                         );
                                       })}

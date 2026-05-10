@@ -134,6 +134,20 @@ Deno.serve(async (req) => {
       const grantByUser = new Map<string, { plan_tier: string; expires_at: string | null }>();
       (grants || []).forEach((g: any) => grantByUser.set(g.user_id, { plan_tier: g.plan_tier, expires_at: g.expires_at }));
 
+      // Aggregate trial extensions from admin_audit_log
+      const { data: extendLogs } = await adminClient
+        .from("admin_audit_log")
+        .select("target_id, details")
+        .eq("action", "trial.extend")
+        .eq("target_type", "user")
+        .in("target_id", userIds);
+      const extendedMonthsByUser = new Map<string, number>();
+      (extendLogs || []).forEach((row: any) => {
+        const m = Number(row?.details?.months) || 0;
+        if (!row.target_id || m <= 0) return;
+        extendedMonthsByUser.set(row.target_id, (extendedMonthsByUser.get(row.target_id) || 0) + m);
+      });
+
       const enriched = data.users.map((u: any) => ({
         id: u.id,
         email: u.email,
@@ -149,6 +163,7 @@ Deno.serve(async (req) => {
         last_transmission_at: lastTxByUser.get(u.id) || null,
         total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
         comp_grant: grantByUser.get(u.id) || null,
+        extended_months: Math.round((extendedMonthsByUser.get(u.id) || 0) * 10) / 10,
       }));
 
       return new Response(JSON.stringify({ users: enriched, total: data.users.length }), {
