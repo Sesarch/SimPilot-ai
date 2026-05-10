@@ -14,13 +14,9 @@ import { render } from "@testing-library/react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const REQUIRED_LIST_CLASSES = ["min-h-10"];
-const REQUIRED_TRIGGER_CLASSES = [
-  "min-h-8",
-  "leading-none",
-  "px-3",
-  "py-1.5",
-  "text-sm",
-];
+// `!` modifier survives tailwind-merge so per-page overrides (e.g. text-xs,
+// font-display) can't drop the height lock.
+const REQUIRED_TRIGGER_CLASSES = ["!min-h-8", "!leading-none", "px-3", "py-1.5"];
 
 describe("Admin tabs — vertical compression guard", () => {
   it("TabsList keeps a min-height so multi-row grids don't squish triggers", () => {
