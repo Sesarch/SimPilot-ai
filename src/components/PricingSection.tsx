@@ -297,30 +297,44 @@ const PricingSection = () => {
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-3 mt-6">
-            <span className={`text-sm transition-colors ${!annual ? "text-foreground" : "text-muted-foreground"}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setAnnual(!annual)}
-              className="relative w-14 h-7 rounded-full border border-border bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
-              aria-label="Toggle annual pricing"
+            <div
+              role="tablist"
+              aria-label="Billing interval"
+              className="relative inline-flex items-center p-1.5 rounded-full border-2 border-primary/40 bg-card/60 backdrop-blur-sm shadow-[0_0_24px_-6px_hsl(var(--primary)/0.45)]"
             >
               <motion.div
-                className="absolute top-0.5 w-6 h-6 rounded-full bg-primary shadow-md"
-                animate={{ left: annual ? "calc(100% - 1.625rem)" : "0.125rem" }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] rounded-full bg-primary shadow-[0_0_18px_hsl(var(--primary)/0.55)]"
+                animate={{ left: annual ? "calc(50% + 0rem)" : "0.375rem" }}
+                transition={{ type: "spring", stiffness: 500, damping: 32 }}
               />
-            </button>
-            <span className={`text-sm transition-colors ${annual ? "text-foreground" : "text-muted-foreground"}`}>
-              Annual
-            </span>
+              <button
+                role="tab"
+                aria-selected={!annual}
+                onClick={() => setAnnual(false)}
+                className={`relative z-10 px-6 py-2 rounded-full font-display text-sm tracking-widest uppercase font-bold transition-colors ${
+                  !annual ? "text-background" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                role="tab"
+                aria-selected={annual}
+                onClick={() => setAnnual(true)}
+                className={`relative z-10 px-6 py-2 rounded-full font-display text-sm tracking-widest uppercase font-bold transition-colors flex items-center gap-2 ${
+                  annual ? "text-background" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Annual
+              </button>
+            </div>
             <AnimatePresence>
               {annual && (
                 <motion.span
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="text-[10px] font-display tracking-widest uppercase px-2.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25"
+                  initial={{ opacity: 0, scale: 0.8, x: -8 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                  className="text-[10px] font-display font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-primary/15 text-primary border border-primary/30"
                 >
                   Save 20%+
                 </motion.span>
