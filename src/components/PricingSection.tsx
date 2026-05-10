@@ -330,14 +330,25 @@ const PricingSection = () => {
             </div>
             <AnimatePresence>
               {annual && (
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.8, x: -8 }}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.7, x: -12 }}
                   animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, x: -8 }}
-                  className="text-xs font-display font-bold tracking-widest uppercase px-3 py-1.5 rounded-full bg-primary/20 text-primary border border-primary/40 shadow-[0_0_18px_-4px_hsl(var(--primary)/0.6)]"
+                  exit={{ opacity: 0, scale: 0.7, x: -12 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                  className="relative"
                 >
-                  Save 20%+
-                </motion.span>
+                  {/* Pulsing glow ring */}
+                  <motion.span
+                    aria-hidden
+                    className="absolute inset-0 rounded-full bg-emerald-400/40 blur-md"
+                    animate={{ opacity: [0.4, 0.85, 0.4], scale: [1, 1.15, 1] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <span className="relative inline-flex items-center gap-1.5 text-xs md:text-sm font-display font-extrabold tracking-[0.18em] uppercase px-3.5 py-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 text-background border border-emerald-300/70 shadow-[0_0_24px_-2px_hsl(152_70%_50%/0.85)]">
+                    <span className="text-sm md:text-base leading-none">✦</span>
+                    Save 20%+
+                  </span>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
