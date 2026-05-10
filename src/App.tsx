@@ -106,6 +106,7 @@ const App = () => (
               <Route path="/mfa" element={<MfaChallengePage />} />
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route path="/pilot/:userId" element={<PublicProfilePage />} />
+              <Route path="/checkout/redirect" element={<CheckoutRedirectPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />
