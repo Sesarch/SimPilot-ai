@@ -544,20 +544,30 @@ const AdminPage = () => {
             - lg (≥1024px):                  13 per row — full strip on desktop
             h-auto so the TabsList grows with multi-row layouts.
           */}
-          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-2 md:grid-cols-7 lg:grid-cols-13 gap-1 lg:gap-0 h-auto mb-8">
-            <TabsTrigger value="overview" className="font-display text-xs tracking-wider">Overview</TabsTrigger>
-            <TabsTrigger value="payments" className="font-display text-xs tracking-wider">Payments</TabsTrigger>
-            <TabsTrigger value="reports" className="font-display text-xs tracking-wider">Reports</TabsTrigger>
-            <TabsTrigger value="users" className="font-display text-xs tracking-wider">Users</TabsTrigger>
-            <TabsTrigger value="audit" className="font-display text-xs tracking-wider">Audit</TabsTrigger>
-            <TabsTrigger value="errors" className="font-display text-xs tracking-wider">Errors</TabsTrigger>
-            <TabsTrigger value="leads" className="font-display text-xs tracking-wider">Leads</TabsTrigger>
-            <TabsTrigger value="schools" className="font-display text-xs tracking-wider">Schools</TabsTrigger>
-            <TabsTrigger value="emails" className="font-display text-xs tracking-wider">Emails</TabsTrigger>
-            <TabsTrigger value="models" className="font-display text-xs tracking-wider">Models</TabsTrigger>
-            <TabsTrigger value="kb" className="font-display text-xs tracking-wider">Knowledge</TabsTrigger>
-            <TabsTrigger value="seo" className="font-display text-xs tracking-wider">SEO</TabsTrigger>
-            <TabsTrigger value="settings" className="font-display text-xs tracking-wider">Settings</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-13 gap-1 h-auto mb-8 p-1.5 rounded-lg border border-border/60 bg-card/60 backdrop-blur-sm">
+            {[
+              ["overview", "Overview"],
+              ["payments", "Payments"],
+              ["reports", "Reports"],
+              ["users", "Users"],
+              ["audit", "Audit"],
+              ["errors", "Errors"],
+              ["leads", "Leads"],
+              ["schools", "Schools"],
+              ["emails", "Emails"],
+              ["models", "Models"],
+              ["kb", "Knowledge"],
+              ["seo", "SEO"],
+              ["settings", "Settings"],
+            ].map(([value, label]) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="px-2.5 py-1.5 text-[13px] font-medium tracking-normal text-muted-foreground rounded-md transition-colors hover:text-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-sm"
+              >
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {/* Overview Tab */}
