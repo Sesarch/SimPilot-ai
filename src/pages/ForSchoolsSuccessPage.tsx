@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Logo from "@/components/Logo";
 
 interface FinalizeResult {
   status: "ready" | "pending";
@@ -91,6 +92,14 @@ const ForSchoolsSuccessPage = () => {
       <Navbar />
       <main className="min-h-screen bg-background pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-3xl">
+          {/* Branded post-checkout header — always visible after Stripe redirect */}
+          <div className="flex flex-col items-center text-center mb-8">
+            <Logo height={40} />
+            <p className="mt-3 text-xs uppercase tracking-[0.25em] text-primary">
+              SimPilot.AI · Flight School
+            </p>
+          </div>
+
           {loading && (
             <div className="text-center py-20">
               <Loader2 className="h-10 w-10 animate-spin text-accent mx-auto mb-4" />
