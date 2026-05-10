@@ -13,7 +13,9 @@ const TabsList = React.forwardRef<
     ref={ref}
     className={cn(
       // Stronger container so the strip reads in dark mode against the page bg.
-      "inline-flex h-10 items-center justify-center rounded-md border border-border/70 bg-card/70 p-1 text-muted-foreground backdrop-blur-sm",
+      // min-h-10 (not fixed h-10) lets multi-row grid TabsLists stay consistent
+      // without squishing triggers; triggers themselves enforce their own height.
+      "inline-flex min-h-10 items-center justify-center rounded-md border border-border/70 bg-card/70 p-1 text-muted-foreground backdrop-blur-sm",
       className,
     )}
     {...props}
