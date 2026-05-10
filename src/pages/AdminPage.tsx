@@ -5,8 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
   LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock, MoreHorizontal,
-  LayoutDashboard, CreditCard, FileBarChart, ScrollText, AlertTriangle, Sparkles, GraduationCap,
-  Brain, BookOpen, Globe, Settings,
   type LucideIcon,
 } from "lucide-react";
 import {
