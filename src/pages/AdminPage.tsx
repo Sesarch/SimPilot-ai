@@ -565,7 +565,7 @@ const AdminPage = () => {
               <TabsTrigger
                 key={value}
                 value={value}
-                className="gap-1.5 px-2.5 py-1.5 text-[13px] font-medium tracking-normal text-muted-foreground rounded-md transition-colors hover:text-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                className="gap-1.5 px-2.5 py-1.5 text-[13px] font-medium tracking-normal text-muted-foreground rounded-md transition-all duration-150 hover:text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/30"
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>{label}</span>
