@@ -469,6 +469,21 @@ const StripeDiagnosticsPanel = () => {
                   key → grant <span className="font-mono text-foreground">Account</span> read
                   access (<span className="font-mono">rak_accounts_kyc_basic_read</span>).
                 </p>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="h-7 mt-2 text-[11px] gap-1.5 border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument"
+                >
+                  <a
+                    href={stripeUrl("/apikeys", isLive)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Edit restricted key
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </Button>
               </div>
             ) : (
               <div className="text-destructive text-xs break-words">{data.account.error}</div>
