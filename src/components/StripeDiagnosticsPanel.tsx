@@ -376,7 +376,7 @@ const StripeDiagnosticsPanel = () => {
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-0.5">{item.hint}</p>
                     {!item.result.ok && (
-                      <p className="text-[11px] text-amber-400/90 mt-1">
+                    <p className="text-[11px] text-amber-instrument mt-1">
                         <span className="font-medium">Fix:</span> {item.fix}
                       </p>
                     )}
@@ -409,10 +409,10 @@ const StripeDiagnosticsPanel = () => {
           </div>
           {data.account.error ? (
             /accounts_kyc_basic_read|required permissions/i.test(data.account.error) ? (
-              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] leading-relaxed">
-                <div className="flex items-center gap-1.5 text-amber-500 font-medium mb-1">
+              <div className="rounded-lg border border-amber-instrument/30 bg-amber-instrument/10 p-2.5 text-[11px] leading-relaxed">
+                <div className="flex items-center gap-1.5 text-amber-instrument font-medium mb-1">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  Account read permission missing
+                  Account read permission needed
                 </div>
                 <p className="text-muted-foreground">
                   This restricted key can resolve prices but can't read your Stripe account
@@ -459,7 +459,7 @@ const StripeDiagnosticsPanel = () => {
                 )}
                 <span
                   className={`flex items-center gap-1 ${
-                    data.account.charges_enabled ? "text-green-500" : "text-amber-500"
+                    data.account.charges_enabled ? "text-hud-green" : "text-amber-instrument"
                   }`}
                 >
                   <CheckCircle2 className="w-3 h-3" />
