@@ -189,6 +189,23 @@ const PricingSection = () => {
         err instanceof Error && err.message
           ? err.message
           : "Could not start checkout.";
+      const subject = `Checkout error — ${plan.name} plan`;
+      const body = [
+        `Hi SimPilot support,`,
+        ``,
+        `I hit an error trying to start checkout for the ${plan.name} plan.`,
+        ``,
+        `Error: ${message}`,
+        `Plan: ${plan.name}`,
+        `Price ID: ${plan.price_id ?? "n/a"}`,
+        `Page: ${typeof window !== "undefined" ? window.location.href : ""}`,
+        `Time: ${new Date().toISOString()}`,
+        ``,
+        `Thanks!`,
+      ].join("\n");
+      const mailto = `mailto:support@simpilot.ai?subject=${encodeURIComponent(
+        subject
+      )}&body=${encodeURIComponent(body)}`;
       toast.error(`Couldn't open ${plan.name} checkout`, {
         description: `${message} Please try again.`,
         action: {
@@ -198,7 +215,13 @@ const PricingSection = () => {
             setTimeout(() => handleCtaClick(plan, { isRetry: true }), 0);
           },
         },
-        duration: 8000,
+        cancel: {
+          label: "Contact support",
+          onClick: () => {
+            window.open(mailto, "_blank", "noopener,noreferrer");
+          },
+        },
+        duration: 10000,
       });
     } finally {
       setLoadingPlan(null);
