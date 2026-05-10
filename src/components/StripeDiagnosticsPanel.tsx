@@ -400,7 +400,7 @@ const StripeDiagnosticsPanel = () => {
                   ) : item.required ? (
                     <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
                   ) : (
-                    <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -414,14 +414,14 @@ const StripeDiagnosticsPanel = () => {
                     <p className="text-[11px] text-muted-foreground mt-0.5">{item.hint}</p>
                     {!item.result.ok && (
                       <>
-                        <p className="text-[11px] text-amber-instrument mt-1">
-                          <span className="font-medium">Fix:</span> {item.fix}
+                        <p className={`text-[11px] mt-1 ${item.required ? "text-amber-instrument" : "text-muted-foreground"}`}>
+                          <span className="font-medium">{item.required ? "Fix:" : "Setup tip:"}</span> {item.fix}
                         </p>
                         <Button
                           asChild
                           size="sm"
                           variant="outline"
-                          className="h-7 mt-2 text-[11px] gap-1.5 border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument"
+                          className={`h-7 mt-2 text-[11px] gap-1.5 ${item.required ? "border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument" : "border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"}`}
                         >
                           <a
                             href={stripeUrl(item.action.path, isLive)}
