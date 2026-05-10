@@ -8,6 +8,8 @@ import {
   Loader2,
   RefreshCw,
   ShieldAlert,
+  XCircle,
+  ExternalLink,
 } from "lucide-react";
 
 type PriceInfo = {
@@ -21,6 +23,8 @@ type PriceInfo = {
   product?: string | null;
   error?: string;
 };
+
+type ScopeResult = { ok: boolean; error?: string };
 
 type Diagnostics = {
   mode: "live" | "test" | "unknown";
@@ -41,8 +45,75 @@ type Diagnostics = {
     error?: string;
   };
   prices: PriceInfo[];
+  scopes?: {
+    prices_read: ScopeResult;
+    products_read: ScopeResult;
+    account_read: ScopeResult;
+    branding_set: ScopeResult;
+    charges_enabled: ScopeResult;
+    customers_read: ScopeResult;
+    subscriptions_read: ScopeResult;
+  };
   checked_at: string;
 };
+
+const CHECKLIST: Array<{
+  key: keyof NonNullable<Diagnostics["scopes"]>;
+  label: string;
+  hint: string;
+  fix: string;
+  required: boolean;
+}> = [
+  {
+    key: "prices_read",
+    label: "Prices read",
+    hint: "Resolves Student / Pro / Ultra price IDs at checkout.",
+    fix: "Grant Prices → read on the restricted key (rak_prices_read).",
+    required: true,
+  },
+  {
+    key: "products_read",
+    label: "Products read",
+    hint: "Reads product metadata (features, tagline, badge) for the pricing UI.",
+    fix: "Grant Products → read on the restricted key (rak_products_read).",
+    required: true,
+  },
+  {
+    key: "customers_read",
+    label: "Customers read",
+    hint: "Looks up the Stripe customer record by email before checkout.",
+    fix: "Grant Customers → read on the restricted key (rak_customers_read).",
+    required: true,
+  },
+  {
+    key: "subscriptions_read",
+    label: "Subscriptions read",
+    hint: "Powers check-subscription so the app knows who's on Pro/Ultra.",
+    fix: "Grant Subscriptions → read on the restricted key (rak_subscriptions_read).",
+    required: true,
+  },
+  {
+    key: "account_read",
+    label: "Account read",
+    hint: "Reads your account so we can show the branding driving Checkout.",
+    fix: "Grant Account → read on the restricted key (rak_accounts_kyc_basic_read).",
+    required: false,
+  },
+  {
+    key: "branding_set",
+    label: "Branding configured",
+    hint: "Logo, icon and brand color shown to customers on Checkout.",
+    fix: "Stripe → Settings → Branding: upload a logo/icon and pick a primary color.",
+    required: false,
+  },
+  {
+    key: "charges_enabled",
+    label: "Charges enabled",
+    hint: "Required for the account to actually accept live payments.",
+    fix: "Complete Stripe account verification (Settings → Account details).",
+    required: true,
+  },
+];
 
 /**
  * Admin-only diagnostic for the Stripe key currently powering Checkout.
