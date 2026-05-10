@@ -355,7 +355,19 @@ const StripeDiagnosticsPanel = () => {
 
       {/* Onboarding checklist — verifies each restricted-key scope */}
       {data.scopes && (() => {
-        const items = CHECKLIST.map((c) => ({ ...c, result: data.scopes![c.key] }));
+        const items = CHECKLIST.map((c) => {
+          const adjusted = acctPermMissing && c.key === "charges_enabled"
+            ? {
+                ...c,
+                label: "Live verification preview",
+                hint: "Shown after Account read permission is added to this restricted key.",
+                fix: "Grant Account read, then refresh diagnostics to verify live payment status here.",
+                required: false,
+                action: { label: "Edit restricted key", path: "/apikeys" },
+              }
+            : c;
+          return { ...adjusted, result: data.scopes![c.key] };
+        });
         const failing = items.filter((i) => !i.result.ok);
         const requiredFailing = failing.filter((i) => i.required);
         const setupTips = failing.filter((i) => !i.required);
