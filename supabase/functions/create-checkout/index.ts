@@ -48,14 +48,19 @@ serve(async (req) => {
     const customerId = customers.data.length > 0 ? customers.data[0].id : undefined;
 
     const origin = req.headers.get("origin") || "https://simpilot.ai";
+    const planParam = encodeURIComponent(plan ?? "custom");
+    const priceParam = encodeURIComponent(resolvedPrice);
+    // Encode plan + price + session id into the redirect URLs so the landing
+    // page can recover the selected plan after a refresh or shared link.
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: resolvedPrice, quantity: 1 }],
       mode: "subscription",
-      success_url: `${origin}/dashboard?subscribed=1`,
-      cancel_url: `${origin}/dashboard?checkout=cancelled`,
+      success_url: `${origin}/dashboard?subscribed=1&plan=${planParam}&price=${priceParam}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/dashboard?checkout=cancelled&plan=${planParam}&price=${priceParam}`,
       metadata: { plan: plan ?? "custom", price_id: resolvedPrice, user_id: user.id },
+      client_reference_id: user.id,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
