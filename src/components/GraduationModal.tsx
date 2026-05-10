@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Check, ShieldAlert, Loader2, Clock, ArrowRight, Building2, Sparkles } from "lucide-react";
