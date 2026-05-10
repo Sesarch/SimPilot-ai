@@ -360,7 +360,7 @@ const StripeDiagnosticsPanel = () => {
                 )}
               </div>
               <a
-                href="https://dashboard.stripe.com/apikeys"
+                href={stripeUrl("/apikeys", isLive)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
@@ -389,9 +389,26 @@ const StripeDiagnosticsPanel = () => {
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-0.5">{item.hint}</p>
                     {!item.result.ok && (
-                    <p className="text-[11px] text-amber-instrument mt-1">
-                        <span className="font-medium">Fix:</span> {item.fix}
-                      </p>
+                      <>
+                        <p className="text-[11px] text-amber-instrument mt-1">
+                          <span className="font-medium">Fix:</span> {item.fix}
+                        </p>
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          className="h-7 mt-2 text-[11px] gap-1.5 border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument"
+                        >
+                          <a
+                            href={stripeUrl(item.action.path, isLive)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {item.action.label}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </Button>
+                      </>
                     )}
                   </div>
                 </li>
