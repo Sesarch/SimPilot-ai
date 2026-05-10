@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { CheckCircle2, XCircle, X, ArrowLeft } from "lucide-react";
+import { CheckCircle2, XCircle, X, ArrowLeft, Mail, Loader2 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type Variant = "success" | "cancelled";
 
@@ -53,6 +55,42 @@ const PostCheckoutBrandBanner = ({
           : null;
 
   const [open, setOpen] = useState<boolean>(detected !== null);
+  const [resending, setResending] = useState(false);
+  const sessionId = params.get("session_id");
+
+  const handleResendReceipt = async () => {
+    if (resending) return;
+    setResending(true);
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        toast.error("Please sign in to resend your receipt.");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("resend-receipt", {
+        body: { session_id: sessionId },
+      });
+      if (error) throw error;
+      if (data?.ok) {
+        if (data.method === "charge_receipt" && data.recipient) {
+          toast.success(`Receipt re-sent to ${data.recipient}`);
+        } else if (data.hosted_invoice_url) {
+          window.open(data.hosted_invoice_url, "_blank", "noopener,noreferrer");
+          toast.success("Opened your latest invoice.");
+        } else {
+          toast.success("Receipt request submitted.");
+        }
+      } else {
+        throw new Error(data?.error || "Could not resend receipt");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[PostCheckoutBrandBanner] resend-receipt error", err);
+      toast.error(msg.includes("No paid invoice") ? "No receipt available yet — try again in a moment." : "Could not resend receipt. Please try again.");
+    } finally {
+      setResending(false);
+    }
+  };
 
   useEffect(() => {
     if (!detected || forced || !stripParamsOnShow) return;
@@ -122,17 +160,31 @@ const PostCheckoutBrandBanner = ({
           </p>
         </div>
 
-        <Button
-          asChild
-          variant={isSuccess ? "outline" : "default"}
-          size="sm"
-          className="mt-1"
-        >
-          <Link to="/#pricing" aria-label="Back to plan selection">
-            <ArrowLeft className="h-4 w-4 mr-1.5" />
-            Back to plans
-          </Link>
-        </Button>
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+          <Button asChild variant={isSuccess ? "outline" : "default"} size="sm">
+            <Link to="/#pricing" aria-label="Back to plan selection">
+              <ArrowLeft className="h-4 w-4 mr-1.5" />
+              Back to plans
+            </Link>
+          </Button>
+          {isSuccess && (
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={handleResendReceipt}
+              disabled={resending}
+              aria-busy={resending}
+            >
+              {resending ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4 mr-1.5" />
+              )}
+              {resending ? "Sending…" : "Resend receipt"}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
