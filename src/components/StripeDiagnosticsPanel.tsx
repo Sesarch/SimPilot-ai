@@ -239,14 +239,21 @@ const StripeDiagnosticsPanel = () => {
           <h3 className="font-display text-sm">Stripe Checkout Diagnostics</h3>
           {modeBadge}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={load}
-          className="text-xs h-7 gap-1.5"
-        >
-          <RefreshCw className="w-3 h-3" /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-muted-foreground hidden sm:inline">
+            Checked {new Date(data.checked_at).toLocaleTimeString()}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={load}
+            disabled={loading}
+            className="text-xs h-7 gap-1.5"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
+            {loading ? "Refreshing…" : "Refresh diagnostics"}
+          </Button>
+        </div>
       </div>
 
       {/* Account connection status */}
