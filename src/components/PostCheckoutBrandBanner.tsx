@@ -191,9 +191,3 @@ const PostCheckoutBrandBanner = ({
 };
 
 export default PostCheckoutBrandBanner;
-      </div>
-    </div>
-  );
-};
-
-export default PostCheckoutBrandBanner;
