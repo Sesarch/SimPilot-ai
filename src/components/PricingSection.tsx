@@ -197,7 +197,7 @@ const PricingSection = () => {
         ``,
         `Error: ${message}`,
         `Plan: ${plan.name}`,
-        `Price ID: ${plan.price_id ?? "n/a"}`,
+        `Price ID: ${(plan as { checkoutPlan?: { price_id?: string } }).checkoutPlan?.price_id ?? "n/a"}`,
         `Page: ${typeof window !== "undefined" ? window.location.href : ""}`,
         `Time: ${new Date().toISOString()}`,
         ``,
