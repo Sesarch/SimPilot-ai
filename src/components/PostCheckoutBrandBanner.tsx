@@ -121,6 +121,18 @@ const PostCheckoutBrandBanner = ({
             {body}
           </p>
         </div>
+
+        <Button
+          asChild
+          variant={isSuccess ? "outline" : "default"}
+          size="sm"
+          className="mt-1"
+        >
+          <Link to="/#pricing" aria-label="Back to plan selection">
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Back to plans
+          </Link>
+        </Button>
       </div>
     </div>
   );
