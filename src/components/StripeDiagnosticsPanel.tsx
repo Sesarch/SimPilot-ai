@@ -209,6 +209,7 @@ const StripeDiagnosticsPanel = () => {
     tone: "ok" | "warn" | "error";
     label: string;
     detail: string;
+    action?: FixAction;
   } = acctErr
     ? acctPermMissing
       ? {
@@ -216,19 +217,22 @@ const StripeDiagnosticsPanel = () => {
           label: "Account read permission needed",
           detail:
             "Checkout scopes are working; add Account read to verify branding here.",
+          action: { label: "Edit restricted key", path: "/apikeys" },
         }
-      : { tone: "error", label: "Account unreachable", detail: acctErr }
+      : { tone: "error", label: "Account unreachable", detail: acctErr, action: { label: "Open API keys", path: "/apikeys" } }
     : !data.account.charges_enabled
       ? {
           tone: "warn",
           label: "Connected — charges disabled",
           detail: `${data.account.business_name ?? data.account.id} · finish Stripe verification to accept live payments.`,
+          action: { label: "Open Account details", path: "/settings/account" },
         }
       : !hasBranding
         ? {
             tone: "warn",
             label: "Connected — no branding",
             detail: `${data.account.business_name ?? data.account.id} · upload a logo and brand color in Stripe → Branding.`,
+            action: { label: "Open Branding settings", path: "/settings/branding" },
           }
         : {
             tone: "ok",
