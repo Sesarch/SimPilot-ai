@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DollarSign, TrendingUp, TrendingDown, Users, RefreshCw, ExternalLink, Gift, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import StripeDiagnosticsPanel from "./StripeDiagnosticsPanel";
 
 type Metrics = {
   mrr_cents: number;
@@ -222,6 +223,7 @@ const AdminPayments = () => {
 
   return (
     <div className="space-y-6">
+      <StripeDiagnosticsPanel />
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-primary" /> Payments & Revenue

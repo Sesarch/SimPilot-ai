@@ -215,7 +215,90 @@ Deno.serve(async (req) => {
       return json({ grants: data });
     }
 
-    // ---- POST actions ----
+    // ---- DIAGNOSTICS: Stripe mode + key fingerprint + price/account info ----
+    // Lets admins spot test/live mismatches and branding swaps at a glance.
+    // The full secret is never returned — only the prefix and last 4 chars.
+    if (req.method === "GET" && action === "diagnostics") {
+      const rawKey = stripeKey;
+      // sk_test_..., sk_live_..., rk_test_..., rk_live_...
+      const isLive = rawKey.includes("_live_");
+      const isTest = rawKey.includes("_test_");
+      const keyType = rawKey.startsWith("rk_") ? "restricted" : "secret";
+      const fingerprint =
+        rawKey.length > 12
+          ? `${rawKey.slice(0, 8)}…${rawKey.slice(-4)}`
+          : "unknown";
+
+      // Account-level info (drives the branding shown on Checkout).
+      let account: any = null;
+      try {
+        const acct = await stripe.accounts.retrieve();
+        account = {
+          id: acct.id,
+          country: acct.country,
+          business_name:
+            acct.settings?.dashboard?.display_name ??
+            acct.business_profile?.name ??
+            null,
+          support_email: acct.business_profile?.support_email ?? null,
+          branding: {
+            icon: acct.settings?.branding?.icon ?? null,
+            logo: acct.settings?.branding?.logo ?? null,
+            primary_color: acct.settings?.branding?.primary_color ?? null,
+            secondary_color: acct.settings?.branding?.secondary_color ?? null,
+          },
+          charges_enabled: acct.charges_enabled,
+          livemode: (acct as any).livemode ?? null,
+        };
+      } catch (e) {
+        account = { error: (e as Error).message };
+      }
+
+      // Resolve the canonical SimPilot price IDs so the UI can flag a
+      // test-mode price that's been wired into a live key (or vice-versa).
+      const PRICE_IDS: Record<string, string> = {
+        student: "price_1TNf5ZRusIXFsWjchdY05u0R",
+        pro: "price_1TQhYjRusIXFsWjc3wGvpiqS",
+        ultra: "price_1TQhZBRusIXFsWjc2jrUeFEi",
+      };
+      const prices: Array<{
+        plan: string;
+        id: string;
+        ok: boolean;
+        livemode?: boolean;
+        nickname?: string | null;
+        unit_amount?: number | null;
+        currency?: string | null;
+        product?: string | null;
+        error?: string;
+      }> = [];
+      for (const [plan, id] of Object.entries(PRICE_IDS)) {
+        try {
+          const p = await stripe.prices.retrieve(id);
+          prices.push({
+            plan,
+            id,
+            ok: true,
+            livemode: p.livemode,
+            nickname: p.nickname,
+            unit_amount: p.unit_amount,
+            currency: p.currency,
+            product: typeof p.product === "string" ? p.product : p.product?.id ?? null,
+          });
+        } catch (e) {
+          prices.push({ plan, id, ok: false, error: (e as Error).message });
+        }
+      }
+
+      return json({
+        mode: isLive ? "live" : isTest ? "test" : "unknown",
+        key: { type: keyType, fingerprint, prefix: rawKey.slice(0, 8) },
+        account,
+        prices,
+        checked_at: new Date().toISOString(),
+      });
+    }
+
     if (req.method === "POST") {
       const body = await req.json();
 
