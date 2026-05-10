@@ -151,7 +151,7 @@ const PricingSection = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const handleCtaClick = async (plan: typeof plans[number]) => {
+  const handleCtaClick = async (plan: typeof plans[number], opts?: { isRetry?: boolean }) => {
     if (loadingPlan) return;
 
     if (plan.name === "Flight School") {
@@ -179,12 +179,27 @@ const PricingSection = () => {
       if (error) throw error;
       if (data?.url) {
         window.open(data.url, "_blank");
+        if (opts?.isRetry) toast.success("Checkout reopened.");
       } else {
         throw new Error("No checkout URL returned");
       }
     } catch (err) {
       console.error("[PricingSection] checkout error", err);
-      toast.error("Could not start checkout. Please try again.");
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : "Could not start checkout.";
+      toast.error(`Couldn't open ${plan.name} checkout`, {
+        description: `${message} Please try again.`,
+        action: {
+          label: "Retry",
+          onClick: () => {
+            // Defer so the toast can dismiss before re-entering loading state.
+            setTimeout(() => handleCtaClick(plan, { isRetry: true }), 0);
+          },
+        },
+        duration: 8000,
+      });
     } finally {
       setLoadingPlan(null);
     }
