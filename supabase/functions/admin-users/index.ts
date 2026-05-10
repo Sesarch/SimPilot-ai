@@ -163,6 +163,7 @@ Deno.serve(async (req) => {
         last_transmission_at: lastTxByUser.get(u.id) || null,
         total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
         comp_grant: grantByUser.get(u.id) || null,
+        extended_months: Math.round((extendedMonthsByUser.get(u.id) || 0) * 10) / 10,
       }));
 
       return new Response(JSON.stringify({ users: enriched, total: data.users.length }), {
