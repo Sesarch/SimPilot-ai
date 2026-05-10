@@ -128,6 +128,8 @@ const CHECKLIST: Array<{
 const stripeUrl = (path: string, isLive: boolean) =>
   `https://dashboard.stripe.com${isLive ? "" : "/test"}${path}`;
 
+const ACCOUNT_READ_PERMISSION_RE = /accounts_kyc_basic_read|required permissions/i;
+
 /**
  * Admin-only diagnostic for the Stripe key currently powering Checkout.
  * Surfaces test/live mode, key fingerprint, account branding, and per-plan
@@ -199,24 +201,24 @@ const StripeDiagnosticsPanel = () => {
 
   // Connection status: can we read the account + does it have branding configured?
   const acctErr = data.account.error;
-  const acctPermMissing = !!acctErr && /accounts_kyc_basic_read|required permissions/i.test(acctErr);
+  const acctPermMissing = !!acctErr && ACCOUNT_READ_PERMISSION_RE.test(acctErr);
   const hasBranding = !!(
     data.account.branding?.icon ||
     data.account.branding?.logo ||
     data.account.branding?.primary_color
   );
   const connection: {
-    tone: "ok" | "warn" | "error";
+    tone: "ok" | "info" | "warn" | "error";
     label: string;
     detail: string;
     action?: FixAction;
   } = acctErr
     ? acctPermMissing
       ? {
-          tone: "warn",
-          label: "Account read permission needed",
+          tone: "info",
+          label: "Checkout key connected",
           detail:
-            "Checkout scopes are working; add Account read to verify branding here.",
+            "Core checkout checks can run; Account read only unlocks the branding and verification preview here.",
           action: { label: "Edit restricted key", path: "/apikeys" },
         }
       : { tone: "error", label: "Account unreachable", detail: acctErr, action: { label: "Open API keys", path: "/apikeys" } }
@@ -243,6 +245,8 @@ const StripeDiagnosticsPanel = () => {
   const connectionStyles =
     connection.tone === "ok"
       ? "border-hud-green/30 bg-hud-green/10 text-hud-green"
+      : connection.tone === "info"
+        ? "border-primary/30 bg-primary/5 text-foreground"
       : connection.tone === "warn"
         ? "border-amber-instrument/30 bg-amber-instrument/10 text-amber-instrument"
         : "border-destructive/40 bg-destructive/10 text-destructive";
