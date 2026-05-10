@@ -128,6 +128,8 @@ const CHECKLIST: Array<{
 const stripeUrl = (path: string, isLive: boolean) =>
   `https://dashboard.stripe.com${isLive ? "" : "/test"}${path}`;
 
+const ACCOUNT_READ_PERMISSION_RE = /accounts_kyc_basic_read|required permissions/i;
+
 /**
  * Admin-only diagnostic for the Stripe key currently powering Checkout.
  * Surfaces test/live mode, key fingerprint, account branding, and per-plan
@@ -199,24 +201,24 @@ const StripeDiagnosticsPanel = () => {
 
   // Connection status: can we read the account + does it have branding configured?
   const acctErr = data.account.error;
-  const acctPermMissing = !!acctErr && /accounts_kyc_basic_read|required permissions/i.test(acctErr);
+  const acctPermMissing = !!acctErr && ACCOUNT_READ_PERMISSION_RE.test(acctErr);
   const hasBranding = !!(
     data.account.branding?.icon ||
     data.account.branding?.logo ||
     data.account.branding?.primary_color
   );
   const connection: {
-    tone: "ok" | "warn" | "error";
+    tone: "ok" | "info" | "warn" | "error";
     label: string;
     detail: string;
     action?: FixAction;
   } = acctErr
     ? acctPermMissing
       ? {
-          tone: "warn",
-          label: "Account read permission needed",
+          tone: "info",
+          label: "Checkout key connected",
           detail:
-            "Checkout scopes are working; add Account read to verify branding here.",
+            "Core checkout checks can run; Account read only unlocks the branding and verification preview here.",
           action: { label: "Edit restricted key", path: "/apikeys" },
         }
       : { tone: "error", label: "Account unreachable", detail: acctErr, action: { label: "Open API keys", path: "/apikeys" } }
@@ -243,6 +245,8 @@ const StripeDiagnosticsPanel = () => {
   const connectionStyles =
     connection.tone === "ok"
       ? "border-hud-green/30 bg-hud-green/10 text-hud-green"
+      : connection.tone === "info"
+        ? "border-primary/30 bg-primary/5 text-foreground"
       : connection.tone === "warn"
         ? "border-amber-instrument/30 bg-amber-instrument/10 text-amber-instrument"
         : "border-destructive/40 bg-destructive/10 text-destructive";
@@ -275,6 +279,8 @@ const StripeDiagnosticsPanel = () => {
       <div className={`rounded-lg border px-3 py-2.5 flex items-start gap-3 ${connectionStyles}`}>
         {connection.tone === "ok" ? (
           <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+        ) : connection.tone === "info" ? (
+          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-primary" />
         ) : connection.tone === "warn" ? (
           <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
         ) : (
@@ -349,9 +355,22 @@ const StripeDiagnosticsPanel = () => {
 
       {/* Onboarding checklist — verifies each restricted-key scope */}
       {data.scopes && (() => {
-        const items = CHECKLIST.map((c) => ({ ...c, result: data.scopes![c.key] }));
+        const items = CHECKLIST.map((c) => {
+          const adjusted = acctPermMissing && c.key === "charges_enabled"
+            ? {
+                ...c,
+                label: "Live verification preview",
+                hint: "Shown after Account read permission is added to this restricted key.",
+                fix: "Grant Account read, then refresh diagnostics to verify live payment status here.",
+                required: false,
+                action: { label: "Edit restricted key", path: "/apikeys" },
+              }
+            : c;
+          return { ...adjusted, result: data.scopes![c.key] };
+        });
         const failing = items.filter((i) => !i.result.ok);
         const requiredFailing = failing.filter((i) => i.required);
+        const setupTips = failing.filter((i) => !i.required);
         const allGreen = failing.length === 0;
         return (
           <div className="rounded-xl border border-border/60 bg-background/30 overflow-hidden">
@@ -368,10 +387,12 @@ const StripeDiagnosticsPanel = () => {
                   <Badge className="bg-amber-instrument/15 text-amber-instrument border-0 text-[10px]">
                     {requiredFailing.length} action needed
                   </Badge>
-                ) : (
-                  <Badge className="bg-amber-instrument/15 text-amber-instrument border-0 text-[10px]">
-                    {failing.length} setup tip
+                ) : setupTips.length > 0 ? (
+                  <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary text-[10px]">
+                    {setupTips.length} setup tip
                   </Badge>
+                ) : (
+                  null
                 )}
               </div>
               <a
@@ -391,7 +412,7 @@ const StripeDiagnosticsPanel = () => {
                   ) : item.required ? (
                     <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
                   ) : (
-                    <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -405,14 +426,14 @@ const StripeDiagnosticsPanel = () => {
                     <p className="text-[11px] text-muted-foreground mt-0.5">{item.hint}</p>
                     {!item.result.ok && (
                       <>
-                        <p className="text-[11px] text-amber-instrument mt-1">
-                          <span className="font-medium">Fix:</span> {item.fix}
+                        <p className={`text-[11px] mt-1 ${item.required ? "text-amber-instrument" : "text-muted-foreground"}`}>
+                          <span className="font-medium">{item.required ? "Fix:" : "Setup tip:"}</span> {item.fix}
                         </p>
                         <Button
                           asChild
                           size="sm"
                           variant="outline"
-                          className="h-7 mt-2 text-[11px] gap-1.5 border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument"
+                          className={`h-7 mt-2 text-[11px] gap-1.5 ${item.required ? "border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument" : "border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"}`}
                         >
                           <a
                             href={stripeUrl(item.action.path, isLive)}
@@ -450,22 +471,21 @@ const StripeDiagnosticsPanel = () => {
 
         <div className="space-y-1">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Stripe account (drives Checkout branding)
+            Stripe account preview (optional)
           </div>
           {data.account.error ? (
-            /accounts_kyc_basic_read|required permissions/i.test(data.account.error) ? (
-              <div className="rounded-lg border border-amber-instrument/30 bg-amber-instrument/10 p-2.5 text-[11px] leading-relaxed">
-                <div className="flex items-center gap-1.5 text-amber-instrument font-medium mb-1">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  Account read permission needed
+            ACCOUNT_READ_PERMISSION_RE.test(data.account.error) ? (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-2.5 text-[11px] leading-relaxed">
+                <div className="flex items-center gap-1.5 text-primary font-medium mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Checkout is connected
                 </div>
                 <p className="text-muted-foreground">
-                  This restricted key can resolve prices but can't read your Stripe account
-                  details (business name, logo, brand color). Checkout still works — only the
-                  branding preview here is unavailable.
+                  Account read access is only needed to show business name, logo, brand color,
+                  and live verification status in this admin preview.
                 </p>
                 <p className="text-muted-foreground mt-1.5">
-                  To enable it: Stripe Dashboard → Developers → API keys → edit this restricted
+                  To add the preview: Stripe Dashboard → Developers → API keys → edit this restricted
                   key → grant <span className="font-mono text-foreground">Account</span> read
                   access (<span className="font-mono">rak_accounts_kyc_basic_read</span>).
                 </p>
@@ -473,7 +493,7 @@ const StripeDiagnosticsPanel = () => {
                   asChild
                   size="sm"
                   variant="outline"
-                  className="h-7 mt-2 text-[11px] gap-1.5 border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument"
+                  className="h-7 mt-2 text-[11px] gap-1.5 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                 >
                   <a
                     href={stripeUrl("/apikeys", isLive)}
