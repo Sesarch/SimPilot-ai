@@ -108,9 +108,9 @@ const CHECKLIST: Array<{
   },
   {
     key: "charges_enabled",
-    label: "Charges enabled",
-    hint: "Required for the account to actually accept live payments.",
-    fix: "Complete Stripe account verification (Settings → Account details).",
+    label: "Live charges readiness",
+    hint: "Confirms the Stripe account is fully verified for live payments.",
+    fix: "Finish Stripe account verification in Settings → Account details.",
     required: true,
   },
 ];
@@ -169,10 +169,8 @@ const StripeDiagnosticsPanel = () => {
   const isLive = data.mode === "live";
   const modeBadge = (
     <Badge
-      variant={isLive ? "default" : "secondary"}
-      className={`uppercase tracking-wider text-[10px] ${
-        isLive ? "bg-destructive text-destructive-foreground" : ""
-      }`}
+      variant="secondary"
+      className={`uppercase tracking-wider text-[10px] ${isLive ? "border border-primary/40 bg-primary/10 text-primary" : ""}`}
     >
       {data.mode}
     </Badge>
@@ -202,9 +200,9 @@ const StripeDiagnosticsPanel = () => {
     ? acctPermMissing
       ? {
           tone: "warn",
-          label: "Account read blocked",
+          label: "Account read permission needed",
           detail:
-            "Key works for checkout, but lacks Account read scope so branding can't be verified.",
+            "Checkout scopes are working; add Account read to verify branding here.",
         }
       : { tone: "error", label: "Account unreachable", detail: acctErr }
     : !data.account.charges_enabled
@@ -227,9 +225,9 @@ const StripeDiagnosticsPanel = () => {
 
   const connectionStyles =
     connection.tone === "ok"
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+      ? "border-hud-green/30 bg-hud-green/10 text-hud-green"
       : connection.tone === "warn"
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
+        ? "border-amber-instrument/30 bg-amber-instrument/10 text-amber-instrument"
         : "border-destructive/40 bg-destructive/10 text-destructive";
 
   return (
@@ -289,7 +287,7 @@ const StripeDiagnosticsPanel = () => {
               />
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 break-words">
+              <p className="text-[11px] text-current/80 mt-0.5 break-words">
             {connection.detail}
           </p>
         </div>
@@ -297,8 +295,8 @@ const StripeDiagnosticsPanel = () => {
 
       {/* Top-level mismatch banner */}
       {(mismatched.length > 0 || broken.length > 0 || accountLivemodeMismatch) && (
-        <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 text-xs">
-          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 bg-amber-instrument/10 border border-amber-instrument/30 rounded-lg px-3 py-2 text-xs">
+          <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             {accountLivemodeMismatch && (
               <p>
@@ -335,16 +333,16 @@ const StripeDiagnosticsPanel = () => {
                   Stripe Key Checklist
                 </h4>
                 {allGreen ? (
-                  <Badge className="bg-emerald-500/20 text-emerald-400 border-0 text-[10px]">
+                  <Badge className="bg-hud-green/15 text-hud-green border-0 text-[10px]">
                     All systems go
                   </Badge>
                 ) : requiredFailing.length > 0 ? (
-                  <Badge className="bg-destructive/20 text-destructive border-0 text-[10px]">
-                    {requiredFailing.length} required missing
+                  <Badge className="bg-amber-instrument/15 text-amber-instrument border-0 text-[10px]">
+                    {requiredFailing.length} action needed
                   </Badge>
                 ) : (
-                  <Badge className="bg-amber-500/20 text-amber-400 border-0 text-[10px]">
-                    {failing.length} optional missing
+                  <Badge className="bg-amber-instrument/15 text-amber-instrument border-0 text-[10px]">
+                    {failing.length} setup tip
                   </Badge>
                 )}
               </div>
@@ -361,11 +359,11 @@ const StripeDiagnosticsPanel = () => {
               {items.map((item) => (
                 <li key={item.key} className="px-4 py-2.5 flex items-start gap-3">
                   {item.result.ok ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-hud-green shrink-0 mt-0.5" />
                   ) : item.required ? (
-                    <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
                   ) : (
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -378,7 +376,7 @@ const StripeDiagnosticsPanel = () => {
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-0.5">{item.hint}</p>
                     {!item.result.ok && (
-                      <p className="text-[11px] text-amber-400/90 mt-1">
+                    <p className="text-[11px] text-amber-instrument mt-1">
                         <span className="font-medium">Fix:</span> {item.fix}
                       </p>
                     )}
@@ -411,10 +409,10 @@ const StripeDiagnosticsPanel = () => {
           </div>
           {data.account.error ? (
             /accounts_kyc_basic_read|required permissions/i.test(data.account.error) ? (
-              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] leading-relaxed">
-                <div className="flex items-center gap-1.5 text-amber-500 font-medium mb-1">
+              <div className="rounded-lg border border-amber-instrument/30 bg-amber-instrument/10 p-2.5 text-[11px] leading-relaxed">
+                <div className="flex items-center gap-1.5 text-amber-instrument font-medium mb-1">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  Account read permission missing
+                  Account read permission needed
                 </div>
                 <p className="text-muted-foreground">
                   This restricted key can resolve prices but can't read your Stripe account
@@ -461,7 +459,7 @@ const StripeDiagnosticsPanel = () => {
                 )}
                 <span
                   className={`flex items-center gap-1 ${
-                    data.account.charges_enabled ? "text-green-500" : "text-amber-500"
+                    data.account.charges_enabled ? "text-hud-green" : "text-amber-instrument"
                   }`}
                 >
                   <CheckCircle2 className="w-3 h-3" />
@@ -496,7 +494,7 @@ const StripeDiagnosticsPanel = () => {
                   <tr
                     key={p.id}
                     className={`border-t border-border/50 ${
-                      mismatch || !p.ok ? "bg-amber-500/5" : ""
+                      mismatch || !p.ok ? "bg-amber-instrument/5" : ""
                     }`}
                   >
                     <td className="p-2 capitalize text-foreground">{p.plan}</td>
@@ -507,7 +505,7 @@ const StripeDiagnosticsPanel = () => {
                       ) : (
                         <span
                           className={
-                            mismatch ? "text-amber-500 font-medium" : "text-muted-foreground"
+                            mismatch ? "text-amber-instrument font-medium" : "text-muted-foreground"
                           }
                         >
                           {p.livemode ? "live" : "test"}
