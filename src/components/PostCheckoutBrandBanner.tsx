@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { CheckCircle2, XCircle, X, ArrowLeft, Mail, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, X, ArrowLeft, Mail, Loader2, Settings } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,7 +56,33 @@ const PostCheckoutBrandBanner = ({
 
   const [open, setOpen] = useState<boolean>(detected !== null);
   const [resending, setResending] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
   const sessionId = params.get("session_id");
+
+  const handleManageSubscription = async () => {
+    if (openingPortal) return;
+    setOpeningPortal(true);
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        toast.error("Please sign in to manage your subscription.");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer");
+      } else {
+        throw new Error(data?.error || "Could not open billing portal");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[PostCheckoutBrandBanner] customer-portal error", err);
+      toast.error(msg.includes("No Stripe customer") ? "No subscription found yet — try again in a moment." : "Could not open billing portal.");
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
 
   const handleResendReceipt = async () => {
     if (resending) return;
@@ -182,6 +208,23 @@ const PostCheckoutBrandBanner = ({
                 <Mail className="h-4 w-4 mr-1.5" />
               )}
               {resending ? "Sending…" : "Resend receipt"}
+            </Button>
+          )}
+          {isSuccess && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleManageSubscription}
+              disabled={openingPortal}
+              aria-busy={openingPortal}
+            >
+              {openingPortal ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <Settings className="h-4 w-4 mr-1.5" />
+              )}
+              {openingPortal ? "Opening…" : "Manage subscription"}
             </Button>
           )}
         </div>
