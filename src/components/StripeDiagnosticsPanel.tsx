@@ -57,12 +57,15 @@ type Diagnostics = {
   checked_at: string;
 };
 
+type FixAction = { label: string; path: string };
+
 const CHECKLIST: Array<{
   key: keyof NonNullable<Diagnostics["scopes"]>;
   label: string;
   hint: string;
   fix: string;
   required: boolean;
+  action: FixAction;
 }> = [
   {
     key: "prices_read",
@@ -70,6 +73,7 @@ const CHECKLIST: Array<{
     hint: "Resolves Student / Pro / Ultra price IDs at checkout.",
     fix: "Grant Prices → read on the restricted key (rak_prices_read).",
     required: true,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "products_read",
@@ -77,6 +81,7 @@ const CHECKLIST: Array<{
     hint: "Reads product metadata (features, tagline, badge) for the pricing UI.",
     fix: "Grant Products → read on the restricted key (rak_products_read).",
     required: true,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "customers_read",
@@ -84,6 +89,7 @@ const CHECKLIST: Array<{
     hint: "Looks up the Stripe customer record by email before checkout.",
     fix: "Grant Customers → read on the restricted key (rak_customers_read).",
     required: true,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "subscriptions_read",
@@ -91,6 +97,7 @@ const CHECKLIST: Array<{
     hint: "Powers check-subscription so the app knows who's on Pro/Ultra.",
     fix: "Grant Subscriptions → read on the restricted key (rak_subscriptions_read).",
     required: true,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "account_read",
@@ -98,6 +105,7 @@ const CHECKLIST: Array<{
     hint: "Reads your account so we can show the branding driving Checkout.",
     fix: "Grant Account → read on the restricted key (rak_accounts_kyc_basic_read).",
     required: false,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "branding_set",
@@ -105,6 +113,7 @@ const CHECKLIST: Array<{
     hint: "Logo, icon and brand color shown to customers on Checkout.",
     fix: "Stripe → Settings → Branding: upload a logo/icon and pick a primary color.",
     required: false,
+    action: { label: "Open Branding settings", path: "/settings/branding" },
   },
   {
     key: "charges_enabled",
@@ -112,8 +121,12 @@ const CHECKLIST: Array<{
     hint: "Confirms the Stripe account is fully verified for live payments.",
     fix: "Finish Stripe account verification in Settings → Account details.",
     required: true,
+    action: { label: "Open Account details", path: "/settings/account" },
   },
 ];
+
+const stripeUrl = (path: string, isLive: boolean) =>
+  `https://dashboard.stripe.com${isLive ? "" : "/test"}${path}`;
 
 /**
  * Admin-only diagnostic for the Stripe key currently powering Checkout.
