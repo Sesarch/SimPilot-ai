@@ -358,6 +358,129 @@ const AdminPage = () => {
       (u.display_name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  /**
+   * Single source of truth for per-user row actions.
+   * Both the desktop icon strip AND the mobile dropdown render from this list,
+   * so any future role/permission change only needs to be made here.
+   *
+   * Add gating logic (e.g. `if (!hasPermission("ban")) return;`) inside this
+   * function and both UIs will update automatically.
+   */
+  type RowAction = {
+    key: string;
+    label: string;
+    icon: LucideIcon;
+    iconClassName?: string;
+    tone?: "default" | "success" | "warning" | "info" | "destructive";
+    destructive?: boolean;
+    separatorBefore?: boolean;
+    onSelect: () => void;
+  };
+
+  const userRowActions = (u: AdminUser): RowAction[] => {
+    const actions: RowAction[] = [];
+
+    // Role toggle
+    if (!u.roles.includes("admin")) {
+      actions.push({
+        key: "make-admin",
+        label: "Make Admin",
+        icon: Crown,
+        onSelect: () => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "admin" }),
+      });
+    } else {
+      actions.push({
+        key: "remove-admin",
+        label: "Remove Admin",
+        icon: Crown,
+        iconClassName: "text-muted-foreground",
+        onSelect: () => setConfirmAction({ type: "role", userId: u.id, email: u.email, role: "user" }),
+      });
+    }
+
+    // Ban / unban
+    if (u.is_banned) {
+      actions.push({
+        key: "unban",
+        label: "Reactivate",
+        icon: CheckCircle,
+        tone: "success",
+        iconClassName: "text-green-500",
+        onSelect: () => setConfirmAction({ type: "unban", userId: u.id, email: u.email }),
+      });
+    } else {
+      actions.push({
+        key: "ban",
+        label: "Suspend",
+        icon: Ban,
+        tone: "warning",
+        iconClassName: "text-amber-500",
+        onSelect: () => setConfirmAction({ type: "ban", userId: u.id, email: u.email }),
+      });
+    }
+
+    // Trial extension
+    actions.push({
+      key: "extend-trial",
+      label: "Extend trial",
+      icon: CalendarClock,
+      tone: "info",
+      iconClassName: "text-cyan-500",
+      onSelect: () => {
+        setExtendMonths("1");
+        setExtendReason("");
+        setExtendDialog({ userId: u.id, email: u.email, currentEndsAt: u.trial_ends_at });
+      },
+    });
+
+    // Comp grant
+    actions.push({
+      key: "grant-comp",
+      label: "Grant comp access",
+      icon: Gift,
+      tone: "warning",
+      iconClassName: "text-amber-500",
+      onSelect: () => {
+        setGrantTier("pro");
+        setGrantReason("");
+        setGrantDialog({ userId: u.id, email: u.email });
+      },
+    });
+
+    // Delete (always last, separated)
+    actions.push({
+      key: "delete",
+      label: "Delete user",
+      icon: Trash2,
+      tone: "destructive",
+      iconClassName: "text-destructive",
+      destructive: true,
+      separatorBefore: true,
+      onSelect: () => setConfirmAction({ type: "delete", userId: u.id, email: u.email }),
+    });
+
+    return actions;
+  };
+
+  // Tooltip labels for the desktop icon strip (longer than the dropdown label
+  // when it adds useful context).
+  const desktopActionTitle = (action: RowAction): string => {
+    if (action.key === "extend-trial") return "Extend free trial (full access)";
+    return action.label;
+  };
+
+  // Tailwind class for desktop icon button text colour, derived from tone.
+  const toneToClass = (tone?: RowAction["tone"]): string => {
+    switch (tone) {
+      case "success": return "text-green-500";
+      case "warning": return "text-amber-500";
+      case "info": return "text-cyan-500";
+      case "destructive": return "text-destructive";
+      default: return "";
+    }
+  };
+
+
   const exportLeadsCSV = () => {
     if (!leads.length) return;
     const headers = ["Email", "Date", "Pilot Context"];
