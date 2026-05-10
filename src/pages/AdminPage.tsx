@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import SEOHead from "@/components/SEOHead";
 import AdminEmailDashboard from "@/components/AdminEmailDashboard";
+import { AdminTabsStrip } from "@/components/AdminTabsStrip";
 import AdminSupportChats from "@/components/AdminSupportChats";
 import AdminAnalytics from "@/components/AdminAnalytics";
 import AdminSiteSettings from "@/components/AdminSiteSettings";
