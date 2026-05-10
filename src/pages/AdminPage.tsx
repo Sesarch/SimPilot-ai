@@ -536,12 +536,14 @@ const AdminPage = () => {
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           {/*
-            Responsive layout: flex-wrap below lg lets each trigger size to its
-            label and wrap onto multiple rows (no cramped 4-col grid that
-            squeezes "Knowledge"/"Settings" into ellipsis). At lg+ we switch to
-            an equal 13-col grid so the full strip lines up on one row.
+            Breakpoint-based grid:
+            - ultra-narrow (default, <640px): 3 per row — small phones
+            - sm (≥640px):                    2 per row — bigger touch targets
+            - md (≥768px):                    7 per row — tablet, two rows
+            - lg (≥1024px):                  13 per row — full strip on desktop
+            h-auto so the TabsList grows with multi-row layouts.
           */}
-          <TabsList className="w-full flex flex-wrap gap-1 h-auto lg:grid lg:grid-cols-13 lg:gap-0 mb-8">
+          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-2 md:grid-cols-7 lg:grid-cols-13 gap-1 lg:gap-0 h-auto mb-8">
             <TabsTrigger value="overview" className="font-display text-xs tracking-wider">Overview</TabsTrigger>
             <TabsTrigger value="payments" className="font-display text-xs tracking-wider">Payments</TabsTrigger>
             <TabsTrigger value="reports" className="font-display text-xs tracking-wider">Reports</TabsTrigger>
