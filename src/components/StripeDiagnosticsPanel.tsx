@@ -8,6 +8,8 @@ import {
   Loader2,
   RefreshCw,
   ShieldAlert,
+  XCircle,
+  ExternalLink,
 } from "lucide-react";
 
 type PriceInfo = {
@@ -21,6 +23,8 @@ type PriceInfo = {
   product?: string | null;
   error?: string;
 };
+
+type ScopeResult = { ok: boolean; error?: string };
 
 type Diagnostics = {
   mode: "live" | "test" | "unknown";
@@ -41,8 +45,75 @@ type Diagnostics = {
     error?: string;
   };
   prices: PriceInfo[];
+  scopes?: {
+    prices_read: ScopeResult;
+    products_read: ScopeResult;
+    account_read: ScopeResult;
+    branding_set: ScopeResult;
+    charges_enabled: ScopeResult;
+    customers_read: ScopeResult;
+    subscriptions_read: ScopeResult;
+  };
   checked_at: string;
 };
+
+const CHECKLIST: Array<{
+  key: keyof NonNullable<Diagnostics["scopes"]>;
+  label: string;
+  hint: string;
+  fix: string;
+  required: boolean;
+}> = [
+  {
+    key: "prices_read",
+    label: "Prices read",
+    hint: "Resolves Student / Pro / Ultra price IDs at checkout.",
+    fix: "Grant Prices → read on the restricted key (rak_prices_read).",
+    required: true,
+  },
+  {
+    key: "products_read",
+    label: "Products read",
+    hint: "Reads product metadata (features, tagline, badge) for the pricing UI.",
+    fix: "Grant Products → read on the restricted key (rak_products_read).",
+    required: true,
+  },
+  {
+    key: "customers_read",
+    label: "Customers read",
+    hint: "Looks up the Stripe customer record by email before checkout.",
+    fix: "Grant Customers → read on the restricted key (rak_customers_read).",
+    required: true,
+  },
+  {
+    key: "subscriptions_read",
+    label: "Subscriptions read",
+    hint: "Powers check-subscription so the app knows who's on Pro/Ultra.",
+    fix: "Grant Subscriptions → read on the restricted key (rak_subscriptions_read).",
+    required: true,
+  },
+  {
+    key: "account_read",
+    label: "Account read",
+    hint: "Reads your account so we can show the branding driving Checkout.",
+    fix: "Grant Account → read on the restricted key (rak_accounts_kyc_basic_read).",
+    required: false,
+  },
+  {
+    key: "branding_set",
+    label: "Branding configured",
+    hint: "Logo, icon and brand color shown to customers on Checkout.",
+    fix: "Stripe → Settings → Branding: upload a logo/icon and pick a primary color.",
+    required: false,
+  },
+  {
+    key: "charges_enabled",
+    label: "Charges enabled",
+    hint: "Required for the account to actually accept live payments.",
+    fix: "Complete Stripe account verification (Settings → Account details).",
+    required: true,
+  },
+];
 
 /**
  * Admin-only diagnostic for the Stripe key currently powering Checkout.
@@ -157,6 +228,75 @@ const StripeDiagnosticsPanel = () => {
           </div>
         </div>
       )}
+
+      {/* Onboarding checklist — verifies each restricted-key scope */}
+      {data.scopes && (() => {
+        const items = CHECKLIST.map((c) => ({ ...c, result: data.scopes![c.key] }));
+        const failing = items.filter((i) => !i.result.ok);
+        const requiredFailing = failing.filter((i) => i.required);
+        const allGreen = failing.length === 0;
+        return (
+          <div className="rounded-xl border border-border/60 bg-background/30 overflow-hidden">
+            <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-border/60 bg-muted/20">
+              <div className="flex items-center gap-2">
+                <h4 className="font-display text-xs tracking-wider uppercase text-foreground">
+                  Stripe Key Checklist
+                </h4>
+                {allGreen ? (
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-0 text-[10px]">
+                    All systems go
+                  </Badge>
+                ) : requiredFailing.length > 0 ? (
+                  <Badge className="bg-destructive/20 text-destructive border-0 text-[10px]">
+                    {requiredFailing.length} required missing
+                  </Badge>
+                ) : (
+                  <Badge className="bg-amber-500/20 text-amber-400 border-0 text-[10px]">
+                    {failing.length} optional missing
+                  </Badge>
+                )}
+              </div>
+              <a
+                href="https://dashboard.stripe.com/apikeys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+              >
+                Open API keys <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <ul className="divide-y divide-border/40">
+              {items.map((item) => (
+                <li key={item.key} className="px-4 py-2.5 flex items-start gap-3">
+                  {item.result.ok ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  ) : item.required ? (
+                    <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm text-foreground">{item.label}</span>
+                      {!item.required && (
+                        <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                          optional
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{item.hint}</p>
+                    {!item.result.ok && (
+                      <p className="text-[11px] text-amber-400/90 mt-1">
+                        <span className="font-medium">Fix:</span> {item.fix}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })()}
 
       {/* Key + account */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
