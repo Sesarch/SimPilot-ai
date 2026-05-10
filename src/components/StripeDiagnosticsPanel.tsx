@@ -57,12 +57,15 @@ type Diagnostics = {
   checked_at: string;
 };
 
+type FixAction = { label: string; path: string };
+
 const CHECKLIST: Array<{
   key: keyof NonNullable<Diagnostics["scopes"]>;
   label: string;
   hint: string;
   fix: string;
   required: boolean;
+  action: FixAction;
 }> = [
   {
     key: "prices_read",
@@ -70,6 +73,7 @@ const CHECKLIST: Array<{
     hint: "Resolves Student / Pro / Ultra price IDs at checkout.",
     fix: "Grant Prices → read on the restricted key (rak_prices_read).",
     required: true,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "products_read",
@@ -77,6 +81,7 @@ const CHECKLIST: Array<{
     hint: "Reads product metadata (features, tagline, badge) for the pricing UI.",
     fix: "Grant Products → read on the restricted key (rak_products_read).",
     required: true,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "customers_read",
@@ -84,6 +89,7 @@ const CHECKLIST: Array<{
     hint: "Looks up the Stripe customer record by email before checkout.",
     fix: "Grant Customers → read on the restricted key (rak_customers_read).",
     required: true,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "subscriptions_read",
@@ -91,6 +97,7 @@ const CHECKLIST: Array<{
     hint: "Powers check-subscription so the app knows who's on Pro/Ultra.",
     fix: "Grant Subscriptions → read on the restricted key (rak_subscriptions_read).",
     required: true,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "account_read",
@@ -98,6 +105,7 @@ const CHECKLIST: Array<{
     hint: "Reads your account so we can show the branding driving Checkout.",
     fix: "Grant Account → read on the restricted key (rak_accounts_kyc_basic_read).",
     required: false,
+    action: { label: "Edit restricted key", path: "/apikeys" },
   },
   {
     key: "branding_set",
@@ -105,6 +113,7 @@ const CHECKLIST: Array<{
     hint: "Logo, icon and brand color shown to customers on Checkout.",
     fix: "Stripe → Settings → Branding: upload a logo/icon and pick a primary color.",
     required: false,
+    action: { label: "Open Branding settings", path: "/settings/branding" },
   },
   {
     key: "charges_enabled",
@@ -112,8 +121,12 @@ const CHECKLIST: Array<{
     hint: "Confirms the Stripe account is fully verified for live payments.",
     fix: "Finish Stripe account verification in Settings → Account details.",
     required: true,
+    action: { label: "Open Account details", path: "/settings/account" },
   },
 ];
+
+const stripeUrl = (path: string, isLive: boolean) =>
+  `https://dashboard.stripe.com${isLive ? "" : "/test"}${path}`;
 
 /**
  * Admin-only diagnostic for the Stripe key currently powering Checkout.
@@ -196,6 +209,7 @@ const StripeDiagnosticsPanel = () => {
     tone: "ok" | "warn" | "error";
     label: string;
     detail: string;
+    action?: FixAction;
   } = acctErr
     ? acctPermMissing
       ? {
@@ -203,19 +217,22 @@ const StripeDiagnosticsPanel = () => {
           label: "Account read permission needed",
           detail:
             "Checkout scopes are working; add Account read to verify branding here.",
+          action: { label: "Edit restricted key", path: "/apikeys" },
         }
-      : { tone: "error", label: "Account unreachable", detail: acctErr }
+      : { tone: "error", label: "Account unreachable", detail: acctErr, action: { label: "Open API keys", path: "/apikeys" } }
     : !data.account.charges_enabled
       ? {
           tone: "warn",
           label: "Connected — charges disabled",
           detail: `${data.account.business_name ?? data.account.id} · finish Stripe verification to accept live payments.`,
+          action: { label: "Open Account details", path: "/settings/account" },
         }
       : !hasBranding
         ? {
             tone: "warn",
             label: "Connected — no branding",
             detail: `${data.account.business_name ?? data.account.id} · upload a logo and brand color in Stripe → Branding.`,
+            action: { label: "Open Branding settings", path: "/settings/branding" },
           }
         : {
             tone: "ok",
@@ -287,9 +304,20 @@ const StripeDiagnosticsPanel = () => {
               />
             )}
           </div>
-              <p className="text-[11px] text-current/80 mt-0.5 break-words">
+          <p className="text-[11px] text-current/80 mt-0.5 break-words">
             {connection.detail}
           </p>
+          {connection.action && (
+            <a
+              href={stripeUrl(connection.action.path, isLive)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-medium underline-offset-2 hover:underline"
+            >
+              {connection.action.label}
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
         </div>
       </div>
 
@@ -347,7 +375,7 @@ const StripeDiagnosticsPanel = () => {
                 )}
               </div>
               <a
-                href="https://dashboard.stripe.com/apikeys"
+                href={stripeUrl("/apikeys", isLive)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
@@ -376,9 +404,26 @@ const StripeDiagnosticsPanel = () => {
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-0.5">{item.hint}</p>
                     {!item.result.ok && (
-                    <p className="text-[11px] text-amber-instrument mt-1">
-                        <span className="font-medium">Fix:</span> {item.fix}
-                      </p>
+                      <>
+                        <p className="text-[11px] text-amber-instrument mt-1">
+                          <span className="font-medium">Fix:</span> {item.fix}
+                        </p>
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          className="h-7 mt-2 text-[11px] gap-1.5 border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument"
+                        >
+                          <a
+                            href={stripeUrl(item.action.path, isLive)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {item.action.label}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </Button>
+                      </>
                     )}
                   </div>
                 </li>
@@ -424,6 +469,21 @@ const StripeDiagnosticsPanel = () => {
                   key → grant <span className="font-mono text-foreground">Account</span> read
                   access (<span className="font-mono">rak_accounts_kyc_basic_read</span>).
                 </p>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="h-7 mt-2 text-[11px] gap-1.5 border-amber-instrument/40 text-amber-instrument hover:bg-amber-instrument/10 hover:text-amber-instrument"
+                >
+                  <a
+                    href={stripeUrl("/apikeys", isLive)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Edit restricted key
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </Button>
               </div>
             ) : (
               <div className="text-destructive text-xs break-words">{data.account.error}</div>
