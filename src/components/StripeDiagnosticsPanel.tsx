@@ -287,7 +287,7 @@ const StripeDiagnosticsPanel = () => {
               />
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 break-words">
+              <p className="text-[11px] text-current/80 mt-0.5 break-words">
             {connection.detail}
           </p>
         </div>
@@ -333,16 +333,16 @@ const StripeDiagnosticsPanel = () => {
                   Stripe Key Checklist
                 </h4>
                 {allGreen ? (
-                  <Badge className="bg-emerald-500/20 text-emerald-400 border-0 text-[10px]">
+                  <Badge className="bg-hud-green/15 text-hud-green border-0 text-[10px]">
                     All systems go
                   </Badge>
                 ) : requiredFailing.length > 0 ? (
-                  <Badge className="bg-destructive/20 text-destructive border-0 text-[10px]">
-                    {requiredFailing.length} required missing
+                  <Badge className="bg-amber-instrument/15 text-amber-instrument border-0 text-[10px]">
+                    {requiredFailing.length} action needed
                   </Badge>
                 ) : (
-                  <Badge className="bg-amber-500/20 text-amber-400 border-0 text-[10px]">
-                    {failing.length} optional missing
+                  <Badge className="bg-amber-instrument/15 text-amber-instrument border-0 text-[10px]">
+                    {failing.length} setup tip
                   </Badge>
                 )}
               </div>
@@ -359,11 +359,11 @@ const StripeDiagnosticsPanel = () => {
               {items.map((item) => (
                 <li key={item.key} className="px-4 py-2.5 flex items-start gap-3">
                   {item.result.ok ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-hud-green shrink-0 mt-0.5" />
                   ) : item.required ? (
-                    <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
                   ) : (
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
