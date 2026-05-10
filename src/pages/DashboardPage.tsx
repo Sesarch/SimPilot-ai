@@ -126,6 +126,8 @@ const DashboardPage = () => {
 
       {/* Content */}
       <div className="container mx-auto px-6 py-8 max-w-4xl">
+        {/* Branded post-checkout landing (shows when ?subscribed=1 or ?checkout=cancelled) */}
+        <PostCheckoutBrandBanner />
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center border border-primary/20">
