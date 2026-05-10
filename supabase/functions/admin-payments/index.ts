@@ -290,11 +290,42 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Probe additional scopes used by checkout / subscription verification.
+      const probe = async (fn: () => Promise<unknown>) => {
+        try { await fn(); return { ok: true as const }; }
+        catch (e) { return { ok: false as const, error: (e as Error).message }; }
+      };
+      const firstProduct = prices.find((p) => p.ok && p.product)?.product ?? null;
+      const [productsScope, customersScope, subscriptionsScope] = await Promise.all([
+        firstProduct
+          ? probe(() => stripe.products.retrieve(firstProduct))
+          : Promise.resolve({ ok: false as const, error: "no product to test" }),
+        probe(() => stripe.customers.list({ limit: 1 })),
+        probe(() => stripe.subscriptions.list({ limit: 1 })),
+      ]);
+
+      const scopes = {
+        prices_read: { ok: prices.length > 0 && prices.every((p) => p.ok) },
+        products_read: productsScope,
+        account_read: { ok: !account?.error, error: account?.error },
+        branding_set: {
+          ok: !account?.error && !!(
+            account?.branding?.icon ||
+            account?.branding?.logo ||
+            account?.branding?.primary_color
+          ),
+        },
+        charges_enabled: { ok: !!account?.charges_enabled },
+        customers_read: customersScope,
+        subscriptions_read: subscriptionsScope,
+      };
+
       return json({
         mode: isLive ? "live" : isTest ? "test" : "unknown",
         key: { type: keyType, fingerprint, prefix: rawKey.slice(0, 8) },
         account,
         prices,
+        scopes,
         checked_at: new Date().toISOString(),
       });
     }
