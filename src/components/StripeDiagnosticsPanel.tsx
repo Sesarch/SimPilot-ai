@@ -295,8 +295,8 @@ const StripeDiagnosticsPanel = () => {
 
       {/* Top-level mismatch banner */}
       {(mismatched.length > 0 || broken.length > 0 || accountLivemodeMismatch) && (
-        <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 text-xs">
-          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 bg-amber-instrument/10 border border-amber-instrument/30 rounded-lg px-3 py-2 text-xs">
+          <AlertTriangle className="w-4 h-4 text-amber-instrument shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             {accountLivemodeMismatch && (
               <p>
@@ -494,7 +494,7 @@ const StripeDiagnosticsPanel = () => {
                   <tr
                     key={p.id}
                     className={`border-t border-border/50 ${
-                      mismatch || !p.ok ? "bg-amber-500/5" : ""
+                      mismatch || !p.ok ? "bg-amber-instrument/5" : ""
                     }`}
                   >
                     <td className="p-2 capitalize text-foreground">{p.plan}</td>
@@ -505,7 +505,7 @@ const StripeDiagnosticsPanel = () => {
                       ) : (
                         <span
                           className={
-                            mismatch ? "text-amber-500 font-medium" : "text-muted-foreground"
+                            mismatch ? "text-amber-instrument font-medium" : "text-muted-foreground"
                           }
                         >
                           {p.livemode ? "live" : "test"}
