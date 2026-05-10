@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DollarSign, TrendingUp, TrendingDown, Users, RefreshCw, ExternalLink, Gift, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import StripeDiagnosticsPanel from "./StripeDiagnosticsPanel";
 
 type Metrics = {
   mrr_cents: number;
