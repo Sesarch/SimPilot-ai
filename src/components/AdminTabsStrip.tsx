@@ -61,14 +61,23 @@ export function AdminTabsStrip() {
     };
   }, [updateScrollState]);
 
-  // Scroll active tab into view when it changes (e.g. via deep-link).
+  // Keep the active / focused tab visible inside the horizontal scroller.
+  // Radix Tabs already handles ←/→/Home/End with roving focus + automatic
+  // activation; we just make sure the tab the user lands on isn't clipped.
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
-    const active = el.querySelector<HTMLElement>('[data-state="active"]');
-    if (active) {
-      active.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
-    }
+    const scrollIntoView = (target: HTMLElement | null) => {
+      if (!target) return;
+      target.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
+    };
+    scrollIntoView(el.querySelector<HTMLElement>('[data-state="active"]'));
+    const onFocusIn = (e: FocusEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t?.matches('[role="tab"]')) scrollIntoView(t);
+    };
+    el.addEventListener("focusin", onFocusIn);
+    return () => el.removeEventListener("focusin", onFocusIn);
   });
 
   const scrollBy = (delta: number) => {

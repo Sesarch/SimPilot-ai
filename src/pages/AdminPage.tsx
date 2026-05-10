@@ -536,7 +536,13 @@ const AdminPage = () => {
       </nav>
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          orientation="horizontal"
+          activationMode="automatic"
+          className="w-full"
+        >
           <AdminTabsStrip />
 
 
