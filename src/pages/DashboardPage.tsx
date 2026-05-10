@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SEOHead from "@/components/SEOHead";
 import AccountSettings from "@/components/AccountSettings";
 import AchievementBadges from "@/components/dashboard/AchievementBadges";
+import PostCheckoutBrandBanner from "@/components/PostCheckoutBrandBanner";
 
 type Profile = {
   display_name: string | null;
