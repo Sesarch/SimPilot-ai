@@ -93,10 +93,41 @@ const plans = [
   },
 ];
 
+const TIER_TO_PLAN_NAME: Record<string, string> = {
+  student: "Student",
+  pro: "Pro Pilot",
+  ultra: "Gold Seal CFI",
+};
+const ACTIVE_STATUSES = new Set(["active", "trialing", "past_due"]);
+
 const PricingSection = () => {
   const [annual, setAnnual] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
+  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      if (!userId) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("subscription_tier, subscription_status")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      const tier = (data.subscription_tier ?? "").toLowerCase();
+      const status = (data.subscription_status ?? "").toLowerCase();
+      if (tier && ACTIVE_STATUSES.has(status) && TIER_TO_PLAN_NAME[tier]) {
+        setCurrentPlanName(TIER_TO_PLAN_NAME[tier]);
+        setCurrentStatus(status);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Visual QA mode — toggle with Alt+Shift+Q (or ?qa=1 in URL).
   // Renders z-index labels on each card, outlines the badge, and lets you
@@ -263,6 +294,7 @@ const PricingSection = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-6xl mx-auto items-stretch pt-12 px-1 overflow-visible">
           {plans.map((plan, i) => {
             const price = annual ? plan.annual : plan.monthly;
+            const isCurrent = currentPlanName === plan.name;
             return (
               <motion.div
                 key={plan.name}
@@ -313,6 +345,12 @@ const PricingSection = () => {
                   <h3 className="font-display text-sm tracking-wider uppercase text-foreground">
                     {plan.name}
                   </h3>
+                  {isCurrent && (
+                    <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-display tracking-widest uppercase px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
+                      <Check className="w-3 h-3" />
+                      {currentStatus === "trialing" ? "On Trial" : "Current"}
+                    </span>
+                  )}
                 </div>
 
                 <div className="mb-1 flex items-baseline gap-1">
@@ -363,15 +401,23 @@ const PricingSection = () => {
                 <button
                   type="button"
                   onClick={() => handleCtaClick(plan)}
-                  disabled={loadingPlan === plan.name}
+                  disabled={loadingPlan === plan.name || isCurrent}
                   aria-busy={loadingPlan === plan.name}
-                  className={`inline-flex items-center justify-center gap-2 h-12 w-full px-6 rounded font-display text-xs tracking-widest uppercase transition-all duration-300 disabled:opacity-80 disabled:cursor-not-allowed ${
-                    plan.highlighted
-                      ? "bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)]"
-                      : "border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary"
+                  aria-disabled={isCurrent || undefined}
+                  className={`inline-flex items-center justify-center gap-2 h-12 w-full px-6 rounded font-display text-xs tracking-widest uppercase transition-all duration-300 disabled:cursor-not-allowed ${
+                    isCurrent
+                      ? "bg-primary/15 text-primary border border-primary/40 disabled:opacity-100"
+                      : plan.highlighted
+                      ? "bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] disabled:opacity-80"
+                      : "border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary disabled:opacity-80"
                   }`}
                 >
-                  {loadingPlan === plan.name ? (
+                  {isCurrent ? (
+                    <>
+                      <Check className="w-4 h-4" aria-hidden="true" />
+                      <span>Your Current Plan</span>
+                    </>
+                  ) : loadingPlan === plan.name ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                       <span>Opening checkout…</span>
