@@ -167,7 +167,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Tabs: Profile | Account Settings */}
-        <DashboardTabs />
+        <Tabs value={activeTab} onValueChange={(v) => setSearchParams({ tab: v }, { replace: true })} className="w-full">
           <TabsList className="w-full grid grid-cols-2 mb-6">
             <TabsTrigger value="profile" className="font-display text-xs tracking-wider">
               <User className="w-3.5 h-3.5 mr-1.5" /> Profile
