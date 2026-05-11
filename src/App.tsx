@@ -44,6 +44,7 @@ import IntakePage from "./pages/IntakePage.tsx";
 import TestModePage from "./pages/TestModePage.tsx";
 import ThemeQAPage from "./pages/ThemeQAPage.tsx";
 import CheckoutRedirectPage from "./pages/CheckoutRedirectPage.tsx";
+import OnboardingPlanPage from "./pages/OnboardingPlanPage.tsx";
 import SupportChatWidget from "./components/SupportChatWidget.tsx";
 import PWAInstallBanner from "./components/PWAInstallBanner.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
@@ -107,6 +108,7 @@ const App = () => (
               <Route path="/unsubscribe" element={<UnsubscribePage />} />
               <Route path="/pilot/:userId" element={<PublicProfilePage />} />
               <Route path="/checkout/redirect" element={<CheckoutRedirectPage />} />
+              <Route path="/onboarding/plan" element={<OnboardingPlanPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />
