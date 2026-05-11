@@ -685,22 +685,28 @@ const AdminPage = () => {
                               const status = u.subscription_status;
                               const isActive = status === "active" || status === "trialing";
                               if (tier && isActive) {
-                                const label = tier.charAt(0).toUpperCase() + tier.slice(1);
+                                const isExternal = /^external\b/i.test(tier);
+                                const label = isExternal
+                                  ? tier
+                                  : tier.charAt(0).toUpperCase() + tier.slice(1);
                                 const isTrial = status === "trialing";
+                                const badgeClass = isExternal
+                                  ? "bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs w-fit"
+                                  : isTrial
+                                    ? "bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit"
+                                    : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs w-fit";
                                 return (
                                   <Badge
-                                    className={
-                                      isTrial
-                                        ? "bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit"
-                                        : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs w-fit"
-                                    }
+                                    className={badgeClass}
                                     title={
-                                      u.subscription_current_period_end
-                                        ? `Renews ${new Date(u.subscription_current_period_end).toLocaleDateString()}`
-                                        : undefined
+                                      isExternal
+                                        ? "Non-SimPilot Stripe subscription (e.g. legacy MainAI product). Does not grant SimPilot paid access."
+                                        : u.subscription_current_period_end
+                                          ? `Renews ${new Date(u.subscription_current_period_end).toLocaleDateString()}`
+                                          : undefined
                                     }
                                   >
-                                    {label}{isTrial ? " (Trial)" : ""}
+                                    {label}{!isExternal && isTrial ? " (Trial)" : ""}
                                   </Badge>
                                 );
                               }
