@@ -921,11 +921,13 @@ export type Database = {
           flight_hours: number | null
           id: string
           license_level: string | null
+          onboarding_completed_at: string | null
           profile_public: boolean
           quiz_history_limit: number
           rating_focus: string | null
           region: string | null
           school_seat_code_id: string | null
+          selected_plan: string | null
           stripe_customer_id: string | null
           subscription_current_period_end: string | null
           subscription_expires_at: string | null
@@ -951,11 +953,13 @@ export type Database = {
           flight_hours?: number | null
           id?: string
           license_level?: string | null
+          onboarding_completed_at?: string | null
           profile_public?: boolean
           quiz_history_limit?: number
           rating_focus?: string | null
           region?: string | null
           school_seat_code_id?: string | null
+          selected_plan?: string | null
           stripe_customer_id?: string | null
           subscription_current_period_end?: string | null
           subscription_expires_at?: string | null
@@ -981,11 +985,13 @@ export type Database = {
           flight_hours?: number | null
           id?: string
           license_level?: string | null
+          onboarding_completed_at?: string | null
           profile_public?: boolean
           quiz_history_limit?: number
           rating_focus?: string | null
           region?: string | null
           school_seat_code_id?: string | null
+          selected_plan?: string | null
           stripe_customer_id?: string | null
           subscription_current_period_end?: string | null
           subscription_expires_at?: string | null
