@@ -32,7 +32,7 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     if (customers.data.length === 0) {
       return new Response(
-        JSON.stringify({ invoices: [], payment_method: null }),
+        JSON.stringify({ invoices: [], payment_method: null, payment_issue: null }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
@@ -133,7 +133,7 @@ serve(async (req) => {
     const msg = error instanceof Error ? error.message : String(error);
     console.error("[billing-details]", msg);
     return new Response(
-      JSON.stringify({ error: msg, invoices: [], payment_method: null }),
+      JSON.stringify({ error: msg, invoices: [], payment_method: null, payment_issue: null }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
