@@ -32,7 +32,7 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     if (customers.data.length === 0) {
       return new Response(
-        JSON.stringify({ invoices: [], payment_method: null }),
+        JSON.stringify({ invoices: [], payment_method: null, payment_issue: null }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
@@ -54,7 +54,32 @@ serve(async (req) => {
       period_end: (inv as any).period_end ?? null,
       hosted_invoice_url: inv.hosted_invoice_url,
       invoice_pdf: inv.invoice_pdf,
+      // deno-lint-ignore no-explicit-any
+      attempt_count: (inv as any).attempt_count ?? 0,
+      // deno-lint-ignore no-explicit-any
+      next_payment_attempt: (inv as any).next_payment_attempt ?? null,
     }));
+
+    // Detect a failed/unpaid invoice that requires user action.
+    // Prefer the most recent open or uncollectible invoice with amount_due > 0.
+    const failedInvoice = invoiceList.data
+      .filter((i) => i.status === "open" || i.status === "uncollectible")
+      .filter((i) => (i.amount_due ?? 0) > 0)
+      .sort((a, b) => (b.created ?? 0) - (a.created ?? 0))[0];
+
+    const payment_issue = failedInvoice
+      ? {
+          invoice_id: failedInvoice.id,
+          status: failedInvoice.status,
+          amount_due: failedInvoice.amount_due,
+          currency: failedInvoice.currency,
+          hosted_invoice_url: failedInvoice.hosted_invoice_url,
+          // deno-lint-ignore no-explicit-any
+          attempt_count: (failedInvoice as any).attempt_count ?? 0,
+          // deno-lint-ignore no-explicit-any
+          next_payment_attempt: (failedInvoice as any).next_payment_attempt ?? null,
+        }
+      : null;
 
     // Default payment method
     let pmId: string | null = null;
@@ -101,14 +126,14 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ invoices, payment_method }),
+      JSON.stringify({ invoices, payment_method, payment_issue }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error("[billing-details]", msg);
     return new Response(
-      JSON.stringify({ error: msg, invoices: [], payment_method: null }),
+      JSON.stringify({ error: msg, invoices: [], payment_method: null, payment_issue: null }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

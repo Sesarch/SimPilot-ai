@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink, CreditCard, Receipt, Download } from "lucide-react";
+import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink, CreditCard, Receipt, Download, AlertCircle, RefreshCw } from "lucide-react";
 import { usePilotContext } from "@/hooks/usePilotContext";
 import RedeemSchoolCode from "@/components/RedeemSchoolCode";
 import MfaSettings from "@/components/MfaSettings";
@@ -87,45 +87,86 @@ const AccountSettings = () => {
     exp_month?: number;
     exp_year?: number;
   };
+  type PaymentIssue = {
+    invoice_id: string;
+    status: string | null;
+    amount_due: number;
+    currency: string;
+    hosted_invoice_url: string | null;
+    attempt_count: number;
+    next_payment_attempt: number | null;
+  };
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [paymentIssue, setPaymentIssue] = useState<PaymentIssue | null>(null);
+  const [recovering, setRecovering] = useState(false);
+
+  const fetchBilling = async () => {
+    const [subRes, billRes] = await Promise.all([
+      supabase.functions.invoke("check-subscription"),
+      supabase.functions.invoke("billing-details"),
+    ]);
+    if (subRes.error) {
+      console.error("[AccountSettings] check-subscription error", subRes.error);
+      setBilling({ subscribed: false });
+    } else {
+      setBilling((subRes.data as BillingSummary) ?? { subscribed: false });
+    }
+    if (billRes.error) {
+      console.error("[AccountSettings] billing-details error", billRes.error);
+      setInvoices([]);
+      setPaymentMethod(null);
+      setPaymentIssue(null);
+    } else {
+      setInvoices((billRes.data?.invoices ?? []) as Invoice[]);
+      setPaymentMethod((billRes.data?.payment_method ?? null) as PaymentMethod | null);
+      setPaymentIssue((billRes.data?.payment_issue ?? null) as PaymentIssue | null);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     setBillingLoading(true);
     setPaymentsLoading(true);
-    supabase.functions
-      .invoke("check-subscription")
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.error("[AccountSettings] check-subscription error", error);
-          setBilling({ subscribed: false });
-        } else {
-          setBilling((data as BillingSummary) ?? { subscribed: false });
-        }
-      })
-      .finally(() => { if (!cancelled) setBillingLoading(false); });
-
-    supabase.functions
-      .invoke("billing-details")
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.error("[AccountSettings] billing-details error", error);
-          setInvoices([]);
-          setPaymentMethod(null);
-        } else {
-          setInvoices((data?.invoices ?? []) as Invoice[]);
-          setPaymentMethod((data?.payment_method ?? null) as PaymentMethod | null);
-        }
-      })
-      .finally(() => { if (!cancelled) setPaymentsLoading(false); });
-
+    fetchBilling().finally(() => {
+      if (cancelled) return;
+      setBillingLoading(false);
+      setPaymentsLoading(false);
+    });
     return () => { cancelled = true; };
   }, [user]);
+
+  // Auto-recovery: while there's a payment issue or past-due status, poll every
+  // 15s so the UI clears itself the moment the Stripe webhook records success.
+  useEffect(() => {
+    const hasIssue =
+      !!paymentIssue ||
+      billing?.status === "past_due" ||
+      billing?.status === "unpaid";
+    if (!hasIssue || !user) return;
+    const interval = window.setInterval(async () => {
+      const prevHadIssue = !!paymentIssue;
+      await fetchBilling();
+      // success toast handled by effect below when paymentIssue clears
+      void prevHadIssue;
+    }, 15000);
+    return () => window.clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentIssue, billing?.status, user]);
+
+  // When a payment issue clears, surface a one-time success toast.
+  const [hadIssue, setHadIssue] = useState(false);
+  useEffect(() => {
+    if (paymentIssue) {
+      setHadIssue(true);
+    } else if (hadIssue) {
+      setHadIssue(false);
+      toast.success("Payment recovered. Your subscription is active again.");
+    }
+  }, [paymentIssue, hadIssue]);
+
 
   const formatMoney = (amountMinor?: number | null, currency?: string | null) => {
     if (amountMinor == null || !currency) return null;
@@ -285,6 +326,92 @@ const AccountSettings = () => {
         <p className="text-xs text-muted-foreground mb-4">
           Manage your SimPilot plan, update payment methods, download invoices, or cancel — all securely through Stripe.
         </p>
+
+        {/* Payment failed banner — auto-clears once webhook records success */}
+        {paymentIssue && (() => {
+          const amount = (() => {
+            try {
+              return new Intl.NumberFormat(undefined, {
+                style: "currency",
+                currency: paymentIssue.currency.toUpperCase(),
+              }).format(paymentIssue.amount_due / 100);
+            } catch {
+              return `${(paymentIssue.amount_due / 100).toFixed(2)} ${paymentIssue.currency.toUpperCase()}`;
+            }
+          })();
+          const nextAttempt = paymentIssue.next_payment_attempt
+            ? new Date(paymentIssue.next_payment_attempt * 1000).toLocaleDateString(undefined, {
+                month: "short", day: "numeric",
+              })
+            : null;
+          return (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-4"
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-display text-sm text-red-300 mb-1">
+                    Payment failed — {amount} outstanding
+                  </div>
+                  <p className="text-xs text-red-200/80 mb-3">
+                    Your last charge didn&apos;t go through
+                    {paymentIssue.attempt_count > 0 ? ` (attempt ${paymentIssue.attempt_count})` : ""}.
+                    Retry now to keep your subscription active
+                    {nextAttempt ? ` — Stripe will otherwise auto-retry on ${nextAttempt}.` : "."}
+                    {" "}This panel will update automatically once payment succeeds.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {paymentIssue.hosted_invoice_url && (
+                      <Button
+                        asChild
+                        size="sm"
+                        className="bg-red-500 hover:bg-red-500/90 text-white"
+                      >
+                        <a
+                          href={paymentIssue.hosted_invoice_url}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                        >
+                          <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                          Retry payment
+                        </a>
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleManageBilling}
+                      disabled={openingPortal}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                      Update payment method
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={recovering}
+                      onClick={async () => {
+                        setRecovering(true);
+                        try {
+                          await fetchBilling();
+                          toast.success("Billing status refreshed.");
+                        } finally {
+                          setRecovering(false);
+                        }
+                      }}
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${recovering ? "animate-spin" : ""}`} />
+                      Check status
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="rounded-lg border border-border bg-background/40 p-4 mb-4">
           {billingLoading ? (
