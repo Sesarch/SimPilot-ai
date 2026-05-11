@@ -60,8 +60,27 @@ const AuthPage = () => {
         ? await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" })
         : { data: false };
 
+      // Route new users (no completed onboarding & no active sub) to plan selection.
+      let needsOnboarding = false;
+      if (data.user && !isAdmin && redirectTo === "/dashboard") {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_completed_at, subscription_status")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+        const hasActiveSub =
+          profile?.subscription_status === "active" ||
+          profile?.subscription_status === "trialing";
+        needsOnboarding = !profile?.onboarding_completed_at && !hasActiveSub;
+      }
+
       toast.success("Welcome back, pilot!");
-      navigate(redirectTo === "/dashboard" && isAdmin ? "/admin" : redirectTo, { replace: true });
+      const dest = isAdmin && redirectTo === "/dashboard"
+        ? "/admin"
+        : needsOnboarding
+        ? "/onboarding/plan"
+        : redirectTo;
+      navigate(dest, { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Authentication failed";
       toast.error(message);
