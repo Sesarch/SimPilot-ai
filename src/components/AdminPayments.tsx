@@ -227,6 +227,7 @@ const AdminPayments = () => {
     <div className="space-y-6">
       <StripeDiagnosticsPanel />
       <StripeWebhookStatusPanel />
+      <SubscriptionAuditPanel />
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-primary" /> Payments & Revenue
