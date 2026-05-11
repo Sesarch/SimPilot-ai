@@ -112,6 +112,29 @@ const FlightDeckPage = () => {
           </div>
         </div>
 
+        {showUpgradeCta && (
+          <div className="g3000-bezel rounded-xl p-5 sm:p-6 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-[hsl(var(--cyan-glow))]/40">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-[hsl(var(--cyan-glow))] mt-0.5 shrink-0" />
+              <div>
+                <div className="font-display text-[14px] tracking-[0.2em] uppercase text-foreground">
+                  {trial.trialExpired
+                    ? "Trial Ended"
+                    : trial.trialEndsAt
+                    ? `Trial · ${trial.daysRemaining}d Left`
+                    : "Free Plan"}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Unlock unlimited AI instructor messages, oral exams, and advanced training tools.
+                </p>
+              </div>
+            </div>
+            <Button asChild className="shrink-0">
+              <Link to="/#pricing">Upgrade plan</Link>
+            </Button>
+          </div>
+        )}
+
         {/* Main gauge + side stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
           <div className="lg:col-span-3 g3000-bezel g3000-glow-cyan rounded-xl p-6 sm:p-10 flex flex-col items-center relative overflow-hidden">
