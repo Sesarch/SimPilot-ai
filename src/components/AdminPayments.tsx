@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import StripeDiagnosticsPanel from "./StripeDiagnosticsPanel";
 import StripeWebhookStatusPanel from "./StripeWebhookStatusPanel";
 import SubscriptionAuditPanel from "./SubscriptionAuditPanel";
+import ExternalSubscriptionsPanel from "./ExternalSubscriptionsPanel";
 
 type Metrics = {
   mrr_cents: number;
