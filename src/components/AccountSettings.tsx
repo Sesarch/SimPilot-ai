@@ -101,6 +101,19 @@ const AccountSettings = () => {
   const [paymentsLoading, setPaymentsLoading] = useState(true);
   const [paymentIssue, setPaymentIssue] = useState<PaymentIssue | null>(null);
   const [recovering, setRecovering] = useState(false);
+  const [dailyUsage, setDailyUsage] = useState<number>(0);
+
+  const fetchUsage = useCallback(async () => {
+    if (!user) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from("message_usage")
+      .select("message_count")
+      .eq("user_id", user.id)
+      .eq("usage_date", today)
+      .maybeSingle();
+    setDailyUsage(data?.message_count ?? 0);
+  }, [user]);
 
   const fetchBilling = async () => {
     const [subRes, billRes] = await Promise.all([
