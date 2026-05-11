@@ -10,6 +10,8 @@ import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, Exte
 import { usePilotContext } from "@/hooks/usePilotContext";
 import RedeemSchoolCode from "@/components/RedeemSchoolCode";
 import MfaSettings from "@/components/MfaSettings";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
+import { calculatePlanLabel } from "@/lib/planLabel";
 
 const TRACK_OPTIONS = [
   { value: "PPL", label: "PPL — Private Pilot" },
@@ -232,9 +234,13 @@ const AccountSettings = () => {
     }
   };
 
-  const planLabel = billing?.tier
-    ? `SimPilot ${billing.tier.charAt(0).toUpperCase()}${billing.tier.slice(1)}`
-    : billing?.subscribed ? "SimPilot" : "Free";
+  const { trialEndsAt } = useTrialStatus();
+  const planInfo = calculatePlanLabel({
+    subscribed: billing?.subscribed,
+    tier: billing?.tier,
+    trialEndsAt,
+  });
+  const planLabel = planInfo.label;
 
   const statusMeta: Record<string, { label: string; tone: string }> = {
     active: { label: "Active", tone: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
@@ -268,7 +274,7 @@ const AccountSettings = () => {
     : "bg-primary";
   const priceLabel = renewalAmount
     ? `${renewalAmount}${billing?.interval ? ` / ${billing.interval}` : ""}`
-    : billing?.subscribed ? "—" : "Free";
+    : billing?.subscribed ? "—" : planInfo.trialActive ? `Trial · ${planInfo.trialDaysLeft}d left` : "Free";
 
   const handleManageBilling = async () => {
     setOpeningPortal(true);
