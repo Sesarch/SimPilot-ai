@@ -214,27 +214,48 @@ Deno.serve(async (req) => {
         extendedMonthsByUser.set(row.target_id, (extendedMonthsByUser.get(row.target_id) || 0) + m);
       });
 
-      const enriched = data.users.map((u: any) => ({
-        id: u.id,
-        email: u.email,
-        created_at: u.created_at,
-        last_sign_in_at: u.last_sign_in_at,
-        email_confirmed_at: u.email_confirmed_at,
-        banned_until: u.banned_until,
-        is_banned: !!u.banned_until && new Date(u.banned_until) > new Date(),
-        roles: (roles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
-        display_name: (profiles || []).find((p: any) => p.user_id === u.id)?.display_name || null,
-        terms_agreed_at: (profiles || []).find((p: any) => p.user_id === u.id)?.terms_agreed_at || null,
-        trial_ends_at: (profiles || []).find((p: any) => p.user_id === u.id)?.trial_ends_at || null,
-        subscription_tier: (profiles || []).find((p: any) => p.user_id === u.id)?.subscription_tier || null,
-        subscription_status: (profiles || []).find((p: any) => p.user_id === u.id)?.subscription_status || null,
-        subscription_current_period_end: (profiles || []).find((p: any) => p.user_id === u.id)?.subscription_current_period_end || null,
-        subscription_source: (profiles || []).find((p: any) => p.user_id === u.id)?.subscription_source || null,
-        last_transmission_at: lastTxByUser.get(u.id) || null,
-        total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
-        comp_grant: grantByUser.get(u.id) || null,
-        extended_months: Math.round((extendedMonthsByUser.get(u.id) || 0) * 10) / 10,
-      }));
+      // Live Stripe fallback: for users whose profile has no synced subscription_status
+      // (webhook may not have fired yet), look up their email in Stripe so the Plan column
+      // is not stuck on "Free".
+      const profileByUser = new Map<string, any>();
+      (profiles || []).forEach((p: any) => profileByUser.set(p.user_id, p));
+      const emailsNeedingLookup = data.users
+        .filter((u: any) => {
+          const p = profileByUser.get(u.id);
+          return u.email && !(p && p.subscription_status);
+        })
+        .map((u: any) => u.email as string);
+      const stripeByEmail = await fetchStripeSubscriptionsByEmail(emailsNeedingLookup);
+
+      const enriched = data.users.map((u: any) => {
+        const profile = profileByUser.get(u.id);
+        const liveSub = u.email ? stripeByEmail.get(u.email.toLowerCase()) : undefined;
+        const tier = profile?.subscription_tier || liveSub?.tier || null;
+        const status = profile?.subscription_status || liveSub?.status || null;
+        const cpe = profile?.subscription_current_period_end || liveSub?.current_period_end || null;
+        const source = profile?.subscription_source || (liveSub ? "stripe-live" : null);
+        return {
+          id: u.id,
+          email: u.email,
+          created_at: u.created_at,
+          last_sign_in_at: u.last_sign_in_at,
+          email_confirmed_at: u.email_confirmed_at,
+          banned_until: u.banned_until,
+          is_banned: !!u.banned_until && new Date(u.banned_until) > new Date(),
+          roles: (roles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
+          display_name: profile?.display_name || null,
+          terms_agreed_at: profile?.terms_agreed_at || null,
+          trial_ends_at: profile?.trial_ends_at || null,
+          subscription_tier: tier,
+          subscription_status: status,
+          subscription_current_period_end: cpe,
+          subscription_source: source,
+          last_transmission_at: lastTxByUser.get(u.id) || null,
+          total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
+          comp_grant: grantByUser.get(u.id) || null,
+          extended_months: Math.round((extendedMonthsByUser.get(u.id) || 0) * 10) / 10,
+        };
+      });
 
       return new Response(JSON.stringify({ users: enriched, total: data.users.length }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
