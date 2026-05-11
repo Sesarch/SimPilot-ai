@@ -22,7 +22,7 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const wanted = new Set(emails.map((e) => e.toLowerCase()));
 
-    const productNameById = new Map<string, string>();
+    
 
     // Pull active + trialing subs (paged) and only keep those whose customer email matches a user.
     const statuses: Array<"active" | "trialing" | "past_due"> = ["active", "trialing", "past_due"];
