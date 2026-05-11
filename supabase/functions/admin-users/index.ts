@@ -43,21 +43,27 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
           const item = sub.items.data[0];
           const priceId = item?.price?.id;
           let tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
+          // Anything not in the SimPilot price map is treated as an external
+          // (non-SimPilot) subscription — e.g. legacy MainAI products living
+          // in the same Stripe account. Surface them clearly so they don't
+          // look like paid SimPilot tiers in the Users tab.
           if (!tier) {
             const productRef = item?.price?.product;
             const productId = typeof productRef === "string" ? productRef : productRef?.id;
+            let productName = "";
             if (productId) {
               if (!productNameById.has(productId)) {
                 try {
                   const product = await stripe.products.retrieve(productId);
-                  productNameById.set(productId, product.name || "Paid");
+                  productNameById.set(productId, product.name || "");
                 } catch (_) {
-                  productNameById.set(productId, "Paid");
+                  productNameById.set(productId, "");
                 }
               }
-              tier = productNameById.get(productId);
+              productName = productNameById.get(productId) || "";
             }
-            tier ||= "Paid";
+            const trimmed = productName.trim();
+            tier = trimmed ? `External (${trimmed})` : "External";
           }
           // deno-lint-ignore no-explicit-any
           const cpe: number | undefined = (sub as any).current_period_end ?? (item as any)?.current_period_end;
