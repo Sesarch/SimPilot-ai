@@ -330,6 +330,98 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---- WEBHOOK STATUS: signing-secret presence, Stripe endpoints, recent deliveries ----
+    if (req.method === "GET" && action === "webhook-status") {
+      const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
+      const hasSigningSecret = !!Deno.env.get("STRIPE_WEBHOOK_SECRET");
+
+      // 1) Configured Stripe webhook endpoints
+      let endpoints: Array<{
+        id: string;
+        url: string;
+        status: string;
+        enabled_events: string[];
+        api_version: string | null;
+        livemode: boolean;
+        matches_expected: boolean;
+      }> = [];
+      let endpointsError: string | null = null;
+      try {
+        const list = await stripe.webhookEndpoints.list({ limit: 30 });
+        endpoints = list.data.map((e) => ({
+          id: e.id,
+          url: e.url,
+          status: e.status,
+          enabled_events: e.enabled_events ?? [],
+          api_version: e.api_version ?? null,
+          livemode: e.livemode,
+          matches_expected: e.url === expectedUrl,
+        }));
+      } catch (e) {
+        endpointsError = (e as Error).message;
+      }
+
+      // 2) Persisted delivery log — counts and last 20
+      const REQUIRED_EVENTS = [
+        "checkout.session.completed",
+        "customer.subscription.created",
+        "customer.subscription.updated",
+        "customer.subscription.deleted",
+        "invoice.payment_succeeded",
+        "invoice.payment_failed",
+      ];
+
+      const since24h = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const since7d = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
+
+      const [{ count: totalCount }, { count: count24h }, { count: count7d }, recent] = await Promise.all([
+        admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }),
+        admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }).gte("created_at", since24h),
+        admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }).gte("created_at", since7d),
+        admin
+          .from("stripe_webhook_events")
+          .select("stripe_event_id, event_type, livemode, status, user_id, customer_id, subscription_id, created_at")
+          .order("created_at", { ascending: false })
+          .limit(20),
+      ]);
+
+      // Pick the endpoint that points to our function and check coverage
+      const matching = endpoints.find((e) => e.matches_expected) ?? null;
+      const missingEvents = matching
+        ? REQUIRED_EVENTS.filter((evt) => !matching.enabled_events.includes(evt) && !matching.enabled_events.includes("*"))
+        : REQUIRED_EVENTS;
+
+      // Overall health verdict
+      const totalEvents = totalCount ?? 0;
+      let verdict: "healthy" | "warning" | "error" = "error";
+      if (hasSigningSecret && matching && matching.status === "enabled" && missingEvents.length === 0 && (count7d ?? 0) > 0) {
+        verdict = "healthy";
+      } else if (hasSigningSecret && matching && missingEvents.length === 0) {
+        verdict = "warning"; // configured but no recent deliveries
+      }
+
+      return new Response(
+        JSON.stringify({
+          verdict,
+          expected_url: expectedUrl,
+          signing_secret_configured: hasSigningSecret,
+          endpoints,
+          endpoints_error: endpointsError,
+          matching_endpoint: matching,
+          required_events: REQUIRED_EVENTS,
+          missing_events: missingEvents,
+          counts: {
+            total: totalEvents,
+            last_24h: count24h ?? 0,
+            last_7d: count7d ?? 0,
+          },
+          recent: recent.data ?? [],
+          checked_at: new Date().toISOString(),
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (req.method === "POST") {
       const body = await req.json();
 
