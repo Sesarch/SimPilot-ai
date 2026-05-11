@@ -373,6 +373,43 @@ export const TrainingChat = ({
       >
         I'm a study tool, not a CFI or dispatcher. AI can be confidently wrong. Under <span className="text-foreground">14 CFR §91.3</span>, the PIC is the final authority.
       </div>
+      {/* Lesson progress tracker (Ground One-on-One only) */}
+      {lessonProgress && started && (
+        <div
+          role="status"
+          aria-label="Lesson progress"
+          className="px-3 py-2 border-b border-border bg-secondary/30"
+        >
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                Lesson Progress
+              </span>
+              <span className="text-xs text-foreground truncate">
+                Covered <span className="text-primary font-medium">{lessonProgress.covered}</span> of {lessonProgress.total} key concepts
+              </span>
+            </div>
+            <span
+              className={`font-display text-[10px] tracking-widest uppercase px-2 py-0.5 rounded border whitespace-nowrap ${
+                lessonProgress.gateSatisfied
+                  ? "bg-primary/15 text-primary border-primary/40"
+                  : "bg-secondary text-muted-foreground border-border"
+              }`}
+            >
+              {lessonProgress.gateSatisfied ? "Quiz Unlocked" : "Teaching…"}
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+            <div
+              className={`h-full transition-all ${lessonProgress.gateSatisfied ? "bg-primary" : "bg-primary/60"}`}
+              style={{
+                width: `${Math.min(100, (lessonProgress.covered / Math.max(1, lessonProgress.total)) * 100)}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         <SafetyAlertBanner />
