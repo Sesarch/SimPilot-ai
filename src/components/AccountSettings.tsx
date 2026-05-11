@@ -10,6 +10,8 @@ import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, Exte
 import { usePilotContext } from "@/hooks/usePilotContext";
 import RedeemSchoolCode from "@/components/RedeemSchoolCode";
 import MfaSettings from "@/components/MfaSettings";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
+import { calculatePlanLabel } from "@/lib/planLabel";
 
 const TRACK_OPTIONS = [
   { value: "PPL", label: "PPL — Private Pilot" },
