@@ -422,7 +422,7 @@ Deno.serve(async (req) => {
       );
     }
 
-
+    if (req.method === "POST") {
       const body = await req.json();
 
       if (action === "log-load-failure") {
