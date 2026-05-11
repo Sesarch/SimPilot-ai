@@ -289,7 +289,8 @@ const AccountSettings = () => {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.toLowerCase().includes("no stripe customer")) {
-        toast.error("No active subscription found for this account.");
+        toast.error("No paid subscription yet — choose a plan to upgrade.");
+        window.location.href = "/#pricing";
       } else {
         toast.error("Couldn't open billing portal. Please try again.");
       }
