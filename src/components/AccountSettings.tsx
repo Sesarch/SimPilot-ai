@@ -274,7 +274,7 @@ const AccountSettings = () => {
     : "bg-primary";
   const priceLabel = renewalAmount
     ? `${renewalAmount}${billing?.interval ? ` / ${billing.interval}` : ""}`
-    : billing?.subscribed ? "—" : "Free";
+    : billing?.subscribed ? "—" : planInfo.trialActive ? `Trial · ${planInfo.trialDaysLeft}d left` : "Free";
 
   const handleManageBilling = async () => {
     setOpeningPortal(true);
