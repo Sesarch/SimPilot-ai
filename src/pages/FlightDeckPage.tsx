@@ -40,7 +40,6 @@ const CATEGORY_META: Array<{
 const FlightDeckPage = () => {
   const { loading, overall, categories, hasData } = useReadiness();
   const trial = useTrialStatus();
-  const showUpgradeCta = !trial.loading && !trial.subscribed;
   // Listen for SimPilot Bridge flight phase events and auto-draft logbook rows.
   useAutoLogbook();
 
@@ -112,28 +111,65 @@ const FlightDeckPage = () => {
           </div>
         </div>
 
-        {showUpgradeCta && (
-          <div className="g3000-bezel rounded-xl p-5 sm:p-6 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-[hsl(var(--cyan-glow))]/40">
-            <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-[hsl(var(--cyan-glow))] mt-0.5 shrink-0" />
-              <div>
-                <div className="font-display text-[14px] tracking-[0.2em] uppercase text-foreground">
-                  {trial.trialExpired
-                    ? "Trial Ended"
-                    : trial.trialEndsAt
-                    ? `Trial · ${trial.daysRemaining}d Left`
-                    : "Free Plan"}
+        {!trial.loading && (() => {
+          const isPaid = trial.subscribed;
+          const isTrialActive = !isPaid && !!trial.trialEndsAt && !trial.trialExpired;
+          const isTrialExpired = !isPaid && trial.trialExpired;
+          const isFree = !isPaid && !trial.trialEndsAt;
+
+          const planLabel = isPaid
+            ? `SimPilot ${trial.subscriptionTier === "ultra" ? "Ultra" : "Pro"}`
+            : isTrialActive
+            ? `Trial · ${trial.daysRemaining}d left`
+            : isTrialExpired
+            ? "Trial Ended"
+            : "Free Plan";
+
+          const description = isPaid
+            ? "You have full access to unlimited AI instructor messages, oral exams, and advanced training tools."
+            : isTrialActive
+            ? `${trial.daysRemaining} day${trial.daysRemaining === 1 ? "" : "s"} of full access remaining. Click Upgrade plan to choose Pro or Ultra and keep your progress after the trial ends.`
+            : isTrialExpired
+            ? "Your 7-day trial has ended. Click Upgrade plan to pick Pro or Ultra and restore full access — you'll be redirected to secure Stripe checkout."
+            : "You're on the Free plan with limited features. Click Upgrade plan to compare Pro and Ultra, then continue to secure Stripe checkout.";
+
+          const borderClass = isPaid
+            ? "border-[hsl(var(--hud-green))]/40"
+            : isTrialExpired
+            ? "border-[hsl(var(--amber-instrument))]/50"
+            : "border-[hsl(var(--cyan-glow))]/40";
+
+          const iconColor = isPaid
+            ? "text-[hsl(var(--hud-green))]"
+            : isTrialExpired
+            ? "text-[hsl(var(--amber-instrument))]"
+            : "text-[hsl(var(--cyan-glow))]";
+
+          return (
+            <div className={`g3000-bezel rounded-xl p-5 sm:p-6 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border ${borderClass}`}>
+              <div className="flex items-start gap-3">
+                <Sparkles className={`w-5 h-5 mt-0.5 shrink-0 ${iconColor}`} />
+                <div>
+                  <div className="font-display text-[12px] tracking-[0.24em] uppercase text-muted-foreground">
+                    Current Plan
+                  </div>
+                  <div className="font-display text-[16px] tracking-[0.18em] uppercase text-foreground mt-1">
+                    {planLabel}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+                    {description}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Unlock unlimited AI instructor messages, oral exams, and advanced training tools.
-                </p>
               </div>
+              {!isPaid && (
+                <Button asChild className="shrink-0">
+                  <Link to="/#pricing">Upgrade plan</Link>
+                </Button>
+              )}
             </div>
-            <Button asChild className="shrink-0">
-              <Link to="/#pricing">Upgrade plan</Link>
-            </Button>
-          </div>
-        )}
+          );
+        })()}
+
 
         {/* Main gauge + side stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
