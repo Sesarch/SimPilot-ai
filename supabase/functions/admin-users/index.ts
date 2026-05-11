@@ -19,6 +19,8 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const wanted = new Set(emails.map((e) => e.toLowerCase()));
 
+    const productNameById = new Map<string, string>();
+
     // Pull active + trialing subs (paged) and only keep those whose customer email matches a user.
     const statuses: Array<"active" | "trialing" | "past_due"> = ["active", "trialing", "past_due"];
     for (const status of statuses) {
@@ -28,7 +30,7 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
         const page = await stripe.subscriptions.list({
           status,
           limit: 100,
-          expand: ["data.customer", "data.items.data.price.product"],
+          expand: ["data.customer"],
           starting_after,
         });
         for (const sub of page.data) {
@@ -42,10 +44,20 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
           const priceId = item?.price?.id;
           let tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
           if (!tier) {
-            const product = item?.price?.product as Stripe.Product | undefined;
-            tier = (product && typeof product === "object" && "name" in product && product.name)
-              ? String(product.name)
-              : "Paid";
+            const productRef = item?.price?.product;
+            const productId = typeof productRef === "string" ? productRef : productRef?.id;
+            if (productId) {
+              if (!productNameById.has(productId)) {
+                try {
+                  const product = await stripe.products.retrieve(productId);
+                  productNameById.set(productId, product.name || "Paid");
+                } catch (_) {
+                  productNameById.set(productId, "Paid");
+                }
+              }
+              tier = productNameById.get(productId);
+            }
+            tier ||= "Paid";
           }
           // deno-lint-ignore no-explicit-any
           const cpe: number | undefined = (sub as any).current_period_end ?? (item as any)?.current_period_end;
@@ -219,10 +231,11 @@ Deno.serve(async (req) => {
       // is not stuck on "Free".
       const profileByUser = new Map<string, any>();
       (profiles || []).forEach((p: any) => profileByUser.set(p.user_id, p));
+      const liveStripeStatuses = new Set(["active", "trialing", "past_due"]);
       const emailsNeedingLookup = data.users
         .filter((u: any) => {
           const p = profileByUser.get(u.id);
-          return u.email && !(p && p.subscription_status);
+          return u.email && (!p?.subscription_tier || !liveStripeStatuses.has(p?.subscription_status));
         })
         .map((u: any) => u.email as string);
       const stripeByEmail = await fetchStripeSubscriptionsByEmail(emailsNeedingLookup);
@@ -230,9 +243,10 @@ Deno.serve(async (req) => {
       const enriched = data.users.map((u: any) => {
         const profile = profileByUser.get(u.id);
         const liveSub = u.email ? stripeByEmail.get(u.email.toLowerCase()) : undefined;
-        const tier = profile?.subscription_tier || liveSub?.tier || null;
-        const status = profile?.subscription_status || liveSub?.status || null;
-        const cpe = profile?.subscription_current_period_end || liveSub?.current_period_end || null;
+        const useLiveSub = !!liveSub && (!liveStripeStatuses.has(profile?.subscription_status) || !profile?.subscription_tier);
+        const tier = useLiveSub ? liveSub?.tier : profile?.subscription_tier || null;
+        const status = useLiveSub ? liveSub?.status : profile?.subscription_status || null;
+        const cpe = useLiveSub ? liveSub?.current_period_end : profile?.subscription_current_period_end || null;
         const source = profile?.subscription_source || (liveSub ? "stripe-live" : null);
         return {
           id: u.id,
