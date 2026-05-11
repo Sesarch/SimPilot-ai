@@ -54,7 +54,32 @@ serve(async (req) => {
       period_end: (inv as any).period_end ?? null,
       hosted_invoice_url: inv.hosted_invoice_url,
       invoice_pdf: inv.invoice_pdf,
+      // deno-lint-ignore no-explicit-any
+      attempt_count: (inv as any).attempt_count ?? 0,
+      // deno-lint-ignore no-explicit-any
+      next_payment_attempt: (inv as any).next_payment_attempt ?? null,
     }));
+
+    // Detect a failed/unpaid invoice that requires user action.
+    // Prefer the most recent open or uncollectible invoice with amount_due > 0.
+    const failedInvoice = invoiceList.data
+      .filter((i) => i.status === "open" || i.status === "uncollectible")
+      .filter((i) => (i.amount_due ?? 0) > 0)
+      .sort((a, b) => (b.created ?? 0) - (a.created ?? 0))[0];
+
+    const payment_issue = failedInvoice
+      ? {
+          invoice_id: failedInvoice.id,
+          status: failedInvoice.status,
+          amount_due: failedInvoice.amount_due,
+          currency: failedInvoice.currency,
+          hosted_invoice_url: failedInvoice.hosted_invoice_url,
+          // deno-lint-ignore no-explicit-any
+          attempt_count: (failedInvoice as any).attempt_count ?? 0,
+          // deno-lint-ignore no-explicit-any
+          next_payment_attempt: (failedInvoice as any).next_payment_attempt ?? null,
+        }
+      : null;
 
     // Default payment method
     let pmId: string | null = null;
