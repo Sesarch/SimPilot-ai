@@ -63,6 +63,9 @@ type AdminUser = {
   subscription_status?: string | null;
   subscription_current_period_end?: string | null;
   subscription_source?: string | null;
+  stripe_price_id?: string | null;
+  stripe_price_matched?: boolean | null;
+  stripe_live_status?: string | null;
 };
 
 type LeadEmail = {
