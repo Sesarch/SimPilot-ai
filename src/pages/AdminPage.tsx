@@ -66,6 +66,9 @@ type AdminUser = {
   stripe_price_id?: string | null;
   stripe_price_matched?: boolean | null;
   stripe_live_status?: string | null;
+  stripe_live_tier?: string | null;
+  consistency_mismatch?: boolean | null;
+  consistency_reason?: string | null;
 };
 
 type LeadEmail = {
