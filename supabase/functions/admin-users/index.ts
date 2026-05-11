@@ -235,7 +235,8 @@ Deno.serve(async (req) => {
       const emailsNeedingLookup = data.users
         .filter((u: any) => {
           const p = profileByUser.get(u.id);
-          return u.email && (!p?.subscription_tier || !liveStripeStatuses.has(p?.subscription_status));
+          const tierMissingOrFree = !p?.subscription_tier || String(p.subscription_tier).toLowerCase() === "free";
+          return u.email && (tierMissingOrFree || !liveStripeStatuses.has(p?.subscription_status));
         })
         .map((u: any) => u.email as string);
       const stripeByEmail = await fetchStripeSubscriptionsByEmail(emailsNeedingLookup);
@@ -243,7 +244,8 @@ Deno.serve(async (req) => {
       const enriched = data.users.map((u: any) => {
         const profile = profileByUser.get(u.id);
         const liveSub = u.email ? stripeByEmail.get(u.email.toLowerCase()) : undefined;
-        const useLiveSub = !!liveSub && (!liveStripeStatuses.has(profile?.subscription_status) || !profile?.subscription_tier);
+        const profileTierIsMissingOrFree = !profile?.subscription_tier || String(profile.subscription_tier).toLowerCase() === "free";
+        const useLiveSub = !!liveSub && (!liveStripeStatuses.has(profile?.subscription_status) || profileTierIsMissingOrFree);
         const tier = useLiveSub ? liveSub?.tier : profile?.subscription_tier || null;
         const status = useLiveSub ? liveSub?.status : profile?.subscription_status || null;
         const cpe = useLiveSub ? liveSub?.current_period_end : profile?.subscription_current_period_end || null;
