@@ -102,6 +102,7 @@ const OnboardingPlanPage = () => {
       <SEOHead
         title="Choose Your Plan — SimPilot.AI"
         description="Pick the SimPilot plan that fits your training goals."
+        keywords="SimPilot plans, pilot subscription, flight training plan"
         canonical="/onboarding/plan"
       />
       <header className="pt-10 pb-6 flex justify-center">
