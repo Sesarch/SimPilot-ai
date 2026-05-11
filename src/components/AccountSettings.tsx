@@ -243,6 +243,56 @@ const AccountSettings = () => {
         <p className="text-xs text-muted-foreground mb-4">
           Manage your SimPilot plan, update payment methods, download invoices, or cancel — all securely through Stripe.
         </p>
+
+        <div className="rounded-lg border border-border bg-background/40 p-4 mb-4">
+          {billingLoading ? (
+            <div className="space-y-2">
+              <div className="h-4 w-32 rounded bg-muted/40 animate-pulse" />
+              <div className="h-3 w-48 rounded bg-muted/30 animate-pulse" />
+            </div>
+          ) : (
+            <>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Current plan</div>
+                  <div className="font-display text-base text-foreground">{planLabel}</div>
+                </div>
+                <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-md border ${statusBadge.tone}`}>
+                  {statusBadge.label}
+                </span>
+              </div>
+
+              {billing?.subscribed ? (
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">{billingNoun}</div>
+                    <div className="text-foreground">{renewalDate ?? "—"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                      {billing?.cancel_at_period_end ? "Final amount" : "Renewal amount"}
+                    </div>
+                    <div className="text-foreground">
+                      {renewalAmount
+                        ? `${renewalAmount}${billing?.interval ? ` / ${billing.interval}` : ""}`
+                        : "—"}
+                    </div>
+                  </div>
+                  {billing?.cancel_at_period_end && (
+                    <div className="col-span-2 text-[11px] text-amber-400/90">
+                      Your subscription is set to cancel at the end of the current period.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  You don't have an active subscription. Upgrade to unlock unlimited CFI-AI sessions, oral exam prep, and more.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
         <Button onClick={handleManageBilling} disabled={openingPortal} size="sm">
           <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
           {openingPortal ? "Opening…" : "Manage subscription"}
