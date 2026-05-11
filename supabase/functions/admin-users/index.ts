@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
       // Get profiles
       const { data: profiles } = await adminClient
         .from("profiles")
-        .select("user_id, display_name, terms_agreed_at, trial_ends_at")
+        .select("user_id, display_name, terms_agreed_at, trial_ends_at, subscription_tier, subscription_status, subscription_current_period_end, subscription_source")
         .in("user_id", userIds);
 
       // Engagement: last_transmission (latest chat session updated_at)
