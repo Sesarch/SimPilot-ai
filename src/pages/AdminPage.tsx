@@ -701,20 +701,28 @@ const AdminPage = () => {
                               const tierLabel = rawTier
                                 ? TIER_LABELS[rawTier.toLowerCase()] ?? null
                                 : null;
+                              // Build an audit tooltip that always shows the matched Stripe
+                              // price ID (or "not found") so admins can see why a row is Free
+                              // vs a paid plan.
+                              const priceLine = u.stripe_price_id
+                                ? `Stripe price: ${u.stripe_price_id}${u.stripe_price_matched ? " (SimPilot match)" : " (not a SimPilot price)"}`
+                                : "Stripe price: not found";
+                              const liveStatusLine = u.stripe_live_status ? `\nLive Stripe status: ${u.stripe_live_status}` : "";
+                              const renewLine = u.subscription_current_period_end
+                                ? `\nRenews ${new Date(u.subscription_current_period_end).toLocaleDateString()}`
+                                : "";
+                              const auditTooltip = `${priceLine}${liveStatusLine}${renewLine}`;
+
                               if (tierLabel && isActive) {
                                 const isTrial = status === "trialing";
                                 return (
                                   <Badge
                                     className={
                                       isTrial
-                                        ? "bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit"
-                                        : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs w-fit"
+                                        ? "bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit cursor-help"
+                                        : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs w-fit cursor-help"
                                     }
-                                    title={
-                                      u.subscription_current_period_end
-                                        ? `Renews ${new Date(u.subscription_current_period_end).toLocaleDateString()}`
-                                        : undefined
-                                    }
+                                    title={auditTooltip}
                                   >
                                     {tierLabel}{isTrial ? " (Trial)" : ""}
                                   </Badge>
@@ -722,13 +730,23 @@ const AdminPage = () => {
                               }
                               if (tierLabel && status === "past_due") {
                                 return (
-                                  <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs w-fit">
+                                  <Badge
+                                    className="bg-red-500/20 text-red-400 border-red-500/30 text-xs w-fit cursor-help"
+                                    title={auditTooltip}
+                                  >
                                     {tierLabel} · Past due
                                   </Badge>
                                 );
                               }
                               if (!u.roles.includes("admin") && !u.roles.includes("moderator")) {
-                                return <span className="text-xs text-muted-foreground">Free</span>;
+                                return (
+                                  <span
+                                    className="text-xs text-muted-foreground cursor-help"
+                                    title={auditTooltip}
+                                  >
+                                    Free
+                                  </span>
+                                );
                               }
                               return null;
                             })()}
