@@ -341,7 +341,114 @@ const AccountSettings = () => {
         </Button>
       </div>
 
-      {/* School Code Redemption */}
+      {/* Payment Method & Invoice History */}
+      <div id="payments" className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <h3 className="font-display text-sm text-foreground mb-1 flex items-center gap-2">
+          <Receipt className="w-4 h-4 text-primary" /> Payments & Invoices
+        </h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Your payment method on file and recent Stripe invoices. Use "Manage subscription" above to update your card.
+        </p>
+
+        {/* Payment method */}
+        <div className="rounded-lg border border-border bg-background/40 p-4 mb-4">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Payment method</div>
+          {paymentsLoading ? (
+            <div className="h-4 w-40 rounded bg-muted/40 animate-pulse" />
+          ) : paymentMethod ? (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-6 rounded bg-gradient-to-br from-primary/20 to-accent/10 border border-border flex items-center justify-center">
+                  <CreditCard className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-sm text-foreground capitalize">
+                    {paymentMethod.brand ?? paymentMethod.type ?? "Card"}
+                    {paymentMethod.last4 ? ` •••• ${paymentMethod.last4}` : ""}
+                  </div>
+                  {paymentMethod.exp_month && paymentMethod.exp_year && (
+                    <div className="text-[11px] text-muted-foreground">
+                      Expires {String(paymentMethod.exp_month).padStart(2, "0")}/{String(paymentMethod.exp_year).slice(-2)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">No payment method on file.</p>
+          )}
+        </div>
+
+        {/* Invoice history */}
+        <div className="rounded-lg border border-border bg-background/40 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
+            Invoice history
+          </div>
+          {paymentsLoading ? (
+            <div className="p-4 space-y-2">
+              <div className="h-4 w-full rounded bg-muted/30 animate-pulse" />
+              <div className="h-4 w-3/4 rounded bg-muted/30 animate-pulse" />
+            </div>
+          ) : invoices.length === 0 ? (
+            <p className="p-4 text-xs text-muted-foreground">No invoices yet.</p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {invoices.map((inv) => {
+                const date = new Date(inv.created * 1000).toLocaleDateString(undefined, {
+                  year: "numeric", month: "short", day: "numeric",
+                });
+                const amount = (() => {
+                  const v = inv.amount_paid || inv.amount_due;
+                  try {
+                    return new Intl.NumberFormat(undefined, {
+                      style: "currency", currency: inv.currency.toUpperCase(),
+                    }).format(v / 100);
+                  } catch {
+                    return `${(v / 100).toFixed(2)} ${inv.currency.toUpperCase()}`;
+                  }
+                })();
+                const statusTone =
+                  inv.status === "paid" ? "text-emerald-500"
+                  : inv.status === "open" ? "text-amber-400"
+                  : inv.status === "void" || inv.status === "uncollectible" ? "text-red-400"
+                  : "text-muted-foreground";
+                return (
+                  <li key={inv.id} className="px-4 py-2.5 flex items-center gap-3 text-xs">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-foreground truncate">
+                        {inv.number ?? inv.id}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">{date}</div>
+                    </div>
+                    <div className="text-foreground tabular-nums">{amount}</div>
+                    <div className={`text-[10px] uppercase tracking-wider ${statusTone} w-14 text-right`}>
+                      {inv.status ?? "—"}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {inv.hosted_invoice_url && (
+                        <Button asChild size="sm" variant="ghost" className="h-7 px-2" title="View invoice">
+                          <a href={inv.hosted_invoice_url} target="_blank" rel="noreferrer noopener">
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        </Button>
+                      )}
+                      {inv.invoice_pdf && (
+                        <Button asChild size="sm" variant="ghost" className="h-7 px-2" title="Download PDF">
+                          <a href={inv.invoice_pdf} target="_blank" rel="noreferrer noopener">
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+
+
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <RedeemSchoolCode />
       </div>
