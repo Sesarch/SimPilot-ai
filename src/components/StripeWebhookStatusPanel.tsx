@@ -54,12 +54,6 @@ export default function StripeWebhookStatusPanel() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-payments", {
-        method: "GET",
-        // edge function reads `action` from query string; use raw fetch instead.
-      });
-      // supabase.functions.invoke can't append query params reliably across versions, so call directly:
-      void data; void error;
       const session = (await supabase.auth.getSession()).data.session;
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const resp = await fetch(
