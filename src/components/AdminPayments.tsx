@@ -11,6 +11,7 @@ import {
 import { DollarSign, TrendingUp, TrendingDown, Users, RefreshCw, ExternalLink, Gift, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import StripeDiagnosticsPanel from "./StripeDiagnosticsPanel";
+import StripeWebhookStatusPanel from "./StripeWebhookStatusPanel";
 
 type Metrics = {
   mrr_cents: number;
