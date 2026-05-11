@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink } from "lucide-react";
+import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink, CreditCard } from "lucide-react";
 import { usePilotContext } from "@/hooks/usePilotContext";
 import RedeemSchoolCode from "@/components/RedeemSchoolCode";
 import MfaSettings from "@/components/MfaSettings";
@@ -50,6 +50,30 @@ const AccountSettings = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [profilePublic, setProfilePublic] = useState<boolean | null>(null);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
+
+  const handleManageBilling = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer");
+      } else {
+        throw new Error("No portal URL returned");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes("no stripe customer")) {
+        toast.error("No active subscription found for this account.");
+      } else {
+        toast.error("Couldn't open billing portal. Please try again.");
+      }
+      console.error("[AccountSettings] customer-portal error", err);
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -135,6 +159,20 @@ const AccountSettings = () => {
       {/* Two-Factor Authentication */}
       <div id="security" className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <MfaSettings />
+      </div>
+
+      {/* Billing & Subscription */}
+      <div id="billing" className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <h3 className="font-display text-sm text-foreground mb-1 flex items-center gap-2">
+          <CreditCard className="w-4 h-4 text-primary" /> Billing & Subscription
+        </h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Manage your SimPilot plan, update payment methods, download invoices, or cancel — all securely through Stripe.
+        </p>
+        <Button onClick={handleManageBilling} disabled={openingPortal} size="sm">
+          <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+          {openingPortal ? "Opening…" : "Manage subscription"}
+        </Button>
       </div>
 
       {/* School Code Redemption */}
