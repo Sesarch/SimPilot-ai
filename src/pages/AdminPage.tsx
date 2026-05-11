@@ -59,6 +59,10 @@ type AdminUser = {
   total_sim_hours: number;
   comp_grant: { plan_tier: string; expires_at: string | null } | null;
   extended_months?: number;
+  subscription_tier?: string | null;
+  subscription_status?: string | null;
+  subscription_current_period_end?: string | null;
+  subscription_source?: string | null;
 };
 
 type LeadEmail = {
