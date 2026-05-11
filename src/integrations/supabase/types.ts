@@ -1193,6 +1193,78 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_payouts: {
+        Row: {
+          amount: number
+          arrival_date: string | null
+          connected_account_id: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          failure_code: string | null
+          failure_message: string | null
+          id: string
+          last_event_at: string
+          last_event_type: string | null
+          livemode: boolean
+          method: string | null
+          payload: Json
+          source_type: string | null
+          statement_descriptor: string | null
+          status: string
+          stripe_created_at: string | null
+          stripe_payout_id: string
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          arrival_date?: string | null
+          connected_account_id?: string | null
+          created_at?: string
+          currency: string
+          description?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          last_event_at?: string
+          last_event_type?: string | null
+          livemode?: boolean
+          method?: string | null
+          payload: Json
+          source_type?: string | null
+          statement_descriptor?: string | null
+          status: string
+          stripe_created_at?: string | null
+          stripe_payout_id: string
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          arrival_date?: string | null
+          connected_account_id?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          last_event_at?: string
+          last_event_type?: string | null
+          livemode?: boolean
+          method?: string | null
+          payload?: Json
+          source_type?: string | null
+          statement_descriptor?: string | null
+          status?: string
+          stripe_created_at?: string | null
+          stripe_payout_id?: string
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stripe_webhook_events: {
         Row: {
           amount_total: number | null

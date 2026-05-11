@@ -276,6 +276,49 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "payout.created":
+      case "payout.updated":
+      case "payout.paid":
+      case "payout.failed":
+      case "payout.canceled":
+      case "payout.reconciliation_completed": {
+        const payout = event.data.object as Stripe.Payout;
+        const row = {
+          stripe_payout_id: payout.id,
+          connected_account_id:
+            (event as Stripe.Event & { account?: string }).account ?? null,
+          livemode: event.livemode,
+          amount: payout.amount,
+          currency: payout.currency,
+          status: payout.status,
+          type: payout.type ?? null,
+          method: payout.method ?? null,
+          source_type: payout.source_type ?? null,
+          statement_descriptor: payout.statement_descriptor ?? null,
+          description: payout.description ?? null,
+          failure_code: payout.failure_code ?? null,
+          failure_message: payout.failure_message ?? null,
+          arrival_date: payout.arrival_date
+            ? new Date(payout.arrival_date * 1000).toISOString()
+            : null,
+          stripe_created_at: payout.created
+            ? new Date(payout.created * 1000).toISOString()
+            : null,
+          payload: payout as unknown as Record<string, unknown>,
+          last_event_type: event.type,
+          last_event_at: new Date().toISOString(),
+        };
+        const { error } = await supabase
+          .from("stripe_payouts")
+          .upsert(row, { onConflict: "stripe_payout_id" });
+        if (error) {
+          log("payout upsert failed", { id: payout.id, error: error.message });
+          throw error;
+        }
+        log("payout synced", { id: payout.id, status: payout.status });
+        break;
+      }
+
       default:
         log("unhandled event", { type: event.type });
     }
