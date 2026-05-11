@@ -126,7 +126,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ invoices, payment_method }),
+      JSON.stringify({ invoices, payment_method, payment_issue }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
