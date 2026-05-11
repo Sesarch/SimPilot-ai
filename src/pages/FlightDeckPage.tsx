@@ -39,6 +39,8 @@ const CATEGORY_META: Array<{
 
 const FlightDeckPage = () => {
   const { loading, overall, categories, hasData } = useReadiness();
+  const trial = useTrialStatus();
+  const showUpgradeCta = !trial.loading && !trial.subscribed;
   // Listen for SimPilot Bridge flight phase events and auto-draft logbook rows.
   useAutoLogbook();
 
