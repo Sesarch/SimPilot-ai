@@ -1193,6 +1193,66 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_webhook_events: {
+        Row: {
+          amount_total: number | null
+          checkout_session_id: string | null
+          connected_account_id: string | null
+          created_at: string
+          currency: string | null
+          customer_id: string | null
+          event_type: string
+          id: string
+          invoice_id: string | null
+          livemode: boolean
+          object_id: string | null
+          payload: Json
+          processed_at: string
+          status: string | null
+          stripe_event_id: string
+          subscription_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_total?: number | null
+          checkout_session_id?: string | null
+          connected_account_id?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_id?: string | null
+          event_type: string
+          id?: string
+          invoice_id?: string | null
+          livemode?: boolean
+          object_id?: string | null
+          payload: Json
+          processed_at?: string
+          status?: string | null
+          stripe_event_id: string
+          subscription_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_total?: number | null
+          checkout_session_id?: string | null
+          connected_account_id?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_id?: string | null
+          event_type?: string
+          id?: string
+          invoice_id?: string | null
+          livemode?: boolean
+          object_id?: string | null
+          payload?: Json
+          processed_at?: string
+          status?: string | null
+          stripe_event_id?: string
+          subscription_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       support_chat_messages: {
         Row: {
           chat_id: string
