@@ -190,6 +190,38 @@ export const TrainingChat = ({
     return null;
   })();
 
+  // Lesson progress (ground school only).
+  // Parses "Lesson Progress: We've covered X of Y key concepts" emitted by the
+  // instructor, falling back to counting assistant teaching turns toward the
+  // 3-concept teaching gate the model enforces server-side.
+  const lessonProgress = (() => {
+    if (mode !== "ground_school" || !topicId) return null;
+    const GATE_MIN = 3;
+    let parsedCovered: number | null = null;
+    let parsedTotal: number | null = null;
+    let assistantTurns = 0;
+    let summaryDelivered = false;
+    for (const m of messages) {
+      if (m.role !== "assistant") continue;
+      assistantTurns += 1;
+      const text = getTextContent(m.content);
+      const match = text.match(/covered\s+(\d+)\s+of\s+(\d+)\s+key\s+concepts/i);
+      if (match) {
+        parsedCovered = parseInt(match[1], 10);
+        parsedTotal = parseInt(match[2], 10);
+      }
+      if (/##\s*📝?\s*Lesson Summary/i.test(text)) summaryDelivered = true;
+    }
+    if (assistantTurns === 0) return null;
+    const total = parsedTotal ?? GATE_MIN;
+    const covered = Math.min(
+      total,
+      parsedCovered ?? Math.max(0, assistantTurns - 1), // first turn = intro, not a concept
+    );
+    const gateSatisfied = summaryDelivered || (covered >= GATE_MIN && assistantTurns >= GATE_MIN);
+    return { covered, total, gateSatisfied, summaryDelivered };
+  })();
+
   // Mark ground school topic complete when the in-UI quiz is passed (≥ 2/3).
   // Falls back to the legacy text-marker (TOPIC_QUIZ_RESULT: PASS) so older
   // assistant turns that still emit prose quizzes continue to credit the topic.
