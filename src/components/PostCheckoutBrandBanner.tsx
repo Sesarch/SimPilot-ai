@@ -58,6 +58,42 @@ const PostCheckoutBrandBanner = ({
   const [resending, setResending] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
   const sessionId = params.get("session_id");
+  const [validation, setValidation] = useState<
+    { state: "idle" | "validating" | "ok" | "mismatch" | "error"; message?: string }
+  >({ state: "idle" });
+
+  // Validate the Stripe checkout server-side against canonical SimPilot price IDs.
+  useEffect(() => {
+    if (detected !== "success" || !sessionId) return;
+    let cancelled = false;
+    (async () => {
+      setValidation({ state: "validating" });
+      try {
+        const { data, error } = await supabase.functions.invoke("validate-onboarding", {
+          body: { session_id: sessionId },
+        });
+        if (cancelled) return;
+        if (error) throw error;
+        if (data?.validated) {
+          setValidation({ state: "ok", message: `Plan confirmed: ${data.plan_label}` });
+        } else {
+          setValidation({
+            state: "mismatch",
+            message: data?.reason ?? "Plan could not be confirmed.",
+          });
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setValidation({
+          state: "error",
+          message: err instanceof Error ? err.message : "Validation failed",
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [detected, sessionId]);
 
   const handleManageSubscription = async () => {
     if (openingPortal) return;
