@@ -52,6 +52,80 @@ const AccountSettings = () => {
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
 
+  type BillingSummary = {
+    subscribed: boolean;
+    status?: string | null;
+    tier?: string | null;
+    amount?: number | null;
+    currency?: string | null;
+    interval?: string | null;
+    interval_count?: number | null;
+    cancel_at_period_end?: boolean;
+    subscription_end?: string | null;
+  };
+  const [billing, setBilling] = useState<BillingSummary | null>(null);
+  const [billingLoading, setBillingLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setBillingLoading(true);
+    supabase.functions
+      .invoke("check-subscription")
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("[AccountSettings] check-subscription error", error);
+          setBilling({ subscribed: false });
+        } else {
+          setBilling((data as BillingSummary) ?? { subscribed: false });
+        }
+      })
+      .finally(() => { if (!cancelled) setBillingLoading(false); });
+    return () => { cancelled = true; };
+  }, [user]);
+
+  const formatMoney = (amountMinor?: number | null, currency?: string | null) => {
+    if (amountMinor == null || !currency) return null;
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: currency.toUpperCase(),
+      }).format(amountMinor / 100);
+    } catch {
+      return `${(amountMinor / 100).toFixed(2)} ${currency.toUpperCase()}`;
+    }
+  };
+
+  const formatDate = (iso?: string | null) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleDateString(undefined, {
+        year: "numeric", month: "short", day: "numeric",
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  const planLabel = billing?.tier
+    ? `SimPilot ${billing.tier.charAt(0).toUpperCase()}${billing.tier.slice(1)}`
+    : billing?.subscribed ? "SimPilot" : "Free";
+
+  const statusMeta: Record<string, { label: string; tone: string }> = {
+    active: { label: "Active", tone: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+    trialing: { label: "Trial", tone: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    past_due: { label: "Past due", tone: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    unpaid: { label: "Unpaid", tone: "bg-red-500/10 text-red-400 border-red-500/20" },
+    canceled: { label: "Canceled", tone: "bg-muted text-muted-foreground border-border" },
+  };
+  const status = billing?.status ?? (billing?.subscribed ? "active" : "none");
+  const statusBadge = statusMeta[status] ?? { label: "No subscription", tone: "bg-muted text-muted-foreground border-border" };
+
+  const renewalAmount = formatMoney(billing?.amount, billing?.currency);
+  const renewalDate = formatDate(billing?.subscription_end);
+  const billingNoun = billing?.cancel_at_period_end ? "Ends on" : "Next billing";
+
   const handleManageBilling = async () => {
     setOpeningPortal(true);
     try {
