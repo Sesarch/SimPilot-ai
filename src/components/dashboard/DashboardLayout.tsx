@@ -14,24 +14,72 @@ const DashboardLayout = () => {
   const trial = useTrialStatus();
   const [dismissedOnce, setDismissedOnce] = useState(false);
 
+  const [postCheckoutSyncing, setPostCheckoutSyncing] = useState(false);
+
   // Show graduation modal when trial expired AND user has no active subscription.
   // Account page is exempt so users can still manage billing/log out.
+  // Also suppress while we're polling Stripe right after a successful checkout
+  // so the modal doesn't flash before the webhook propagates.
   const showGraduation =
     !trial.loading &&
+    !postCheckoutSyncing &&
     trial.trialExpired &&
     !trial.subscribed &&
     !dismissedOnce &&
     typeof window !== "undefined" &&
     !window.location.pathname.startsWith("/account");
 
-  // Refresh subscription state when returning from successful checkout
+  // Poll subscription state when returning from successful checkout.
+  // Stripe webhooks can take several seconds to land — without polling, the
+  // first check-subscription call returns "unsubscribed" and the Graduation
+  // modal flashes the user back into a paywall loop.
+  // NOTE: trial.refresh is intentionally not a dependency — that object is
+  // recreated every render and would cause an infinite refresh loop.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("subscribed") === "1") {
-      trial.refresh();
+    if (params.get("subscribed") !== "1") return;
+
+    let cancelled = false;
+    setPostCheckoutSyncing(true);
+
+    (async () => {
+      const MAX_ATTEMPTS = 12; // ~24s total
+      const INTERVAL_MS = 2000;
+      for (let i = 0; i < MAX_ATTEMPTS && !cancelled; i++) {
+        await trial.refresh();
+        if (cancelled) return;
+        // Re-read latest by checking URL flag clearance + giving react state a tick
+        await new Promise((r) => setTimeout(r, INTERVAL_MS));
+        // If subscription has landed, stop polling.
+        // We re-read window since trial state from closure is stale.
+        if ((window as any).__simpilot_subscribed === true) break;
+      }
+      if (!cancelled) {
+        setPostCheckoutSyncing(false);
+        // Clean URL so a refresh doesn't re-trigger polling
+        const url = new URL(window.location.href);
+        url.searchParams.delete("subscribed");
+        url.searchParams.delete("plan");
+        url.searchParams.delete("price");
+        url.searchParams.delete("session_id");
+        window.history.replaceState({}, "", url.toString());
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Mirror subscribed flag onto window so the polling loop above can early-exit.
+  useEffect(() => {
+    (window as any).__simpilot_subscribed = trial.subscribed;
+    if (trial.subscribed && postCheckoutSyncing) {
+      setPostCheckoutSyncing(false);
     }
-  }, [trial]);
+  }, [trial.subscribed, postCheckoutSyncing]);
   void setDismissedOnce; // reserved for future "remind me later" affordance
 
   useEffect(() => {
