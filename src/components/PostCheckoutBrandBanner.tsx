@@ -222,6 +222,37 @@ const PostCheckoutBrandBanner = ({
           </p>
         </div>
 
+        {isSuccess && validation.state !== "idle" && (
+          <div
+            className={`inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border ${
+              validation.state === "ok"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                : validation.state === "validating"
+                ? "border-border bg-secondary/30 text-muted-foreground"
+                : "border-amber-500/40 bg-amber-500/10 text-amber-400"
+            }`}
+          >
+            {validation.state === "validating" && (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Verifying with Stripe…
+              </>
+            )}
+            {validation.state === "ok" && (
+              <>
+                <CheckCircle2 className="h-3 w-3" />
+                {validation.message}
+              </>
+            )}
+            {(validation.state === "mismatch" || validation.state === "error") && (
+              <>
+                <XCircle className="h-3 w-3" />
+                {validation.message}
+              </>
+            )}
+          </div>
+        )}
+
         <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
           <Button asChild variant={isSuccess ? "outline" : "default"} size="sm">
             <Link to="/#pricing" aria-label="Back to plan selection">
