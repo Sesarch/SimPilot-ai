@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { Scale, Cloud, Compass, Wind } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Scale, Cloud, Compass, Wind, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
 import ReadinessGauge from "@/components/dashboard/ReadinessGauge";
 import CategoryCard from "@/components/dashboard/CategoryCard";
 import SEOHead from "@/components/SEOHead";
