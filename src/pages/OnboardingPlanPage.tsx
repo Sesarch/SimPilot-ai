@@ -16,7 +16,10 @@ interface PlanCard {
   price: string;
   tagline: string;
   features: string[];
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
+  badge?: string;
+  highlight?: boolean;
+}
   badge?: string;
   highlight?: boolean;
 }
