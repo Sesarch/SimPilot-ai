@@ -45,29 +45,12 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
 
           const item = sub.items.data[0];
           const priceId = item?.price?.id;
-          let tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
-          // Anything not in the SimPilot price map is treated as an external
-          // (non-SimPilot) subscription — e.g. legacy MainAI products living
-          // in the same Stripe account. Surface them clearly so they don't
-          // look like paid SimPilot tiers in the Users tab.
-          if (!tier) {
-            const productRef = item?.price?.product;
-            const productId = typeof productRef === "string" ? productRef : productRef?.id;
-            let productName = "";
-            if (productId) {
-              if (!productNameById.has(productId)) {
-                try {
-                  const product = await stripe.products.retrieve(productId);
-                  productNameById.set(productId, product.name || "");
-                } catch (_) {
-                  productNameById.set(productId, "");
-                }
-              }
-              productName = productNameById.get(productId) || "";
-            }
-            const trimmed = productName.trim();
-            tier = trimmed ? `External (${trimmed})` : "External";
-          }
+          const tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
+          // Hard rule: only surface subscriptions whose price ID maps to one of
+          // the four SimPilot plans. Any other Stripe product (e.g. legacy
+          // MainAI products in the same account) is ignored so it can never
+          // look like a paid SimPilot tier in the Users tab.
+          if (!tier) continue;
           // deno-lint-ignore no-explicit-any
           const cpe: number | undefined = (sub as any).current_period_end ?? (item as any)?.current_period_end;
           result.set(email, {
