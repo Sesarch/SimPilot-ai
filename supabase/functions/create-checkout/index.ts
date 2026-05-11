@@ -47,7 +47,19 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     const customerId = customers.data.length > 0 ? customers.data[0].id : undefined;
 
-    const origin = req.headers.get("origin") || "https://simpilot.ai";
+    // Allowlist of origins we will redirect back to. Anything else falls back
+    // to the canonical production dashboard so users are never sent elsewhere
+    // (e.g. link.com or an unknown host) after a successful payment.
+    const ALLOWED_ORIGINS = [
+      "https://simpilot.ai",
+      "https://www.simpilot.ai",
+      "https://soar-ai-guide.lovable.app",
+    ];
+    const rawOrigin = req.headers.get("origin") ?? "";
+    const isLovablePreview = /^https:\/\/[a-z0-9-]+\.lovable\.app$/i.test(rawOrigin);
+    const origin = ALLOWED_ORIGINS.includes(rawOrigin) || isLovablePreview
+      ? rawOrigin
+      : "https://simpilot.ai";
     const planParam = encodeURIComponent(plan ?? "custom");
     const priceParam = encodeURIComponent(resolvedPrice);
     // Encode plan + price + session id into the redirect URLs so the landing
