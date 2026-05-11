@@ -759,6 +759,14 @@ const AdminPage = () => {
                                 <Gift className="w-2.5 h-2.5 mr-1" /> Comp: {u.comp_grant.plan_tier}
                               </Badge>
                             )}
+                            {u.consistency_mismatch && (
+                              <Badge
+                                className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[10px] w-fit cursor-help"
+                                title={u.consistency_reason || "Profile and Stripe disagree"}
+                              >
+                                <AlertTriangle className="w-2.5 h-2.5 mr-1" /> Mismatch
+                              </Badge>
+                            )}
                           </div>
                         </td>
                         <td className="p-3 text-xs text-muted-foreground">
