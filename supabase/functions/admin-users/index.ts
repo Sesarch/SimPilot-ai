@@ -1,10 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
 import Stripe from "https://esm.sh/stripe@18.5.0?target=deno";
 
+// SimPilot Stripe price IDs → canonical plan label shown in the Users tab.
+// Anything outside this map is ignored (treated as no SimPilot subscription).
+// Flight School is sales-led and has no Stripe price; it is not listed here.
 const PRICE_TO_TIER: Record<string, string> = {
-  price_1TNf5ZRusIXFsWjchdY05u0R: "student",
-  price_1TQhYjRusIXFsWjc3wGvpiqS: "pro",
-  price_1TQhZBRusIXFsWjc2jrUeFEi: "ultra",
+  price_1TNf5ZRusIXFsWjchdY05u0R: "Student",
+  price_1TQhYjRusIXFsWjc3wGvpiqS: "Pro Pilot",
+  price_1TQhZBRusIXFsWjc2jrUeFEi: "Gold Seal CFI",
 };
 
 // Best-effort live Stripe lookup: returns a map of lowercased email -> subscription info
@@ -19,7 +22,7 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const wanted = new Set(emails.map((e) => e.toLowerCase()));
 
-    const productNameById = new Map<string, string>();
+    
 
     // Pull active + trialing subs (paged) and only keep those whose customer email matches a user.
     const statuses: Array<"active" | "trialing" | "past_due"> = ["active", "trialing", "past_due"];
@@ -42,29 +45,12 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
 
           const item = sub.items.data[0];
           const priceId = item?.price?.id;
-          let tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
-          // Anything not in the SimPilot price map is treated as an external
-          // (non-SimPilot) subscription — e.g. legacy MainAI products living
-          // in the same Stripe account. Surface them clearly so they don't
-          // look like paid SimPilot tiers in the Users tab.
-          if (!tier) {
-            const productRef = item?.price?.product;
-            const productId = typeof productRef === "string" ? productRef : productRef?.id;
-            let productName = "";
-            if (productId) {
-              if (!productNameById.has(productId)) {
-                try {
-                  const product = await stripe.products.retrieve(productId);
-                  productNameById.set(productId, product.name || "");
-                } catch (_) {
-                  productNameById.set(productId, "");
-                }
-              }
-              productName = productNameById.get(productId) || "";
-            }
-            const trimmed = productName.trim();
-            tier = trimmed ? `External (${trimmed})` : "External";
-          }
+          const tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
+          // Hard rule: only surface subscriptions whose price ID maps to one of
+          // the four SimPilot plans. Any other Stripe product (e.g. legacy
+          // MainAI products in the same account) is ignored so it can never
+          // look like a paid SimPilot tier in the Users tab.
+          if (!tier) continue;
           // deno-lint-ignore no-explicit-any
           const cpe: number | undefined = (sub as any).current_period_end ?? (item as any)?.current_period_end;
           result.set(email, {

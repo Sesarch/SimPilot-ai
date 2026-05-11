@@ -681,39 +681,46 @@ const AdminPage = () => {
                               <Badge variant="secondary" className="text-xs w-fit">Moderator</Badge>
                             ) : null}
                             {(() => {
-                              const tier = u.subscription_tier;
+                              const rawTier = u.subscription_tier;
                               const status = u.subscription_status;
                               const isActive = status === "active" || status === "trialing";
-                              if (tier && isActive) {
-                                const isExternal = /^external\b/i.test(tier);
-                                const label = isExternal
-                                  ? tier
-                                  : tier.charAt(0).toUpperCase() + tier.slice(1);
+                              // Canonicalize to one of the four SimPilot plans.
+                              // Anything else is treated as no SimPilot subscription.
+                              const TIER_LABELS: Record<string, string> = {
+                                student: "Student",
+                                pro: "Pro Pilot",
+                                "pro pilot": "Pro Pilot",
+                                ultra: "Gold Seal CFI",
+                                "gold seal cfi": "Gold Seal CFI",
+                                flight_school: "Flight School",
+                                "flight school": "Flight School",
+                              };
+                              const tierLabel = rawTier
+                                ? TIER_LABELS[rawTier.toLowerCase()] ?? null
+                                : null;
+                              if (tierLabel && isActive) {
                                 const isTrial = status === "trialing";
-                                const badgeClass = isExternal
-                                  ? "bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs w-fit"
-                                  : isTrial
-                                    ? "bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit"
-                                    : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs w-fit";
                                 return (
                                   <Badge
-                                    className={badgeClass}
+                                    className={
+                                      isTrial
+                                        ? "bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit"
+                                        : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs w-fit"
+                                    }
                                     title={
-                                      isExternal
-                                        ? "Non-SimPilot Stripe subscription (e.g. legacy MainAI product). Does not grant SimPilot paid access."
-                                        : u.subscription_current_period_end
-                                          ? `Renews ${new Date(u.subscription_current_period_end).toLocaleDateString()}`
-                                          : undefined
+                                      u.subscription_current_period_end
+                                        ? `Renews ${new Date(u.subscription_current_period_end).toLocaleDateString()}`
+                                        : undefined
                                     }
                                   >
-                                    {label}{!isExternal && isTrial ? " (Trial)" : ""}
+                                    {tierLabel}{isTrial ? " (Trial)" : ""}
                                   </Badge>
                                 );
                               }
-                              if (tier && status === "past_due") {
+                              if (tierLabel && status === "past_due") {
                                 return (
                                   <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs w-fit">
-                                    {tier} · Past due
+                                    {tierLabel} · Past due
                                   </Badge>
                                 );
                               }
