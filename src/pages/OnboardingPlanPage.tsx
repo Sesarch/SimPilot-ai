@@ -20,9 +20,6 @@ interface PlanCard {
   badge?: string;
   highlight?: boolean;
 }
-  badge?: string;
-  highlight?: boolean;
-}
 
 const PLANS: PlanCard[] = [
   {
