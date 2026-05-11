@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink, CreditCard } from "lucide-react";
+import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink, CreditCard, Receipt, Download } from "lucide-react";
 import { usePilotContext } from "@/hooks/usePilotContext";
 import RedeemSchoolCode from "@/components/RedeemSchoolCode";
 import MfaSettings from "@/components/MfaSettings";
@@ -67,10 +67,35 @@ const AccountSettings = () => {
   const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
 
+  type Invoice = {
+    id: string;
+    number: string | null;
+    amount_paid: number;
+    amount_due: number;
+    currency: string;
+    status: string | null;
+    created: number;
+    period_start: number | null;
+    period_end: number | null;
+    hosted_invoice_url: string | null;
+    invoice_pdf: string | null;
+  };
+  type PaymentMethod = {
+    type?: string;
+    brand?: string;
+    last4?: string;
+    exp_month?: number;
+    exp_year?: number;
+  };
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     setBillingLoading(true);
+    setPaymentsLoading(true);
     supabase.functions
       .invoke("check-subscription")
       .then(({ data, error }) => {
@@ -83,6 +108,22 @@ const AccountSettings = () => {
         }
       })
       .finally(() => { if (!cancelled) setBillingLoading(false); });
+
+    supabase.functions
+      .invoke("billing-details")
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("[AccountSettings] billing-details error", error);
+          setInvoices([]);
+          setPaymentMethod(null);
+        } else {
+          setInvoices((data?.invoices ?? []) as Invoice[]);
+          setPaymentMethod((data?.payment_method ?? null) as PaymentMethod | null);
+        }
+      })
+      .finally(() => { if (!cancelled) setPaymentsLoading(false); });
+
     return () => { cancelled = true; };
   }, [user]);
 
