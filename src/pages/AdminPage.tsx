@@ -691,6 +691,14 @@ const AdminPage = () => {
                               const rawTier = u.subscription_tier;
                               const status = u.subscription_status;
                               const isActive = status === "active" || status === "trialing";
+                              // Trial detection: a user with trial_ends_at in the future and
+                              // no paid Stripe match should show "Trial", not "Free".
+                              const trialEnds = u.trial_ends_at ? new Date(u.trial_ends_at) : null;
+                              const trialActive =
+                                !!trialEnds && trialEnds.getTime() > Date.now() && !u.stripe_price_matched;
+                              const trialDaysLeft = trialActive
+                                ? Math.max(0, Math.ceil((trialEnds!.getTime() - Date.now()) / 86400000))
+                                : 0;
                               // Canonicalize to one of the four SimPilot plans.
                               // Anything else is treated as no SimPilot subscription.
                               const TIER_LABELS: Record<string, string> = {
@@ -743,6 +751,16 @@ const AdminPage = () => {
                                 );
                               }
                               if (!u.roles.includes("admin") && !u.roles.includes("moderator")) {
+                                if (trialActive) {
+                                  return (
+                                    <Badge
+                                      className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit cursor-help"
+                                      title={`Free trial · ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left\n${auditTooltip}`}
+                                    >
+                                      Trial · {trialDaysLeft}d left
+                                    </Badge>
+                                  );
+                                }
                                 return (
                                   <span
                                     className="text-xs text-muted-foreground cursor-help"
