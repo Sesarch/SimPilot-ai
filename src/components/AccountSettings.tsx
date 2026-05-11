@@ -51,6 +51,7 @@ const AccountSettings = () => {
   const [profilePublic, setProfilePublic] = useState<boolean | null>(null);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [showBillingConfirm, setShowBillingConfirm] = useState(false);
 
   type BillingSummary = {
     subscribed: boolean;
@@ -293,7 +294,7 @@ const AccountSettings = () => {
           )}
         </div>
 
-        <Button onClick={handleManageBilling} disabled={openingPortal} size="sm">
+        <Button onClick={() => setShowBillingConfirm(true)} disabled={openingPortal} size="sm">
           <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
           {openingPortal ? "Opening…" : "Manage subscription"}
         </Button>
@@ -425,6 +426,50 @@ const AccountSettings = () => {
           <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete Account
         </Button>
       </div>
+
+      <AlertDialog open={showBillingConfirm} onOpenChange={setShowBillingConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Open Stripe billing portal?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm">
+                <p>
+                  You'll be redirected to Stripe in a new tab where you can update payment methods,
+                  download invoices, switch plans, or cancel your subscription.
+                </p>
+                <div className="rounded-md border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-200/90">
+                  <div className="font-medium text-amber-300 mb-1">If you cancel:</div>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>
+                      You'll keep access until{" "}
+                      <span className="text-foreground font-medium">
+                        {formatDate(billing?.subscription_end) ?? "the end of your current billing period"}
+                      </span>.
+                    </li>
+                    <li>No further charges will be made and auto-renewal stops.</li>
+                    <li>
+                      After that date, your CFI-AI usage drops back to the free tier and premium
+                      features (unlimited chat, oral exam mode, POH grounding) are paused.
+                    </li>
+                    <li>Your training history and profile are preserved — resubscribe anytime.</li>
+                  </ul>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay here</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setShowBillingConfirm(false);
+                await handleManageBilling();
+              }}
+            >
+              Continue to Stripe
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
