@@ -751,6 +751,16 @@ const AdminPage = () => {
                                 );
                               }
                               if (!u.roles.includes("admin") && !u.roles.includes("moderator")) {
+                                if (trialActive) {
+                                  return (
+                                    <Badge
+                                      className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit cursor-help"
+                                      title={`Free trial · ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left\n${auditTooltip}`}
+                                    >
+                                      Trial · {trialDaysLeft}d left
+                                    </Badge>
+                                  );
+                                }
                                 return (
                                   <span
                                     className="text-xs text-muted-foreground cursor-help"
