@@ -597,6 +597,86 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---- LIST EXTERNAL (non-SimPilot) SUBSCRIPTIONS ----
+    if (req.method === "GET" && action === "list-external-subs") {
+      const SIMPILOT_PRICE_IDS = new Set<string>([
+        "price_1TNf5ZRusIXFsWjchdY05u0R", // Student
+        "price_1TQhYjRusIXFsWjc3wGvpiqS", // Pro Pilot
+        "price_1TQhZBRusIXFsWjc2jrUeFEi", // Gold Seal CFI
+      ]);
+
+      const stripeSubs: Stripe.Subscription[] = [];
+      let starting_after: string | undefined;
+      for (let i = 0; i < 5; i++) {
+        const page = await stripe.subscriptions.list({
+          status: "all",
+          limit: 100,
+          starting_after,
+          expand: ["data.customer", "data.items.data.price"],
+        });
+        stripeSubs.push(...page.data);
+        if (!page.has_more) break;
+        starting_after = page.data[page.data.length - 1].id;
+      }
+      const liveStatuses = new Set(["active", "trialing", "past_due"]);
+      const live = stripeSubs.filter((s) => liveStatuses.has(s.status));
+
+      const productNameById = new Map<string, string>();
+      const productIds = new Set<string>();
+      const externalSubs: Array<Record<string, unknown>> = [];
+
+      for (const sub of live) {
+        const item = sub.items.data[0];
+        const priceId = item?.price?.id ?? null;
+        if (priceId && SIMPILOT_PRICE_IDS.has(priceId)) continue;
+        const productRef = item?.price?.product;
+        const productId =
+          typeof productRef === "string" ? productRef : productRef?.id ?? null;
+        if (productId && !productNameById.has(productId)) {
+          try {
+            const product = await stripe.products.retrieve(productId);
+            productNameById.set(productId, product.name || "");
+          } catch (_) {
+            productNameById.set(productId, "");
+          }
+        }
+        if (productId) productIds.add(productId);
+
+        const cust = sub.customer as Stripe.Customer | Stripe.DeletedCustomer | string;
+        let customerId: string | null = null;
+        let customerEmail: string | null = null;
+        if (typeof cust === "string") {
+          customerId = cust;
+        } else if (cust && !(cust as Stripe.DeletedCustomer).deleted) {
+          customerId = (cust as Stripe.Customer).id;
+          customerEmail = (cust as Stripe.Customer).email ?? null;
+        }
+
+        externalSubs.push({
+          subscription_id: sub.id,
+          status: sub.status,
+          customer_id: customerId,
+          customer_email: customerEmail,
+          price_id: priceId,
+          product_id: productId,
+          product_name: productId ? productNameById.get(productId) || null : null,
+          amount_cents: item?.price?.unit_amount ?? null,
+          currency: item?.price?.currency ?? null,
+        });
+      }
+
+      const products = Array.from(productIds).map((id) => ({
+        product_id: id,
+        product_name: productNameById.get(id) || null,
+      }));
+
+      return json({
+        checked_at: new Date().toISOString(),
+        subscriptions: externalSubs,
+        products,
+      });
+    }
+
     if (req.method === "POST") {
       const body = await req.json();
 
