@@ -1,4 +1,70 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
+import Stripe from "https://esm.sh/stripe@18.5.0?target=deno";
+
+const PRICE_TO_TIER: Record<string, string> = {
+  price_1TNf5ZRusIXFsWjchdY05u0R: "student",
+  price_1TQhYjRusIXFsWjc3wGvpiqS: "pro",
+  price_1TQhZBRusIXFsWjc2jrUeFEi: "ultra",
+};
+
+// Best-effort live Stripe lookup: returns a map of lowercased email -> subscription info
+// for users whose profile rows don't yet have webhook-synced subscription fields.
+async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
+  Map<string, { tier: string; status: string; current_period_end: string | null }>
+> {
+  const result = new Map<string, { tier: string; status: string; current_period_end: string | null }>();
+  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+  if (!stripeKey || emails.length === 0) return result;
+  try {
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const wanted = new Set(emails.map((e) => e.toLowerCase()));
+
+    // Pull active + trialing subs (paged) and only keep those whose customer email matches a user.
+    const statuses: Array<"active" | "trialing" | "past_due"> = ["active", "trialing", "past_due"];
+    for (const status of statuses) {
+      let starting_after: string | undefined = undefined;
+      // Hard cap to avoid runaway loops on huge accounts.
+      for (let i = 0; i < 5; i++) {
+        const page = await stripe.subscriptions.list({
+          status,
+          limit: 100,
+          expand: ["data.customer", "data.items.data.price.product"],
+          starting_after,
+        });
+        for (const sub of page.data) {
+          const cust = sub.customer as Stripe.Customer | Stripe.DeletedCustomer;
+          if (!cust || (cust as Stripe.DeletedCustomer).deleted) continue;
+          const email = (cust as Stripe.Customer).email?.toLowerCase();
+          if (!email || !wanted.has(email)) continue;
+          if (result.has(email)) continue; // first match wins (most recent first via Stripe default)
+
+          const item = sub.items.data[0];
+          const priceId = item?.price?.id;
+          let tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
+          if (!tier) {
+            const product = item?.price?.product as Stripe.Product | undefined;
+            tier = (product && typeof product === "object" && "name" in product && product.name)
+              ? String(product.name)
+              : "Paid";
+          }
+          // deno-lint-ignore no-explicit-any
+          const cpe: number | undefined = (sub as any).current_period_end ?? (item as any)?.current_period_end;
+          result.set(email, {
+            tier,
+            status: sub.status,
+            current_period_end: cpe ? new Date(cpe * 1000).toISOString() : null,
+          });
+        }
+        if (!page.has_more) break;
+        starting_after = page.data[page.data.length - 1]?.id;
+        if (!starting_after) break;
+      }
+    }
+  } catch (e) {
+    console.error("[admin-users] stripe fallback failed", e);
+  }
+  return result;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -148,27 +214,48 @@ Deno.serve(async (req) => {
         extendedMonthsByUser.set(row.target_id, (extendedMonthsByUser.get(row.target_id) || 0) + m);
       });
 
-      const enriched = data.users.map((u: any) => ({
-        id: u.id,
-        email: u.email,
-        created_at: u.created_at,
-        last_sign_in_at: u.last_sign_in_at,
-        email_confirmed_at: u.email_confirmed_at,
-        banned_until: u.banned_until,
-        is_banned: !!u.banned_until && new Date(u.banned_until) > new Date(),
-        roles: (roles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
-        display_name: (profiles || []).find((p: any) => p.user_id === u.id)?.display_name || null,
-        terms_agreed_at: (profiles || []).find((p: any) => p.user_id === u.id)?.terms_agreed_at || null,
-        trial_ends_at: (profiles || []).find((p: any) => p.user_id === u.id)?.trial_ends_at || null,
-        subscription_tier: (profiles || []).find((p: any) => p.user_id === u.id)?.subscription_tier || null,
-        subscription_status: (profiles || []).find((p: any) => p.user_id === u.id)?.subscription_status || null,
-        subscription_current_period_end: (profiles || []).find((p: any) => p.user_id === u.id)?.subscription_current_period_end || null,
-        subscription_source: (profiles || []).find((p: any) => p.user_id === u.id)?.subscription_source || null,
-        last_transmission_at: lastTxByUser.get(u.id) || null,
-        total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
-        comp_grant: grantByUser.get(u.id) || null,
-        extended_months: Math.round((extendedMonthsByUser.get(u.id) || 0) * 10) / 10,
-      }));
+      // Live Stripe fallback: for users whose profile has no synced subscription_status
+      // (webhook may not have fired yet), look up their email in Stripe so the Plan column
+      // is not stuck on "Free".
+      const profileByUser = new Map<string, any>();
+      (profiles || []).forEach((p: any) => profileByUser.set(p.user_id, p));
+      const emailsNeedingLookup = data.users
+        .filter((u: any) => {
+          const p = profileByUser.get(u.id);
+          return u.email && !(p && p.subscription_status);
+        })
+        .map((u: any) => u.email as string);
+      const stripeByEmail = await fetchStripeSubscriptionsByEmail(emailsNeedingLookup);
+
+      const enriched = data.users.map((u: any) => {
+        const profile = profileByUser.get(u.id);
+        const liveSub = u.email ? stripeByEmail.get(u.email.toLowerCase()) : undefined;
+        const tier = profile?.subscription_tier || liveSub?.tier || null;
+        const status = profile?.subscription_status || liveSub?.status || null;
+        const cpe = profile?.subscription_current_period_end || liveSub?.current_period_end || null;
+        const source = profile?.subscription_source || (liveSub ? "stripe-live" : null);
+        return {
+          id: u.id,
+          email: u.email,
+          created_at: u.created_at,
+          last_sign_in_at: u.last_sign_in_at,
+          email_confirmed_at: u.email_confirmed_at,
+          banned_until: u.banned_until,
+          is_banned: !!u.banned_until && new Date(u.banned_until) > new Date(),
+          roles: (roles || []).filter((r: any) => r.user_id === u.id).map((r: any) => r.role),
+          display_name: profile?.display_name || null,
+          terms_agreed_at: profile?.terms_agreed_at || null,
+          trial_ends_at: profile?.trial_ends_at || null,
+          subscription_tier: tier,
+          subscription_status: status,
+          subscription_current_period_end: cpe,
+          subscription_source: source,
+          last_transmission_at: lastTxByUser.get(u.id) || null,
+          total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
+          comp_grant: grantByUser.get(u.id) || null,
+          extended_months: Math.round((extendedMonthsByUser.get(u.id) || 0) * 10) / 10,
+        };
+      });
 
       return new Response(JSON.stringify({ users: enriched, total: data.users.length }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
