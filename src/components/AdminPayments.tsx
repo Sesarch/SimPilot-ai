@@ -12,6 +12,7 @@ import { DollarSign, TrendingUp, TrendingDown, Users, RefreshCw, ExternalLink, G
 import { toast } from "sonner";
 import StripeDiagnosticsPanel from "./StripeDiagnosticsPanel";
 import StripeWebhookStatusPanel from "./StripeWebhookStatusPanel";
+import SubscriptionAuditPanel from "./SubscriptionAuditPanel";
 
 type Metrics = {
   mrr_cents: number;
