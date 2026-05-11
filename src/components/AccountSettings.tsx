@@ -87,45 +87,86 @@ const AccountSettings = () => {
     exp_month?: number;
     exp_year?: number;
   };
+  type PaymentIssue = {
+    invoice_id: string;
+    status: string | null;
+    amount_due: number;
+    currency: string;
+    hosted_invoice_url: string | null;
+    attempt_count: number;
+    next_payment_attempt: number | null;
+  };
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [paymentIssue, setPaymentIssue] = useState<PaymentIssue | null>(null);
+  const [recovering, setRecovering] = useState(false);
+
+  const fetchBilling = async () => {
+    const [subRes, billRes] = await Promise.all([
+      supabase.functions.invoke("check-subscription"),
+      supabase.functions.invoke("billing-details"),
+    ]);
+    if (subRes.error) {
+      console.error("[AccountSettings] check-subscription error", subRes.error);
+      setBilling({ subscribed: false });
+    } else {
+      setBilling((subRes.data as BillingSummary) ?? { subscribed: false });
+    }
+    if (billRes.error) {
+      console.error("[AccountSettings] billing-details error", billRes.error);
+      setInvoices([]);
+      setPaymentMethod(null);
+      setPaymentIssue(null);
+    } else {
+      setInvoices((billRes.data?.invoices ?? []) as Invoice[]);
+      setPaymentMethod((billRes.data?.payment_method ?? null) as PaymentMethod | null);
+      setPaymentIssue((billRes.data?.payment_issue ?? null) as PaymentIssue | null);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     setBillingLoading(true);
     setPaymentsLoading(true);
-    supabase.functions
-      .invoke("check-subscription")
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.error("[AccountSettings] check-subscription error", error);
-          setBilling({ subscribed: false });
-        } else {
-          setBilling((data as BillingSummary) ?? { subscribed: false });
-        }
-      })
-      .finally(() => { if (!cancelled) setBillingLoading(false); });
-
-    supabase.functions
-      .invoke("billing-details")
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.error("[AccountSettings] billing-details error", error);
-          setInvoices([]);
-          setPaymentMethod(null);
-        } else {
-          setInvoices((data?.invoices ?? []) as Invoice[]);
-          setPaymentMethod((data?.payment_method ?? null) as PaymentMethod | null);
-        }
-      })
-      .finally(() => { if (!cancelled) setPaymentsLoading(false); });
-
+    fetchBilling().finally(() => {
+      if (cancelled) return;
+      setBillingLoading(false);
+      setPaymentsLoading(false);
+    });
     return () => { cancelled = true; };
   }, [user]);
+
+  // Auto-recovery: while there's a payment issue or past-due status, poll every
+  // 15s so the UI clears itself the moment the Stripe webhook records success.
+  useEffect(() => {
+    const hasIssue =
+      !!paymentIssue ||
+      billing?.status === "past_due" ||
+      billing?.status === "unpaid";
+    if (!hasIssue || !user) return;
+    const interval = window.setInterval(async () => {
+      const prevHadIssue = !!paymentIssue;
+      await fetchBilling();
+      // success toast handled by effect below when paymentIssue clears
+      void prevHadIssue;
+    }, 15000);
+    return () => window.clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentIssue, billing?.status, user]);
+
+  // When a payment issue clears, surface a one-time success toast.
+  const [hadIssue, setHadIssue] = useState(false);
+  useEffect(() => {
+    if (paymentIssue) {
+      setHadIssue(true);
+    } else if (hadIssue) {
+      setHadIssue(false);
+      toast.success("Payment recovered. Your subscription is active again.");
+    }
+  }, [paymentIssue, hadIssue]);
+
 
   const formatMoney = (amountMinor?: number | null, currency?: string | null) => {
     if (amountMinor == null || !currency) return null;
