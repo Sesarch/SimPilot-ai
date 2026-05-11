@@ -148,7 +148,35 @@ const AccountSettings = () => {
       setBillingLoading(false);
       setPaymentsLoading(false);
     });
+    fetchUsage();
     return () => { cancelled = true; };
+  }, [user, fetchUsage]);
+
+  // Live-update usage: subscribe to today's row in message_usage so the
+  // counter refreshes whenever the user sends a chat message in another tab
+  // or the pilot-chat function writes a new row.
+  useEffect(() => {
+    if (!user) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const channel = supabase
+      .channel(`usage-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "message_usage",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as { usage_date?: string; message_count?: number } | null;
+          if (row?.usage_date === today && typeof row.message_count === "number") {
+            setDailyUsage(row.message_count);
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   // Auto-recovery: while there's a payment issue or past-due status, poll every
