@@ -10,25 +10,29 @@ const PRICE_TO_TIER: Record<string, string> = {
   price_1TQhZBRusIXFsWjc2jrUeFEi: "Gold Seal CFI",
 };
 
-// Best-effort live Stripe lookup: returns a map of lowercased email -> subscription info
-// for users whose profile rows don't yet have webhook-synced subscription fields.
-async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
-  Map<string, { tier: string; status: string; current_period_end: string | null }>
-> {
-  const result = new Map<string, { tier: string; status: string; current_period_end: string | null }>();
+// Best-effort live Stripe lookup: returns a map of lowercased email -> subscription info.
+// Records EVERY active/trialing/past_due subscription's price_id even if it is not a
+// SimPilot plan, so the Users tab can show why a row is Free vs paid.
+type LiveSub = {
+  tier: string | null;          // canonical SimPilot label, or null when price isn't ours
+  status: string;
+  current_period_end: string | null;
+  price_id: string;
+  matched: boolean;             // true when price_id is one of the SimPilot plans
+};
+async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<Map<string, LiveSub>> {
+  const result = new Map<string, LiveSub>();
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   if (!stripeKey || emails.length === 0) return result;
   try {
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const wanted = new Set(emails.map((e) => e.toLowerCase()));
 
-    
-
-    // Pull active + trialing subs (paged) and only keep those whose customer email matches a user.
+    // Pull active + trialing + past_due subs (paged) and only keep those whose customer
+    // email matches a user. Prefer SimPilot-priced subs when a user has multiple.
     const statuses: Array<"active" | "trialing" | "past_due"> = ["active", "trialing", "past_due"];
     for (const status of statuses) {
       let starting_after: string | undefined = undefined;
-      // Hard cap to avoid runaway loops on huge accounts.
       for (let i = 0; i < 5; i++) {
         const page = await stripe.subscriptions.list({
           status,
@@ -41,23 +45,28 @@ async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
           if (!cust || (cust as Stripe.DeletedCustomer).deleted) continue;
           const email = (cust as Stripe.Customer).email?.toLowerCase();
           if (!email || !wanted.has(email)) continue;
-          if (result.has(email)) continue; // first match wins (most recent first via Stripe default)
 
           const item = sub.items.data[0];
-          const priceId = item?.price?.id;
-          const tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
-          // Hard rule: only surface subscriptions whose price ID maps to one of
-          // the four SimPilot plans. Any other Stripe product (e.g. legacy
-          // MainAI products in the same account) is ignored so it can never
-          // look like a paid SimPilot tier in the Users tab.
-          if (!tier) continue;
+          const priceId = item?.price?.id ?? "";
+          const tier = priceId ? PRICE_TO_TIER[priceId] ?? null : null;
+          const matched = !!tier;
           // deno-lint-ignore no-explicit-any
           const cpe: number | undefined = (sub as any).current_period_end ?? (item as any)?.current_period_end;
-          result.set(email, {
+          const candidate: LiveSub = {
             tier,
             status: sub.status,
             current_period_end: cpe ? new Date(cpe * 1000).toISOString() : null,
-          });
+            price_id: priceId,
+            matched,
+          };
+          const existing = result.get(email);
+          // Keep the SimPilot-matched sub if we already saw one; otherwise upgrade
+          // when we find a matched one, otherwise keep the first non-matched record.
+          if (!existing) {
+            result.set(email, candidate);
+          } else if (!existing.matched && matched) {
+            result.set(email, candidate);
+          }
         }
         if (!page.has_more) break;
         starting_after = page.data[page.data.length - 1]?.id;
