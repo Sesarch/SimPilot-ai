@@ -51,6 +51,7 @@ const AccountSettings = () => {
   const [profilePublic, setProfilePublic] = useState<boolean | null>(null);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [showBillingConfirm, setShowBillingConfirm] = useState(false);
 
   type BillingSummary = {
     subscribed: boolean;
