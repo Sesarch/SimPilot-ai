@@ -50,6 +50,30 @@ const AccountSettings = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [profilePublic, setProfilePublic] = useState<boolean | null>(null);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
+
+  const handleManageBilling = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer");
+      } else {
+        throw new Error("No portal URL returned");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes("no stripe customer")) {
+        toast.error("No active subscription found for this account.");
+      } else {
+        toast.error("Couldn't open billing portal. Please try again.");
+      }
+      console.error("[AccountSettings] customer-portal error", err);
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
