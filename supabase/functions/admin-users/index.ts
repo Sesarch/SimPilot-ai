@@ -1,4 +1,70 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
+import Stripe from "https://esm.sh/stripe@18.5.0?target=deno";
+
+const PRICE_TO_TIER: Record<string, string> = {
+  price_1TNf5ZRusIXFsWjchdY05u0R: "student",
+  price_1TQhYjRusIXFsWjc3wGvpiqS: "pro",
+  price_1TQhZBRusIXFsWjc2jrUeFEi: "ultra",
+};
+
+// Best-effort live Stripe lookup: returns a map of lowercased email -> subscription info
+// for users whose profile rows don't yet have webhook-synced subscription fields.
+async function fetchStripeSubscriptionsByEmail(emails: string[]): Promise<
+  Map<string, { tier: string; status: string; current_period_end: string | null }>
+> {
+  const result = new Map<string, { tier: string; status: string; current_period_end: string | null }>();
+  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+  if (!stripeKey || emails.length === 0) return result;
+  try {
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const wanted = new Set(emails.map((e) => e.toLowerCase()));
+
+    // Pull active + trialing subs (paged) and only keep those whose customer email matches a user.
+    const statuses: Array<"active" | "trialing" | "past_due"> = ["active", "trialing", "past_due"];
+    for (const status of statuses) {
+      let starting_after: string | undefined = undefined;
+      // Hard cap to avoid runaway loops on huge accounts.
+      for (let i = 0; i < 5; i++) {
+        const page = await stripe.subscriptions.list({
+          status,
+          limit: 100,
+          expand: ["data.customer", "data.items.data.price.product"],
+          starting_after,
+        });
+        for (const sub of page.data) {
+          const cust = sub.customer as Stripe.Customer | Stripe.DeletedCustomer;
+          if (!cust || (cust as Stripe.DeletedCustomer).deleted) continue;
+          const email = (cust as Stripe.Customer).email?.toLowerCase();
+          if (!email || !wanted.has(email)) continue;
+          if (result.has(email)) continue; // first match wins (most recent first via Stripe default)
+
+          const item = sub.items.data[0];
+          const priceId = item?.price?.id;
+          let tier = priceId ? PRICE_TO_TIER[priceId] : undefined;
+          if (!tier) {
+            const product = item?.price?.product as Stripe.Product | undefined;
+            tier = (product && typeof product === "object" && "name" in product && product.name)
+              ? String(product.name)
+              : "Paid";
+          }
+          // deno-lint-ignore no-explicit-any
+          const cpe: number | undefined = (sub as any).current_period_end ?? (item as any)?.current_period_end;
+          result.set(email, {
+            tier,
+            status: sub.status,
+            current_period_end: cpe ? new Date(cpe * 1000).toISOString() : null,
+          });
+        }
+        if (!page.has_more) break;
+        starting_after = page.data[page.data.length - 1]?.id;
+        if (!starting_after) break;
+      }
+    }
+  } catch (e) {
+    console.error("[admin-users] stripe fallback failed", e);
+  }
+  return result;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
