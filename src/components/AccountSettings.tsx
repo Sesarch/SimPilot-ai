@@ -250,6 +250,26 @@ const AccountSettings = () => {
   const renewalDate = formatDate(billing?.subscription_end);
   const billingNoun = billing?.cancel_at_period_end ? "Ends on" : "Next billing";
 
+  // Daily message limits per tier. Kept in sync with the conversion funnel:
+  // anon 5, free signed-in 20, paid tiers scale up, Ultra unlimited.
+  const tierKey = (billing?.tier ?? "free").toLowerCase();
+  const DAILY_LIMITS: Record<string, number> = {
+    free: 20,
+    student: 200,
+    pro: 1000,
+    ultra: Infinity,
+  };
+  const dailyLimit = DAILY_LIMITS[tierKey] ?? 20;
+  const usagePct = dailyLimit === Infinity ? 0 : Math.min(100, Math.round((dailyUsage / dailyLimit) * 100));
+  const usageTone =
+    dailyLimit === Infinity ? "bg-primary"
+    : usagePct >= 90 ? "bg-red-500"
+    : usagePct >= 70 ? "bg-amber-500"
+    : "bg-primary";
+  const priceLabel = renewalAmount
+    ? `${renewalAmount}${billing?.interval ? ` / ${billing.interval}` : ""}`
+    : billing?.subscribed ? "—" : "Free";
+
   const handleManageBilling = async () => {
     setOpeningPortal(true);
     try {
