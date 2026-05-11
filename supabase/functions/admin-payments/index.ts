@@ -597,6 +597,86 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---- LIST EXTERNAL (non-SimPilot) SUBSCRIPTIONS ----
+    if (req.method === "GET" && action === "list-external-subs") {
+      const SIMPILOT_PRICE_IDS = new Set<string>([
+        "price_1TNf5ZRusIXFsWjchdY05u0R", // Student
+        "price_1TQhYjRusIXFsWjc3wGvpiqS", // Pro Pilot
+        "price_1TQhZBRusIXFsWjc2jrUeFEi", // Gold Seal CFI
+      ]);
+
+      const stripeSubs: Stripe.Subscription[] = [];
+      let starting_after: string | undefined;
+      for (let i = 0; i < 5; i++) {
+        const page = await stripe.subscriptions.list({
+          status: "all",
+          limit: 100,
+          starting_after,
+          expand: ["data.customer", "data.items.data.price"],
+        });
+        stripeSubs.push(...page.data);
+        if (!page.has_more) break;
+        starting_after = page.data[page.data.length - 1].id;
+      }
+      const liveStatuses = new Set(["active", "trialing", "past_due"]);
+      const live = stripeSubs.filter((s) => liveStatuses.has(s.status));
+
+      const productNameById = new Map<string, string>();
+      const productIds = new Set<string>();
+      const externalSubs: Array<Record<string, unknown>> = [];
+
+      for (const sub of live) {
+        const item = sub.items.data[0];
+        const priceId = item?.price?.id ?? null;
+        if (priceId && SIMPILOT_PRICE_IDS.has(priceId)) continue;
+        const productRef = item?.price?.product;
+        const productId =
+          typeof productRef === "string" ? productRef : productRef?.id ?? null;
+        if (productId && !productNameById.has(productId)) {
+          try {
+            const product = await stripe.products.retrieve(productId);
+            productNameById.set(productId, product.name || "");
+          } catch (_) {
+            productNameById.set(productId, "");
+          }
+        }
+        if (productId) productIds.add(productId);
+
+        const cust = sub.customer as Stripe.Customer | Stripe.DeletedCustomer | string;
+        let customerId: string | null = null;
+        let customerEmail: string | null = null;
+        if (typeof cust === "string") {
+          customerId = cust;
+        } else if (cust && !(cust as Stripe.DeletedCustomer).deleted) {
+          customerId = (cust as Stripe.Customer).id;
+          customerEmail = (cust as Stripe.Customer).email ?? null;
+        }
+
+        externalSubs.push({
+          subscription_id: sub.id,
+          status: sub.status,
+          customer_id: customerId,
+          customer_email: customerEmail,
+          price_id: priceId,
+          product_id: productId,
+          product_name: productId ? productNameById.get(productId) || null : null,
+          amount_cents: item?.price?.unit_amount ?? null,
+          currency: item?.price?.currency ?? null,
+        });
+      }
+
+      const products = Array.from(productIds).map((id) => ({
+        product_id: id,
+        product_name: productNameById.get(id) || null,
+      }));
+
+      return json({
+        checked_at: new Date().toISOString(),
+        subscriptions: externalSubs,
+        products,
+      });
+    }
+
     if (req.method === "POST") {
       const body = await req.json();
 
@@ -779,6 +859,101 @@ Deno.serve(async (req) => {
           req,
         });
         return json({ success: true, trial_ends_at: updated.trial_ends_at });
+      }
+
+      // ---- PURGE EXTERNAL (non-SimPilot) SUBSCRIPTIONS + ARCHIVE PRODUCTS ----
+      if (action === "purge-external-subs") {
+        const SIMPILOT_PRICE_IDS = new Set<string>([
+          "price_1TNf5ZRusIXFsWjchdY05u0R",
+          "price_1TQhYjRusIXFsWjc3wGvpiqS",
+          "price_1TQhZBRusIXFsWjc2jrUeFEi",
+        ]);
+        const reqSubIds: string[] = Array.isArray(body?.subscription_ids)
+          ? body.subscription_ids.filter((s: unknown) => typeof s === "string")
+          : [];
+        const reqProductIds: string[] = Array.isArray(body?.product_ids)
+          ? body.product_ids.filter((s: unknown) => typeof s === "string")
+          : [];
+        if (reqSubIds.length === 0 && reqProductIds.length === 0) {
+          return badReq("subscription_ids or product_ids required");
+        }
+
+        const canceled: Array<{ id: string; status: string }> = [];
+        const archivedProducts: Array<{ id: string; name: string | null }> = [];
+        const errors: Array<{ id: string; kind: string; error: string }> = [];
+
+        // Safety re-check: refuse to cancel any sub whose price is SimPilot.
+        for (const subId of reqSubIds) {
+          try {
+            const current = await stripe.subscriptions.retrieve(subId, {
+              expand: ["items.data.price"],
+            });
+            const priceId = current.items.data[0]?.price?.id;
+            if (priceId && SIMPILOT_PRICE_IDS.has(priceId)) {
+              errors.push({
+                id: subId,
+                kind: "subscription",
+                error: "Refused: subscription uses a SimPilot price ID",
+              });
+              continue;
+            }
+            const canceledSub = await stripe.subscriptions.cancel(subId);
+            canceled.push({ id: canceledSub.id, status: canceledSub.status });
+          } catch (e) {
+            errors.push({
+              id: subId,
+              kind: "subscription",
+              error: (e as Error).message || String(e),
+            });
+          }
+        }
+
+        // Archive each requested product (active=false). Refuse to archive
+        // any product that has a SimPilot price attached.
+        for (const productId of reqProductIds) {
+          try {
+            const prices = await stripe.prices.list({ product: productId, limit: 100, active: true });
+            const hasSimPilot = prices.data.some((p) => SIMPILOT_PRICE_IDS.has(p.id));
+            if (hasSimPilot) {
+              errors.push({
+                id: productId,
+                kind: "product",
+                error: "Refused: product has a SimPilot price attached",
+              });
+              continue;
+            }
+            const updated = await stripe.products.update(productId, { active: false });
+            archivedProducts.push({ id: updated.id, name: updated.name });
+          } catch (e) {
+            errors.push({
+              id: productId,
+              kind: "product",
+              error: (e as Error).message || String(e),
+            });
+          }
+        }
+
+        await logAdminAction(admin, {
+          adminUserId: user.id,
+          adminEmail: user.email,
+          action: "stripe.purge_external",
+          targetType: "system",
+          details: {
+            requested_subscription_ids: reqSubIds,
+            requested_product_ids: reqProductIds,
+            canceled,
+            archived_products: archivedProducts,
+            errors,
+          },
+          req,
+        });
+
+        return json({
+          success: errors.length === 0,
+          canceled,
+          archived_products: archivedProducts,
+          errors,
+        });
       }
     }
 

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import StripeDiagnosticsPanel from "./StripeDiagnosticsPanel";
 import StripeWebhookStatusPanel from "./StripeWebhookStatusPanel";
 import SubscriptionAuditPanel from "./SubscriptionAuditPanel";
+import ExternalSubscriptionsPanel from "./ExternalSubscriptionsPanel";
 
 type Metrics = {
   mrr_cents: number;
@@ -228,6 +229,7 @@ const AdminPayments = () => {
       <StripeDiagnosticsPanel />
       <StripeWebhookStatusPanel />
       <SubscriptionAuditPanel />
+      <ExternalSubscriptionsPanel />
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-primary" /> Payments & Revenue
