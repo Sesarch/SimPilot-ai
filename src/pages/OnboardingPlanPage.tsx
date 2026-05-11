@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, GraduationCap, Loader2, Plane, Star, Crown } from "lucide-react";
+import { Check, GraduationCap, Loader2, Plane, Star, Crown, type LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
