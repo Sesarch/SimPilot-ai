@@ -234,9 +234,13 @@ const AccountSettings = () => {
     }
   };
 
-  const planLabel = billing?.tier
-    ? `SimPilot ${billing.tier.charAt(0).toUpperCase()}${billing.tier.slice(1)}`
-    : billing?.subscribed ? "SimPilot" : "Free";
+  const { trialEndsAt } = useTrialStatus();
+  const planInfo = calculatePlanLabel({
+    subscribed: billing?.subscribed,
+    tier: billing?.tier,
+    trialEndsAt,
+  });
+  const planLabel = planInfo.label;
 
   const statusMeta: Record<string, { label: string; tone: string }> = {
     active: { label: "Active", tone: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
