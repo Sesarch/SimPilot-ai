@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
   LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock, MoreHorizontal,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 import {
