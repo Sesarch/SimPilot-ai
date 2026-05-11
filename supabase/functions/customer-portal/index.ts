@@ -49,7 +49,7 @@ serve(async (req) => {
     const { data: profile } = await supabaseClient
       .from("profiles")
       .select("stripe_customer_id")
-      .eq("id", user.id)
+      .eq("user_id", user.id)
       .maybeSingle();
     if (profile?.stripe_customer_id) {
       customerId = profile.stripe_customer_id as string;
