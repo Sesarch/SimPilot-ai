@@ -1,10 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
 import Stripe from "https://esm.sh/stripe@18.5.0?target=deno";
 
+// SimPilot Stripe price IDs → canonical plan label shown in the Users tab.
+// Anything outside this map is ignored (treated as no SimPilot subscription).
+// Flight School is sales-led and has no Stripe price; it is not listed here.
 const PRICE_TO_TIER: Record<string, string> = {
-  price_1TNf5ZRusIXFsWjchdY05u0R: "student",
-  price_1TQhYjRusIXFsWjc3wGvpiqS: "pro",
-  price_1TQhZBRusIXFsWjc2jrUeFEi: "ultra",
+  price_1TNf5ZRusIXFsWjchdY05u0R: "Student",
+  price_1TQhYjRusIXFsWjc3wGvpiqS: "Pro Pilot",
+  price_1TQhZBRusIXFsWjc2jrUeFEi: "Gold Seal CFI",
 };
 
 // Best-effort live Stripe lookup: returns a map of lowercased email -> subscription info
