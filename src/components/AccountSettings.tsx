@@ -555,10 +555,17 @@ const AccountSettings = () => {
           )}
         </div>
 
-        <Button onClick={() => setShowBillingConfirm(true)} disabled={openingPortal} size="sm">
-          <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-          {openingPortal ? "Opening…" : "Manage subscription"}
-        </Button>
+        {billing?.subscribed ? (
+          <Button onClick={() => setShowBillingConfirm(true)} disabled={openingPortal} size="sm">
+            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+            {openingPortal ? "Opening…" : "Manage subscription"}
+          </Button>
+        ) : (
+          <Button onClick={() => { window.location.href = "/#pricing"; }} size="sm">
+            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+            Upgrade plan
+          </Button>
+        )}
       </div>
 
       {/* Payment Method & Invoice History */}
