@@ -57,6 +57,8 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: resolvedPrice, quantity: 1 }],
       mode: "subscription",
+      // Force card-only — disables Stripe Link signup/redirect to link.com
+      payment_method_types: ["card"],
       success_url: `${origin}/dashboard?subscribed=1&plan=${planParam}&price=${priceParam}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard?checkout=cancelled&plan=${planParam}&price=${priceParam}`,
       metadata: { plan: plan ?? "custom", price_id: resolvedPrice, user_id: user.id },
