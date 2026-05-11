@@ -157,13 +157,76 @@ Deno.serve(async (req) => {
     });
   }
 
-  log("event received", { type: event.type, id: event.id });
+  log("event received", {
+    type: event.type,
+    id: event.id,
+    account: (event as Stripe.Event & { account?: string }).account ?? null,
+    livemode: event.livemode,
+  });
+
+  // Extract identifiers from the event payload for the persisted log row.
+  function extractRefs(ev: Stripe.Event) {
+    const obj = ev.data.object as Record<string, unknown>;
+    const getStr = (k: string) => {
+      const v = obj[k];
+      if (typeof v === "string") return v;
+      if (v && typeof v === "object" && "id" in v && typeof (v as { id: unknown }).id === "string") {
+        return (v as { id: string }).id;
+      }
+      return null;
+    };
+    return {
+      object_id: typeof obj.id === "string" ? obj.id : null,
+      customer_id: getStr("customer"),
+      subscription_id: ev.type.startsWith("customer.subscription")
+        ? (typeof obj.id === "string" ? obj.id : null)
+        : getStr("subscription"),
+      invoice_id: ev.type.startsWith("invoice")
+        ? (typeof obj.id === "string" ? obj.id : null)
+        : getStr("invoice"),
+      checkout_session_id: ev.type.startsWith("checkout.session")
+        ? (typeof obj.id === "string" ? obj.id : null)
+        : null,
+      status: typeof obj.status === "string" ? obj.status : null,
+      amount_total: typeof obj.amount_total === "number" ? obj.amount_total : (typeof obj.amount_paid === "number" ? obj.amount_paid : null),
+      currency: typeof obj.currency === "string" ? obj.currency : null,
+      user_id_hint: (() => {
+        const md = (obj.metadata as Record<string, string> | undefined) ?? {};
+        return md.user_id ?? (typeof obj.client_reference_id === "string" ? obj.client_reference_id : null);
+      })(),
+    };
+  }
+
+  async function recordEvent(ev: Stripe.Event, resolvedUserId: string | null) {
+    const refs = extractRefs(ev);
+    const { error } = await supabase.from("stripe_webhook_events").upsert(
+      {
+        stripe_event_id: ev.id,
+        event_type: ev.type,
+        connected_account_id: (ev as Stripe.Event & { account?: string }).account ?? null,
+        livemode: ev.livemode,
+        object_id: refs.object_id,
+        customer_id: refs.customer_id,
+        subscription_id: refs.subscription_id,
+        invoice_id: refs.invoice_id,
+        checkout_session_id: refs.checkout_session_id,
+        user_id: resolvedUserId ?? null,
+        status: refs.status,
+        amount_total: refs.amount_total,
+        currency: refs.currency,
+        payload: ev as unknown as Record<string, unknown>,
+      },
+      { onConflict: "stripe_event_id" },
+    );
+    if (error) log("event log insert failed", { id: ev.id, error: error.message });
+  }
 
   try {
+    let resolvedUserId: string | null = null;
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        // Prefer client_reference_id / metadata.user_id when set by create-checkout.
         const userIdHint =
           (session.metadata?.user_id as string | undefined) ??
           session.client_reference_id ??
@@ -176,14 +239,15 @@ Deno.serve(async (req) => {
               : session.subscription.id;
           const sub = await stripe.subscriptions.retrieve(subId);
           await applySubscription(stripe, sub, userIdHint);
+          resolvedUserId = userIdHint ?? null;
         } else if (session.customer && userIdHint) {
-          // One-off or setup mode — at least record the customer link.
           const customerId =
             typeof session.customer === "string" ? session.customer : session.customer.id;
           await supabase
             .from("profiles")
             .update({ stripe_customer_id: customerId })
             .eq("user_id", userIdHint);
+          resolvedUserId = userIdHint;
         }
         break;
       }
@@ -193,6 +257,8 @@ Deno.serve(async (req) => {
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         await applySubscription(stripe, sub);
+        const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+        resolvedUserId = await findUserIdByCustomer(stripe, customerId);
         break;
       }
 
@@ -204,6 +270,8 @@ Deno.serve(async (req) => {
         if (subId) {
           const sub = await stripe.subscriptions.retrieve(subId);
           await applySubscription(stripe, sub);
+          const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+          resolvedUserId = await findUserIdByCustomer(stripe, customerId);
         }
         break;
       }
@@ -211,6 +279,10 @@ Deno.serve(async (req) => {
       default:
         log("unhandled event", { type: event.type });
     }
+
+    // Always persist a log row, even for unhandled types — useful for audit.
+    await recordEvent(event, resolvedUserId);
+
 
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
