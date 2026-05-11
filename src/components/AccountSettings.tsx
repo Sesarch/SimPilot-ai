@@ -486,6 +486,7 @@ const AccountSettings = () => {
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Current plan</div>
                   <div className="font-display text-base text-foreground">{planLabel}</div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">{priceLabel}</div>
                 </div>
                 <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-md border ${statusBadge.tone}`}>
                   {statusBadge.label}
@@ -502,11 +503,7 @@ const AccountSettings = () => {
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
                       {billing?.cancel_at_period_end ? "Final amount" : "Renewal amount"}
                     </div>
-                    <div className="text-foreground">
-                      {renewalAmount
-                        ? `${renewalAmount}${billing?.interval ? ` / ${billing.interval}` : ""}`
-                        : "—"}
-                    </div>
+                    <div className="text-foreground">{priceLabel}</div>
                   </div>
                   {billing?.cancel_at_period_end && (
                     <div className="col-span-2 text-[11px] text-amber-400/90">
@@ -519,6 +516,35 @@ const AccountSettings = () => {
                   You don't have an active subscription. Upgrade to unlock unlimited CFI-AI sessions, oral exam prep, and more.
                 </p>
               )}
+
+              {/* Today's usage — updates live via realtime subscription */}
+              <div className="mt-4 pt-4 border-t border-border/60">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Today's AI messages
+                  </div>
+                  <div className="text-xs text-foreground tabular-nums">
+                    {dailyLimit === Infinity
+                      ? `${dailyUsage} used · Unlimited`
+                      : `${dailyUsage} / ${dailyLimit}`}
+                  </div>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted/40 overflow-hidden">
+                  <div
+                    className={`h-full ${usageTone} transition-all`}
+                    style={{ width: dailyLimit === Infinity ? "100%" : `${usagePct}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 text-[10px] text-muted-foreground">
+                  Resets at midnight UTC.{" "}
+                  {dailyLimit !== Infinity && usagePct >= 70 && (
+                    <span className="text-amber-400/90">
+                      {usagePct >= 100 ? "Daily limit reached." : "Approaching daily limit."}
+                    </span>
+                  )}
+                </div>
+              </div>
+
             </>
           )}
         </div>
