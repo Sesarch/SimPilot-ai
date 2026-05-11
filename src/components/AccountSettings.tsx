@@ -294,7 +294,7 @@ const AccountSettings = () => {
           )}
         </div>
 
-        <Button onClick={handleManageBilling} disabled={openingPortal} size="sm">
+        <Button onClick={() => setShowBillingConfirm(true)} disabled={openingPortal} size="sm">
           <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
           {openingPortal ? "Opening…" : "Manage subscription"}
         </Button>
