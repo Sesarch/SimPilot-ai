@@ -161,6 +161,20 @@ const AccountSettings = () => {
         <MfaSettings />
       </div>
 
+      {/* Billing & Subscription */}
+      <div id="billing" className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
+        <h3 className="font-display text-sm text-foreground mb-1 flex items-center gap-2">
+          <CreditCard className="w-4 h-4 text-primary" /> Billing & Subscription
+        </h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Manage your SimPilot plan, update payment methods, download invoices, or cancel — all securely through Stripe.
+        </p>
+        <Button onClick={handleManageBilling} disabled={openingPortal} size="sm">
+          <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+          {openingPortal ? "Opening…" : "Manage subscription"}
+        </Button>
+      </div>
+
       {/* School Code Redemption */}
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <RedeemSchoolCode />
