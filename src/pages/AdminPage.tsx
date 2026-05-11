@@ -679,9 +679,43 @@ const AdminPage = () => {
                               </Badge>
                             ) : u.roles.includes("moderator") ? (
                               <Badge variant="secondary" className="text-xs w-fit">Moderator</Badge>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">User</span>
-                            )}
+                            ) : null}
+                            {(() => {
+                              const tier = u.subscription_tier;
+                              const status = u.subscription_status;
+                              const isActive = status === "active" || status === "trialing";
+                              if (tier && isActive) {
+                                const label = tier.charAt(0).toUpperCase() + tier.slice(1);
+                                const isTrial = status === "trialing";
+                                return (
+                                  <Badge
+                                    className={
+                                      isTrial
+                                        ? "bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit"
+                                        : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs w-fit"
+                                    }
+                                    title={
+                                      u.subscription_current_period_end
+                                        ? `Renews ${new Date(u.subscription_current_period_end).toLocaleDateString()}`
+                                        : undefined
+                                    }
+                                  >
+                                    {label}{isTrial ? " (Trial)" : ""}
+                                  </Badge>
+                                );
+                              }
+                              if (tier && status === "past_due") {
+                                return (
+                                  <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs w-fit">
+                                    {tier} · Past due
+                                  </Badge>
+                                );
+                              }
+                              if (!u.roles.includes("admin") && !u.roles.includes("moderator")) {
+                                return <span className="text-xs text-muted-foreground">Free</span>;
+                              }
+                              return null;
+                            })()}
                             {u.comp_grant && (
                               <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px] w-fit">
                                 <Gift className="w-2.5 h-2.5 mr-1" /> Comp: {u.comp_grant.plan_tier}
