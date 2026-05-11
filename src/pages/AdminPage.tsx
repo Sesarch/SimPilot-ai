@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Users, UserPlus, Search, Ban, Trash2, CheckCircle,
   LogOut, Plane, ArrowLeft, Crown, RefreshCw, Mail, Download, Gift, CalendarClock, MoreHorizontal,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -66,6 +67,9 @@ type AdminUser = {
   stripe_price_id?: string | null;
   stripe_price_matched?: boolean | null;
   stripe_live_status?: string | null;
+  stripe_live_tier?: string | null;
+  consistency_mismatch?: boolean | null;
+  consistency_reason?: string | null;
 };
 
 type LeadEmail = {
@@ -753,6 +757,14 @@ const AdminPage = () => {
                             {u.comp_grant && (
                               <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px] w-fit">
                                 <Gift className="w-2.5 h-2.5 mr-1" /> Comp: {u.comp_grant.plan_tier}
+                              </Badge>
+                            )}
+                            {u.consistency_mismatch && (
+                              <Badge
+                                className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[10px] w-fit cursor-help"
+                                title={u.consistency_reason || "Profile and Stripe disagree"}
+                              >
+                                <AlertTriangle className="w-2.5 h-2.5 mr-1" /> Mismatch
                               </Badge>
                             )}
                           </div>

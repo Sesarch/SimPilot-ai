@@ -238,18 +238,74 @@ Deno.serve(async (req) => {
         .map((u: any) => u.email as string);
       const stripeByEmail = await fetchStripeSubscriptionsByEmail(emailsNeedingLookup);
 
+      // Normalize profile tier to one of our canonical labels so we can compare
+      // against live Stripe data and detect mismatches.
+      const TIER_LABELS: Record<string, string> = {
+        student: "Student",
+        pro: "Pro Pilot",
+        "pro pilot": "Pro Pilot",
+        ultra: "Gold Seal CFI",
+        "gold seal cfi": "Gold Seal CFI",
+        flight_school: "Flight School",
+        "flight school": "Flight School",
+      };
+      const canonicalizeTier = (t: string | null | undefined): string | null => {
+        if (!t) return null;
+        const k = String(t).toLowerCase().trim();
+        if (k === "free" || k === "") return null;
+        return TIER_LABELS[k] ?? null;
+      };
+
       const enriched = data.users.map((u: any) => {
         const profile = profileByUser.get(u.id);
         const liveSub = u.email ? stripeByEmail.get(u.email.toLowerCase()) : undefined;
-        const profileTierIsMissingOrFree = !profile?.subscription_tier || String(profile.subscription_tier).toLowerCase() === "free";
-        // Only let the live Stripe sub drive the displayed plan when it actually
-        // maps to a SimPilot price (non-matched subs must never appear as a tier).
+        const profileTierCanonical = canonicalizeTier(profile?.subscription_tier);
+        const profileIsFlightSchool = profileTierCanonical === "Flight School";
+        const profileTierIsMissingOrFree = !profileTierCanonical;
+        // Flight School is sales-led: badge MUST come only from profile flag/metadata,
+        // never from Stripe. Lock the tier to the profile when profile says Flight School.
         const liveSubUsable = !!liveSub && liveSub.matched;
-        const useLiveSub = liveSubUsable && (!liveStripeStatuses.has(profile?.subscription_status) || profileTierIsMissingOrFree);
-        const tier = useLiveSub ? liveSub?.tier : profile?.subscription_tier || null;
-        const status = useLiveSub ? liveSub?.status : profile?.subscription_status || null;
-        const cpe = useLiveSub ? liveSub?.current_period_end : profile?.subscription_current_period_end || null;
-        const source = profile?.subscription_source || (liveSubUsable ? "stripe-live" : null);
+        const useLiveSub =
+          !profileIsFlightSchool &&
+          liveSubUsable &&
+          (!liveStripeStatuses.has(profile?.subscription_status) || profileTierIsMissingOrFree);
+        const tier = profileIsFlightSchool
+          ? "Flight School"
+          : useLiveSub
+            ? liveSub?.tier
+            : profile?.subscription_tier || null;
+        const status = profileIsFlightSchool
+          ? profile?.subscription_status || "active"
+          : useLiveSub ? liveSub?.status : profile?.subscription_status || null;
+        const cpe = profileIsFlightSchool
+          ? profile?.subscription_current_period_end || null
+          : useLiveSub ? liveSub?.current_period_end : profile?.subscription_current_period_end || null;
+        const source = profileIsFlightSchool
+          ? profile?.subscription_source || "profile-flag"
+          : profile?.subscription_source || (liveSubUsable ? "stripe-live" : null);
+
+        // Consistency check: compare profile-declared tier with live Stripe data.
+        let mismatch = false;
+        let mismatchReason: string | null = null;
+        const profileStatusActive = liveStripeStatuses.has(profile?.subscription_status);
+        if (profileIsFlightSchool && liveSubUsable) {
+          mismatch = true;
+          mismatchReason = `Profile says Flight School but Stripe shows active ${liveSub?.tier} (${liveSub?.price_id})`;
+        } else if (!profileIsFlightSchool) {
+          if (liveSubUsable && profileTierCanonical && liveSub?.tier && liveSub.tier !== profileTierCanonical) {
+            mismatch = true;
+            mismatchReason = `Profile tier "${profileTierCanonical}" ≠ Stripe tier "${liveSub.tier}"`;
+          } else if (liveSubUsable && profileTierIsMissingOrFree) {
+            mismatch = true;
+            mismatchReason = `Stripe has active ${liveSub?.tier} but profile is Free`;
+          } else if (!liveSubUsable && profileTierCanonical && profileStatusActive) {
+            // Profile claims an active paid SimPilot plan but no matching Stripe sub exists.
+            mismatch = true;
+            mismatchReason = liveSub
+              ? `Profile says ${profileTierCanonical} but Stripe price ${liveSub.price_id} is not a SimPilot plan`
+              : `Profile says ${profileTierCanonical} but no active Stripe subscription found`;
+          }
+        }
         return {
           id: u.id,
           email: u.email,
@@ -270,6 +326,9 @@ Deno.serve(async (req) => {
           stripe_price_id: liveSub?.price_id ?? null,
           stripe_price_matched: liveSub ? liveSub.matched : null,
           stripe_live_status: liveSub?.status ?? null,
+          stripe_live_tier: liveSub?.tier ?? null,
+          consistency_mismatch: mismatch,
+          consistency_reason: mismatchReason,
           last_transmission_at: lastTxByUser.get(u.id) || null,
           total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
           comp_grant: grantByUser.get(u.id) || null,
