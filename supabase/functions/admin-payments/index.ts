@@ -860,6 +860,101 @@ Deno.serve(async (req) => {
         });
         return json({ success: true, trial_ends_at: updated.trial_ends_at });
       }
+
+      // ---- PURGE EXTERNAL (non-SimPilot) SUBSCRIPTIONS + ARCHIVE PRODUCTS ----
+      if (action === "purge-external-subs") {
+        const SIMPILOT_PRICE_IDS = new Set<string>([
+          "price_1TNf5ZRusIXFsWjchdY05u0R",
+          "price_1TQhYjRusIXFsWjc3wGvpiqS",
+          "price_1TQhZBRusIXFsWjc2jrUeFEi",
+        ]);
+        const reqSubIds: string[] = Array.isArray(body?.subscription_ids)
+          ? body.subscription_ids.filter((s: unknown) => typeof s === "string")
+          : [];
+        const reqProductIds: string[] = Array.isArray(body?.product_ids)
+          ? body.product_ids.filter((s: unknown) => typeof s === "string")
+          : [];
+        if (reqSubIds.length === 0 && reqProductIds.length === 0) {
+          return badReq("subscription_ids or product_ids required");
+        }
+
+        const canceled: Array<{ id: string; status: string }> = [];
+        const archivedProducts: Array<{ id: string; name: string | null }> = [];
+        const errors: Array<{ id: string; kind: string; error: string }> = [];
+
+        // Safety re-check: refuse to cancel any sub whose price is SimPilot.
+        for (const subId of reqSubIds) {
+          try {
+            const current = await stripe.subscriptions.retrieve(subId, {
+              expand: ["items.data.price"],
+            });
+            const priceId = current.items.data[0]?.price?.id;
+            if (priceId && SIMPILOT_PRICE_IDS.has(priceId)) {
+              errors.push({
+                id: subId,
+                kind: "subscription",
+                error: "Refused: subscription uses a SimPilot price ID",
+              });
+              continue;
+            }
+            const canceledSub = await stripe.subscriptions.cancel(subId);
+            canceled.push({ id: canceledSub.id, status: canceledSub.status });
+          } catch (e) {
+            errors.push({
+              id: subId,
+              kind: "subscription",
+              error: (e as Error).message || String(e),
+            });
+          }
+        }
+
+        // Archive each requested product (active=false). Refuse to archive
+        // any product that has a SimPilot price attached.
+        for (const productId of reqProductIds) {
+          try {
+            const prices = await stripe.prices.list({ product: productId, limit: 100, active: true });
+            const hasSimPilot = prices.data.some((p) => SIMPILOT_PRICE_IDS.has(p.id));
+            if (hasSimPilot) {
+              errors.push({
+                id: productId,
+                kind: "product",
+                error: "Refused: product has a SimPilot price attached",
+              });
+              continue;
+            }
+            const updated = await stripe.products.update(productId, { active: false });
+            archivedProducts.push({ id: updated.id, name: updated.name });
+          } catch (e) {
+            errors.push({
+              id: productId,
+              kind: "product",
+              error: (e as Error).message || String(e),
+            });
+          }
+        }
+
+        await logAdminAction(admin, {
+          adminUserId: user.id,
+          adminEmail: user.email,
+          action: "stripe.purge_external",
+          targetType: "system",
+          details: {
+            requested_subscription_ids: reqSubIds,
+            requested_product_ids: reqProductIds,
+            canceled,
+            archived_products: archivedProducts,
+            errors,
+          },
+          req,
+        });
+
+        return json({
+          success: errors.length === 0,
+          canceled,
+          archived_products: archivedProducts,
+          errors,
+        });
+      }
     }
 
     return badReq("Invalid action");
