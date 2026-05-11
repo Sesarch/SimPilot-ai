@@ -23,7 +23,7 @@ const CATEGORY_LABELS: Record<ReadinessCategoryKey, string> = {
 type CertLevel = "PPL" | "IR" | "CPL" | "ATP";
 const CERT_OPTIONS: { value: CertLevel; label: string; sub: string; profile: string }[] = [
   { value: "PPL", label: "PPL", sub: "Private", profile: "Private Pilot (PPL)" },
-  { value: "IR", label: "IR", sub: "Instrument", profile: "Instrument Rating (IR)" },
+  { value: "IR", label: "IFR", sub: "Instrument", profile: "Instrument Rating (IR)" },
   { value: "CPL", label: "CPL", sub: "Commercial", profile: "Commercial Pilot (CPL)" },
   { value: "ATP", label: "ATP", sub: "Airline Transport", profile: "Airline Transport Pilot (ATP)" },
 ];
