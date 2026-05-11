@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -167,7 +167,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Tabs: Profile | Account Settings */}
-        <Tabs defaultValue="profile" className="w-full">
+        <DashboardTabs />
           <TabsList className="w-full grid grid-cols-2 mb-6">
             <TabsTrigger value="profile" className="font-display text-xs tracking-wider">
               <User className="w-3.5 h-3.5 mr-1.5" /> Profile
