@@ -22,20 +22,40 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
       navigate("/auth", { state: { redirectTo: location.pathname } });
       return;
     }
+
+    let cancelled = false;
+    // Safety net: never let the gate spin forever. If the MFA status
+    // edge function hangs (cold start, network drop, JWKS lag), unblock
+    // after 8s so the route can render and surface its own error UI
+    // instead of an infinite "Loading…" screen.
+    const safetyTimer = setTimeout(() => {
+      if (!cancelled) {
+        console.warn("MfaGate: status check timed out — releasing gate");
+        setReady(true);
+      }
+    }, 8000);
+
+    const withTimeout = <T,>(p: Promise<T>, ms: number, label: string): Promise<T> =>
+      Promise.race([
+        p,
+        new Promise<T>((_, reject) =>
+          setTimeout(() => reject(new Error(`${label} timeout after ${ms}ms`)), ms),
+        ),
+      ]);
+
     (async () => {
       try {
-        const status = await mfaApi.status();
+        const status = await withTimeout(mfaApi.status(), 6000, "mfa.status");
+        if (cancelled) return;
         const mustEnforce = requireMfa || status.required;
 
-        // 1. If a TOTP factor is verified, ensure session AAL is aal2.
-        const aal = await getAalGap();
+        const aal = await withTimeout(getAalGap(), 4000, "getAalGap");
+        if (cancelled) return;
         if (status.totp_enrolled && aal.gap) {
           navigate("/mfa", { state: { redirectTo: location.pathname }, replace: true });
           return;
         }
 
-        // 2. If MFA enforced (admin) and not enrolled at all → keep them in the
-        //    admin flow and enroll email 2FA through the challenge screen.
         if (mustEnforce && !status.enrolled) {
           const { data: { session } } = await supabase.auth.getSession();
           const flagKey = `mfa-verified:${session?.access_token?.slice(-12) ?? ""}`;
@@ -46,8 +66,6 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
           return;
         }
 
-        // 3. If enforced and enrolled via email-only, require email-OTP step on
-        //    fresh sessions. We use a session-storage flag.
         if (mustEnforce && status.enrolled && !status.totp_enrolled && status.email_otp_enabled) {
           const { data: { session } } = await supabase.auth.getSession();
           const flagKey = `mfa-verified:${session?.access_token?.slice(-12) ?? ""}`;
@@ -57,12 +75,19 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
           }
         }
 
-        setReady(true);
+        if (!cancelled) setReady(true);
       } catch (e) {
         console.error("MfaGate error", e);
-        setReady(true);
+        if (!cancelled) setReady(true);
+      } finally {
+        clearTimeout(safetyTimer);
       }
     })();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(safetyTimer);
+    };
   }, [user, loading, navigate, location.pathname, requireMfa]);
 
   if (loading || !ready) {
