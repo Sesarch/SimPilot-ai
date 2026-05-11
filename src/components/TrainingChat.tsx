@@ -190,6 +190,38 @@ export const TrainingChat = ({
     return null;
   })();
 
+  // Lesson progress (ground school only).
+  // Parses "Lesson Progress: We've covered X of Y key concepts" emitted by the
+  // instructor, falling back to counting assistant teaching turns toward the
+  // 3-concept teaching gate the model enforces server-side.
+  const lessonProgress = (() => {
+    if (mode !== "ground_school" || !topicId) return null;
+    const GATE_MIN = 3;
+    let parsedCovered: number | null = null;
+    let parsedTotal: number | null = null;
+    let assistantTurns = 0;
+    let summaryDelivered = false;
+    for (const m of messages) {
+      if (m.role !== "assistant") continue;
+      assistantTurns += 1;
+      const text = getTextContent(m.content);
+      const match = text.match(/covered\s+(\d+)\s+of\s+(\d+)\s+key\s+concepts/i);
+      if (match) {
+        parsedCovered = parseInt(match[1], 10);
+        parsedTotal = parseInt(match[2], 10);
+      }
+      if (/##\s*📝?\s*Lesson Summary/i.test(text)) summaryDelivered = true;
+    }
+    if (assistantTurns === 0) return null;
+    const total = parsedTotal ?? GATE_MIN;
+    const covered = Math.min(
+      total,
+      parsedCovered ?? Math.max(0, assistantTurns - 1), // first turn = intro, not a concept
+    );
+    const gateSatisfied = summaryDelivered || (covered >= GATE_MIN && assistantTurns >= GATE_MIN);
+    return { covered, total, gateSatisfied, summaryDelivered };
+  })();
+
   // Mark ground school topic complete when the in-UI quiz is passed (≥ 2/3).
   // Falls back to the legacy text-marker (TOPIC_QUIZ_RESULT: PASS) so older
   // assistant turns that still emit prose quizzes continue to credit the topic.
@@ -341,6 +373,43 @@ export const TrainingChat = ({
       >
         I'm a study tool, not a CFI or dispatcher. AI can be confidently wrong. Under <span className="text-foreground">14 CFR §91.3</span>, the PIC is the final authority.
       </div>
+      {/* Lesson progress tracker (Ground One-on-One only) */}
+      {lessonProgress && started && (
+        <div
+          role="status"
+          aria-label="Lesson progress"
+          className="px-3 py-2 border-b border-border bg-secondary/30"
+        >
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                Lesson Progress
+              </span>
+              <span className="text-xs text-foreground truncate">
+                Covered <span className="text-primary font-medium">{lessonProgress.covered}</span> of {lessonProgress.total} key concepts
+              </span>
+            </div>
+            <span
+              className={`font-display text-[10px] tracking-widest uppercase px-2 py-0.5 rounded border whitespace-nowrap ${
+                lessonProgress.gateSatisfied
+                  ? "bg-primary/15 text-primary border-primary/40"
+                  : "bg-secondary text-muted-foreground border-border"
+              }`}
+            >
+              {lessonProgress.gateSatisfied ? "Quiz Unlocked" : "Teaching…"}
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+            <div
+              className={`h-full transition-all ${lessonProgress.gateSatisfied ? "bg-primary" : "bg-primary/60"}`}
+              style={{
+                width: `${Math.min(100, (lessonProgress.covered / Math.max(1, lessonProgress.total)) * 100)}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         <SafetyAlertBanner />
