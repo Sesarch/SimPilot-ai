@@ -43,28 +43,43 @@ serve(async (req) => {
       });
     }
 
+    // Pull a few subs so we can also surface trialing / past_due / canceled-at-period-end.
     const subs = await stripe.subscriptions.list({
       customer: customers.data[0].id,
-      status: "active",
-      limit: 1,
+      status: "all",
+      limit: 5,
     });
 
-    if (subs.data.length === 0) {
+    const sub = subs.data
+      .filter((s) => ["active", "trialing", "past_due", "unpaid"].includes(s.status))
+      .sort((a, b) => (b.created ?? 0) - (a.created ?? 0))[0];
+
+    if (!sub) {
       return new Response(JSON.stringify({ subscribed: false, tier: null, subscription_end: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    const sub = subs.data[0];
-    const priceId = sub.items.data[0]?.price.id;
+    const item = sub.items.data[0];
+    const price = item?.price;
+    const priceId = price?.id;
     const tier = priceId ? PRICE_TO_TIER[priceId] ?? null : null;
+    // deno-lint-ignore no-explicit-any
+    const periodEndUnix: number | undefined = (sub as any).current_period_end ?? (item as any)?.current_period_end;
 
     return new Response(
       JSON.stringify({
-        subscribed: true,
+        subscribed: ["active", "trialing"].includes(sub.status),
+        status: sub.status,
         tier,
-        subscription_end: new Date(sub.current_period_end * 1000).toISOString(),
+        price_id: priceId ?? null,
+        amount: price?.unit_amount ?? null,
+        currency: price?.currency ?? null,
+        interval: price?.recurring?.interval ?? null,
+        interval_count: price?.recurring?.interval_count ?? null,
+        cancel_at_period_end: sub.cancel_at_period_end,
+        subscription_end: periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );

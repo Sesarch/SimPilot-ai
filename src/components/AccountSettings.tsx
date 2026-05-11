@@ -52,6 +52,80 @@ const AccountSettings = () => {
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
 
+  type BillingSummary = {
+    subscribed: boolean;
+    status?: string | null;
+    tier?: string | null;
+    amount?: number | null;
+    currency?: string | null;
+    interval?: string | null;
+    interval_count?: number | null;
+    cancel_at_period_end?: boolean;
+    subscription_end?: string | null;
+  };
+  const [billing, setBilling] = useState<BillingSummary | null>(null);
+  const [billingLoading, setBillingLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setBillingLoading(true);
+    supabase.functions
+      .invoke("check-subscription")
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("[AccountSettings] check-subscription error", error);
+          setBilling({ subscribed: false });
+        } else {
+          setBilling((data as BillingSummary) ?? { subscribed: false });
+        }
+      })
+      .finally(() => { if (!cancelled) setBillingLoading(false); });
+    return () => { cancelled = true; };
+  }, [user]);
+
+  const formatMoney = (amountMinor?: number | null, currency?: string | null) => {
+    if (amountMinor == null || !currency) return null;
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: currency.toUpperCase(),
+      }).format(amountMinor / 100);
+    } catch {
+      return `${(amountMinor / 100).toFixed(2)} ${currency.toUpperCase()}`;
+    }
+  };
+
+  const formatDate = (iso?: string | null) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleDateString(undefined, {
+        year: "numeric", month: "short", day: "numeric",
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  const planLabel = billing?.tier
+    ? `SimPilot ${billing.tier.charAt(0).toUpperCase()}${billing.tier.slice(1)}`
+    : billing?.subscribed ? "SimPilot" : "Free";
+
+  const statusMeta: Record<string, { label: string; tone: string }> = {
+    active: { label: "Active", tone: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+    trialing: { label: "Trial", tone: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    past_due: { label: "Past due", tone: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    unpaid: { label: "Unpaid", tone: "bg-red-500/10 text-red-400 border-red-500/20" },
+    canceled: { label: "Canceled", tone: "bg-muted text-muted-foreground border-border" },
+  };
+  const status = billing?.status ?? (billing?.subscribed ? "active" : "none");
+  const statusBadge = statusMeta[status] ?? { label: "No subscription", tone: "bg-muted text-muted-foreground border-border" };
+
+  const renewalAmount = formatMoney(billing?.amount, billing?.currency);
+  const renewalDate = formatDate(billing?.subscription_end);
+  const billingNoun = billing?.cancel_at_period_end ? "Ends on" : "Next billing";
+
   const handleManageBilling = async () => {
     setOpeningPortal(true);
     try {
@@ -169,6 +243,56 @@ const AccountSettings = () => {
         <p className="text-xs text-muted-foreground mb-4">
           Manage your SimPilot plan, update payment methods, download invoices, or cancel — all securely through Stripe.
         </p>
+
+        <div className="rounded-lg border border-border bg-background/40 p-4 mb-4">
+          {billingLoading ? (
+            <div className="space-y-2">
+              <div className="h-4 w-32 rounded bg-muted/40 animate-pulse" />
+              <div className="h-3 w-48 rounded bg-muted/30 animate-pulse" />
+            </div>
+          ) : (
+            <>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Current plan</div>
+                  <div className="font-display text-base text-foreground">{planLabel}</div>
+                </div>
+                <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-md border ${statusBadge.tone}`}>
+                  {statusBadge.label}
+                </span>
+              </div>
+
+              {billing?.subscribed ? (
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">{billingNoun}</div>
+                    <div className="text-foreground">{renewalDate ?? "—"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+                      {billing?.cancel_at_period_end ? "Final amount" : "Renewal amount"}
+                    </div>
+                    <div className="text-foreground">
+                      {renewalAmount
+                        ? `${renewalAmount}${billing?.interval ? ` / ${billing.interval}` : ""}`
+                        : "—"}
+                    </div>
+                  </div>
+                  {billing?.cancel_at_period_end && (
+                    <div className="col-span-2 text-[11px] text-amber-400/90">
+                      Your subscription is set to cancel at the end of the current period.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  You don't have an active subscription. Upgrade to unlock unlimited CFI-AI sessions, oral exam prep, and more.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
         <Button onClick={handleManageBilling} disabled={openingPortal} size="sm">
           <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
           {openingPortal ? "Opening…" : "Manage subscription"}
