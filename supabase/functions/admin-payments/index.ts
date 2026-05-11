@@ -422,6 +422,181 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ---- SUBSCRIPTION AUDIT: compare Stripe vs profiles.subscription_* ----
+    if (req.method === "GET" && action === "subscription-audit") {
+      // Map SimPilot price IDs -> tier (mirror of stripe-webhook / check-subscription)
+      const PRICE_TO_TIER: Record<string, string> = {
+        price_1TNf5ZRusIXFsWjchdY05u0R: "student",
+        price_1TQhYjRusIXFsWjc3wGvpiqS: "pro",
+        price_1TQhZBRusIXFsWjc2jrUeFEi: "ultra",
+      };
+
+      // 1) Pull all Stripe subs (active/trialing/past_due) — paginate up to 1000.
+      const stripeSubs: Stripe.Subscription[] = [];
+      let starting_after: string | undefined;
+      for (let i = 0; i < 5; i++) {
+        const page = await stripe.subscriptions.list({
+          status: "all",
+          limit: 100,
+          starting_after,
+          expand: ["data.customer", "data.items.data.price"],
+        });
+        stripeSubs.push(...page.data);
+        if (!page.has_more) break;
+        starting_after = page.data[page.data.length - 1].id;
+      }
+      const liveStatuses = new Set(["active", "trialing", "past_due"]);
+      const live = stripeSubs.filter((s) => liveStatuses.has(s.status));
+
+      // Build (email -> chosen sub) preferring active > trialing > past_due.
+      const rank = (s: Stripe.Subscription) =>
+        s.status === "active" ? 0 : s.status === "trialing" ? 1 : 2;
+      const byEmail = new Map<string, Stripe.Subscription>();
+      for (const s of live) {
+        const c = s.customer as Stripe.Customer | string;
+        const email = (typeof c === "string" ? null : c?.email)?.toLowerCase();
+        if (!email) continue;
+        const existing = byEmail.get(email);
+        if (!existing || rank(s) < rank(existing)) byEmail.set(email, s);
+      }
+
+      // 2) Pull profiles (with auth email via auth.admin).
+      const { data: profiles, error: pErr } = await admin
+        .from("profiles")
+        .select("user_id, subscription_tier, subscription_status, subscription_id, subscription_current_period_end, subscription_source, stripe_customer_id");
+      if (pErr) throw pErr;
+
+      // Map user_id -> email by paginating auth users (cap at first 1000).
+      const userEmail = new Map<string, string>();
+      for (let pageIdx = 1; pageIdx <= 10; pageIdx++) {
+        const { data, error } = await admin.auth.admin.listUsers({ page: pageIdx, perPage: 100 });
+        if (error) break;
+        for (const u of data.users) if (u.email) userEmail.set(u.id, u.email.toLowerCase());
+        if (!data.users.length || data.users.length < 100) break;
+      }
+
+      const profileByEmail = new Map<string, typeof profiles[number]>();
+      const profilesWithEmail: Array<{ profile: typeof profiles[number]; email: string }> = [];
+      for (const p of profiles ?? []) {
+        const email = userEmail.get(p.user_id);
+        if (!email) continue;
+        profileByEmail.set(email, p);
+        profilesWithEmail.push({ profile: p, email });
+      }
+
+      type Mismatch = {
+        kind: "missing_in_profile" | "missing_in_stripe" | "tier_mismatch" | "status_mismatch" | "no_email";
+        email: string | null;
+        user_id: string | null;
+        profile_tier: string | null;
+        profile_status: string | null;
+        stripe_tier: string | null;
+        stripe_status: string | null;
+        stripe_subscription_id: string | null;
+        stripe_customer_id: string | null;
+      };
+      const mismatches: Mismatch[] = [];
+
+      // a) Stripe has live sub, profile doesn't / wrong tier / wrong status.
+      for (const [email, s] of byEmail) {
+        const priceId = s.items.data[0]?.price?.id ?? "";
+        const stripeTier = PRICE_TO_TIER[priceId] ?? null;
+        const p = profileByEmail.get(email);
+        const cust = s.customer as Stripe.Customer | string;
+        const customerId = typeof cust === "string" ? cust : cust?.id ?? null;
+
+        if (!p) {
+          mismatches.push({
+            kind: "missing_in_profile",
+            email, user_id: null,
+            profile_tier: null, profile_status: null,
+            stripe_tier: stripeTier, stripe_status: s.status,
+            stripe_subscription_id: s.id, stripe_customer_id: customerId,
+          });
+          continue;
+        }
+        const tierOk = stripeTier == null || p.subscription_tier === stripeTier;
+        const statusOk = p.subscription_status === s.status;
+        if (!tierOk) {
+          mismatches.push({
+            kind: "tier_mismatch",
+            email, user_id: p.user_id,
+            profile_tier: p.subscription_tier, profile_status: p.subscription_status,
+            stripe_tier: stripeTier, stripe_status: s.status,
+            stripe_subscription_id: s.id, stripe_customer_id: customerId,
+          });
+        } else if (!statusOk) {
+          mismatches.push({
+            kind: "status_mismatch",
+            email, user_id: p.user_id,
+            profile_tier: p.subscription_tier, profile_status: p.subscription_status,
+            stripe_tier: stripeTier, stripe_status: s.status,
+            stripe_subscription_id: s.id, stripe_customer_id: customerId,
+          });
+        }
+      }
+
+      // b) Profile claims a paid status but Stripe has no live sub.
+      const paidStatuses = new Set(["active", "trialing", "past_due"]);
+      for (const { profile: p, email } of profilesWithEmail) {
+        if (!p.subscription_status || !paidStatuses.has(p.subscription_status)) continue;
+        if (byEmail.has(email)) continue; // covered above
+        mismatches.push({
+          kind: "missing_in_stripe",
+          email, user_id: p.user_id,
+          profile_tier: p.subscription_tier, profile_status: p.subscription_status,
+          stripe_tier: null, stripe_status: null,
+          stripe_subscription_id: p.subscription_id ?? null,
+          stripe_customer_id: p.stripe_customer_id ?? null,
+        });
+      }
+
+      // c) Stripe live sub with no email on the customer (rare).
+      const customersWithoutEmail = live.filter((s) => {
+        const c = s.customer as Stripe.Customer | string;
+        return typeof c !== "string" && !c?.email;
+      }).map((s) => {
+        const c = s.customer as Stripe.Customer;
+        return {
+          kind: "no_email" as const,
+          email: null, user_id: null,
+          profile_tier: null, profile_status: null,
+          stripe_tier: PRICE_TO_TIER[s.items.data[0]?.price?.id ?? ""] ?? null,
+          stripe_status: s.status,
+          stripe_subscription_id: s.id,
+          stripe_customer_id: c?.id ?? null,
+        };
+      });
+      mismatches.push(...customersWithoutEmail);
+
+      await logAdminAction(admin, {
+        adminUserId: user.id,
+        adminEmail: user.email,
+        action: "subscription_audit.run",
+        targetType: "system",
+        details: {
+          stripe_live_subs: live.length,
+          profiles_scanned: profilesWithEmail.length,
+          mismatch_count: mismatches.length,
+        },
+        req,
+      });
+
+      return json({
+        checked_at: new Date().toISOString(),
+        summary: {
+          stripe_live_subscriptions: live.length,
+          profiles_with_email: profilesWithEmail.length,
+          mismatches: mismatches.length,
+          by_kind: mismatches.reduce<Record<string, number>>((acc, m) => {
+            acc[m.kind] = (acc[m.kind] ?? 0) + 1;
+            return acc;
+          }, {}),
+        },
+        mismatches,
+      });
+    }
+
     if (req.method === "POST") {
       const body = await req.json();
 
