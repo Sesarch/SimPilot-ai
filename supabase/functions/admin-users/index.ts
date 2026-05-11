@@ -227,18 +227,14 @@ Deno.serve(async (req) => {
         extendedMonthsByUser.set(row.target_id, (extendedMonthsByUser.get(row.target_id) || 0) + m);
       });
 
-      // Live Stripe fallback: for users whose profile has no synced subscription_status
-      // (webhook may not have fired yet), look up their email in Stripe so the Plan column
-      // is not stuck on "Free".
+      // Live Stripe lookup. We now query for EVERY user with an email so the Users
+      // tab can show the actual Stripe price ID (or "not found") in a tooltip,
+      // enabling admins to audit why someone shows Free vs a paid plan.
       const profileByUser = new Map<string, any>();
       (profiles || []).forEach((p: any) => profileByUser.set(p.user_id, p));
       const liveStripeStatuses = new Set(["active", "trialing", "past_due"]);
       const emailsNeedingLookup = data.users
-        .filter((u: any) => {
-          const p = profileByUser.get(u.id);
-          const tierMissingOrFree = !p?.subscription_tier || String(p.subscription_tier).toLowerCase() === "free";
-          return u.email && (tierMissingOrFree || !liveStripeStatuses.has(p?.subscription_status));
-        })
+        .filter((u: any) => !!u.email)
         .map((u: any) => u.email as string);
       const stripeByEmail = await fetchStripeSubscriptionsByEmail(emailsNeedingLookup);
 
@@ -246,11 +242,14 @@ Deno.serve(async (req) => {
         const profile = profileByUser.get(u.id);
         const liveSub = u.email ? stripeByEmail.get(u.email.toLowerCase()) : undefined;
         const profileTierIsMissingOrFree = !profile?.subscription_tier || String(profile.subscription_tier).toLowerCase() === "free";
-        const useLiveSub = !!liveSub && (!liveStripeStatuses.has(profile?.subscription_status) || profileTierIsMissingOrFree);
+        // Only let the live Stripe sub drive the displayed plan when it actually
+        // maps to a SimPilot price (non-matched subs must never appear as a tier).
+        const liveSubUsable = !!liveSub && liveSub.matched;
+        const useLiveSub = liveSubUsable && (!liveStripeStatuses.has(profile?.subscription_status) || profileTierIsMissingOrFree);
         const tier = useLiveSub ? liveSub?.tier : profile?.subscription_tier || null;
         const status = useLiveSub ? liveSub?.status : profile?.subscription_status || null;
         const cpe = useLiveSub ? liveSub?.current_period_end : profile?.subscription_current_period_end || null;
-        const source = profile?.subscription_source || (liveSub ? "stripe-live" : null);
+        const source = profile?.subscription_source || (liveSubUsable ? "stripe-live" : null);
         return {
           id: u.id,
           email: u.email,
@@ -267,6 +266,10 @@ Deno.serve(async (req) => {
           subscription_status: status,
           subscription_current_period_end: cpe,
           subscription_source: source,
+          // Audit fields for the Plan tooltip in the Users tab.
+          stripe_price_id: liveSub?.price_id ?? null,
+          stripe_price_matched: liveSub ? liveSub.matched : null,
+          stripe_live_status: liveSub?.status ?? null,
           last_transmission_at: lastTxByUser.get(u.id) || null,
           total_sim_hours: Number((simHoursByUser.get(u.id) || 0).toFixed(1)),
           comp_grant: grantByUser.get(u.id) || null,
