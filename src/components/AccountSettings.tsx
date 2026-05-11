@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink } from "lucide-react";
+import { KeyRound, Mail, Trash2, AlertTriangle, GraduationCap, Globe, Copy, ExternalLink, CreditCard } from "lucide-react";
 import { usePilotContext } from "@/hooks/usePilotContext";
 import RedeemSchoolCode from "@/components/RedeemSchoolCode";
 import MfaSettings from "@/components/MfaSettings";
