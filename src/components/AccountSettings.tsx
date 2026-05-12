@@ -495,7 +495,7 @@ const AccountSettings = () => {
                   <div className="font-display text-base text-foreground">{planLabel}</div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">{priceLabel}</div>
                 </div>
-                <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-md border ${statusBadge.tone}`}>
+                <span className={`uppercase tracking-wider ${statusBadge.tone}`} tabIndex={0} role="status">
                   {statusBadge.label}
                 </span>
               </div>
