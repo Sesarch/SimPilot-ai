@@ -745,7 +745,9 @@ const AdminPage = () => {
                               if (tierLabel && status === "past_due") {
                                 return (
                                   <Badge
-                                    className="bg-red-500/20 text-red-200 border-red-500/40 hover:bg-red-500/30 hover:text-red-100 hover:border-red-400/60 text-xs w-fit cursor-help transition-colors"
+                                    tabIndex={0}
+                                    role="status"
+                                    className="bg-red-500/20 text-red-200 border-red-500/40 hover:bg-red-500/30 hover:text-red-100 hover:border-red-400/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:bg-red-500/30 focus-visible:text-red-50 text-xs w-fit cursor-help transition-colors"
                                     title={auditTooltip}
                                   >
                                     {tierLabel} · Past due
