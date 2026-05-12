@@ -729,10 +729,12 @@ const AdminPage = () => {
                                 const isTrial = status === "trialing";
                                 return (
                                   <Badge
+                                    tabIndex={0}
+                                    role="status"
                                     className={
                                       isTrial
-                                        ? "bg-blue-500/20 text-blue-200 border-blue-500/40 hover:bg-blue-500/30 hover:text-blue-100 hover:border-blue-400/60 text-xs w-fit cursor-help transition-colors"
-                                        : "bg-emerald-500/20 text-emerald-200 border-emerald-500/40 hover:bg-emerald-500/30 hover:text-emerald-100 hover:border-emerald-400/60 text-xs w-fit cursor-help transition-colors"
+                                        ? "bg-blue-500/20 text-blue-200 border-blue-500/40 hover:bg-blue-500/30 hover:text-blue-100 hover:border-blue-400/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:bg-blue-500/30 focus-visible:text-blue-50 text-xs w-fit cursor-help transition-colors"
+                                        : "bg-emerald-500/20 text-emerald-200 border-emerald-500/40 hover:bg-emerald-500/30 hover:text-emerald-100 hover:border-emerald-400/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:bg-emerald-500/30 focus-visible:text-emerald-50 text-xs w-fit cursor-help transition-colors"
                                     }
                                     title={auditTooltip}
                                   >
