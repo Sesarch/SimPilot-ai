@@ -128,6 +128,151 @@
   }
 }
 
+@layer components {
+  /* WCAG AA compliant plan / status badge utilities.
+     Token sets are tuned so foreground vs background reaches ≥ 4.5:1
+     contrast in both light and dark themes. */
+  .badge-status {
+    @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium w-fit cursor-help transition-colors;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Info / Trial — blue */
+  .badge-status-info {
+    @apply badge-status;
+    background-color: hsl(214 95% 93%);
+    color: hsl(214 80% 26%);
+    border-color: hsl(214 90% 78%);
+  }
+  .badge-status-info:hover,
+  .badge-status-info:focus-visible {
+    background-color: hsl(214 95% 88%);
+    color: hsl(214 85% 20%);
+    border-color: hsl(214 85% 60%);
+  }
+  .badge-status-info:focus-visible { @apply ring-blue-500; }
+  .dark .badge-status-info {
+    background-color: hsl(214 70% 18%);
+    color: hsl(214 95% 88%);
+    border-color: hsl(214 70% 42%);
+  }
+  .dark .badge-status-info:hover,
+  .dark .badge-status-info:focus-visible {
+    background-color: hsl(214 70% 24%);
+    color: hsl(214 100% 95%);
+    border-color: hsl(214 90% 65%);
+  }
+  .dark .badge-status-info:focus-visible { @apply ring-blue-300; }
+
+  /* Success / Active / Paid — emerald */
+  .badge-status-success {
+    @apply badge-status;
+    background-color: hsl(152 76% 90%);
+    color: hsl(152 70% 22%);
+    border-color: hsl(152 65% 68%);
+  }
+  .badge-status-success:hover,
+  .badge-status-success:focus-visible {
+    background-color: hsl(152 76% 84%);
+    color: hsl(152 75% 16%);
+    border-color: hsl(152 65% 48%);
+  }
+  .badge-status-success:focus-visible { @apply ring-emerald-500; }
+  .dark .badge-status-success {
+    background-color: hsl(152 60% 16%);
+    color: hsl(152 80% 85%);
+    border-color: hsl(152 60% 38%);
+  }
+  .dark .badge-status-success:hover,
+  .dark .badge-status-success:focus-visible {
+    background-color: hsl(152 60% 22%);
+    color: hsl(152 90% 92%);
+    border-color: hsl(152 75% 60%);
+  }
+  .dark .badge-status-success:focus-visible { @apply ring-emerald-300; }
+
+  /* Warn / Trial expired — amber */
+  .badge-status-warn {
+    @apply badge-status;
+    background-color: hsl(38 96% 90%);
+    color: hsl(28 90% 24%);
+    border-color: hsl(35 90% 65%);
+  }
+  .badge-status-warn:hover,
+  .badge-status-warn:focus-visible {
+    background-color: hsl(38 96% 84%);
+    color: hsl(28 95% 18%);
+    border-color: hsl(32 90% 50%);
+  }
+  .badge-status-warn:focus-visible { @apply ring-amber-500; }
+  .dark .badge-status-warn {
+    background-color: hsl(32 70% 18%);
+    color: hsl(38 95% 85%);
+    border-color: hsl(35 75% 45%);
+  }
+  .dark .badge-status-warn:hover,
+  .dark .badge-status-warn:focus-visible {
+    background-color: hsl(32 70% 24%);
+    color: hsl(38 100% 92%);
+    border-color: hsl(35 90% 65%);
+  }
+  .dark .badge-status-warn:focus-visible { @apply ring-amber-300; }
+
+  /* Danger / Past due — red */
+  .badge-status-danger {
+    @apply badge-status;
+    background-color: hsl(0 90% 93%);
+    color: hsl(0 70% 32%);
+    border-color: hsl(0 80% 75%);
+  }
+  .badge-status-danger:hover,
+  .badge-status-danger:focus-visible {
+    background-color: hsl(0 90% 88%);
+    color: hsl(0 75% 24%);
+    border-color: hsl(0 75% 55%);
+  }
+  .badge-status-danger:focus-visible { @apply ring-red-500; }
+  .dark .badge-status-danger {
+    background-color: hsl(0 60% 20%);
+    color: hsl(0 90% 88%);
+    border-color: hsl(0 65% 45%);
+  }
+  .dark .badge-status-danger:hover,
+  .dark .badge-status-danger:focus-visible {
+    background-color: hsl(0 60% 26%);
+    color: hsl(0 100% 94%);
+    border-color: hsl(0 85% 65%);
+  }
+  .dark .badge-status-danger:focus-visible { @apply ring-red-300; }
+
+  /* Neutral / Free / Pending — slate */
+  .badge-status-neutral {
+    @apply badge-status;
+    background-color: hsl(220 14% 91%);
+    color: hsl(220 30% 22%);
+    border-color: hsl(220 14% 72%);
+  }
+  .badge-status-neutral:hover,
+  .badge-status-neutral:focus-visible {
+    background-color: hsl(220 14% 85%);
+    color: hsl(220 35% 16%);
+    border-color: hsl(220 14% 55%);
+  }
+  .badge-status-neutral:focus-visible { @apply ring-slate-400; }
+  .dark .badge-status-neutral {
+    background-color: hsl(220 15% 22%);
+    color: hsl(220 15% 88%);
+    border-color: hsl(220 12% 45%);
+  }
+  .dark .badge-status-neutral:hover,
+  .dark .badge-status-neutral:focus-visible {
+    background-color: hsl(220 15% 28%);
+    color: hsl(220 15% 96%);
+    border-color: hsl(220 15% 65%);
+  }
+  .dark .badge-status-neutral:focus-visible { @apply ring-slate-300; }
+}
+
 @layer utilities {
   .text-glow-cyan {
     text-shadow: 0 0 20px hsl(var(--cyan-glow) / 0.5), 0 0 40px hsl(var(--cyan-glow) / 0.2);
