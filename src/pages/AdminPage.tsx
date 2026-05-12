@@ -731,8 +731,8 @@ const AdminPage = () => {
                                   <Badge
                                     className={
                                       isTrial
-                                        ? "bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit cursor-help"
-                                        : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs w-fit cursor-help"
+                                        ? "bg-blue-500/20 text-blue-200 border-blue-500/40 hover:bg-blue-500/30 hover:text-blue-100 hover:border-blue-400/60 text-xs w-fit cursor-help transition-colors"
+                                        : "bg-emerald-500/20 text-emerald-200 border-emerald-500/40 hover:bg-emerald-500/30 hover:text-emerald-100 hover:border-emerald-400/60 text-xs w-fit cursor-help transition-colors"
                                     }
                                     title={auditTooltip}
                                   >
