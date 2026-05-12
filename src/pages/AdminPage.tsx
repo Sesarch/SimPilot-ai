@@ -758,7 +758,9 @@ const AdminPage = () => {
                                 if (trialActive) {
                                   return (
                                     <Badge
-                                      className="bg-blue-500/20 text-blue-200 border-blue-500/40 hover:bg-blue-500/30 hover:text-blue-100 hover:border-blue-400/60 text-xs w-fit cursor-help transition-colors"
+                                      tabIndex={0}
+                                      role="status"
+                                      className="bg-blue-500/20 text-blue-200 border-blue-500/40 hover:bg-blue-500/30 hover:text-blue-100 hover:border-blue-400/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:bg-blue-500/30 focus-visible:text-blue-50 text-xs w-fit cursor-help transition-colors"
                                       title={`Free trial · ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left\n${auditTooltip}`}
                                     >
                                       Trial · {trialDaysLeft}d left
