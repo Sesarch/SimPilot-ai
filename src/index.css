@@ -133,8 +133,12 @@
      Token sets are tuned so foreground vs background reaches ≥ 4.5:1
      contrast in both light and dark themes. */
   .badge-status {
-    @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium w-fit cursor-help transition-colors;
+    @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium w-fit cursor-help;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    /* Consistent app-wide hover/focus easing (matches fade/scale animations: 200ms ease-out). */
+    transition-property: background-color, color, border-color, box-shadow, transform;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* Info / Trial — blue */
