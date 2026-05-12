@@ -156,9 +156,9 @@
   }
   .badge-status-info:focus-visible { @apply ring-blue-500; }
   .dark .badge-status-info {
-    background-color: hsl(214 70% 18%);
-    color: hsl(214 95% 88%);
-    border-color: hsl(214 70% 42%);
+    background-color: hsl(214 70% 20%);
+    color: hsl(214 95% 90%);
+    border-color: hsl(214 75% 52%);
   }
   .dark .badge-status-info:hover,
   .dark .badge-status-info:focus-visible {
@@ -237,9 +237,9 @@
   }
   .badge-status-danger:focus-visible { @apply ring-red-500; }
   .dark .badge-status-danger {
-    background-color: hsl(0 60% 20%);
-    color: hsl(0 90% 88%);
-    border-color: hsl(0 65% 45%);
+    background-color: hsl(0 60% 22%);
+    color: hsl(0 95% 90%);
+    border-color: hsl(0 75% 55%);
   }
   .dark .badge-status-danger:hover,
   .dark .badge-status-danger:focus-visible {
