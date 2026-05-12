@@ -754,7 +754,7 @@ const AdminPage = () => {
                                 if (trialActive) {
                                   return (
                                     <Badge
-                                      className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs w-fit cursor-help"
+                                      className="bg-blue-500/20 text-blue-200 border-blue-500/40 hover:bg-blue-500/30 hover:text-blue-100 hover:border-blue-400/60 text-xs w-fit cursor-help transition-colors"
                                       title={`Free trial · ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left\n${auditTooltip}`}
                                     >
                                       Trial · {trialDaysLeft}d left
