@@ -243,14 +243,14 @@ const AccountSettings = () => {
   const planLabel = planInfo.label;
 
   const statusMeta: Record<string, { label: string; tone: string }> = {
-    active: { label: "Active", tone: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
-    trialing: { label: "Trial", tone: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-    past_due: { label: "Past due", tone: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-    unpaid: { label: "Unpaid", tone: "bg-red-500/10 text-red-400 border-red-500/20" },
-    canceled: { label: "Canceled", tone: "bg-muted text-muted-foreground border-border" },
+    active: { label: "Active", tone: "badge-status-success" },
+    trialing: { label: "Trial", tone: "badge-status-info" },
+    past_due: { label: "Past due", tone: "badge-status-warn" },
+    unpaid: { label: "Unpaid", tone: "badge-status-danger" },
+    canceled: { label: "Canceled", tone: "badge-status-neutral" },
   };
   const status = billing?.status ?? (billing?.subscribed ? "active" : "none");
-  const statusBadge = statusMeta[status] ?? { label: "No subscription", tone: "bg-muted text-muted-foreground border-border" };
+  const statusBadge = statusMeta[status] ?? { label: "No subscription", tone: "badge-status-neutral" };
 
   const renewalAmount = formatMoney(billing?.amount, billing?.currency);
   const renewalDate = formatDate(billing?.subscription_end);
