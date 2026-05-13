@@ -137,7 +137,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
       <p className={`text-center text-muted-foreground ${compact ? "text-[10px]" : "text-xs"}`}>
         {currentField.icon} Select your <span className="text-foreground ">{currentField.label}</span>
         {completedCount > 0 && (
-          <span className="text-muted-foreground/60"> ({completedCount}/{fields.length})</span>
+          <span className="text-muted-foreground"> ({completedCount}/{fields.length})</span>
         )}
       </p>
 
