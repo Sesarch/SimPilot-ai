@@ -137,7 +137,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
       <p className={`text-center text-muted-foreground ${compact ? "text-[10px]" : "text-xs"}`}>
         {currentField.icon} Select your <span className="text-foreground ">{currentField.label}</span>
         {completedCount > 0 && (
-          <span className="text-muted-foreground/60"> ({completedCount}/{fields.length})</span>
+          <span className="text-muted-foreground"> ({completedCount}/{fields.length})</span>
         )}
       </p>
 
@@ -155,7 +155,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
                 compact ? "text-[10px] px-2.5 py-1" : "text-xs px-3 py-1.5"
               } rounded-full transition-all ${
                 option === "General"
-                  ? "border border-dashed border-muted-foreground/40 text-muted-foreground/70 hover:border-muted-foreground/60 hover:text-muted-foreground italic"
+                  ? "border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-muted-foreground hover:text-foreground italic"
                   : "border border-border/60 hover:border-primary/50 hover:bg-primary/10 text-foreground/80 hover:text-foreground"
               }`}
             >
@@ -170,13 +170,13 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className={`text-center text-muted-foreground/60 italic ${compact ? "text-[10px] px-3" : "text-[11px] px-4"}`}
+          className={`text-center text-muted-foreground italic ${compact ? "text-[10px] px-3" : "text-[11px] px-4"}`}
         >
           {pohUploaded ? (
             <p className="flex items-center justify-center gap-1.5 not-italic">
               <CheckCircle2 className={`text-hud-green ${compact ? "w-3 h-3" : "w-3.5 h-3.5"}`} />
               <span className="text-hud-green ">POH uploaded</span>
-              <span className="text-muted-foreground/50">— AI responses will reference your aircraft manual.</span>
+              <span className="text-muted-foreground">— AI responses will reference your aircraft manual.</span>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
