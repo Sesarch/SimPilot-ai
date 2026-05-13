@@ -303,9 +303,23 @@ const AdminPayments = () => {
                       </span>
                     </td>
                     <td className="p-3">
-                      <Badge variant={s.status === "active" ? "default" : s.status === "trialing" ? "secondary" : "destructive"} className="text-xs capitalize">
+                      <span
+                        className={
+                          s.status === "active"
+                            ? "badge-status-success capitalize"
+                            : s.status === "trialing"
+                              ? "badge-status-info capitalize"
+                              : s.status === "past_due"
+                                ? "badge-status-warn capitalize"
+                                : s.status === "canceled"
+                                  ? "badge-status-neutral capitalize"
+                                  : "badge-status-danger capitalize"
+                        }
+                        tabIndex={0}
+                        role="status"
+                      >
                         {s.status}{s.cancel_at_period_end ? " (ending)" : ""}
-                      </Badge>
+                      </span>
                     </td>
                     <td className="p-3 text-xs text-muted-foreground">
                       {s.current_period_end ? new Date(s.current_period_end * 1000).toLocaleDateString() : "—"}
