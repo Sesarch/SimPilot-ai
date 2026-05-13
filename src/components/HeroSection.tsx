@@ -80,9 +80,24 @@ const HeroSection = () => {
           className="mt-12 grid grid-cols-3 max-w-lg mx-auto gap-6"
         >
           {[
-            { value: "674K", label: "Pilots Needed by 2043" },
-            { value: "90%", label: "FAA Written Pass Rate" },
-            { value: "24/7", label: "AI Support" },
+            {
+              value: "674K",
+              label: "Pilots Needed by 2043",
+              source: "Boeing Pilot & Technician Outlook 2024",
+              href: "https://www.boeing.com/commercial/market/pilot-technician-outlook",
+            },
+            {
+              value: "90%",
+              label: "FAA Written Pass Rate",
+              source: "FAA Airman Testing Statistics",
+              href: "https://www.faa.gov/training_testing/testing/airman_test_statistics",
+            },
+            {
+              value: "24/7",
+              label: "AI Support",
+              source: "SimPilot.AI service availability",
+              href: null as string | null,
+            },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <p className="font-display text-2xl md:text-3xl text-primary text-glow-cyan">
@@ -91,6 +106,22 @@ const HeroSection = () => {
               <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">
                 {stat.label}
               </p>
+              {stat.href ? (
+                <a
+                  href={stat.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`Source: ${stat.source}`}
+                  aria-label={`View source for ${stat.label}: ${stat.source}`}
+                  className="inline-block mt-1 text-[10px] tracking-wider uppercase text-muted-foreground/70 hover:text-accent underline underline-offset-2 decoration-dotted transition-colors duration-200"
+                >
+                  Source
+                </a>
+              ) : (
+                <span className="inline-block mt-1 text-[10px] tracking-wider uppercase text-muted-foreground/50">
+                  &nbsp;
+                </span>
+              )}
             </div>
           ))}
         </motion.div>
