@@ -211,7 +211,7 @@ const AnimatedChatDemo = () => {
             {/* Input bar (decorative) */}
             <div className="px-4 py-3 border-t border-border bg-secondary/20">
               <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
-                <span className="text-sm text-muted-foreground/50 flex-1">Ask your CFI anything…</span>
+                <span className="text-sm text-muted-foreground flex-1">Ask your CFI anything…</span>
                 <div className="w-7 h-7 rounded-md bg-primary/20 flex items-center justify-center">
                   <Sparkles className="w-3.5 h-3.5 text-primary" />
                 </div>
