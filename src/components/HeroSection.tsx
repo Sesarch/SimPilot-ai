@@ -6,6 +6,7 @@ import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
 import HeroChatBox from "@/components/HeroChatBox";
 import HeroChatBoxBoundary from "@/components/HeroChatBoxBoundary";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const HeroSection = () => {
   const { resolvedTheme } = useTheme();
