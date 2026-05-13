@@ -122,16 +122,33 @@ const HeroSection = () => {
                 {stat.label}
               </p>
               <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={`What does ${stat.value} ${stat.label} mean?`}
-                    className="inline-flex items-center gap-1 mt-1 text-[10px] tracking-wider uppercase text-muted-foreground/70 hover:text-accent focus-visible:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded px-1 transition-colors duration-200"
-                  >
-                    <Info className="w-3 h-3" aria-hidden="true" />
-                    <span>Source</span>
-                  </button>
-                </PopoverTrigger>
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label={`What does ${stat.value} ${stat.label} mean? Click for full source.`}
+                          className="inline-flex items-center gap-1 mt-1 text-[10px] tracking-wider uppercase text-muted-foreground/70 hover:text-accent focus-visible:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded px-1 transition-colors duration-200"
+                        >
+                          <Info className="w-3 h-3" aria-hidden="true" />
+                          <span>Source</span>
+                        </button>
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="bottom"
+                      sideOffset={6}
+                      collisionPadding={12}
+                      className="max-w-[16rem] text-xs leading-snug normal-case hidden sm:block"
+                    >
+                      {stat.definition.split(". ")[0]}.
+                      <span className="block mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Click for full source
+                      </span>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <PopoverContent
                   side="bottom"
                   align="center"
