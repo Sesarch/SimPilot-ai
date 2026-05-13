@@ -176,7 +176,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
             <p className="flex items-center justify-center gap-1.5 not-italic">
               <CheckCircle2 className={`text-hud-green ${compact ? "w-3 h-3" : "w-3.5 h-3.5"}`} />
               <span className="text-hud-green ">POH uploaded</span>
-              <span className="text-muted-foreground/50">— AI responses will reference your aircraft manual.</span>
+              <span className="text-muted-foreground">— AI responses will reference your aircraft manual.</span>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
