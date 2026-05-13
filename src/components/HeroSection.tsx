@@ -134,23 +134,26 @@ const HeroSection = () => {
                 <PopoverContent
                   side="bottom"
                   align="center"
-                  className="w-72 text-left"
+                  sideOffset={8}
+                  collisionPadding={12}
+                  avoidCollisions
+                  className="w-[calc(100vw-1.5rem)] max-w-[20rem] sm:w-80 text-left p-3 sm:p-4 max-h-[70vh] overflow-y-auto break-words"
                 >
                   <div className="space-y-2">
-                    <p className="font-display text-xs tracking-wider uppercase text-primary">
+                    <p className="font-display text-[11px] sm:text-xs tracking-wider uppercase text-primary break-words">
                       {stat.value} — {stat.label}
                     </p>
                     <p className="text-xs text-foreground leading-relaxed normal-case">
                       {stat.definition}
                     </p>
                     <dl className="text-[11px] text-muted-foreground space-y-1 normal-case">
-                      <div className="flex gap-1">
-                        <dt className="font-medium text-foreground/80">Population:</dt>
-                        <dd>{stat.population}</dd>
+                      <div className="flex flex-col sm:flex-row sm:gap-1">
+                        <dt className="font-medium text-foreground/80 shrink-0">Population:</dt>
+                        <dd className="break-words">{stat.population}</dd>
                       </div>
-                      <div className="flex gap-1">
-                        <dt className="font-medium text-foreground/80">Timeframe:</dt>
-                        <dd>{stat.timeframe}</dd>
+                      <div className="flex flex-col sm:flex-row sm:gap-1">
+                        <dt className="font-medium text-foreground/80 shrink-0">Timeframe:</dt>
+                        <dd className="break-words">{stat.timeframe}</dd>
                       </div>
                     </dl>
                     {stat.href ? (
@@ -158,7 +161,7 @@ const HeroSection = () => {
                         href={stat.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-accent hover:underline underline-offset-2 normal-case pt-1"
+                        className="inline-flex items-start gap-1 text-xs text-accent hover:underline underline-offset-2 normal-case pt-1 break-words"
                       >
                         <ExternalLink className="w-3 h-3" aria-hidden="true" />
                         {stat.source}
