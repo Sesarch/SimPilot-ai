@@ -80,8 +80,8 @@ const HeroSection = () => {
           className="mt-12 grid grid-cols-3 max-w-lg mx-auto gap-6"
         >
           {[
-            { value: "500+", label: "Pilots Trained" },
-            { value: "98%", label: "Success Rate" },
+            { value: "674K", label: "Pilots Needed by 2043" },
+            { value: "90%", label: "FAA Written Pass Rate" },
             { value: "24/7", label: "AI Support" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
