@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
+import { Info, ExternalLink } from "lucide-react";
 import heroCockpit from "@/assets/hero-cockpit.jpg";
 import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
 import HeroChatBox from "@/components/HeroChatBox";
 import HeroChatBoxBoundary from "@/components/HeroChatBoxBoundary";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const HeroSection = () => {
   const { resolvedTheme } = useTheme();
