@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
+import { Info, ExternalLink } from "lucide-react";
 import heroCockpit from "@/assets/hero-cockpit.jpg";
 import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
 import HeroChatBox from "@/components/HeroChatBox";
 import HeroChatBoxBoundary from "@/components/HeroChatBoxBoundary";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const HeroSection = () => {
   const { resolvedTheme } = useTheme();
@@ -85,18 +87,30 @@ const HeroSection = () => {
               label: "Pilots Needed by 2043",
               source: "Boeing Pilot & Technician Outlook 2024",
               href: "https://www.boeing.com/commercial/market/pilot-technician-outlook",
+              definition:
+                "New commercial pilots Boeing forecasts the global civil aviation industry will need to hire over the 20-year period from 2024 through 2043 to crew its growing widebody, narrowbody, regional, and freighter fleet.",
+              population: "Global commercial airline pilots",
+              timeframe: "2024–2043 (20-year forecast)",
             },
             {
               value: "90%",
               label: "FAA Written Pass Rate",
               source: "FAA Airman Testing Statistics",
               href: "https://www.faa.gov/training_testing/testing/airman_test_statistics",
+              definition:
+                "Approximate first-attempt pass rate published by the FAA for the Private Pilot Airplane (PAR) airman knowledge test, where a score of 70% or higher is required to pass.",
+              population: "U.S. private pilot knowledge-test applicants",
+              timeframe: "Most recent FAA reporting period (rolling 12 months)",
             },
             {
               value: "24/7",
               label: "AI Support",
               source: "SimPilot.AI service availability",
               href: null as string | null,
+              definition:
+                "SimPilot.AI's AI flight instructor is available around the clock, every day of the year, subject to scheduled maintenance windows.",
+              population: "All SimPilot.AI users",
+              timeframe: "Continuous service",
             },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
@@ -106,22 +120,57 @@ const HeroSection = () => {
               <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">
                 {stat.label}
               </p>
-              {stat.href ? (
-                <a
-                  href={stat.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={`Source: ${stat.source}`}
-                  aria-label={`View source for ${stat.label}: ${stat.source}`}
-                  className="inline-block mt-1 text-[10px] tracking-wider uppercase text-muted-foreground/70 hover:text-accent underline underline-offset-2 decoration-dotted transition-colors duration-200"
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={`What does ${stat.value} ${stat.label} mean?`}
+                    className="inline-flex items-center gap-1 mt-1 text-[10px] tracking-wider uppercase text-muted-foreground/70 hover:text-accent focus-visible:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded px-1 transition-colors duration-200"
+                  >
+                    <Info className="w-3 h-3" aria-hidden="true" />
+                    <span>Source</span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="bottom"
+                  align="center"
+                  className="w-72 text-left"
                 >
-                  Source
-                </a>
-              ) : (
-                <span className="inline-block mt-1 text-[10px] tracking-wider uppercase text-muted-foreground/50">
-                  &nbsp;
-                </span>
-              )}
+                  <div className="space-y-2">
+                    <p className="font-display text-xs tracking-wider uppercase text-primary">
+                      {stat.value} — {stat.label}
+                    </p>
+                    <p className="text-xs text-foreground leading-relaxed normal-case">
+                      {stat.definition}
+                    </p>
+                    <dl className="text-[11px] text-muted-foreground space-y-1 normal-case">
+                      <div className="flex gap-1">
+                        <dt className="font-medium text-foreground/80">Population:</dt>
+                        <dd>{stat.population}</dd>
+                      </div>
+                      <div className="flex gap-1">
+                        <dt className="font-medium text-foreground/80">Timeframe:</dt>
+                        <dd>{stat.timeframe}</dd>
+                      </div>
+                    </dl>
+                    {stat.href ? (
+                      <a
+                        href={stat.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-accent hover:underline underline-offset-2 normal-case pt-1"
+                      >
+                        <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                        {stat.source}
+                      </a>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground italic normal-case pt-1">
+                        {stat.source}
+                      </p>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           ))}
         </motion.div>
