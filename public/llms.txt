@@ -1,0 +1,20 @@
+# SimPilot.AI
+
+> AI-powered pilot training platform for ground school study, oral exam simulation, and FAA written exam prep. Built by pilots, for pilots. Not FAA-approved — supplemental study only.
+
+SimPilot.AI is a 24/7 AI flight instructor that helps student pilots prepare for their private, instrument, and commercial certificates. Features include a Socratic AI CFI, oral exam simulator, weather briefing analysis, live flight tracking, ATC scenario trainer, chart and instrument vision analysis, and aircraft-specific POH grounding.
+
+## Pages
+
+- [Home](/): Overview of SimPilot.AI's AI-powered pilot training platform.
+- [Why SimPilot](/why-simpilot): Interactive demo of the Socratic AI instructor and chart analysis.
+- [Competitors](/competitors): Comparison vs Sporty's, King Schools, and other ground school options.
+- [For Schools](/for-schools): Flight school plans and bulk licensing for instructors and students.
+- [Intake](/intake): Pilot context onboarding for personalized training.
+- [Contact](/contact): Get in touch with the SimPilot.AI team.
+
+## Optional
+
+- [Terms](/terms): Terms of service.
+- [Privacy](/privacy): Privacy policy.
+- [Cookie Preferences](/cookie-preferences): Manage cookie consent.
