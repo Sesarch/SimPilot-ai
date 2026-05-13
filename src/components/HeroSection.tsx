@@ -161,7 +161,7 @@ const HeroSection = () => {
                         href={stat.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-accent hover:underline underline-offset-2 normal-case pt-1"
+                        className="inline-flex items-start gap-1 text-xs text-accent hover:underline underline-offset-2 normal-case pt-1 break-words"
                       >
                         <ExternalLink className="w-3 h-3" aria-hidden="true" />
                         {stat.source}
