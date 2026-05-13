@@ -170,7 +170,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className={`text-center text-muted-foreground/60 italic ${compact ? "text-[10px] px-3" : "text-[11px] px-4"}`}
+          className={`text-center text-muted-foreground italic ${compact ? "text-[10px] px-3" : "text-[11px] px-4"}`}
         >
           {pohUploaded ? (
             <p className="flex items-center justify-center gap-1.5 not-italic">
