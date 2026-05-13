@@ -332,11 +332,9 @@ export default function TestModePage() {
                 <span>{scn.name}</span>
                 {scnDone &&
                   (scnFailed ? (
-                    <Badge variant="destructive">FAILED</Badge>
+                    <span className="badge-status-danger" tabIndex={0} role="status">FAILED</span>
                   ) : (
-                    <Badge className="bg-emerald-600 hover:bg-emerald-600">
-                      PASSED
-                    </Badge>
+                    <span className="badge-status-success" tabIndex={0} role="status">PASSED</span>
                   ))}
               </CardTitle>
               <p className="text-xs text-muted-foreground">{scn.description}</p>

@@ -148,13 +148,21 @@ export default function StripeWebhookStatusPanel() {
           {data.endpoints.map((ep) => (
             <div key={ep.id} className="rounded border border-border/60 p-2 text-xs space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="outline" className={ep.matches_expected ? "border-emerald-500/40 text-emerald-400" : "border-border"}>
+                <span
+                  className={ep.matches_expected ? "badge-status-success" : "badge-status-neutral"}
+                  tabIndex={0}
+                  role="status"
+                >
                   {ep.matches_expected ? "matches expected URL" : "other"}
-                </Badge>
-                <Badge variant="outline" className={ep.status === "enabled" ? "border-emerald-500/40 text-emerald-400" : "border-red-500/40 text-red-400"}>
+                </span>
+                <span
+                  className={ep.status === "enabled" ? "badge-status-success capitalize" : "badge-status-danger capitalize"}
+                  tabIndex={0}
+                  role="status"
+                >
                   {ep.status}
-                </Badge>
-                <Badge variant="outline">{ep.livemode ? "live" : "test"}</Badge>
+                </span>
+                <span className="badge-status-neutral uppercase" tabIndex={0} role="status">{ep.livemode ? "live" : "test"}</span>
                 {ep.api_version && <span className="text-muted-foreground">API {ep.api_version}</span>}
               </div>
               <code className="block break-all text-[11px] text-muted-foreground">{ep.url}</code>
