@@ -71,7 +71,7 @@ const Footer = () => {
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
           </p>
            <div className="flex items-center gap-4">
-            <p className="text-[10px] text-muted-foreground/60 tracking-wide">
+            <p className="text-xs text-muted-foreground tracking-wide">
               Built for pilots, powered by AI
             </p>
           </div>
