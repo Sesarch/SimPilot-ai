@@ -2,7 +2,9 @@ import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Info, ExternalLink } from "lucide-react";
 import heroCockpit from "@/assets/hero-cockpit.jpg";
+import heroCockpitWebp from "@/assets/hero-cockpit.webp";
 import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
+import heroCockpitMorningWebp from "@/assets/hero-cockpit-morning.webp";
 import HeroChatBox from "@/components/HeroChatBox";
 import HeroChatBoxBoundary from "@/components/HeroChatBoxBoundary";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -10,8 +12,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const HeroSection = () => {
   const { resolvedTheme } = useTheme();
-  const heroImage = resolvedTheme === "dark" ? heroCockpit : heroCockpitMorning;
-  const heroAlt = resolvedTheme === "dark"
+  const isDark = resolvedTheme === "dark";
+  const heroImage = isDark ? heroCockpit : heroCockpitMorning;
+  const heroImageWebp = isDark ? heroCockpitWebp : heroCockpitMorningWebp;
+  const heroAlt = isDark
     ? "Aircraft cockpit view at sunset during flight — SimPilot.AI AI-powered pilot training platform hero image"
     : "Aircraft cockpit view on a bright morning flight — SimPilot.AI AI-powered pilot training platform hero image";
 
@@ -19,16 +23,19 @@ const HeroSection = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background image */}
       <div className="absolute inset-0">
-        <img
-          src={heroImage}
-          alt={heroAlt}
-          title="Experience AI-powered pilot training with SimPilot.AI"
-          width={1920}
-          height={1080}
-          fetchPriority="high"
-          decoding="async"
-          className="w-full h-full object-cover"
-        />
+        <picture>
+          <source srcSet={heroImageWebp} type="image/webp" />
+          <img
+            src={heroImage}
+            alt={heroAlt}
+            title="Experience AI-powered pilot training with SimPilot.AI"
+            width={1920}
+            height={1080}
+            fetchPriority="high"
+            decoding="async"
+            className="w-full h-full object-cover"
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
         <div className="absolute inset-0 scanline-overlay" />
       </div>
