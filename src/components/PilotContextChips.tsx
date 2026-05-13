@@ -155,7 +155,7 @@ const PilotContextChips = ({ context, onSelect, onPOHUpload, onPOHClear, pohUplo
                 compact ? "text-[10px] px-2.5 py-1" : "text-xs px-3 py-1.5"
               } rounded-full transition-all ${
                 option === "General"
-                  ? "border border-dashed border-muted-foreground/40 text-muted-foreground/70 hover:border-muted-foreground/60 hover:text-muted-foreground italic"
+                  ? "border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-muted-foreground hover:text-foreground italic"
                   : "border border-border/60 hover:border-primary/50 hover:bg-primary/10 text-foreground/80 hover:text-foreground"
               }`}
             >
