@@ -1,0 +1,1 @@
+UPDATE public.site_settings SET google_site_verification='75eK-zU290aRj6SxdY_NoQ7waqIQ_0MiFgJSNhMk2-Q' WHERE id=1;
