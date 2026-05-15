@@ -68,9 +68,36 @@ const AuthPage = () => {
           .select("onboarding_completed_at, subscription_status")
           .eq("user_id", data.user.id)
           .maybeSingle();
-        const hasActiveSub =
+        let hasActiveSub =
           profile?.subscription_status === "active" ||
           profile?.subscription_status === "trialing";
+
+        // Safety net for delayed Stripe webhooks: verify live with Stripe
+        // before sending a paying customer back to plan selection.
+        if (!hasActiveSub) {
+          try {
+            const { data: subData } = await supabase.functions.invoke("check-subscription");
+            if (subData?.subscribed) {
+              hasActiveSub = true;
+              await supabase
+                .from("profiles")
+                .update({
+                  subscription_status: subData.status ?? "active",
+                  subscription_tier: subData.tier ?? null,
+                  subscription_current_period_end: subData.subscription_end ?? null,
+                  subscription_expires_at: subData.subscription_end ?? null,
+                  selected_plan: subData.tier ?? null,
+                  onboarding_completed_at:
+                    profile?.onboarding_completed_at ?? new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("user_id", data.user.id);
+            }
+          } catch (verifyErr) {
+            console.error("[AuthPage] check-subscription failed", verifyErr);
+          }
+        }
+
         needsOnboarding = !profile?.onboarding_completed_at && !hasActiveSub;
       }
 
