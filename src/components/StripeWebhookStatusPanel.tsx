@@ -50,31 +50,62 @@ export default function StripeWebhookStatusPanel() {
   const [data, setData] = useState<WebhookStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<{
+    events: RecentEvent[];
+    query: string;
+    resolved: { customer_ids: string[]; user_ids: string[]; email_matched: boolean };
+  } | null>(null);
+
+  const callApi = useCallback(async (qs: string) => {
+    const session = (await supabase.auth.getSession()).data.session;
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const resp = await fetch(
+      `https://${projectId}.supabase.co/functions/v1/admin-payments?${qs}`,
+      {
+        headers: {
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+      }
+    );
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return resp.json();
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const session = (await supabase.auth.getSession()).data.session;
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const resp = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/admin-payments?action=webhook-status`,
-        {
-          headers: {
-            Authorization: `Bearer ${session?.access_token ?? ""}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const json = (await resp.json()) as WebhookStatus;
-      setData(json);
+      setData((await callApi("action=webhook-status")) as WebhookStatus);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [callApi]);
+
+  const runSearch = useCallback(async (q: string) => {
+    const trimmed = q.trim();
+    if (!trimmed) {
+      setSearchResults(null);
+      setSearchError(null);
+      return;
+    }
+    setSearching(true);
+    setSearchError(null);
+    try {
+      const json = await callApi(`action=search-events&q=${encodeURIComponent(trimmed)}`);
+      setSearchResults(json);
+    } catch (e) {
+      setSearchError(e instanceof Error ? e.message : String(e));
+      setSearchResults(null);
+    } finally {
+      setSearching(false);
+    }
+  }, [callApi]);
 
   useEffect(() => { load(); }, [load]);
 
