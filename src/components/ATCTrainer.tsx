@@ -1332,7 +1332,8 @@ const ATCTrainer = () => {
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, parseState, liveAirport, activeFreq, inferAction, currentAtis, flightState.phase, speakATC]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- speakATC + setMessages stable; flightState.phase intentionally read at call time
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, parseState, liveAirport, activeFreq, inferAction, currentAtis, flightState.phase]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
