@@ -390,15 +390,6 @@ Deno.serve(async (req) => {
       }
 
       // 2) Persisted delivery log — counts and last 20
-      const REQUIRED_EVENTS = [
-        "checkout.session.completed",
-        "customer.subscription.created",
-        "customer.subscription.updated",
-        "customer.subscription.deleted",
-        "invoice.payment_succeeded",
-        "invoice.payment_failed",
-      ];
-
       const since24h = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
       const since7d = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
 
@@ -416,8 +407,8 @@ Deno.serve(async (req) => {
       // Pick the endpoint that points to our function and check coverage
       const matching = endpoints.find((e) => e.matches_expected) ?? null;
       const missingEvents = matching
-        ? REQUIRED_EVENTS.filter((evt) => !matching.enabled_events.includes(evt) && !matching.enabled_events.includes("*"))
-        : REQUIRED_EVENTS;
+        ? REQUIRED_WEBHOOK_EVENTS.filter((evt) => !matching.enabled_events.includes(evt) && !matching.enabled_events.includes("*"))
+        : REQUIRED_WEBHOOK_EVENTS;
 
       // Overall health verdict
       const totalEvents = totalCount ?? 0;
@@ -436,7 +427,7 @@ Deno.serve(async (req) => {
           endpoints,
           endpoints_error: endpointsError,
           matching_endpoint: matching,
-          required_events: REQUIRED_EVENTS,
+          required_events: REQUIRED_WEBHOOK_EVENTS,
           missing_events: missingEvents,
           counts: {
             total: totalEvents,
