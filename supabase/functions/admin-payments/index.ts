@@ -443,35 +443,25 @@ Deno.serve(async (req) => {
       const since24h = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
       const since7d = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
 
+      const realEvents = () => admin
+        .from("stripe_webhook_events")
+        .select("*", { count: "exact", head: true })
+        .not("stripe_event_id", "like", "snapshot_%")
+        .not("stripe_event_id", "like", "backfill_%");
       const [{ count: totalCount }, { count: count24h }, { count: count7d }, recent] = await Promise.all([
-        admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }),
-        admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }).gte("created_at", since24h),
-        admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }).gte("created_at", since7d),
+        realEvents(),
+        realEvents().gte("created_at", since24h),
+        realEvents().gte("created_at", since7d),
         admin
           .from("stripe_webhook_events")
           .select("stripe_event_id, event_type, livemode, status, user_id, customer_id, subscription_id, created_at")
+          .not("stripe_event_id", "like", "snapshot_%")
+          .not("stripe_event_id", "like", "backfill_%")
           .order("created_at", { ascending: false })
           .limit(20),
       ]);
-      let effectiveTotal = totalCount ?? 0;
-      let effectiveRecent = recent.data ?? [];
-      if (effectiveTotal === 0) {
-        try {
-          await importSubscriptionSnapshots(stripe, admin, 100);
-          const [refreshedCount, refreshedRecent] = await Promise.all([
-            admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }),
-            admin
-              .from("stripe_webhook_events")
-              .select("stripe_event_id, event_type, livemode, status, user_id, customer_id, subscription_id, created_at")
-              .order("created_at", { ascending: false })
-              .limit(20),
-          ]);
-          effectiveTotal = refreshedCount.count ?? 0;
-          effectiveRecent = refreshedRecent.data ?? [];
-        } catch (e) {
-          console.warn("[admin-payments] subscription snapshot import failed:", (e as Error).message);
-        }
-      }
+      const effectiveTotal = totalCount ?? 0;
+      const effectiveRecent = recent.data ?? [];
 
       // Pick the endpoint that points to our function and check coverage
       const matching = endpoints.find((e) => e.matches_expected) ?? null;
@@ -676,7 +666,7 @@ Deno.serve(async (req) => {
         }
 
         rows.push({
-          stripe_event_id: ev.id,
+          stripe_event_id: `backfill_${ev.id}`,
           event_type: ev.type,
           connected_account_id: (ev as Stripe.Event & { account?: string }).account ?? null,
           livemode: ev.livemode,

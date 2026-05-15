@@ -65,10 +65,15 @@ async function findUserIdByCustomer(
     const email = (customer as Stripe.Customer).email?.toLowerCase();
     if (!email) return null;
 
-    // List a few users and match by email (admin API doesn't expose by-email lookup directly).
-    const { data: list } = await supabase.auth.admin.listUsers({ page: 1, perPage: 200 });
-    const match = list?.users.find((u) => u.email?.toLowerCase() === email);
-    return match?.id ?? null;
+    // Admin API doesn't expose direct by-email lookup, so paginate safely.
+    for (let page = 1; page <= 10; page++) {
+      const { data: list, error } = await supabase.auth.admin.listUsers({ page, perPage: 100 });
+      if (error) break;
+      const match = list?.users.find((u) => u.email?.toLowerCase() === email);
+      if (match?.id) return match.id;
+      if (!list?.users.length || list.users.length < 100) break;
+    }
+    return null;
   } catch (err) {
     log("findUserIdByCustomer failed", { err: String(err) });
     return null;
@@ -79,12 +84,12 @@ async function applySubscription(
   stripe: Stripe,
   sub: Stripe.Subscription,
   userIdHint?: string | null,
-) {
+): Promise<string | null> {
   const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
   const userId = userIdHint ?? (await findUserIdByCustomer(stripe, customerId));
   if (!userId) {
     log("no user matched for subscription", { customerId, subId: sub.id });
-    return;
+    return null;
   }
 
   const tier = tierFromSubscription(sub);
@@ -116,6 +121,7 @@ async function applySubscription(
     throw error;
   }
   log("profile updated", { userId, tier, status, expires });
+  return userId;
 }
 
 Deno.serve(async (req) => {
@@ -224,6 +230,10 @@ Deno.serve(async (req) => {
   try {
     let resolvedUserId: string | null = null;
 
+    // Log the verified incoming event before business processing. If subscription/profile
+    // sync fails, the admin dashboard still shows that Stripe delivered the event.
+    await recordEvent(event, null);
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -238,8 +248,7 @@ Deno.serve(async (req) => {
               ? session.subscription
               : session.subscription.id;
           const sub = await stripe.subscriptions.retrieve(subId);
-          await applySubscription(stripe, sub, userIdHint);
-          resolvedUserId = userIdHint ?? null;
+          resolvedUserId = await applySubscription(stripe, sub, userIdHint);
         } else if (session.customer && userIdHint) {
           const customerId =
             typeof session.customer === "string" ? session.customer : session.customer.id;
@@ -256,9 +265,7 @@ Deno.serve(async (req) => {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        await applySubscription(stripe, sub);
-        const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
-        resolvedUserId = await findUserIdByCustomer(stripe, customerId);
+        resolvedUserId = await applySubscription(stripe, sub);
         break;
       }
 
@@ -269,9 +276,7 @@ Deno.serve(async (req) => {
         const subId = (invoice as any).subscription as string | null;
         if (subId) {
           const sub = await stripe.subscriptions.retrieve(subId);
-          await applySubscription(stripe, sub);
-          const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
-          resolvedUserId = await findUserIdByCustomer(stripe, customerId);
+          resolvedUserId = await applySubscription(stripe, sub);
         }
         break;
       }
@@ -323,8 +328,8 @@ Deno.serve(async (req) => {
         log("unhandled event", { type: event.type });
     }
 
-    // Always persist a log row, even for unhandled types — useful for audit.
-    await recordEvent(event, resolvedUserId);
+    // Update the early log row with the resolved app user when business processing succeeds.
+    if (resolvedUserId) await recordEvent(event, resolvedUserId);
 
 
     return new Response(JSON.stringify({ received: true }), {
