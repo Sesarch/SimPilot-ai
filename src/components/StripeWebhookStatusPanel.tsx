@@ -177,6 +177,13 @@ export default function StripeWebhookStatusPanel() {
                 <code> invoice.payment_succeeded</code>, <code>invoice.payment_failed</code>. Then add the signing
                 secret as <code>STRIPE_WEBHOOK_SECRET</code>.
               </p>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Button size="sm" variant="outline" onClick={backfillEvents} disabled={backfilling} className="h-7 text-xs">
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${backfilling ? "animate-spin" : ""}`} />
+                  {backfilling ? "Importing…" : "Import recent Stripe events"}
+                </Button>
+                {backfillMessage && <span className="text-[11px] text-emerald-300">{backfillMessage}</span>}
+              </div>
             </div>
           </div>
         </div>
