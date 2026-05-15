@@ -984,10 +984,11 @@ Deno.serve(async (req) => {
 
         const endpoint = await stripe.webhookEndpoints.create({
           url: expectedUrl,
-          enabled_events: REQUIRED_WEBHOOK_EVENTS,
+          enabled_events: REQUIRED_WEBHOOK_EVENTS as Stripe.WebhookEndpointCreateParams.EnabledEvent[],
           description: "SimPilot subscription sync webhook",
           metadata: { app: "simpilot", purpose: "subscription_sync" },
         });
+        const signingSecret = (endpoint as Stripe.WebhookEndpoint & { secret?: string | null }).secret ?? null;
 
         await logAdminAction(admin, {
           adminUserId: user.id,
@@ -1008,9 +1009,9 @@ Deno.serve(async (req) => {
             livemode: endpoint.livemode,
             enabled_events: endpoint.enabled_events ?? [],
           },
-          signing_secret: endpoint.secret ?? null,
+          signing_secret: signingSecret,
           expected_secret_name: "STRIPE_WEBHOOK_SECRET",
-          message: endpoint.secret
+          message: signingSecret
             ? "Webhook endpoint created. Save the returned signing secret as STRIPE_WEBHOOK_SECRET."
             : "Webhook endpoint created, but Stripe did not return a signing secret.",
         });
