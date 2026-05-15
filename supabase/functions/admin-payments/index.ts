@@ -411,10 +411,14 @@ Deno.serve(async (req) => {
     // ---- WEBHOOK STATUS: signing-secret presence, Stripe endpoints, recent deliveries ----
     if (req.method === "GET" && action === "webhook-status") {
       const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
+      // Filter signing secrets to the current Stripe key environment so test secrets
+      // never satisfy a live deployment (and vice versa).
+      const currentLivemode = stripeKey.includes("_live_");
       const { count: storedSigningSecrets } = await admin
         .from("stripe_webhook_signing_secrets")
         .select("id", { count: "exact", head: true })
-        .eq("active", true);
+        .eq("active", true)
+        .eq("livemode", currentLivemode);
       const hasSigningSecret = !!Deno.env.get("STRIPE_WEBHOOK_SECRET") || (storedSigningSecrets ?? 0) > 0;
 
       // 1) Configured Stripe webhook endpoints
