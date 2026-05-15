@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle2, RefreshCw, Webhook, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, RefreshCw, Search, Webhook, X, XCircle } from "lucide-react";
 
 type Endpoint = {
   id: string;
