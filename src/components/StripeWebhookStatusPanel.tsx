@@ -112,6 +112,24 @@ export default function StripeWebhookStatusPanel() {
     }
   }, [callApi]);
 
+  const backfillEvents = useCallback(async () => {
+    setBackfilling(true);
+    setBackfillMessage(null);
+    setError(null);
+    try {
+      const result = await callApi("action=backfill-webhook-events", {
+        method: "POST",
+        body: JSON.stringify({ limit: 100 }),
+      });
+      setBackfillMessage(`Imported ${result.imported ?? 0} Stripe event(s); synced ${result.affected_users ?? 0} user profile(s).`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBackfilling(false);
+    }
+  }, [callApi, load]);
+
   useEffect(() => { load(); }, [load]);
 
   return (
