@@ -3,6 +3,34 @@
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { corsHeaders, requireAdmin, logAdminAction } from "../_shared/audit.ts";
 
+const PRICE_TO_TIER: Record<string, "student" | "pro" | "ultra"> = {
+  price_1TNf5ZRusIXFsWjchdY05u0R: "student",
+  price_1TQhYjRusIXFsWjc3wGvpiqS: "pro",
+  price_1TQhZBRusIXFsWjc2jrUeFEi: "ultra",
+};
+
+const REQUIRED_WEBHOOK_EVENTS = [
+  "checkout.session.completed",
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+  "invoice.payment_succeeded",
+  "invoice.payment_failed",
+];
+
+const tierFromSubscription = (sub: Stripe.Subscription) => {
+  for (const item of sub.items.data) {
+    const priceId = item.price?.id;
+    if (priceId && PRICE_TO_TIER[priceId]) return PRICE_TO_TIER[priceId];
+  }
+  return null;
+};
+
+const periodEndISO = (sub: Stripe.Subscription) => {
+  const periodEnd = (sub as any).current_period_end ?? sub.items.data[0]?.current_period_end;
+  return periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
