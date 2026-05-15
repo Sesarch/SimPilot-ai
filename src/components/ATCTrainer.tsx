@@ -1295,6 +1295,38 @@ const ATCTrainer = () => {
         setFlightState((prev) => ({ ...prev, ...stateDelta }));
       }
       void speakATC(reply);
+
+      // ---- Progressive Flight Chain: random mid-state interruptions --------
+      // After the controller's reply lands, if the resulting flight phase is
+      // TAXIING or PATTERN, roll a 30% chance to inject a realistic
+      // interruption ("hold position for crossing traffic", "extend
+      // downwind, I'll call your base"). Real ATC keeps pilots on their toes;
+      // a strict trainer must too. Scheduled after the main TTS so the two
+      // transmissions don't talk over each other.
+      try {
+        const nextPhaseRaw = stateDelta?.phase ?? flightState.phase ?? null;
+        const phase = normalizePhase(nextPhaseRaw);
+        const freqMHzNow = parseFloat(activeFreq);
+        const tunedNow = liveAirport ? lookupFacility(liveAirport.icao, freqMHzNow).facility : null;
+        const interruption = maybeInjectInterruption(phase, "N123AB", tunedNow?.kind ?? null);
+        if (interruption) {
+          if (interruptionTimeoutRef.current !== null) {
+            window.clearTimeout(interruptionTimeoutRef.current);
+          }
+          interruptionTimeoutRef.current = window.setTimeout(() => {
+            interruptionTimeoutRef.current = null;
+            const interruptionMsg: ATCMessage = {
+              id: crypto.randomUUID(),
+              role: "atc",
+              content: interruption,
+            };
+            setMessages((prev) => [...prev, interruptionMsg]);
+            void speakATC(interruption);
+          }, 4500);
+        }
+      } catch {
+        // Interruptions are non-critical; never let them break the main flow.
+      }
     } catch {
       setError("Connection lost. Try again.");
     } finally {
