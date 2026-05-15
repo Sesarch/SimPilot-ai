@@ -584,6 +584,7 @@ Deno.serve(async (req) => {
     if (req.method === "POST" && action === "backfill-webhook-events") {
       const body = await req.json().catch(() => ({}));
       const limit = Math.min(Math.max(Number(body?.limit) || 50, 1), 100);
+      const snapshot = await importSubscriptionSnapshots(stripe, admin, limit);
       const wantedTypes = new Set<string>(
         Array.isArray(body?.event_types) && body.event_types.every((v: unknown) => typeof v === "string")
           ? body.event_types
@@ -704,11 +705,11 @@ Deno.serve(async (req) => {
         adminEmail: user.email,
         action: "stripe.webhook_events_backfill",
         targetType: "stripe_events",
-        details: { imported: rows.length, affected_users: affectedUsers.size, limit },
+        details: { imported: rows.length + snapshot.imported, event_imported: rows.length, snapshot_imported: snapshot.imported, affected_users: affectedUsers.size, limit },
         req,
       });
 
-      return json({ imported: rows.length, affected_users: affectedUsers.size, has_more: page.has_more });
+      return json({ imported: rows.length + snapshot.imported, event_imported: rows.length, snapshot_imported: snapshot.imported, affected_users: affectedUsers.size, has_more: page.has_more || snapshot.has_more });
     }
 
     // ---- SUBSCRIPTION AUDIT: compare Stripe vs profiles.subscription_* ----
