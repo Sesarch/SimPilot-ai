@@ -62,11 +62,68 @@ const OnboardingPlanPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [submitting, setSubmitting] = useState<PlanKey | null>(null);
+  const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    if (!user) {
       navigate("/auth", { replace: true, state: { redirectTo: "/onboarding/plan" } });
+      return;
     }
+
+    let cancelled = false;
+
+    // Safety net: a paid user must NEVER be trapped on plan selection, even
+    // if the Stripe webhook is delayed or failed to write the profile row.
+    // 1) Trust the profile if it already says active/trialing.
+    // 2) Otherwise verify live with Stripe via check-subscription.
+    (async () => {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("subscription_status, onboarding_completed_at")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        const profileEntitled =
+          profile?.subscription_status === "active" ||
+          profile?.subscription_status === "trialing";
+
+        if (profileEntitled) {
+          if (!cancelled) navigate("/dashboard", { replace: true });
+          return;
+        }
+
+        const { data: subData } = await supabase.functions.invoke("check-subscription");
+        if (cancelled) return;
+
+        if (subData?.subscribed) {
+          // Backfill the profile so other gates (Auth, Dashboard) see it too.
+          await supabase
+            .from("profiles")
+            .update({
+              subscription_status: subData.status ?? "active",
+              subscription_tier: subData.tier ?? null,
+              subscription_current_period_end: subData.subscription_end ?? null,
+              subscription_expires_at: subData.subscription_end ?? null,
+              selected_plan: subData.tier ?? null,
+              onboarding_completed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", user.id);
+          if (!cancelled) navigate("/dashboard", { replace: true });
+          return;
+        }
+      } catch (err) {
+        console.error("[OnboardingPlanPage] subscription verify failed", err);
+      } finally {
+        if (!cancelled) setVerifying(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [authLoading, user, navigate]);
 
   const handleSelect = async (plan: PlanCard) => {
