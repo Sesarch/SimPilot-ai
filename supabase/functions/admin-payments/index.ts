@@ -202,10 +202,11 @@ Deno.serve(async (req) => {
       let page;
       try {
         page = await stripe.invoices.list({ limit: 50, expand: ["data.customer"] });
-      } catch (e: any) {
+      } catch (e: unknown) {
         // Stripe restricted keys may lack credit_note_read perm, which invoices.list requires.
-        if (e?.statusCode === 403 || e?.type === "StripePermissionError") {
-          console.warn("[admin-payments] list-invoices permission denied:", e?.raw?.message || e?.message);
+        const stripeError = e as { statusCode?: number; type?: string; raw?: { message?: string }; message?: string };
+        if (stripeError.statusCode === 403 || stripeError.type === "StripePermissionError") {
+          console.warn("[admin-payments] list-invoices permission denied:", stripeError.raw?.message || stripeError.message);
           return json({
             invoices: [],
             permission_denied: true,
@@ -270,9 +271,10 @@ Deno.serve(async (req) => {
           : "unknown";
 
       // Account-level info (drives the branding shown on Checkout).
-      let account: any = null;
+      let account: DiagnosticAccount = {};
       try {
         const acct = await stripe.accounts.retrieve();
+        const acctWithMode = acct as Stripe.Account & { livemode?: boolean | null };
         account = {
           id: acct.id,
           country: acct.country,
@@ -288,7 +290,7 @@ Deno.serve(async (req) => {
             secondary_color: acct.settings?.branding?.secondary_color ?? null,
           },
           charges_enabled: acct.charges_enabled,
-          livemode: (acct as any).livemode ?? null,
+          livemode: acctWithMode.livemode ?? null,
         };
       } catch (e) {
         account = { error: (e as Error).message };
