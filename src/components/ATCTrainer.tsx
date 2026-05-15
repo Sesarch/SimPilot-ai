@@ -978,6 +978,10 @@ const ATCTrainer = () => {
     setPendingDraft("");
     setPendingCorrection(null);
     setFlightState({});
+    if (interruptionTimeoutRef.current !== null) {
+      window.clearTimeout(interruptionTimeoutRef.current);
+      interruptionTimeoutRef.current = null;
+    }
     setCurrentAtis(null);
     lastAtisFetchRef.current = null;
     // Default tune: tower if present, else first facility.
