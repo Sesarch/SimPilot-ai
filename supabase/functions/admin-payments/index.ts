@@ -27,8 +27,20 @@ const tierFromSubscription = (sub: Stripe.Subscription) => {
 };
 
 const periodEndISO = (sub: Stripe.Subscription) => {
-  const periodEnd = (sub as any).current_period_end ?? sub.items.data[0]?.current_period_end;
+  const subWithPeriod = sub as Stripe.Subscription & { current_period_end?: number };
+  const periodEnd = subWithPeriod.current_period_end ?? sub.items.data[0]?.current_period_end;
   return periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
+};
+
+type DiagnosticAccount = {
+  id?: string;
+  country?: string | null;
+  business_name?: string | null;
+  support_email?: string | null;
+  branding?: { icon: string | null; logo: string | null; primary_color: string | null; secondary_color: string | null };
+  charges_enabled?: boolean;
+  livemode?: boolean | null;
+  error?: string;
 };
 
 Deno.serve(async (req) => {
