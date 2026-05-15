@@ -40,6 +40,7 @@ import { PTTRing } from "@/components/atc/PTTRing";
 import { G3000ComRadio } from "@/components/atc/G3000ComRadio";
 import { RadioFX, getRecognizer } from "@/lib/atcRadioFX";
 import { FAA_PROMPT as FAA_PROMPT_EXTERNAL, LIVE_FREQ_PROMPT } from "@/lib/atcPrompts";
+import { maybeInjectInterruption, normalizePhase } from "@/lib/atcInterruptions";
 
 export const FAA_PROMPT = FAA_PROMPT_EXTERNAL;
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
@@ -121,6 +122,17 @@ const ATCTrainer = () => {
   /** Per-frequency initial-contact tracker — drives the deterministic ATIS
    *  validator (only enforce on the pilot's first call after tuning). */
   const initialContactFreqsRef = useRef<Set<string>>(new Set());
+  /** Pending interruption timeout — cleared on scenario reset / unmount so
+   *  stale controller injections never fire on a fresh session. */
+  const interruptionTimeoutRef = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (interruptionTimeoutRef.current !== null) {
+        window.clearTimeout(interruptionTimeoutRef.current);
+        interruptionTimeoutRef.current = null;
+      }
+    };
+  }, []);
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
@@ -929,6 +941,10 @@ const ATCTrainer = () => {
     setPendingDraft("");
     setPendingCorrection(null);
     setFlightState({});
+    if (interruptionTimeoutRef.current !== null) {
+      window.clearTimeout(interruptionTimeoutRef.current);
+      interruptionTimeoutRef.current = null;
+    }
     setLoading(true);
     const scenario = scenarios.find((s) => s.id === scenarioId)!;
     try {
@@ -970,6 +986,10 @@ const ATCTrainer = () => {
     setPendingDraft("");
     setPendingCorrection(null);
     setFlightState({});
+    if (interruptionTimeoutRef.current !== null) {
+      window.clearTimeout(interruptionTimeoutRef.current);
+      interruptionTimeoutRef.current = null;
+    }
     setCurrentAtis(null);
     lastAtisFetchRef.current = null;
     // Default tune: tower if present, else first facility.
@@ -1291,12 +1311,45 @@ const ATCTrainer = () => {
         setFlightState((prev) => ({ ...prev, ...stateDelta }));
       }
       void speakATC(reply);
+
+      // ---- Progressive Flight Chain: random mid-state interruptions --------
+      // After the controller's reply lands, if the resulting flight phase is
+      // TAXIING or PATTERN, roll a 30% chance to inject a realistic
+      // interruption ("hold position for crossing traffic", "extend
+      // downwind, I'll call your base"). Real ATC keeps pilots on their toes;
+      // a strict trainer must too. Scheduled after the main TTS so the two
+      // transmissions don't talk over each other.
+      try {
+        const nextPhaseRaw = stateDelta?.phase ?? flightState.phase ?? null;
+        const phase = normalizePhase(nextPhaseRaw);
+        const freqMHzNow = parseFloat(activeFreq);
+        const tunedNow = liveAirport ? lookupFacility(liveAirport.icao, freqMHzNow).facility : null;
+        const interruption = maybeInjectInterruption(phase, "N123AB", tunedNow?.kind ?? null);
+        if (interruption) {
+          if (interruptionTimeoutRef.current !== null) {
+            window.clearTimeout(interruptionTimeoutRef.current);
+          }
+          interruptionTimeoutRef.current = window.setTimeout(() => {
+            interruptionTimeoutRef.current = null;
+            const interruptionMsg: ATCMessage = {
+              id: crypto.randomUUID(),
+              role: "atc",
+              content: interruption,
+            };
+            setMessages((prev) => [...prev, interruptionMsg]);
+            void speakATC(interruption);
+          }, 4500);
+        }
+      } catch {
+        // Interruptions are non-critical; never let them break the main flow.
+      }
     } catch {
       setError("Connection lost. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, parseState, liveAirport, activeFreq, inferAction, currentAtis]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- speakATC + setMessages stable; flightState.phase intentionally read at call time
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, parseState, liveAirport, activeFreq, inferAction, currentAtis, flightState.phase]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
