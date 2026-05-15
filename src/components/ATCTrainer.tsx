@@ -40,6 +40,7 @@ import { PTTRing } from "@/components/atc/PTTRing";
 import { G3000ComRadio } from "@/components/atc/G3000ComRadio";
 import { RadioFX, getRecognizer } from "@/lib/atcRadioFX";
 import { FAA_PROMPT as FAA_PROMPT_EXTERNAL, LIVE_FREQ_PROMPT } from "@/lib/atcPrompts";
+import { maybeInjectInterruption, normalizePhase } from "@/lib/atcInterruptions";
 
 export const FAA_PROMPT = FAA_PROMPT_EXTERNAL;
 import { emitDashboardRefresh } from "@/lib/dashboardEvents";
@@ -121,6 +122,9 @@ const ATCTrainer = () => {
   /** Per-frequency initial-contact tracker — drives the deterministic ATIS
    *  validator (only enforce on the pilot's first call after tuning). */
   const initialContactFreqsRef = useRef<Set<string>>(new Set());
+  /** Pending interruption timeout — cleared on scenario reset / unmount so
+   *  stale controller injections never fire on a fresh session. */
+  const interruptionTimeoutRef = useRef<number | null>(null);
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
