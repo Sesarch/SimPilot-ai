@@ -1331,6 +1331,39 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_webhook_signing_secrets: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          livemode: boolean
+          signing_secret: string
+          updated_at: string
+          webhook_endpoint_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          livemode?: boolean
+          signing_secret: string
+          updated_at?: string
+          webhook_endpoint_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          livemode?: boolean
+          signing_secret?: string
+          updated_at?: string
+          webhook_endpoint_id?: string
+        }
+        Relationships: []
+      }
       support_chat_messages: {
         Row: {
           chat_id: string

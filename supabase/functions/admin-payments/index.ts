@@ -411,7 +411,11 @@ Deno.serve(async (req) => {
     // ---- WEBHOOK STATUS: signing-secret presence, Stripe endpoints, recent deliveries ----
     if (req.method === "GET" && action === "webhook-status") {
       const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
-      const hasSigningSecret = !!Deno.env.get("STRIPE_WEBHOOK_SECRET");
+      const { count: storedSigningSecrets } = await admin
+        .from("stripe_webhook_signing_secrets")
+        .select("id", { count: "exact", head: true })
+        .eq("active", true);
+      const hasSigningSecret = !!Deno.env.get("STRIPE_WEBHOOK_SECRET") || (storedSigningSecrets ?? 0) > 0;
 
       // 1) Configured Stripe webhook endpoints
       let endpoints: Array<{
@@ -990,6 +994,22 @@ Deno.serve(async (req) => {
         });
         const signingSecret = (endpoint as Stripe.WebhookEndpoint & { secret?: string | null }).secret ?? null;
 
+        if (signingSecret) {
+          const { error: secretError } = await admin
+            .from("stripe_webhook_signing_secrets")
+            .upsert(
+              {
+                webhook_endpoint_id: endpoint.id,
+                signing_secret: signingSecret,
+                livemode: endpoint.livemode,
+                active: true,
+                created_by: user.id,
+              },
+              { onConflict: "webhook_endpoint_id" },
+            );
+          if (secretError) throw secretError;
+        }
+
         await logAdminAction(admin, {
           adminUserId: user.id,
           adminEmail: user.email,
@@ -1012,7 +1032,7 @@ Deno.serve(async (req) => {
           signing_secret: signingSecret,
           expected_secret_name: "STRIPE_WEBHOOK_SECRET",
           message: signingSecret
-            ? "Webhook endpoint created. Save the returned signing secret as STRIPE_WEBHOOK_SECRET."
+            ? "Webhook endpoint created and signing secret saved for verification."
             : "Webhook endpoint created, but Stripe did not return a signing secret.",
         });
       }

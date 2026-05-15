@@ -46,6 +46,31 @@ const supabase = createClient(
   { auth: { persistSession: false } },
 );
 
+async function getWebhookSecrets(): Promise<string[]> {
+  const secrets = new Set<string>();
+  const envSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  if (envSecret) secrets.add(envSecret);
+
+  const { data, error } = await supabase
+    .from("stripe_webhook_signing_secrets")
+    .select("signing_secret")
+    .eq("active", true)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    log("stored signing secret lookup failed", { error: error.message });
+  } else {
+    for (const row of data ?? []) {
+      if (typeof row.signing_secret === "string" && row.signing_secret) {
+        secrets.add(row.signing_secret);
+      }
+    }
+  }
+
+  return Array.from(secrets);
+}
+
 async function findUserIdByCustomer(
   stripe: Stripe,
   customerId: string,
@@ -133,8 +158,7 @@ Deno.serve(async (req) => {
   }
 
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-  if (!stripeKey || !webhookSecret) {
+  if (!stripeKey) {
     log("missing Stripe env");
     return new Response(JSON.stringify({ error: "server misconfigured" }), {
       status: 500,
@@ -152,11 +176,27 @@ Deno.serve(async (req) => {
   }
 
   const rawBody = await req.text();
-  let event: Stripe.Event;
-  try {
-    event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
-  } catch (err) {
-    log("signature verification failed", { err: String(err) });
+  const webhookSecrets = await getWebhookSecrets();
+  if (webhookSecrets.length === 0) {
+    log("missing Stripe webhook secret");
+    return new Response(JSON.stringify({ error: "server misconfigured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  let event: Stripe.Event | null = null;
+  let verifyError: unknown = null;
+  for (const secret of webhookSecrets) {
+    try {
+      event = await stripe.webhooks.constructEventAsync(rawBody, signature, secret);
+      break;
+    } catch (err) {
+      verifyError = err;
+    }
+  }
+  if (!event) {
+    log("signature verification failed", { err: String(verifyError) });
     return new Response(JSON.stringify({ error: "invalid signature" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
