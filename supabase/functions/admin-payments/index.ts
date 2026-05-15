@@ -2,6 +2,7 @@
 // Actions: metrics, list, refund, cancel, change-plan, grant-comp, revoke-comp
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { corsHeaders, requireAdmin, logAdminAction } from "../_shared/audit.ts";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
 
 const PRICE_TO_TIER: Record<string, "student" | "pro" | "ultra"> = {
   price_1TNf5ZRusIXFsWjchdY05u0R: "student",
@@ -42,6 +43,41 @@ type DiagnosticAccount = {
   livemode?: boolean | null;
   error?: string;
 };
+
+async function importSubscriptionSnapshots(stripe: Stripe, admin: SupabaseClient, limit = 100) {
+  const page = await stripe.subscriptions.list({
+    status: "all",
+    limit: Math.min(Math.max(limit, 1), 100),
+    expand: ["data.customer", "data.items.data.price"],
+  });
+  const rows = page.data.map((sub) => {
+    const customer = sub.customer as Stripe.Customer | Stripe.DeletedCustomer | string;
+    const customerId = typeof customer === "string" ? customer : customer?.id ?? null;
+    return {
+      stripe_event_id: `snapshot_${sub.id}_${sub.status}`,
+      event_type: `customer.subscription.${sub.status === "canceled" ? "deleted" : "updated"}`,
+      connected_account_id: null,
+      livemode: sub.livemode,
+      object_id: sub.id,
+      customer_id: customerId,
+      subscription_id: sub.id,
+      invoice_id: null,
+      checkout_session_id: null,
+      user_id: null,
+      status: sub.status,
+      amount_total: sub.items.data[0]?.price?.unit_amount ?? null,
+      currency: sub.items.data[0]?.price?.currency ?? null,
+      payload: sub as unknown as Record<string, unknown>,
+      created_at: new Date(sub.created * 1000).toISOString(),
+      processed_at: new Date().toISOString(),
+    };
+  });
+  if (rows.length) {
+    const { error } = await admin.from("stripe_webhook_events").upsert(rows, { onConflict: "stripe_event_id" });
+    if (error) throw error;
+  }
+  return { imported: rows.length, has_more: page.has_more };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -417,6 +453,25 @@ Deno.serve(async (req) => {
           .order("created_at", { ascending: false })
           .limit(20),
       ]);
+      let effectiveTotal = totalCount ?? 0;
+      let effectiveRecent = recent.data ?? [];
+      if (effectiveTotal === 0) {
+        try {
+          await importSubscriptionSnapshots(stripe, admin, 100);
+          const [refreshedCount, refreshedRecent] = await Promise.all([
+            admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }),
+            admin
+              .from("stripe_webhook_events")
+              .select("stripe_event_id, event_type, livemode, status, user_id, customer_id, subscription_id, created_at")
+              .order("created_at", { ascending: false })
+              .limit(20),
+          ]);
+          effectiveTotal = refreshedCount.count ?? 0;
+          effectiveRecent = refreshedRecent.data ?? [];
+        } catch (e) {
+          console.warn("[admin-payments] subscription snapshot import failed:", (e as Error).message);
+        }
+      }
 
       // Pick the endpoint that points to our function and check coverage
       const matching = endpoints.find((e) => e.matches_expected) ?? null;
@@ -425,7 +480,7 @@ Deno.serve(async (req) => {
         : REQUIRED_WEBHOOK_EVENTS;
 
       // Overall health verdict
-      const totalEvents = totalCount ?? 0;
+      const totalEvents = effectiveTotal;
       let verdict: "healthy" | "warning" | "error" = "error";
       if (hasSigningSecret && matching && matching.status === "enabled" && missingEvents.length === 0 && (count7d ?? 0) > 0) {
         verdict = "healthy";
@@ -448,7 +503,7 @@ Deno.serve(async (req) => {
             last_24h: count24h ?? 0,
             last_7d: count7d ?? 0,
           },
-          recent: recent.data ?? [],
+          recent: effectiveRecent,
           checked_at: new Date().toISOString(),
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -529,6 +584,7 @@ Deno.serve(async (req) => {
     if (req.method === "POST" && action === "backfill-webhook-events") {
       const body = await req.json().catch(() => ({}));
       const limit = Math.min(Math.max(Number(body?.limit) || 50, 1), 100);
+      const snapshot = await importSubscriptionSnapshots(stripe, admin, limit);
       const wantedTypes = new Set<string>(
         Array.isArray(body?.event_types) && body.event_types.every((v: unknown) => typeof v === "string")
           ? body.event_types
@@ -649,11 +705,11 @@ Deno.serve(async (req) => {
         adminEmail: user.email,
         action: "stripe.webhook_events_backfill",
         targetType: "stripe_events",
-        details: { imported: rows.length, affected_users: affectedUsers.size, limit },
+        details: { imported: rows.length + snapshot.imported, event_imported: rows.length, snapshot_imported: snapshot.imported, affected_users: affectedUsers.size, limit },
         req,
       });
 
-      return json({ imported: rows.length, affected_users: affectedUsers.size, has_more: page.has_more });
+      return json({ imported: rows.length + snapshot.imported, event_imported: rows.length, snapshot_imported: snapshot.imported, affected_users: affectedUsers.size, has_more: page.has_more || snapshot.has_more });
     }
 
     // ---- SUBSCRIPTION AUDIT: compare Stripe vs profiles.subscription_* ----
