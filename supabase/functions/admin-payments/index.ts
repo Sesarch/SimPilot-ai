@@ -601,7 +601,7 @@ Deno.serve(async (req) => {
         const metadata = (obj.metadata as Record<string, string> | undefined) ?? {};
         const userIdHint = metadata.user_id ?? (typeof obj.client_reference_id === "string" ? obj.client_reference_id : null);
         const customerId = readId("customer");
-        let subscriptionId = ev.type.startsWith("customer.subscription")
+        const subscriptionId = ev.type.startsWith("customer.subscription")
           ? (typeof obj.id === "string" ? obj.id : null)
           : readId("subscription");
         let resolvedUserId: string | null = null;
