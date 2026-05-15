@@ -51,10 +51,16 @@ async function getWebhookSecrets(): Promise<string[]> {
   const envSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   if (envSecret) secrets.add(envSecret);
 
+  // Determine current execution environment (live vs test) from the Stripe secret key
+  // so we never use a test signing secret to verify a live webhook (or vice versa).
+  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+  const currentLivemode = stripeKey.includes("_live_");
+
   const { data, error } = await supabase
     .from("stripe_webhook_signing_secrets")
-    .select("signing_secret")
+    .select("signing_secret, livemode")
     .eq("active", true)
+    .eq("livemode", currentLivemode)
     .order("created_at", { ascending: false })
     .limit(10);
 
