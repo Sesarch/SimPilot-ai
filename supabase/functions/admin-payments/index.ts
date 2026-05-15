@@ -3,6 +3,46 @@
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { corsHeaders, requireAdmin, logAdminAction } from "../_shared/audit.ts";
 
+const PRICE_TO_TIER: Record<string, "student" | "pro" | "ultra"> = {
+  price_1TNf5ZRusIXFsWjchdY05u0R: "student",
+  price_1TQhYjRusIXFsWjc3wGvpiqS: "pro",
+  price_1TQhZBRusIXFsWjc2jrUeFEi: "ultra",
+};
+
+const REQUIRED_WEBHOOK_EVENTS = [
+  "checkout.session.completed",
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+  "invoice.payment_succeeded",
+  "invoice.payment_failed",
+];
+
+const tierFromSubscription = (sub: Stripe.Subscription) => {
+  for (const item of sub.items.data) {
+    const priceId = item.price?.id;
+    if (priceId && PRICE_TO_TIER[priceId]) return PRICE_TO_TIER[priceId];
+  }
+  return null;
+};
+
+const periodEndISO = (sub: Stripe.Subscription) => {
+  const subWithPeriod = sub as Stripe.Subscription & { current_period_end?: number };
+  const periodEnd = subWithPeriod.current_period_end ?? sub.items.data[0]?.current_period_end;
+  return periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
+};
+
+type DiagnosticAccount = {
+  id?: string;
+  country?: string | null;
+  business_name?: string | null;
+  support_email?: string | null;
+  branding?: { icon: string | null; logo: string | null; primary_color: string | null; secondary_color: string | null };
+  charges_enabled?: boolean;
+  livemode?: boolean | null;
+  error?: string;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -162,10 +202,11 @@ Deno.serve(async (req) => {
       let page;
       try {
         page = await stripe.invoices.list({ limit: 50, expand: ["data.customer"] });
-      } catch (e: any) {
+      } catch (e: unknown) {
         // Stripe restricted keys may lack credit_note_read perm, which invoices.list requires.
-        if (e?.statusCode === 403 || e?.type === "StripePermissionError") {
-          console.warn("[admin-payments] list-invoices permission denied:", e?.raw?.message || e?.message);
+        const stripeError = e as { statusCode?: number; type?: string; raw?: { message?: string }; message?: string };
+        if (stripeError.statusCode === 403 || stripeError.type === "StripePermissionError") {
+          console.warn("[admin-payments] list-invoices permission denied:", stripeError.raw?.message || stripeError.message);
           return json({
             invoices: [],
             permission_denied: true,
@@ -230,9 +271,10 @@ Deno.serve(async (req) => {
           : "unknown";
 
       // Account-level info (drives the branding shown on Checkout).
-      let account: any = null;
+      let account: DiagnosticAccount = {};
       try {
         const acct = await stripe.accounts.retrieve();
+        const acctWithMode = acct as Stripe.Account & { livemode?: boolean | null };
         account = {
           id: acct.id,
           country: acct.country,
@@ -248,7 +290,7 @@ Deno.serve(async (req) => {
             secondary_color: acct.settings?.branding?.secondary_color ?? null,
           },
           charges_enabled: acct.charges_enabled,
-          livemode: (acct as any).livemode ?? null,
+          livemode: acctWithMode.livemode ?? null,
         };
       } catch (e) {
         account = { error: (e as Error).message };
@@ -362,15 +404,6 @@ Deno.serve(async (req) => {
       }
 
       // 2) Persisted delivery log — counts and last 20
-      const REQUIRED_EVENTS = [
-        "checkout.session.completed",
-        "customer.subscription.created",
-        "customer.subscription.updated",
-        "customer.subscription.deleted",
-        "invoice.payment_succeeded",
-        "invoice.payment_failed",
-      ];
-
       const since24h = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
       const since7d = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
 
@@ -388,8 +421,8 @@ Deno.serve(async (req) => {
       // Pick the endpoint that points to our function and check coverage
       const matching = endpoints.find((e) => e.matches_expected) ?? null;
       const missingEvents = matching
-        ? REQUIRED_EVENTS.filter((evt) => !matching.enabled_events.includes(evt) && !matching.enabled_events.includes("*"))
-        : REQUIRED_EVENTS;
+        ? REQUIRED_WEBHOOK_EVENTS.filter((evt) => !matching.enabled_events.includes(evt) && !matching.enabled_events.includes("*"))
+        : REQUIRED_WEBHOOK_EVENTS;
 
       // Overall health verdict
       const totalEvents = totalCount ?? 0;
@@ -408,7 +441,7 @@ Deno.serve(async (req) => {
           endpoints,
           endpoints_error: endpointsError,
           matching_endpoint: matching,
-          required_events: REQUIRED_EVENTS,
+          required_events: REQUIRED_WEBHOOK_EVENTS,
           missing_events: missingEvents,
           counts: {
             total: totalEvents,
@@ -490,6 +523,137 @@ Deno.serve(async (req) => {
       const { data, error } = await query;
       if (error) throw error;
       return json({ events: data ?? [], query: qRaw, resolved });
+    }
+
+    // ---- RECOVERY: backfill the local webhook delivery log from Stripe events ----
+    if (req.method === "POST" && action === "backfill-webhook-events") {
+      const body = await req.json().catch(() => ({}));
+      const limit = Math.min(Math.max(Number(body?.limit) || 50, 1), 100);
+      const wantedTypes = new Set<string>(
+        Array.isArray(body?.event_types) && body.event_types.every((v: unknown) => typeof v === "string")
+          ? body.event_types
+          : REQUIRED_WEBHOOK_EVENTS,
+      );
+
+      const page = await stripe.events.list({ limit });
+      const rows: Array<Record<string, unknown>> = [];
+      const affectedUsers = new Set<string>();
+
+      const findUserId = async (customerId: string | null, hint?: string | null) => {
+        if (hint) return hint;
+        if (!customerId) return null;
+        const { data: byCustomer } = await admin
+          .from("profiles")
+          .select("user_id")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle();
+        if (byCustomer?.user_id) return byCustomer.user_id as string;
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          if (!customer || (customer as Stripe.DeletedCustomer).deleted) return null;
+          const email = (customer as Stripe.Customer).email?.toLowerCase();
+          if (!email) return null;
+          for (let pageIdx = 1; pageIdx <= 10; pageIdx++) {
+            const { data, error } = await admin.auth.admin.listUsers({ page: pageIdx, perPage: 100 });
+            if (error) break;
+            const match = data.users.find((u) => u.email?.toLowerCase() === email);
+            if (match) return match.id;
+            if (data.users.length < 100) break;
+          }
+        } catch (_) { /* ignore */ }
+        return null;
+      };
+
+      const syncSubscription = async (sub: Stripe.Subscription, userIdHint?: string | null) => {
+        const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+        const userId = await findUserId(customerId, userIdHint);
+        if (!userId) return null;
+        const tier = tierFromSubscription(sub);
+        const status = sub.status;
+        const expires = periodEndISO(sub);
+        const update: Record<string, unknown> = {
+          stripe_customer_id: customerId,
+          subscription_id: sub.id,
+          subscription_status: status,
+          subscription_current_period_end: expires,
+          subscription_source: "individual",
+        };
+        if (tier) update.subscription_tier = tier;
+        if ((status === "active" || status === "trialing" || status === "canceled") && expires) {
+          update.subscription_expires_at = expires;
+        }
+        const { error } = await admin.from("profiles").update(update).eq("user_id", userId);
+        if (error) throw error;
+        affectedUsers.add(userId);
+        return userId;
+      };
+
+      for (const ev of page.data) {
+        if (!wantedTypes.has(ev.type)) continue;
+        const obj = ev.data.object as Record<string, unknown>;
+        const readId = (key: string) => {
+          const value = obj[key];
+          if (typeof value === "string") return value;
+          if (value && typeof value === "object" && "id" in value && typeof (value as { id: unknown }).id === "string") {
+            return (value as { id: string }).id;
+          }
+          return null;
+        };
+        const metadata = (obj.metadata as Record<string, string> | undefined) ?? {};
+        const userIdHint = metadata.user_id ?? (typeof obj.client_reference_id === "string" ? obj.client_reference_id : null);
+        const customerId = readId("customer");
+        const subscriptionId = ev.type.startsWith("customer.subscription")
+          ? (typeof obj.id === "string" ? obj.id : null)
+          : readId("subscription");
+        let resolvedUserId: string | null = null;
+
+        if (ev.type.startsWith("customer.subscription")) {
+          resolvedUserId = await syncSubscription(ev.data.object as Stripe.Subscription);
+        } else if (ev.type === "checkout.session.completed" && subscriptionId) {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          resolvedUserId = await syncSubscription(sub, userIdHint);
+        } else if ((ev.type === "invoice.payment_succeeded" || ev.type === "invoice.payment_failed") && subscriptionId) {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          resolvedUserId = await syncSubscription(sub);
+        } else {
+          resolvedUserId = await findUserId(customerId, userIdHint);
+        }
+
+        rows.push({
+          stripe_event_id: ev.id,
+          event_type: ev.type,
+          connected_account_id: (ev as Stripe.Event & { account?: string }).account ?? null,
+          livemode: ev.livemode,
+          object_id: typeof obj.id === "string" ? obj.id : null,
+          customer_id: customerId,
+          subscription_id: subscriptionId,
+          invoice_id: ev.type.startsWith("invoice") ? (typeof obj.id === "string" ? obj.id : null) : readId("invoice"),
+          checkout_session_id: ev.type.startsWith("checkout.session") ? (typeof obj.id === "string" ? obj.id : null) : null,
+          user_id: resolvedUserId,
+          status: typeof obj.status === "string" ? obj.status : null,
+          amount_total: typeof obj.amount_total === "number" ? obj.amount_total : (typeof obj.amount_paid === "number" ? obj.amount_paid : null),
+          currency: typeof obj.currency === "string" ? obj.currency : null,
+          payload: ev as unknown as Record<string, unknown>,
+          created_at: new Date(ev.created * 1000).toISOString(),
+          processed_at: new Date().toISOString(),
+        });
+      }
+
+      if (rows.length) {
+        const { error } = await admin.from("stripe_webhook_events").upsert(rows, { onConflict: "stripe_event_id" });
+        if (error) throw error;
+      }
+
+      await logAdminAction(admin, {
+        adminUserId: user.id,
+        adminEmail: user.email,
+        action: "stripe.webhook_events_backfill",
+        targetType: "stripe_events",
+        details: { imported: rows.length, affected_users: affectedUsers.size, limit },
+        req,
+      });
+
+      return json({ imported: rows.length, affected_users: affectedUsers.size, has_more: page.has_more });
     }
 
     // ---- SUBSCRIPTION AUDIT: compare Stripe vs profiles.subscription_* ----

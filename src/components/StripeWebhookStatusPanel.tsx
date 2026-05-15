@@ -52,6 +52,8 @@ export default function StripeWebhookStatusPanel() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<{
     events: RecentEvent[];
@@ -59,16 +61,19 @@ export default function StripeWebhookStatusPanel() {
     resolved: { customer_ids: string[]; user_ids: string[]; email_matched: boolean };
   } | null>(null);
 
-  const callApi = useCallback(async (qs: string) => {
+  const callApi = useCallback(async (qs: string, init?: RequestInit) => {
     const session = (await supabase.auth.getSession()).data.session;
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
     const resp = await fetch(
       `https://${projectId}.supabase.co/functions/v1/admin-payments?${qs}`,
       {
+        method: init?.method ?? "GET",
         headers: {
           Authorization: `Bearer ${session?.access_token ?? ""}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          ...(init?.body ? { "Content-Type": "application/json" } : {}),
         },
+        body: init?.body,
       }
     );
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -106,6 +111,24 @@ export default function StripeWebhookStatusPanel() {
       setSearching(false);
     }
   }, [callApi]);
+
+  const backfillEvents = useCallback(async () => {
+    setBackfilling(true);
+    setBackfillMessage(null);
+    setError(null);
+    try {
+      const result = await callApi("action=backfill-webhook-events", {
+        method: "POST",
+        body: JSON.stringify({ limit: 100 }),
+      });
+      setBackfillMessage(`Imported ${result.imported ?? 0} Stripe event(s); synced ${result.affected_users ?? 0} user profile(s).`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBackfilling(false);
+    }
+  }, [callApi, load]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -154,6 +177,13 @@ export default function StripeWebhookStatusPanel() {
                 <code> invoice.payment_succeeded</code>, <code>invoice.payment_failed</code>. Then add the signing
                 secret as <code>STRIPE_WEBHOOK_SECRET</code>.
               </p>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Button size="sm" variant="outline" onClick={backfillEvents} disabled={backfilling} className="h-7 text-xs">
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${backfilling ? "animate-spin" : ""}`} />
+                  {backfilling ? "Importing…" : "Import recent Stripe events"}
+                </Button>
+                {backfillMessage && <span className="text-[11px] text-emerald-300">{backfillMessage}</span>}
+              </div>
             </div>
           </div>
         </div>
