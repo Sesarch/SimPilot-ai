@@ -287,3 +287,44 @@ function Stat({ label, value, ok }: { label: string; value: string; ok: boolean 
     </div>
   );
 }
+
+function EventTable({ title, subtitle, events }: { title: string; subtitle?: string; events: RecentEvent[] }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-xs font-semibold text-muted-foreground">{title}</p>
+        {subtitle && <p className="text-[10px] text-muted-foreground">{subtitle}</p>}
+      </div>
+      {events.length > 0 && (
+        <div className="rounded border border-border/60 max-h-56 overflow-auto">
+          <table className="w-full text-[11px]">
+            <thead className="sticky top-0 bg-card/95">
+              <tr className="text-left text-muted-foreground">
+                <th className="px-2 py-1">When</th>
+                <th className="px-2 py-1">Event</th>
+                <th className="px-2 py-1">Mode</th>
+                <th className="px-2 py-1">Status</th>
+                <th className="px-2 py-1">User / Customer</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((ev) => (
+                <tr key={ev.stripe_event_id} className="border-t border-border/40">
+                  <td className="px-2 py-1 text-muted-foreground whitespace-nowrap">
+                    {new Date(ev.created_at).toLocaleString()}
+                  </td>
+                  <td className="px-2 py-1 font-mono">{ev.event_type}</td>
+                  <td className="px-2 py-1">{ev.livemode ? "live" : "test"}</td>
+                  <td className="px-2 py-1">{ev.status ?? "—"}</td>
+                  <td className="px-2 py-1 font-mono text-muted-foreground truncate max-w-[180px]">
+                    {ev.user_id ?? ev.customer_id ?? "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
