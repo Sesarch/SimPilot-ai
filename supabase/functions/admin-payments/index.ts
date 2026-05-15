@@ -960,6 +960,62 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json();
 
+      if (action === "create-webhook-endpoint") {
+        const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
+        const existing = await stripe.webhookEndpoints.list({ limit: 100 });
+        const enabledMatch = existing.data.find((endpoint) =>
+          endpoint.url === expectedUrl && endpoint.status === "enabled"
+        );
+
+        if (enabledMatch) {
+          return json({
+            created: false,
+            endpoint: {
+              id: enabledMatch.id,
+              url: enabledMatch.url,
+              status: enabledMatch.status,
+              livemode: enabledMatch.livemode,
+              enabled_events: enabledMatch.enabled_events ?? [],
+            },
+            signing_secret: null,
+            message: "An enabled Stripe webhook endpoint already points to this app.",
+          });
+        }
+
+        const endpoint = await stripe.webhookEndpoints.create({
+          url: expectedUrl,
+          enabled_events: REQUIRED_WEBHOOK_EVENTS,
+          description: "SimPilot subscription sync webhook",
+          metadata: { app: "simpilot", purpose: "subscription_sync" },
+        });
+
+        await logAdminAction(admin, {
+          adminUserId: user.id,
+          adminEmail: user.email,
+          action: "stripe.webhook_endpoint_create",
+          targetType: "webhook_endpoint",
+          targetId: endpoint.id,
+          details: { url: expectedUrl, livemode: endpoint.livemode, enabled_events: endpoint.enabled_events },
+          req,
+        });
+
+        return json({
+          created: true,
+          endpoint: {
+            id: endpoint.id,
+            url: endpoint.url,
+            status: endpoint.status,
+            livemode: endpoint.livemode,
+            enabled_events: endpoint.enabled_events ?? [],
+          },
+          signing_secret: endpoint.secret ?? null,
+          expected_secret_name: "STRIPE_WEBHOOK_SECRET",
+          message: endpoint.secret
+            ? "Webhook endpoint created. Save the returned signing secret as STRIPE_WEBHOOK_SECRET."
+            : "Webhook endpoint created, but Stripe did not return a signing secret.",
+        });
+      }
+
       if (action === "log-load-failure") {
         const { attempts, error_message, error_code, status, endpoint, occurred_at } = body || {};
         await logAdminAction(admin, {
