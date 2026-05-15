@@ -52,6 +52,8 @@ export default function StripeWebhookStatusPanel() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<{
     events: RecentEvent[];
@@ -59,16 +61,19 @@ export default function StripeWebhookStatusPanel() {
     resolved: { customer_ids: string[]; user_ids: string[]; email_matched: boolean };
   } | null>(null);
 
-  const callApi = useCallback(async (qs: string) => {
+  const callApi = useCallback(async (qs: string, init?: RequestInit) => {
     const session = (await supabase.auth.getSession()).data.session;
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
     const resp = await fetch(
       `https://${projectId}.supabase.co/functions/v1/admin-payments?${qs}`,
       {
+        method: init?.method ?? "GET",
         headers: {
           Authorization: `Bearer ${session?.access_token ?? ""}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          ...(init?.body ? { "Content-Type": "application/json" } : {}),
         },
+        body: init?.body,
       }
     );
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
