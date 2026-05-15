@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle2, RefreshCw, Search, Webhook, X, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 type Endpoint = {
   id: string;
@@ -55,6 +56,7 @@ export default function StripeWebhookStatusPanel() {
   const [backfilling, setBackfilling] = useState(false);
   const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [creatingEndpoint, setCreatingEndpoint] = useState(false);
   const [searchResults, setSearchResults] = useState<{
     events: RecentEvent[];
     query: string;
@@ -130,6 +132,25 @@ export default function StripeWebhookStatusPanel() {
     }
   }, [callApi, load]);
 
+  const createWebhookEndpoint = useCallback(async () => {
+    setCreatingEndpoint(true);
+    setError(null);
+    try {
+      const result = await callApi("action=create-webhook-endpoint", { method: "POST", body: JSON.stringify({}) });
+      if (result.signing_secret) {
+        await navigator.clipboard?.writeText(result.signing_secret).catch(() => undefined);
+        toast.success("Webhook endpoint created. Signing secret copied — save it as STRIPE_WEBHOOK_SECRET.");
+      } else {
+        toast.info(result.message ?? "Webhook endpoint already exists.");
+      }
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCreatingEndpoint(false);
+    }
+  }, [callApi, load]);
+
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -178,6 +199,12 @@ export default function StripeWebhookStatusPanel() {
                 secret as <code>STRIPE_WEBHOOK_SECRET</code>.
               </p>
               <div className="flex flex-wrap items-center gap-2 pt-1">
+                {data.endpoints.length === 0 && (
+                  <Button size="sm" onClick={createWebhookEndpoint} disabled={creatingEndpoint} className="h-7 text-xs">
+                    <Webhook className="w-3.5 h-3.5 mr-1.5" />
+                    {creatingEndpoint ? "Creating…" : "Create webhook endpoint"}
+                  </Button>
+                )}
                 <Button size="sm" variant="outline" onClick={backfillEvents} disabled={backfilling} className="h-7 text-xs">
                   <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${backfilling ? "animate-spin" : ""}`} />
                   {backfilling ? "Importing…" : "Import recent Stripe events"}
