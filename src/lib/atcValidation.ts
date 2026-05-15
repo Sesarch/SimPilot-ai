@@ -88,6 +88,40 @@ export function classifyPilotIntent(text: string): RequestIntent {
   return "OTHER";
 }
 
+/**
+ * Detect which controller the pilot is addressing in their transmission.
+ * Looks for the first facility name token. Used to catch the (very common)
+ * mistake of calling "Tower" while still tuned to the Ground frequency.
+ */
+const ADDRESS_PATTERNS: Array<{ kind: FacilityKind; re: RegExp }> = [
+  { kind: "TOWER",     re: /\btower\b/i },
+  { kind: "GROUND",    re: /\bground\b/i },
+  { kind: "CLEARANCE", re: /\b(clearance(\s+delivery)?|clnc(\s+del)?)\b/i },
+  { kind: "APPROACH",  re: /\bapproach\b/i },
+  { kind: "DEPARTURE", re: /\bdeparture\b/i },
+  { kind: "CENTER",    re: /\b(center|centre)\b/i },
+];
+
+export function detectAddressedFacility(text: string): FacilityKind | null {
+  for (const p of ADDRESS_PATTERNS) {
+    if (p.re.test(text)) return p.kind;
+  }
+  return null;
+}
+
+/** Human-friendly name for a facility kind, used in canned replies. */
+function kindLabel(k: FacilityKind): string {
+  switch (k) {
+    case "TOWER": return "Tower";
+    case "GROUND": return "Ground";
+    case "CLEARANCE": return "Clearance Delivery";
+    case "APPROACH": return "Approach";
+    case "DEPARTURE": return "Departure";
+    case "CENTER": return "Center";
+    default: return k;
+  }
+}
+
 /** Returns null when transmission passes all rules. */
 export function validateTransmission(ctx: ValidationContext): ValidationFailure | null {
   const cs = shortCallsign(ctx.callsign);
@@ -95,7 +129,35 @@ export function validateTransmission(ctx: ValidationContext): ValidationFailure 
   const intent = classifyPilotIntent(ctx.text);
   const facilityKind: FacilityKind | undefined = ctx.facility?.kind;
 
-  // 1. Wrong-facility — checked first because it's the most useful correction.
+  // 0. Frequency Enforcement Gate — pilot addresses one facility while tuned
+  // to a different one. The controller on the active frequency does not
+  // hear traffic intended for another facility, so we surface a hard
+  // correction. This is the most common real-world tuning mistake.
+  const addressed = detectAddressedFacility(ctx.text);
+  if (
+    addressed &&
+    facilityKind &&
+    addressed !== facilityKind &&
+    facilityKind !== "CTAF" &&
+    facilityKind !== "GUARD" &&
+    facilityKind !== "UNICOM"
+  ) {
+    const tunedName = ctx.facility?.name ?? kindLabel(facilityKind);
+    const tunedFreq = ctx.facility?.freq ? ctx.facility.freq.toFixed(2) : null;
+    const addressedName = kindLabel(addressed);
+    const tunedSuffix = tunedFreq ? ` on ${tunedFreq}` : "";
+    return {
+      kind: "WRONG_FACILITY",
+      cannedReply:
+        `${cs}, you are calling ${addressedName} but you are on ${tunedName}${tunedSuffix}. ` +
+        `Verify your frequency and try ${addressedName} on the correct freq.`,
+      feedback:
+        `You addressed ${addressedName} while tuned to ${tunedName}${tunedSuffix}. ` +
+        `Switch to the ${addressedName} frequency before transmitting.`,
+    };
+  }
+
+  // 1. Wrong-facility — checked next because it's the most useful correction.
   if (facilityKind === "GROUND" && (intent === "TAKEOFF" || intent === "LANDING")) {
     return {
       kind: "WRONG_FACILITY",
