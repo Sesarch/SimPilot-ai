@@ -2,6 +2,7 @@
 // Actions: metrics, list, refund, cancel, change-plan, grant-comp, revoke-comp
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { corsHeaders, requireAdmin, logAdminAction } from "../_shared/audit.ts";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
 
 const PRICE_TO_TIER: Record<string, "student" | "pro" | "ultra"> = {
   price_1TNf5ZRusIXFsWjchdY05u0R: "student",
@@ -42,6 +43,41 @@ type DiagnosticAccount = {
   livemode?: boolean | null;
   error?: string;
 };
+
+async function importSubscriptionSnapshots(stripe: Stripe, admin: SupabaseClient, limit = 100) {
+  const page = await stripe.subscriptions.list({
+    status: "all",
+    limit: Math.min(Math.max(limit, 1), 100),
+    expand: ["data.customer", "data.items.data.price"],
+  });
+  const rows = page.data.map((sub) => {
+    const customer = sub.customer as Stripe.Customer | Stripe.DeletedCustomer | string;
+    const customerId = typeof customer === "string" ? customer : customer?.id ?? null;
+    return {
+      stripe_event_id: `snapshot_${sub.id}_${sub.status}`,
+      event_type: `customer.subscription.${sub.status === "canceled" ? "deleted" : "updated"}`,
+      connected_account_id: null,
+      livemode: sub.livemode,
+      object_id: sub.id,
+      customer_id: customerId,
+      subscription_id: sub.id,
+      invoice_id: null,
+      checkout_session_id: null,
+      user_id: null,
+      status: sub.status,
+      amount_total: sub.items.data[0]?.price?.unit_amount ?? null,
+      currency: sub.items.data[0]?.price?.currency ?? null,
+      payload: sub as unknown as Record<string, unknown>,
+      created_at: new Date(sub.created * 1000).toISOString(),
+      processed_at: new Date().toISOString(),
+    };
+  });
+  if (rows.length) {
+    const { error } = await admin.from("stripe_webhook_events").upsert(rows, { onConflict: "stripe_event_id" });
+    if (error) throw error;
+  }
+  return { imported: rows.length, has_more: page.has_more };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
