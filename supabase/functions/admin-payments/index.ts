@@ -685,7 +685,7 @@ Deno.serve(async (req) => {
         }
 
         rows.push({
-          stripe_event_id: ev.id,
+          stripe_event_id: `backfill_${ev.id}`,
           event_type: ev.type,
           connected_account_id: (ev as Stripe.Event & { account?: string }).account ?? null,
           livemode: ev.livemode,
