@@ -125,6 +125,14 @@ const ATCTrainer = () => {
   /** Pending interruption timeout — cleared on scenario reset / unmount so
    *  stale controller injections never fire on a fresh session. */
   const interruptionTimeoutRef = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (interruptionTimeoutRef.current !== null) {
+        window.clearTimeout(interruptionTimeoutRef.current);
+        interruptionTimeoutRef.current = null;
+      }
+    };
+  }, []);
   /** Inline editor state for the "interpreted request" chip. */
   const [editingAttempted, setEditingAttempted] = useState(false);
   const [attemptedDraft, setAttemptedDraft] = useState("");
