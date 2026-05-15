@@ -154,6 +154,16 @@ const OnboardingPlanPage = () => {
     }
   };
 
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+        <Logo height={40} />
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Verifying your subscription…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
