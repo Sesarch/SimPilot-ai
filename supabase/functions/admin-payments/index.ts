@@ -453,6 +453,25 @@ Deno.serve(async (req) => {
           .order("created_at", { ascending: false })
           .limit(20),
       ]);
+      let effectiveTotal = totalCount ?? 0;
+      let effectiveRecent = recent.data ?? [];
+      if (effectiveTotal === 0) {
+        try {
+          await importSubscriptionSnapshots(stripe, admin, 100);
+          const [refreshedCount, refreshedRecent] = await Promise.all([
+            admin.from("stripe_webhook_events").select("*", { count: "exact", head: true }),
+            admin
+              .from("stripe_webhook_events")
+              .select("stripe_event_id, event_type, livemode, status, user_id, customer_id, subscription_id, created_at")
+              .order("created_at", { ascending: false })
+              .limit(20),
+          ]);
+          effectiveTotal = refreshedCount.count ?? 0;
+          effectiveRecent = refreshedRecent.data ?? [];
+        } catch (e) {
+          console.warn("[admin-payments] subscription snapshot import failed:", (e as Error).message);
+        }
+      }
 
       // Pick the endpoint that points to our function and check coverage
       const matching = endpoints.find((e) => e.matches_expected) ?? null;
@@ -461,7 +480,7 @@ Deno.serve(async (req) => {
         : REQUIRED_WEBHOOK_EVENTS;
 
       // Overall health verdict
-      const totalEvents = totalCount ?? 0;
+      const totalEvents = effectiveTotal;
       let verdict: "healthy" | "warning" | "error" = "error";
       if (hasSigningSecret && matching && matching.status === "enabled" && missingEvents.length === 0 && (count7d ?? 0) > 0) {
         verdict = "healthy";
@@ -484,7 +503,7 @@ Deno.serve(async (req) => {
             last_24h: count24h ?? 0,
             last_7d: count7d ?? 0,
           },
-          recent: recent.data ?? [],
+          recent: effectiveRecent,
           checked_at: new Date().toISOString(),
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
