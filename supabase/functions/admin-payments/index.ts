@@ -535,7 +535,7 @@ Deno.serve(async (req) => {
           : REQUIRED_WEBHOOK_EVENTS,
       );
 
-      const page = await stripe.events.list({ limit, types: Array.from(wantedTypes) });
+      const page = await stripe.events.list({ limit });
       const rows: Array<Record<string, unknown>> = [];
       const affectedUsers = new Set<string>();
 
@@ -589,6 +589,7 @@ Deno.serve(async (req) => {
       };
 
       for (const ev of page.data) {
+        if (!wantedTypes.has(ev.type)) continue;
         const obj = ev.data.object as Record<string, unknown>;
         const readId = (key: string) => {
           const value = obj[key];
