@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle2, RefreshCw, Webhook, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, RefreshCw, Search, Webhook, X, XCircle } from "lucide-react";
 
 type Endpoint = {
   id: string;
@@ -49,31 +50,62 @@ export default function StripeWebhookStatusPanel() {
   const [data, setData] = useState<WebhookStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<{
+    events: RecentEvent[];
+    query: string;
+    resolved: { customer_ids: string[]; user_ids: string[]; email_matched: boolean };
+  } | null>(null);
+
+  const callApi = useCallback(async (qs: string) => {
+    const session = (await supabase.auth.getSession()).data.session;
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const resp = await fetch(
+      `https://${projectId}.supabase.co/functions/v1/admin-payments?${qs}`,
+      {
+        headers: {
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+      }
+    );
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return resp.json();
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const session = (await supabase.auth.getSession()).data.session;
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const resp = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/admin-payments?action=webhook-status`,
-        {
-          headers: {
-            Authorization: `Bearer ${session?.access_token ?? ""}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const json = (await resp.json()) as WebhookStatus;
-      setData(json);
+      setData((await callApi("action=webhook-status")) as WebhookStatus);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [callApi]);
+
+  const runSearch = useCallback(async (q: string) => {
+    const trimmed = q.trim();
+    if (!trimmed) {
+      setSearchResults(null);
+      setSearchError(null);
+      return;
+    }
+    setSearching(true);
+    setSearchError(null);
+    try {
+      const json = await callApi(`action=search-events&q=${encodeURIComponent(trimmed)}`);
+      setSearchResults(json);
+    } catch (e) {
+      setSearchError(e instanceof Error ? e.message : String(e));
+      setSearchResults(null);
+    } finally {
+      setSearching(false);
+    }
+  }, [callApi]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -183,38 +215,59 @@ export default function StripeWebhookStatusPanel() {
         </div>
       )}
 
-      {data && data.recent.length > 0 && (
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-muted-foreground">Recent deliveries (last 20)</p>
-          <div className="rounded border border-border/60 max-h-56 overflow-auto">
-            <table className="w-full text-[11px]">
-              <thead className="sticky top-0 bg-card/95">
-                <tr className="text-left text-muted-foreground">
-                  <th className="px-2 py-1">When</th>
-                  <th className="px-2 py-1">Event</th>
-                  <th className="px-2 py-1">Mode</th>
-                  <th className="px-2 py-1">Status</th>
-                  <th className="px-2 py-1">User / Customer</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recent.map((ev) => (
-                  <tr key={ev.stripe_event_id} className="border-t border-border/40">
-                    <td className="px-2 py-1 text-muted-foreground whitespace-nowrap">
-                      {new Date(ev.created_at).toLocaleString()}
-                    </td>
-                    <td className="px-2 py-1 font-mono">{ev.event_type}</td>
-                    <td className="px-2 py-1">{ev.livemode ? "live" : "test"}</td>
-                    <td className="px-2 py-1">{ev.status ?? "—"}</td>
-                    <td className="px-2 py-1 font-mono text-muted-foreground truncate max-w-[180px]">
-                      {ev.user_id ?? ev.customer_id ?? "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {data && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground">Search events</p>
+          <form
+            onSubmit={(e) => { e.preventDefault(); runSearch(query); }}
+            className="flex items-center gap-2"
+          >
+            <div className="relative flex-1">
+              <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Customer email or Stripe customer ID (cus_…)"
+                className="h-8 pl-7 pr-7 text-xs"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(""); setSearchResults(null); setSearchError(null); }}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <Button type="submit" size="sm" variant="secondary" disabled={searching || !query.trim()}>
+              {searching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : "Search"}
+            </Button>
+          </form>
+          {searchError && (
+            <p className="text-xs text-red-400">Search failed: {searchError}</p>
+          )}
+          {searchResults && (
+            <EventTable
+              title={
+                searchResults.events.length === 0
+                  ? `No events for "${searchResults.query}"`
+                  : `Search results (${searchResults.events.length}) for "${searchResults.query}"`
+              }
+              subtitle={
+                searchResults.resolved.customer_ids.length || searchResults.resolved.user_ids.length
+                  ? `Matched ${searchResults.resolved.customer_ids.length} customer · ${searchResults.resolved.user_ids.length} user`
+                  : undefined
+              }
+              events={searchResults.events}
+            />
+          )}
         </div>
+      )}
+
+      {data && data.recent.length > 0 && !searchResults && (
+        <EventTable title="Recent deliveries (last 20)" events={data.recent} />
       )}
 
       {data && (
@@ -231,6 +284,47 @@ function Stat({ label, value, ok }: { label: string; value: string; ok: boolean 
     <div className={`rounded border p-2 ${ok ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}>
       <div className="text-[10px] uppercase text-muted-foreground tracking-wider">{label}</div>
       <div className={`text-sm font-semibold ${ok ? "text-emerald-400" : "text-red-400"}`}>{value}</div>
+    </div>
+  );
+}
+
+function EventTable({ title, subtitle, events }: { title: string; subtitle?: string; events: RecentEvent[] }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-xs font-semibold text-muted-foreground">{title}</p>
+        {subtitle && <p className="text-[10px] text-muted-foreground">{subtitle}</p>}
+      </div>
+      {events.length > 0 && (
+        <div className="rounded border border-border/60 max-h-56 overflow-auto">
+          <table className="w-full text-[11px]">
+            <thead className="sticky top-0 bg-card/95">
+              <tr className="text-left text-muted-foreground">
+                <th className="px-2 py-1">When</th>
+                <th className="px-2 py-1">Event</th>
+                <th className="px-2 py-1">Mode</th>
+                <th className="px-2 py-1">Status</th>
+                <th className="px-2 py-1">User / Customer</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((ev) => (
+                <tr key={ev.stripe_event_id} className="border-t border-border/40">
+                  <td className="px-2 py-1 text-muted-foreground whitespace-nowrap">
+                    {new Date(ev.created_at).toLocaleString()}
+                  </td>
+                  <td className="px-2 py-1 font-mono">{ev.event_type}</td>
+                  <td className="px-2 py-1">{ev.livemode ? "live" : "test"}</td>
+                  <td className="px-2 py-1">{ev.status ?? "—"}</td>
+                  <td className="px-2 py-1 font-mono text-muted-foreground truncate max-w-[180px]">
+                    {ev.user_id ?? ev.customer_id ?? "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

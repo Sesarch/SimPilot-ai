@@ -422,6 +422,76 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ---- SEARCH webhook events by customer email or Stripe customer ID ----
+    if (req.method === "GET" && action === "search-events") {
+      const qRaw = (url.searchParams.get("q") ?? "").trim();
+      if (!qRaw) return json({ events: [], query: "", resolved: {} });
+      const q = qRaw.toLowerCase();
+      const limit = Math.min(parseInt(url.searchParams.get("limit") || "50"), 200);
+
+      const customerIds = new Set<string>();
+      const userIds = new Set<string>();
+      const resolved: { customer_ids: string[]; user_ids: string[]; email_matched: boolean } = {
+        customer_ids: [], user_ids: [], email_matched: false,
+      };
+
+      if (/^cus_[a-z0-9]+$/i.test(qRaw)) {
+        customerIds.add(qRaw);
+      } else if (q.includes("@")) {
+        // Resolve email -> user_id via auth.admin (paginate up to 1000 users)
+        for (let pageIdx = 1; pageIdx <= 10; pageIdx++) {
+          const { data, error } = await admin.auth.admin.listUsers({ page: pageIdx, perPage: 100 });
+          if (error) break;
+          for (const u of data.users) {
+            if (u.email && u.email.toLowerCase() === q) userIds.add(u.id);
+          }
+          if (!data.users.length || data.users.length < 100) break;
+        }
+        // Resolve email -> Stripe customer_id(s)
+        try {
+          const list = await stripe.customers.list({ email: qRaw, limit: 20 });
+          for (const c of list.data) customerIds.add(c.id);
+        } catch (_) { /* ignore */ }
+        resolved.email_matched = userIds.size > 0 || customerIds.size > 0;
+      } else {
+        // Fallback: substring match on customer_id
+        const { data, error } = await admin
+          .from("stripe_webhook_events")
+          .select("stripe_event_id, event_type, livemode, status, user_id, customer_id, subscription_id, created_at")
+          .ilike("customer_id", `%${qRaw}%`)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (error) throw error;
+        return json({
+          events: data ?? [],
+          query: qRaw,
+          resolved: { customer_ids: [], user_ids: [], email_matched: false },
+        });
+      }
+
+      resolved.customer_ids = Array.from(customerIds);
+      resolved.user_ids = Array.from(userIds);
+
+      if (customerIds.size === 0 && userIds.size === 0) {
+        return json({ events: [], query: qRaw, resolved });
+      }
+
+      let query = admin
+        .from("stripe_webhook_events")
+        .select("stripe_event_id, event_type, livemode, status, user_id, customer_id, subscription_id, created_at")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      const orParts: string[] = [];
+      if (customerIds.size) orParts.push(`customer_id.in.(${Array.from(customerIds).join(",")})`);
+      if (userIds.size) orParts.push(`user_id.in.(${Array.from(userIds).join(",")})`);
+      query = query.or(orParts.join(","));
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return json({ events: data ?? [], query: qRaw, resolved });
+    }
+
     // ---- SUBSCRIPTION AUDIT: compare Stripe vs profiles.subscription_* ----
     if (req.method === "GET" && action === "subscription-audit") {
       // Map SimPilot price IDs -> tier (mirror of stripe-webhook / check-subscription)
