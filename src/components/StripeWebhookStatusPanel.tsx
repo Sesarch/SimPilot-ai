@@ -57,6 +57,7 @@ export default function StripeWebhookStatusPanel() {
   const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [creatingEndpoint, setCreatingEndpoint] = useState(false);
+  const [newSigningSecret, setNewSigningSecret] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<{
     events: RecentEvent[];
     query: string;
@@ -138,9 +139,11 @@ export default function StripeWebhookStatusPanel() {
     try {
       const result = await callApi("action=create-webhook-endpoint", { method: "POST", body: JSON.stringify({}) });
       if (result.signing_secret) {
+        setNewSigningSecret(result.signing_secret);
         await navigator.clipboard?.writeText(result.signing_secret).catch(() => undefined);
-        toast.success("Webhook endpoint created. Signing secret copied — save it as STRIPE_WEBHOOK_SECRET.");
+        toast.success("Webhook endpoint created. Signing secret copied.");
       } else {
+        setNewSigningSecret(null);
         toast.info(result.message ?? "Webhook endpoint already exists.");
       }
       await load();
@@ -213,6 +216,25 @@ export default function StripeWebhookStatusPanel() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {newSigningSecret && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-100 space-y-2">
+          <p className="font-semibold">Webhook endpoint created — update the app signing secret next.</p>
+          <p className="opacity-90">
+            Copy this value into the project secret named <code>STRIPE_WEBHOOK_SECRET</code>. Stripe only shows it once.
+          </p>
+          <code className="block break-all rounded bg-background/70 px-2 py-1 text-[11px] text-foreground">{newSigningSecret}</code>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            onClick={() => navigator.clipboard?.writeText(newSigningSecret)}
+          >
+            Copy signing secret
+          </Button>
         </div>
       )}
 
