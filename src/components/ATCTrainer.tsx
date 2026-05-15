@@ -933,6 +933,10 @@ const ATCTrainer = () => {
     setPendingDraft("");
     setPendingCorrection(null);
     setFlightState({});
+    if (interruptionTimeoutRef.current !== null) {
+      window.clearTimeout(interruptionTimeoutRef.current);
+      interruptionTimeoutRef.current = null;
+    }
     setLoading(true);
     const scenario = scenarios.find((s) => s.id === scenarioId)!;
     try {
