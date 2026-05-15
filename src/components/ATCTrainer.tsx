@@ -1332,7 +1332,7 @@ const ATCTrainer = () => {
     } finally {
       setLoading(false);
     }
-  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, parseState, liveAirport, activeFreq, inferAction, currentAtis]);
+  }, [messages, selectedScenario, voice, buildSystemPrompt, parseCorrection, parseState, liveAirport, activeFreq, inferAction, currentAtis, flightState.phase, speakATC]);
 
   // ---- Scoring & save to Logbook -----------------------------------------
   const scoreAndSaveScenario = useCallback(async () => {
