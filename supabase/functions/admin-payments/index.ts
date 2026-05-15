@@ -511,6 +511,136 @@ Deno.serve(async (req) => {
       return json({ events: data ?? [], query: qRaw, resolved });
     }
 
+    // ---- RECOVERY: backfill the local webhook delivery log from Stripe events ----
+    if (req.method === "POST" && action === "backfill-webhook-events") {
+      const body = await req.json().catch(() => ({}));
+      const limit = Math.min(Math.max(Number(body?.limit) || 50, 1), 100);
+      const wantedTypes = new Set<string>(
+        Array.isArray(body?.event_types) && body.event_types.every((v: unknown) => typeof v === "string")
+          ? body.event_types
+          : REQUIRED_WEBHOOK_EVENTS,
+      );
+
+      const page = await stripe.events.list({ limit, types: Array.from(wantedTypes) });
+      const rows: Array<Record<string, unknown>> = [];
+      const affectedUsers = new Set<string>();
+
+      const findUserId = async (customerId: string | null, hint?: string | null) => {
+        if (hint) return hint;
+        if (!customerId) return null;
+        const { data: byCustomer } = await admin
+          .from("profiles")
+          .select("user_id")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle();
+        if (byCustomer?.user_id) return byCustomer.user_id as string;
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          if (!customer || (customer as Stripe.DeletedCustomer).deleted) return null;
+          const email = (customer as Stripe.Customer).email?.toLowerCase();
+          if (!email) return null;
+          for (let pageIdx = 1; pageIdx <= 10; pageIdx++) {
+            const { data, error } = await admin.auth.admin.listUsers({ page: pageIdx, perPage: 100 });
+            if (error) break;
+            const match = data.users.find((u) => u.email?.toLowerCase() === email);
+            if (match) return match.id;
+            if (data.users.length < 100) break;
+          }
+        } catch (_) { /* ignore */ }
+        return null;
+      };
+
+      const syncSubscription = async (sub: Stripe.Subscription, userIdHint?: string | null) => {
+        const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+        const userId = await findUserId(customerId, userIdHint);
+        if (!userId) return null;
+        const tier = tierFromSubscription(sub);
+        const status = sub.status;
+        const expires = periodEndISO(sub);
+        const update: Record<string, unknown> = {
+          stripe_customer_id: customerId,
+          subscription_id: sub.id,
+          subscription_status: status,
+          subscription_current_period_end: expires,
+          subscription_source: "individual",
+        };
+        if (tier) update.subscription_tier = tier;
+        if ((status === "active" || status === "trialing" || status === "canceled") && expires) {
+          update.subscription_expires_at = expires;
+        }
+        const { error } = await admin.from("profiles").update(update).eq("user_id", userId);
+        if (error) throw error;
+        affectedUsers.add(userId);
+        return userId;
+      };
+
+      for (const ev of page.data) {
+        const obj = ev.data.object as Record<string, unknown>;
+        const readId = (key: string) => {
+          const value = obj[key];
+          if (typeof value === "string") return value;
+          if (value && typeof value === "object" && "id" in value && typeof (value as { id: unknown }).id === "string") {
+            return (value as { id: string }).id;
+          }
+          return null;
+        };
+        const metadata = (obj.metadata as Record<string, string> | undefined) ?? {};
+        const userIdHint = metadata.user_id ?? (typeof obj.client_reference_id === "string" ? obj.client_reference_id : null);
+        const customerId = readId("customer");
+        let subscriptionId = ev.type.startsWith("customer.subscription")
+          ? (typeof obj.id === "string" ? obj.id : null)
+          : readId("subscription");
+        let resolvedUserId: string | null = null;
+
+        if (ev.type.startsWith("customer.subscription")) {
+          resolvedUserId = await syncSubscription(ev.data.object as Stripe.Subscription);
+        } else if (ev.type === "checkout.session.completed" && subscriptionId) {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          resolvedUserId = await syncSubscription(sub, userIdHint);
+        } else if ((ev.type === "invoice.payment_succeeded" || ev.type === "invoice.payment_failed") && subscriptionId) {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          resolvedUserId = await syncSubscription(sub);
+        } else {
+          resolvedUserId = await findUserId(customerId, userIdHint);
+        }
+
+        rows.push({
+          stripe_event_id: ev.id,
+          event_type: ev.type,
+          connected_account_id: (ev as Stripe.Event & { account?: string }).account ?? null,
+          livemode: ev.livemode,
+          object_id: typeof obj.id === "string" ? obj.id : null,
+          customer_id: customerId,
+          subscription_id: subscriptionId,
+          invoice_id: ev.type.startsWith("invoice") ? (typeof obj.id === "string" ? obj.id : null) : readId("invoice"),
+          checkout_session_id: ev.type.startsWith("checkout.session") ? (typeof obj.id === "string" ? obj.id : null) : null,
+          user_id: resolvedUserId,
+          status: typeof obj.status === "string" ? obj.status : null,
+          amount_total: typeof obj.amount_total === "number" ? obj.amount_total : (typeof obj.amount_paid === "number" ? obj.amount_paid : null),
+          currency: typeof obj.currency === "string" ? obj.currency : null,
+          payload: ev as unknown as Record<string, unknown>,
+          created_at: new Date(ev.created * 1000).toISOString(),
+          processed_at: new Date().toISOString(),
+        });
+      }
+
+      if (rows.length) {
+        const { error } = await admin.from("stripe_webhook_events").upsert(rows, { onConflict: "stripe_event_id" });
+        if (error) throw error;
+      }
+
+      await logAdminAction(admin, {
+        adminUserId: user.id,
+        adminEmail: user.email,
+        action: "stripe.webhook_events_backfill",
+        targetType: "stripe_events",
+        details: { imported: rows.length, affected_users: affectedUsers.size, limit },
+        req,
+      });
+
+      return json({ imported: rows.length, affected_users: affectedUsers.size, has_more: page.has_more });
+    }
+
     // ---- SUBSCRIPTION AUDIT: compare Stripe vs profiles.subscription_* ----
     if (req.method === "GET" && action === "subscription-audit") {
       // Map SimPilot price IDs -> tier (mirror of stripe-webhook / check-subscription)
