@@ -328,8 +328,8 @@ Deno.serve(async (req) => {
         log("unhandled event", { type: event.type });
     }
 
-    // Always persist a log row, even for unhandled types — useful for audit.
-    await recordEvent(event, resolvedUserId);
+    // Update the early log row with the resolved app user when business processing succeeds.
+    if (resolvedUserId) await recordEvent(event, resolvedUserId);
 
 
     return new Response(JSON.stringify({ received: true }), {
