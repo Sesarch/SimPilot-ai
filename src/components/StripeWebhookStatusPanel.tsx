@@ -59,6 +59,16 @@ export default function StripeWebhookStatusPanel() {
   const [creatingEndpoint, setCreatingEndpoint] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const [testLivemode, setTestLivemode] = useState<boolean>(false);
+  const [lastTestResult, setLastTestResult] = useState<{
+    ok: boolean;
+    event_id?: string;
+    livemode?: boolean;
+    delivery_status?: number;
+    delivery_body?: string;
+    delivery_error?: string | null;
+    attempt?: number;
+    at: string;
+  } | null>(null);
   const [searchResults, setSearchResults] = useState<{
     events: RecentEvent[];
     query: string;
