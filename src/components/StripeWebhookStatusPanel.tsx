@@ -57,6 +57,7 @@ export default function StripeWebhookStatusPanel() {
   const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [creatingEndpoint, setCreatingEndpoint] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
   const [searchResults, setSearchResults] = useState<{
     events: RecentEvent[];
     query: string;
