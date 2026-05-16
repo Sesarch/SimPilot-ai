@@ -154,19 +154,52 @@ export default function StripeWebhookStatusPanel() {
   const sendTestWebhook = useCallback(async () => {
     setSendingTest(true);
     setError(null);
-    try {
-      const result = await callApi("action=send-test-webhook", { method: "POST", body: JSON.stringify({}) });
-      if (result.ok) {
-        toast.success(`Signed test event verified (HTTP ${result.delivery_status}).`);
-      } else {
-        toast.error(`Test delivery failed: HTTP ${result.delivery_status} ${result.delivery_error ?? ""}`.trim());
+
+    // Configurable retry policy: exponential backoff with jitter.
+    const maxAttempts = 4;        // total tries before giving up
+    const baseDelayMs = 750;      // first backoff
+    const maxDelayMs = 8000;      // ceiling per wait
+    const isTransientStatus = (s: unknown) => {
+      const n = typeof s === "number" ? s : Number(s);
+      return Number.isFinite(n) && (n === 0 || n === 408 || n === 425 || n === 429 || (n >= 500 && n <= 599));
+    };
+
+    let lastResult: any = null;
+    let lastError: unknown = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const result = await callApi("action=send-test-webhook", { method: "POST", body: JSON.stringify({}) });
+        lastResult = result;
+        if (result?.ok) {
+          if (attempt > 1) {
+            toast.success(`Signed test event verified on attempt ${attempt} (HTTP ${result.delivery_status}).`);
+          } else {
+            toast.success(`Signed test event verified (HTTP ${result.delivery_status}).`);
+          }
+          break;
+        }
+        // Not ok — only retry transient delivery failures.
+        if (!isTransientStatus(result?.delivery_status) || attempt === maxAttempts) {
+          toast.error(`Test delivery failed: HTTP ${result?.delivery_status ?? "?"} ${result?.delivery_error ?? ""}`.trim());
+          break;
+        }
+      } catch (e) {
+        lastError = e;
+        if (attempt === maxAttempts) {
+          setError(e instanceof Error ? e.message : String(e));
+          break;
+        }
       }
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setSendingTest(false);
+
+      const delay = Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1));
+      const jittered = Math.round(delay * (0.7 + Math.random() * 0.6));
+      toast.message(`Test delivery attempt ${attempt} failed — retrying in ${Math.round(jittered / 100) / 10}s…`);
+      await new Promise((r) => setTimeout(r, jittered));
     }
+
+    void lastResult; void lastError;
+    try { await load(); } finally { setSendingTest(false); }
   }, [callApi, load]);
 
   useEffect(() => { load(); }, [load]);
