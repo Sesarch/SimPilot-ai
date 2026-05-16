@@ -308,6 +308,62 @@ export default function StripeWebhookStatusPanel() {
         </div>
       )}
 
+      {lastTestResult && (
+        <div
+          className={`rounded border p-2 text-xs space-y-1 ${
+            lastTestResult.ok
+              ? "border-emerald-500/30 bg-emerald-500/5"
+              : "border-red-500/30 bg-red-500/5"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className={
+                  lastTestResult.ok ? "badge-status-success text-[10px]" : "badge-status-danger text-[10px]"
+                }
+              >
+                {lastTestResult.ok ? "verified" : "failed"}
+              </span>
+              <span className="text-muted-foreground">HTTP {lastTestResult.delivery_status ?? "?"}</span>
+              {typeof lastTestResult.livemode === "boolean" && (
+                <span className="badge-status-neutral uppercase text-[10px]">
+                  {lastTestResult.livemode ? "live" : "test"}
+                </span>
+              )}
+              {lastTestResult.attempt && lastTestResult.attempt > 1 && (
+                <span className="text-muted-foreground">attempt {lastTestResult.attempt}</span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setLastTestResult(null)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Dismiss test result"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          {lastTestResult.event_id && (
+            <code className="block break-all text-[11px] text-foreground">{lastTestResult.event_id}</code>
+          )}
+          {lastTestResult.delivery_error && (
+            <div className="text-[11px] text-red-300">
+              <span className="font-semibold">Error:</span> {lastTestResult.delivery_error}
+            </div>
+          )}
+          {lastTestResult.delivery_body !== undefined && (
+            <details open>
+              <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-muted-foreground">
+                stripe-webhook response (first 500 chars)
+              </summary>
+              <pre className="mt-1 max-h-40 overflow-auto rounded bg-black/40 p-2 text-[11px] text-foreground/90 whitespace-pre-wrap break-all">{lastTestResult.delivery_body || "(empty body)"}</pre>
+            </details>
+          )}
+          <p className="text-[10px] text-muted-foreground">{new Date(lastTestResult.at).toLocaleString()}</p>
+        </div>
+      )}
+
       {data && data.counts.total === 0 && (
         <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-200">
           <div className="flex items-start gap-2">
