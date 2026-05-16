@@ -67,18 +67,18 @@ const Footer = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-6 border-t border-border/50 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-xs text-muted-foreground">
+        <div className="mt-12 pt-6 border-t border-border/50 flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+          <p className="text-xs text-muted-foreground order-2 md:order-1">
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
           </p>
-           <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-3 order-1 md:order-2 md:flex-row md:gap-4">
             <a
               href="https://www.facebook.com/profile.php?id=61570682398248"
               target="_blank"
               rel="noopener noreferrer"
               title="Follow SimPilot.AI on Facebook"
               aria-label="Follow SimPilot.AI on Facebook"
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center justify-center w-8 h-8 rounded-full border border-border/60 hover:border-primary"
             >
               <Facebook className="w-4 h-4" />
             </a>
