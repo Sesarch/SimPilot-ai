@@ -223,15 +223,43 @@ export default function StripeWebhookStatusPanel() {
           })()}
         </div>
         <div className="flex items-center gap-1">
+          <div
+            role="group"
+            aria-label="Test environment"
+            className="inline-flex rounded-md border border-border/60 bg-background/40 p-0.5 text-[10px]"
+          >
+            <button
+              type="button"
+              onClick={() => setTestLivemode(false)}
+              disabled={sendingTest}
+              className={`px-2 py-0.5 rounded-sm uppercase tracking-wider transition-colors ${
+                !testLivemode ? "bg-amber-500/20 text-amber-300" : "text-muted-foreground hover:text-foreground"
+              }`}
+              aria-pressed={!testLivemode}
+            >
+              Test
+            </button>
+            <button
+              type="button"
+              onClick={() => setTestLivemode(true)}
+              disabled={sendingTest}
+              className={`px-2 py-0.5 rounded-sm uppercase tracking-wider transition-colors ${
+                testLivemode ? "bg-emerald-500/20 text-emerald-300" : "text-muted-foreground hover:text-foreground"
+              }`}
+              aria-pressed={testLivemode}
+            >
+              Live
+            </button>
+          </div>
           <Button
             size="sm"
             variant="outline"
             onClick={sendTestWebhook}
             disabled={sendingTest || !data?.signing_secret_configured}
-            title={data?.signing_secret_configured ? "Send a signed test event to stripe-webhook" : "Configure signing secret first"}
+            title={data?.signing_secret_configured ? `Send a signed test event to stripe-webhook (${testLivemode ? "live" : "test"} mode)` : "Configure signing secret first"}
           >
             <Webhook className={`w-3.5 h-3.5 ${sendingTest ? "animate-pulse" : ""}`} />
-            <span className="ml-1 text-xs">{sendingTest ? "Sending…" : "Send test"}</span>
+            <span className="ml-1 text-xs">{sendingTest ? "Sending…" : `Send test (${testLivemode ? "live" : "test"})`}</span>
           </Button>
           <Button size="sm" variant="ghost" onClick={load} disabled={loading}>
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
