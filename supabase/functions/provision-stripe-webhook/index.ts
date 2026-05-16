@@ -40,9 +40,11 @@ Deno.serve(async (req) => {
   }
 
   const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey, {
-    auth: { persistSession: false },
-  });
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } },
+  );
 
   const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
 
