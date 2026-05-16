@@ -1126,21 +1126,47 @@ Deno.serve(async (req) => {
 
         const ok = deliveryStatus >= 200 && deliveryStatus < 300;
 
-        // Once a real Stripe-signed event has been verified and persisted, the seeded
-        // provision-ping rows are no longer needed — purge them so the event log only
-        // shows genuine deliveries.
+        // Safety window for purging seeded provision-ping rows. We only prune when:
+        //   1. The current test delivery was verified end-to-end (HTTP 2xx), AND
+        //   2. At least one genuine Stripe-signed event (not admin/provision test traffic)
+        //      has been persisted in stripe_webhook_events, AND
+        //   3. The provision-ping row itself is older than SEED_PRUNE_MIN_AGE_MIN minutes,
+        //      so a freshly-seeded ping isn't wiped before an admin can inspect it.
+        const SEED_PRUNE_MIN_AGE_MIN = 5;
         let prunedSeedRows = 0;
+        let pruneSkippedReason: string | null = null;
         if (ok) {
-          const { data: pruned, error: pruneErr } = await admin
+          const { data: verifiedRow, error: verifiedErr } = await admin
             .from("stripe_webhook_events")
-            .delete()
-            .like("stripe_event_id", "evt_provision_ping_%")
-            .select("stripe_event_id");
-          if (pruneErr) {
-            console.warn("[admin-payments] failed to prune provision pings", pruneErr.message);
+            .select("stripe_event_id")
+            .not("stripe_event_id", "like", "evt_provision_ping_%")
+            .not("stripe_event_id", "like", "evt_admin_test_%")
+            .neq("event_type", "admin.test.ping")
+            .limit(1)
+            .maybeSingle();
+          if (verifiedErr) {
+            console.warn("[admin-payments] failed to check verified events", verifiedErr.message);
+            pruneSkippedReason = "verified-check-failed";
+          } else if (!verifiedRow) {
+            pruneSkippedReason = "no-verified-stripe-event-yet";
           } else {
-            prunedSeedRows = pruned?.length ?? 0;
+            const cutoffIso = new Date(Date.now() - SEED_PRUNE_MIN_AGE_MIN * 60_000).toISOString();
+            const { data: pruned, error: pruneErr } = await admin
+              .from("stripe_webhook_events")
+              .delete()
+              .like("stripe_event_id", "evt_provision_ping_%")
+              .lt("created_at", cutoffIso)
+              .select("stripe_event_id");
+            if (pruneErr) {
+              console.warn("[admin-payments] failed to prune provision pings", pruneErr.message);
+              pruneSkippedReason = "prune-failed";
+            } else {
+              prunedSeedRows = pruned?.length ?? 0;
+              if (prunedSeedRows === 0) pruneSkippedReason = "no-rows-older-than-window";
+            }
           }
+        } else {
+          pruneSkippedReason = "delivery-not-ok";
         }
 
         return json({
@@ -1151,6 +1177,8 @@ Deno.serve(async (req) => {
           delivery_body: deliveryBody,
           delivery_error: deliveryError,
           pruned_seed_rows: prunedSeedRows,
+          prune_skipped_reason: pruneSkippedReason,
+          prune_min_age_minutes: SEED_PRUNE_MIN_AGE_MIN,
           message: ok
             ? `Signed test event delivered to stripe-webhook and verified.${prunedSeedRows ? ` Cleaned up ${prunedSeedRows} seeded ping row(s).` : ""}`
             : "Test event was not accepted by stripe-webhook.",
