@@ -226,6 +226,9 @@ export default function StripeWebhookStatusPanel() {
           : undefined,
         delivery_error: lastResult.delivery_error ?? null,
         attempt: finalAttempt,
+        pruned_seed_rows: typeof lastResult.pruned_seed_rows === "number" ? lastResult.pruned_seed_rows : 0,
+        prune_skipped_reason: lastResult.prune_skipped_reason ?? null,
+        prune_min_age_minutes: lastResult.prune_min_age_minutes,
         at: new Date().toISOString(),
       });
     } else if (lastError) {
