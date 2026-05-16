@@ -1043,9 +1043,11 @@ Deno.serve(async (req) => {
 
       if (action === "send-test-webhook") {
         // Build a synthetic event, sign it with the stored active signing secret for the
-        // current livemode, and POST it to our own stripe-webhook so the round-trip
-        // (signature verify → log row) is exercised end-to-end.
-        const currentLivemode = stripeKey.includes("_live_");
+        // requested livemode (defaulting to the current Stripe key's mode), and POST it
+        // to our own stripe-webhook so the round-trip (signature verify → log row) is
+        // exercised end-to-end.
+        const keyLivemode = stripeKey.includes("_live_");
+        const currentLivemode = typeof body?.livemode === "boolean" ? body.livemode : keyLivemode;
         const { data: secretRow, error: secretErr } = await admin
           .from("stripe_webhook_signing_secrets")
           .select("signing_secret, webhook_endpoint_id, livemode")
@@ -1056,7 +1058,7 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (secretErr) throw secretErr;
         if (!secretRow?.signing_secret) {
-          return badReq("No active signing secret found for current Stripe environment.");
+          return badReq(`No active signing secret found for ${currentLivemode ? "live" : "test"} Stripe environment.`);
         }
 
         const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
