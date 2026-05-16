@@ -170,7 +170,7 @@ export default function StripeWebhookStatusPanel() {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const result = await callApi("action=send-test-webhook", { method: "POST", body: JSON.stringify({}) });
+        const result = await callApi("action=send-test-webhook", { method: "POST", body: JSON.stringify({ livemode: testLivemode }) });
         lastResult = result;
         if (result?.ok) {
           if (attempt > 1) {
