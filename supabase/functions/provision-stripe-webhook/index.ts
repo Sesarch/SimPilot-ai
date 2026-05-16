@@ -49,25 +49,24 @@ Deno.serve(async (req) => {
   const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
 
   try {
-    // Reuse if already exists & enabled
+    // Always delete any existing endpoint at this URL so we can mint a fresh
+    // signing secret (Stripe never re-exposes the secret of an existing endpoint).
     const existing = await stripe.webhookEndpoints.list({ limit: 100 });
-    let endpoint = existing.data.find(
-      (e) => e.url === expectedUrl && e.status === "enabled",
-    );
-    let signingSecret: string | null = null;
-    let created = false;
-
-    if (!endpoint) {
-      const fresh = await stripe.webhookEndpoints.create({
-        url: expectedUrl,
-        enabled_events: REQUIRED_EVENTS as Stripe.WebhookEndpointCreateParams.EnabledEvent[],
-        description: "SimPilot subscription sync webhook (backend provision)",
-        metadata: { app: "simpilot", purpose: "subscription_sync" },
-      });
-      endpoint = fresh;
-      signingSecret = (fresh as Stripe.WebhookEndpoint & { secret?: string | null }).secret ?? null;
-      created = true;
+    const matches = existing.data.filter((e) => e.url === expectedUrl);
+    for (const m of matches) {
+      try { await stripe.webhookEndpoints.del(m.id); } catch (_) { /* ignore */ }
     }
+
+    const fresh = await stripe.webhookEndpoints.create({
+      url: expectedUrl,
+      enabled_events: REQUIRED_EVENTS as Stripe.WebhookEndpointCreateParams.EnabledEvent[],
+      description: "SimPilot subscription sync webhook (backend provision)",
+      metadata: { app: "simpilot", purpose: "subscription_sync" },
+    });
+    const endpoint = fresh;
+    const signingSecret =
+      (fresh as Stripe.WebhookEndpoint & { secret?: string | null }).secret ?? null;
+    const created = true;
 
     if (signingSecret && endpoint) {
       const { error } = await admin.from("stripe_webhook_signing_secrets").upsert(
