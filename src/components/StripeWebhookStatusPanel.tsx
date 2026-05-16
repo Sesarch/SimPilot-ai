@@ -67,6 +67,9 @@ export default function StripeWebhookStatusPanel() {
     delivery_body?: string;
     delivery_error?: string | null;
     attempt?: number;
+    pruned_seed_rows?: number;
+    prune_skipped_reason?: string | null;
+    prune_min_age_minutes?: number;
     at: string;
   } | null>(null);
   const [searchResults, setSearchResults] = useState<{
@@ -223,6 +226,9 @@ export default function StripeWebhookStatusPanel() {
           : undefined,
         delivery_error: lastResult.delivery_error ?? null,
         attempt: finalAttempt,
+        pruned_seed_rows: typeof lastResult.pruned_seed_rows === "number" ? lastResult.pruned_seed_rows : 0,
+        prune_skipped_reason: lastResult.prune_skipped_reason ?? null,
+        prune_min_age_minutes: lastResult.prune_min_age_minutes,
         at: new Date().toISOString(),
       });
     } else if (lastError) {
@@ -334,6 +340,32 @@ export default function StripeWebhookStatusPanel() {
               {lastTestResult.attempt && lastTestResult.attempt > 1 && (
                 <span className="text-muted-foreground">attempt {lastTestResult.attempt}</span>
               )}
+              {(() => {
+                const n = lastTestResult.pruned_seed_rows ?? 0;
+                if (n > 0) {
+                  return (
+                    <span className="badge-status-success text-[10px]" title="Seeded provision-ping rows removed from event log">
+                      seeded rows cleaned · {n}
+                    </span>
+                  );
+                }
+                if (lastTestResult.ok && lastTestResult.prune_skipped_reason) {
+                  const reasonMap: Record<string, string> = {
+                    "no-verified-stripe-event-yet": "awaiting first verified Stripe event",
+                    "no-rows-older-than-window": `inside ${lastTestResult.prune_min_age_minutes ?? 5}-min safety window`,
+                    "verified-check-failed": "verified-check failed",
+                    "prune-failed": "prune failed",
+                    "delivery-not-ok": "delivery not ok",
+                  };
+                  const label = reasonMap[lastTestResult.prune_skipped_reason] ?? lastTestResult.prune_skipped_reason;
+                  return (
+                    <span className="badge-status-neutral text-[10px]" title="No seeded rows were pruned">
+                      no prune · {label}
+                    </span>
+                  );
+                }
+                return null;
+              })()}
             </div>
             <button
               type="button"
