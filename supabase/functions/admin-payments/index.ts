@@ -1162,7 +1162,30 @@ Deno.serve(async (req) => {
               pruneSkippedReason = "prune-failed";
             } else {
               prunedSeedRows = pruned?.length ?? 0;
-              if (prunedSeedRows === 0) pruneSkippedReason = "no-rows-older-than-window";
+              if (prunedSeedRows === 0) {
+                pruneSkippedReason = "no-rows-older-than-window";
+              } else {
+                await logAdminAction(admin, {
+                  adminUserId: user.id,
+                  adminEmail: user.email,
+                  action: "stripe.seed_rows_pruned",
+                  targetType: "stripe_webhook_events",
+                  targetId: eventId,
+                  details: {
+                    test_run_id: eventId,
+                    livemode: currentLivemode,
+                    rows_deleted: prunedSeedRows,
+                    deleted_event_ids: (pruned ?? [])
+                      .map((r: { stripe_event_id?: string }) => r.stripe_event_id)
+                      .filter(Boolean)
+                      .slice(0, 50),
+                    cutoff_at: cutoffIso,
+                    prune_min_age_minutes: SEED_PRUNE_MIN_AGE_MIN,
+                    pruned_at: new Date().toISOString(),
+                  },
+                  req,
+                });
+              }
             }
           }
         } else {
