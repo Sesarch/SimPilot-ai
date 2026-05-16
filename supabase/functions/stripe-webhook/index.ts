@@ -270,7 +270,14 @@ Deno.serve(async (req) => {
       },
       { onConflict: "stripe_event_id" },
     );
-    if (error) log("event log insert failed", { id: ev.id, error: error.message });
+    if (error) {
+      log("event log insert failed", {
+        id: ev.id,
+        error: error.message,
+        code: (error as { code?: string }).code,
+      });
+      throw new Error(`Failed to persist webhook event ${ev.id}: ${error.message}`);
+    }
   }
 
   try {
