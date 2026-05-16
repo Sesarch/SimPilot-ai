@@ -78,7 +78,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               title="Follow SimPilot.AI on Facebook"
               aria-label="Follow SimPilot.AI on Facebook"
-              className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center justify-center w-8 h-8 rounded-full border border-border/60 hover:border-primary"
+              className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center justify-center w-11 h-11 rounded-full border border-border/60 hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <Facebook className="w-4 h-4" />
             </a>
