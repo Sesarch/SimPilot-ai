@@ -67,6 +67,9 @@ export default function StripeWebhookStatusPanel() {
     delivery_body?: string;
     delivery_error?: string | null;
     attempt?: number;
+    pruned_seed_rows?: number;
+    prune_skipped_reason?: string | null;
+    prune_min_age_minutes?: number;
     at: string;
   } | null>(null);
   const [searchResults, setSearchResults] = useState<{
