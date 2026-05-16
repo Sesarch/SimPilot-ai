@@ -165,6 +165,7 @@ export default function StripeWebhookStatusPanel() {
   const sendTestWebhook = useCallback(async () => {
     setSendingTest(true);
     setError(null);
+    setLastTestResult(null);
 
     // Configurable retry policy: exponential backoff with jitter.
     const maxAttempts = 4;        // total tries before giving up
@@ -177,8 +178,10 @@ export default function StripeWebhookStatusPanel() {
 
     let lastResult: any = null;
     let lastError: unknown = null;
+    let finalAttempt = 0;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      finalAttempt = attempt;
       try {
         const result = await callApi("action=send-test-webhook", { method: "POST", body: JSON.stringify({ livemode: testLivemode }) });
         lastResult = result;
@@ -209,7 +212,28 @@ export default function StripeWebhookStatusPanel() {
       await new Promise((r) => setTimeout(r, jittered));
     }
 
-    void lastResult; void lastError;
+    if (lastResult) {
+      setLastTestResult({
+        ok: !!lastResult.ok,
+        event_id: lastResult.event_id,
+        livemode: lastResult.livemode,
+        delivery_status: lastResult.delivery_status,
+        delivery_body: typeof lastResult.delivery_body === "string"
+          ? lastResult.delivery_body.slice(0, 500)
+          : undefined,
+        delivery_error: lastResult.delivery_error ?? null,
+        attempt: finalAttempt,
+        at: new Date().toISOString(),
+      });
+    } else if (lastError) {
+      setLastTestResult({
+        ok: false,
+        delivery_error: lastError instanceof Error ? lastError.message : String(lastError),
+        attempt: finalAttempt,
+        at: new Date().toISOString(),
+      });
+    }
+
     try { await load(); } finally { setSendingTest(false); }
   }, [callApi, load, testLivemode]);
 
