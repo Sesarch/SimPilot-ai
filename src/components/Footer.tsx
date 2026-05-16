@@ -1,4 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Facebook } from "lucide-react";
 import Logo from "@/components/Logo";
 
 const FooterLink = ({ to, title, children }: { to: string; title: string; children: React.ReactNode }) => {
@@ -71,6 +72,16 @@ const Footer = () => {
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
           </p>
            <div className="flex items-center gap-4">
+            <a
+              href="https://www.facebook.com/profile.php?id=61570682398248"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Follow SimPilot.AI on Facebook"
+              aria-label="Follow SimPilot.AI on Facebook"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Facebook className="w-4 h-4" />
+            </a>
             <p className="text-xs text-muted-foreground tracking-wide">
               Built for pilots, powered by AI
             </p>
