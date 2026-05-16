@@ -1,0 +1,1 @@
+TRUNCATE TABLE public.stripe_webhook_signing_secrets;
