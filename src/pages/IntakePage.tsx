@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 
 type Audience = "pilot" | "school";
 
@@ -188,7 +189,7 @@ const IntakePage = () => {
         .invoke("send-transactional-email", {
           body: {
             templateName: "intake-team-notification",
-            recipientEmail: "support@simpilot.ai",
+            recipientEmail: SUPPORT_EMAIL,
             idempotencyKey: `intake-notify-${id}`,
             templateData: {
               audience: form.audience,

@@ -8,6 +8,7 @@ import PlanComparisonTable from "./PlanComparisonTable";
 import PlanQuickCompare from "./PlanQuickCompare";
 import PricingFAQ from "./PricingFAQ";
 import ForSchoolsSection from "./ForSchoolsSection";
+import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 
 const plans = [
   {
@@ -203,7 +204,7 @@ const PricingSection = () => {
         ``,
         `Thanks!`,
       ].join("\n");
-      const mailto = `mailto:support@simpilot.ai?subject=${encodeURIComponent(
+      const mailto = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
         subject
       )}&body=${encodeURIComponent(body)}`;
       toast.error(`Couldn't open ${plan.name} checkout`, {
