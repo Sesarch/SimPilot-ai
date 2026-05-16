@@ -262,22 +262,47 @@ export default function StripeWebhookStatusPanel() {
             !e.stripe_event_id.startsWith("evt_provision_ping_") &&
             !e.stripe_event_id.startsWith("evt_admin_test_"),
         );
+        const lastTest = data.recent.find(
+          (e) =>
+            e.event_type === "admin.test.ping" ||
+            e.stripe_event_id.startsWith("evt_admin_test_") ||
+            e.stripe_event_id.startsWith("evt_provision_ping_"),
+        );
+        const testOk = lastTest?.status ? /^(2|ok|success|received|processed)/i.test(lastTest.status) : true;
         return (
-          <div className="rounded border border-border/60 bg-card/30 p-2 text-xs flex items-center justify-between gap-2">
-            <span className="text-muted-foreground">Last verified Stripe delivery</span>
-            {lastVerified ? (
-              <span className="flex items-center gap-2 text-right">
-                <code className="font-mono text-foreground">{lastVerified.event_type}</code>
-                <span className="text-muted-foreground">
-                  {new Date(lastVerified.created_at).toLocaleString()}
+          <div className="space-y-2">
+            <div className="rounded border border-border/60 bg-card/30 p-2 text-xs flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">Last verified Stripe delivery</span>
+              {lastVerified ? (
+                <span className="flex items-center gap-2 text-right">
+                  <code className="font-mono text-foreground">{lastVerified.event_type}</code>
+                  <span className="text-muted-foreground">
+                    {new Date(lastVerified.created_at).toLocaleString()}
+                  </span>
+                  <span className="badge-status-neutral uppercase text-[10px]">
+                    {lastVerified.livemode ? "live" : "test"}
+                  </span>
                 </span>
-                <span className="badge-status-neutral uppercase text-[10px]">
-                  {lastVerified.livemode ? "live" : "test"}
+              ) : (
+                <span className="text-amber-400">No verified deliveries yet</span>
+              )}
+            </div>
+            <div className="rounded border border-border/60 bg-card/30 p-2 text-xs flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">Last test</span>
+              {lastTest ? (
+                <span className="flex items-center gap-2 text-right flex-wrap justify-end">
+                  <span className={testOk ? "badge-status-success text-[10px]" : "badge-status-danger text-[10px]"}>
+                    {lastTest.status ?? "unknown"}
+                  </span>
+                  <code className="font-mono text-[11px] text-foreground break-all">{lastTest.stripe_event_id}</code>
+                  <span className="text-muted-foreground">
+                    {new Date(lastTest.created_at).toLocaleString()}
+                  </span>
                 </span>
-              </span>
-            ) : (
-              <span className="text-amber-400">No verified deliveries yet</span>
-            )}
+              ) : (
+                <span className="text-muted-foreground">No test deliveries yet</span>
+              )}
+            </div>
           </div>
         );
       })()}
