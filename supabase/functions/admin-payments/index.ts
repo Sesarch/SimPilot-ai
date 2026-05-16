@@ -1056,10 +1056,7 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (secretErr) throw secretErr;
         if (!secretRow?.signing_secret) {
-          return json(
-            { error: "No active signing secret found for current Stripe environment." },
-            400,
-          );
+          return badReq("No active signing secret found for current Stripe environment.");
         }
 
         const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
