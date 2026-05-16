@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 
 const faqs = [
   {
@@ -235,8 +236,8 @@ const ContactPage = () => {
         <div className="mt-12 p-4 rounded-lg border border-border bg-card">
           <p className="text-xs text-muted-foreground leading-relaxed">
             You can also reach us at{" "}
-            <a href="mailto:support@simpilot.ai" className="text-primary hover:underline">
-              support@simpilot.ai
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">
+              {SUPPORT_EMAIL}
             </a>
             . We typically respond within 24–48 hours.
           </p>

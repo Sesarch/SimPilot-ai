@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, GraduationCap, Plane } from "lucide-react";
+import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 
 type Audience = "pilot" | "school";
 
@@ -61,7 +62,7 @@ const LeadCaptureSection = () => {
         .invoke("send-transactional-email", {
           body: {
             templateName: "intake-team-notification",
-            recipientEmail: "support@simpilot.ai",
+            recipientEmail: SUPPORT_EMAIL,
             idempotencyKey: `intake-notify-${id}`,
             templateData: {
               audience,
@@ -208,7 +209,7 @@ const LeadCaptureSection = () => {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <p className="text-xs text-muted-foreground">
                   We'll email{" "}
-                  <span className="text-foreground">support@simpilot.ai</span> and follow up with you.
+                  <span className="text-foreground">{SUPPORT_EMAIL}</span> and follow up with you.
                 </p>
                 <Button type="submit" disabled={submitting} className="sm:min-w-[180px]">
                   {submitting ? "Sending…" : "Submit"}

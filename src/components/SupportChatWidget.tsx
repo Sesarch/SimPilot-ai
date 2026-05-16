@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -150,7 +151,7 @@ const SupportChatWidget = () => {
         }
       }
     } catch (e: any) {
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I'm having trouble connecting. Please try again or email us at support@simpilot.ai." }]);
+      setMessages(prev => [...prev, { role: "assistant", content: `Sorry, I'm having trouble connecting. Please try again or email us at ${SUPPORT_EMAIL}.` }]);
     }
 
     setIsLoading(false);
@@ -316,11 +317,11 @@ const SupportChatWidget = () => {
                     <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 space-y-2">
                       <p className="text-xs text-foreground">Need more help? Reach our team directly:</p>
                       <a
-                        href={`mailto:support@simpilot.ai?subject=Support Request&body=Email: ${email}%0A%0A`}
+                        href={`mailto:${SUPPORT_EMAIL}?subject=Support Request&body=Email: ${email}%0A%0A`}
                         className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-lg px-4 py-2 text-xs hover:bg-primary/90 transition-colors"
                       >
                         <Mail className="w-3.5 h-3.5" />
-                        Email support@simpilot.ai
+                        Email {SUPPORT_EMAIL}
                       </a>
                     </div>
                   )}
