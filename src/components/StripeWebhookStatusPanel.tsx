@@ -201,7 +201,7 @@ export default function StripeWebhookStatusPanel() {
 
     void lastResult; void lastError;
     try { await load(); } finally { setSendingTest(false); }
-  }, [callApi, load]);
+  }, [callApi, load, testLivemode]);
 
   useEffect(() => { load(); }, [load]);
 
