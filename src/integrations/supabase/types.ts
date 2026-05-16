@@ -1744,6 +1744,14 @@ export type Database = {
         }
         Returns: number
       }
+      prune_seeded_provision_pings: {
+        Args: { _min_age_minutes: number }
+        Returns: {
+          cutoff_at: string
+          deleted_event_ids: string[]
+          verified_event_exists: boolean
+        }[]
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
