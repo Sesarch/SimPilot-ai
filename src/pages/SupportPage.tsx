@@ -105,6 +105,7 @@ const SupportPage = () => {
       <SEOHead
         title="Support & Help Center — SimPilot.AI"
         description="Get help with SimPilot.AI. Browse FAQs, help categories, billing, training, and technical support for the AI pilot training platform."
+        keywords="SimPilot support, pilot training help, AI flight instructor FAQ, ground school help, billing support, account help"
         canonical="/support"
         jsonLd={[supportJsonLd]}
       />
@@ -197,7 +198,7 @@ const SupportPage = () => {
               <Button asChild variant="outline">
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
-                  window.dispatchEvent(new CustomEvent("open-support-chat"));
+                  window.dispatchEvent(new CustomEvent("simpilot:open-support"));
                 }}>
                   <MessageSquare className="w-4 h-4 mr-2" /> Open Live Chat
                 </a>
