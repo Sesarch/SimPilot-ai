@@ -202,7 +202,7 @@ const MfaChallengePage = () => {
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="123456"
                 maxLength={6}
-                className="w-full bg-secondary rounded-lg px-4 py-2.5 text-center text-lg tracking-[0.5em] font-mono outline-none focus:ring-1 focus:ring-primary/50"
+                className="w-full bg-secondary rounded-lg px-4 py-2.5 text-center text-lg tracking-[0.5em] font-mono outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-foreground/20 placeholder:font-light"
                 required
                 autoFocus
               />
