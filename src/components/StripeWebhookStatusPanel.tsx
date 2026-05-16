@@ -255,6 +255,33 @@ export default function StripeWebhookStatusPanel() {
         </div>
       )}
 
+      {data && (() => {
+        const lastVerified = data.recent.find(
+          (e) =>
+            e.event_type !== "admin.test.ping" &&
+            !e.stripe_event_id.startsWith("evt_provision_ping_") &&
+            !e.stripe_event_id.startsWith("evt_admin_test_"),
+        );
+        return (
+          <div className="rounded border border-border/60 bg-card/30 p-2 text-xs flex items-center justify-between gap-2">
+            <span className="text-muted-foreground">Last verified Stripe delivery</span>
+            {lastVerified ? (
+              <span className="flex items-center gap-2 text-right">
+                <code className="font-mono text-foreground">{lastVerified.event_type}</code>
+                <span className="text-muted-foreground">
+                  {new Date(lastVerified.created_at).toLocaleString()}
+                </span>
+                <span className="badge-status-neutral uppercase text-[10px]">
+                  {lastVerified.livemode ? "live" : "test"}
+                </span>
+              </span>
+            ) : (
+              <span className="text-amber-400">No verified deliveries yet</span>
+            )}
+          </div>
+        );
+      })()}
+
       {data && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground">Configured endpoints</p>
