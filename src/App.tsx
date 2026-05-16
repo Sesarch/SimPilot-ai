@@ -27,6 +27,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.tsx";
 import CookiePreferencesPage from "./pages/CookiePreferencesPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
+import SupportPage from "./pages/SupportPage.tsx";
 import WhySimPilotPage from "./pages/WhySimPilotPage.tsx";
 import CompetitorsPage from "./pages/CompetitorsPage.tsx";
 import AdminPage from "./pages/AdminPage.tsx";
@@ -97,6 +98,7 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/cookie-preferences" element={<CookiePreferencesPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/support" element={<SupportPage />} />
               <Route path="/why-simpilot" element={<WhySimPilotPage />} />
               <Route path="/competitors" element={<CompetitorsPage />} />
               <Route path="/for-schools" element={<ForSchoolsPage />} />
