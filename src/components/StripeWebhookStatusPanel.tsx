@@ -59,6 +59,16 @@ export default function StripeWebhookStatusPanel() {
   const [creatingEndpoint, setCreatingEndpoint] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const [testLivemode, setTestLivemode] = useState<boolean>(false);
+  const [lastTestResult, setLastTestResult] = useState<{
+    ok: boolean;
+    event_id?: string;
+    livemode?: boolean;
+    delivery_status?: number;
+    delivery_body?: string;
+    delivery_error?: string | null;
+    attempt?: number;
+    at: string;
+  } | null>(null);
   const [searchResults, setSearchResults] = useState<{
     events: RecentEvent[];
     query: string;
@@ -155,6 +165,7 @@ export default function StripeWebhookStatusPanel() {
   const sendTestWebhook = useCallback(async () => {
     setSendingTest(true);
     setError(null);
+    setLastTestResult(null);
 
     // Configurable retry policy: exponential backoff with jitter.
     const maxAttempts = 4;        // total tries before giving up
@@ -167,8 +178,10 @@ export default function StripeWebhookStatusPanel() {
 
     let lastResult: any = null;
     let lastError: unknown = null;
+    let finalAttempt = 0;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      finalAttempt = attempt;
       try {
         const result = await callApi("action=send-test-webhook", { method: "POST", body: JSON.stringify({ livemode: testLivemode }) });
         lastResult = result;
@@ -199,7 +212,28 @@ export default function StripeWebhookStatusPanel() {
       await new Promise((r) => setTimeout(r, jittered));
     }
 
-    void lastResult; void lastError;
+    if (lastResult) {
+      setLastTestResult({
+        ok: !!lastResult.ok,
+        event_id: lastResult.event_id,
+        livemode: lastResult.livemode,
+        delivery_status: lastResult.delivery_status,
+        delivery_body: typeof lastResult.delivery_body === "string"
+          ? lastResult.delivery_body.slice(0, 500)
+          : undefined,
+        delivery_error: lastResult.delivery_error ?? null,
+        attempt: finalAttempt,
+        at: new Date().toISOString(),
+      });
+    } else if (lastError) {
+      setLastTestResult({
+        ok: false,
+        delivery_error: lastError instanceof Error ? lastError.message : String(lastError),
+        attempt: finalAttempt,
+        at: new Date().toISOString(),
+      });
+    }
+
     try { await load(); } finally { setSendingTest(false); }
   }, [callApi, load, testLivemode]);
 
@@ -271,6 +305,62 @@ export default function StripeWebhookStatusPanel() {
       {error && (
         <div className="rounded border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-400">
           Failed to load webhook status: {error}
+        </div>
+      )}
+
+      {lastTestResult && (
+        <div
+          className={`rounded border p-2 text-xs space-y-1 ${
+            lastTestResult.ok
+              ? "border-emerald-500/30 bg-emerald-500/5"
+              : "border-red-500/30 bg-red-500/5"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className={
+                  lastTestResult.ok ? "badge-status-success text-[10px]" : "badge-status-danger text-[10px]"
+                }
+              >
+                {lastTestResult.ok ? "verified" : "failed"}
+              </span>
+              <span className="text-muted-foreground">HTTP {lastTestResult.delivery_status ?? "?"}</span>
+              {typeof lastTestResult.livemode === "boolean" && (
+                <span className="badge-status-neutral uppercase text-[10px]">
+                  {lastTestResult.livemode ? "live" : "test"}
+                </span>
+              )}
+              {lastTestResult.attempt && lastTestResult.attempt > 1 && (
+                <span className="text-muted-foreground">attempt {lastTestResult.attempt}</span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setLastTestResult(null)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Dismiss test result"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          {lastTestResult.event_id && (
+            <code className="block break-all text-[11px] text-foreground">{lastTestResult.event_id}</code>
+          )}
+          {lastTestResult.delivery_error && (
+            <div className="text-[11px] text-red-300">
+              <span className="font-semibold">Error:</span> {lastTestResult.delivery_error}
+            </div>
+          )}
+          {lastTestResult.delivery_body !== undefined && (
+            <details open>
+              <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-muted-foreground">
+                stripe-webhook response (first 500 chars)
+              </summary>
+              <pre className="mt-1 max-h-40 overflow-auto rounded bg-black/40 p-2 text-[11px] text-foreground/90 whitespace-pre-wrap break-all">{lastTestResult.delivery_body || "(empty body)"}</pre>
+            </details>
+          )}
+          <p className="text-[10px] text-muted-foreground">{new Date(lastTestResult.at).toLocaleString()}</p>
         </div>
       )}
 
