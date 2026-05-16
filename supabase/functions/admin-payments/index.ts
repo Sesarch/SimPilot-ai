@@ -1136,32 +1136,29 @@ Deno.serve(async (req) => {
         let prunedSeedRows = 0;
         let pruneSkippedReason: string | null = null;
         if (ok) {
-          const { data: verifiedRow, error: verifiedErr } = await admin
-            .from("stripe_webhook_events")
-            .select("stripe_event_id")
-            .not("stripe_event_id", "like", "evt_provision_ping_%")
-            .not("stripe_event_id", "like", "evt_admin_test_%")
-            .neq("event_type", "admin.test.ping")
-            .limit(1)
-            .maybeSingle();
-          if (verifiedErr) {
-            console.warn("[admin-payments] failed to check verified events", verifiedErr.message);
-            pruneSkippedReason = "verified-check-failed";
-          } else if (!verifiedRow) {
-            pruneSkippedReason = "no-verified-stripe-event-yet";
+          // Atomic: a SECURITY DEFINER function takes a pg_advisory_xact_lock,
+          // re-checks for a verified Stripe event, and deletes aged seed rows
+          // inside a single transaction so concurrent "Send test" runs can't
+          // double-count or interleave with the verification check.
+          const { data: pruneRows, error: pruneErr } = await admin.rpc(
+            "prune_seeded_provision_pings",
+            { _min_age_minutes: SEED_PRUNE_MIN_AGE_MIN },
+          );
+          if (pruneErr) {
+            console.warn("[admin-payments] prune rpc failed", pruneErr.message);
+            pruneSkippedReason = "prune-failed";
           } else {
-            const cutoffIso = new Date(Date.now() - SEED_PRUNE_MIN_AGE_MIN * 60_000).toISOString();
-            const { data: pruned, error: pruneErr } = await admin
-              .from("stripe_webhook_events")
-              .delete()
-              .like("stripe_event_id", "evt_provision_ping_%")
-              .lt("created_at", cutoffIso)
-              .select("stripe_event_id");
-            if (pruneErr) {
-              console.warn("[admin-payments] failed to prune provision pings", pruneErr.message);
-              pruneSkippedReason = "prune-failed";
+            const row = Array.isArray(pruneRows) ? pruneRows[0] : pruneRows;
+            const deletedIds: string[] = Array.isArray(row?.deleted_event_ids)
+              ? row.deleted_event_ids.filter((v: unknown): v is string => typeof v === "string")
+              : [];
+            const cutoffIso: string = typeof row?.cutoff_at === "string"
+              ? row.cutoff_at
+              : new Date(Date.now() - SEED_PRUNE_MIN_AGE_MIN * 60_000).toISOString();
+            if (!row?.verified_event_exists) {
+              pruneSkippedReason = "no-verified-stripe-event-yet";
             } else {
-              prunedSeedRows = pruned?.length ?? 0;
+              prunedSeedRows = deletedIds.length;
               if (prunedSeedRows === 0) {
                 pruneSkippedReason = "no-rows-older-than-window";
               } else {
@@ -1175,10 +1172,7 @@ Deno.serve(async (req) => {
                     test_run_id: eventId,
                     livemode: currentLivemode,
                     rows_deleted: prunedSeedRows,
-                    deleted_event_ids: (pruned ?? [])
-                      .map((r: { stripe_event_id?: string }) => r.stripe_event_id)
-                      .filter(Boolean)
-                      .slice(0, 50),
+                    deleted_event_ids: deletedIds.slice(0, 50),
                     cutoff_at: cutoffIso,
                     prune_min_age_minutes: SEED_PRUNE_MIN_AGE_MIN,
                     pruned_at: new Date().toISOString(),
