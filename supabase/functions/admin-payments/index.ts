@@ -1123,6 +1123,24 @@ Deno.serve(async (req) => {
         });
 
         const ok = deliveryStatus >= 200 && deliveryStatus < 300;
+
+        // Once a real Stripe-signed event has been verified and persisted, the seeded
+        // provision-ping rows are no longer needed — purge them so the event log only
+        // shows genuine deliveries.
+        let prunedSeedRows = 0;
+        if (ok) {
+          const { data: pruned, error: pruneErr } = await admin
+            .from("stripe_webhook_events")
+            .delete()
+            .like("stripe_event_id", "evt_provision_ping_%")
+            .select("stripe_event_id");
+          if (pruneErr) {
+            console.warn("[admin-payments] failed to prune provision pings", pruneErr.message);
+          } else {
+            prunedSeedRows = pruned?.length ?? 0;
+          }
+        }
+
         return json({
           ok,
           event_id: eventId,
@@ -1130,8 +1148,9 @@ Deno.serve(async (req) => {
           delivery_status: deliveryStatus,
           delivery_body: deliveryBody,
           delivery_error: deliveryError,
+          pruned_seed_rows: prunedSeedRows,
           message: ok
-            ? "Signed test event delivered to stripe-webhook and verified."
+            ? `Signed test event delivered to stripe-webhook and verified.${prunedSeedRows ? ` Cleaned up ${prunedSeedRows} seeded ping row(s).` : ""}`
             : "Test event was not accepted by stripe-webhook.",
         });
       }
