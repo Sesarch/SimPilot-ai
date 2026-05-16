@@ -188,10 +188,22 @@ export default function StripeWebhookStatusPanel() {
             );
           })()}
         </div>
-        <Button size="sm" variant="ghost" onClick={load} disabled={loading}>
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span className="ml-1 text-xs">Refresh</span>
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={sendTestWebhook}
+            disabled={sendingTest || !data?.signing_secret_configured}
+            title={data?.signing_secret_configured ? "Send a signed test event to stripe-webhook" : "Configure signing secret first"}
+          >
+            <Webhook className={`w-3.5 h-3.5 ${sendingTest ? "animate-pulse" : ""}`} />
+            <span className="ml-1 text-xs">{sendingTest ? "Sending…" : "Send test"}</span>
+          </Button>
+          <Button size="sm" variant="ghost" onClick={load} disabled={loading}>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span className="ml-1 text-xs">Refresh</span>
+          </Button>
+        </div>
       </div>
 
       {error && (
