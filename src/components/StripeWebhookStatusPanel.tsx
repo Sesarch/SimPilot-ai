@@ -57,6 +57,7 @@ export default function StripeWebhookStatusPanel() {
   const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [creatingEndpoint, setCreatingEndpoint] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
   const [searchResults, setSearchResults] = useState<{
     events: RecentEvent[];
     query: string;
@@ -150,6 +151,24 @@ export default function StripeWebhookStatusPanel() {
     }
   }, [callApi, load]);
 
+  const sendTestWebhook = useCallback(async () => {
+    setSendingTest(true);
+    setError(null);
+    try {
+      const result = await callApi("action=send-test-webhook", { method: "POST", body: JSON.stringify({}) });
+      if (result.ok) {
+        toast.success(`Signed test event verified (HTTP ${result.delivery_status}).`);
+      } else {
+        toast.error(`Test delivery failed: HTTP ${result.delivery_status} ${result.delivery_error ?? ""}`.trim());
+      }
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSendingTest(false);
+    }
+  }, [callApi, load]);
+
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -169,10 +188,22 @@ export default function StripeWebhookStatusPanel() {
             );
           })()}
         </div>
-        <Button size="sm" variant="ghost" onClick={load} disabled={loading}>
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span className="ml-1 text-xs">Refresh</span>
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={sendTestWebhook}
+            disabled={sendingTest || !data?.signing_secret_configured}
+            title={data?.signing_secret_configured ? "Send a signed test event to stripe-webhook" : "Configure signing secret first"}
+          >
+            <Webhook className={`w-3.5 h-3.5 ${sendingTest ? "animate-pulse" : ""}`} />
+            <span className="ml-1 text-xs">{sendingTest ? "Sending…" : "Send test"}</span>
+          </Button>
+          <Button size="sm" variant="ghost" onClick={load} disabled={loading}>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span className="ml-1 text-xs">Refresh</span>
+          </Button>
+        </div>
       </div>
 
       {error && (

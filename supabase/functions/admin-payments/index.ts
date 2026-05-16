@@ -1041,6 +1041,101 @@ Deno.serve(async (req) => {
         });
       }
 
+      if (action === "send-test-webhook") {
+        // Build a synthetic event, sign it with the stored active signing secret for the
+        // current livemode, and POST it to our own stripe-webhook so the round-trip
+        // (signature verify → log row) is exercised end-to-end.
+        const currentLivemode = stripeKey.includes("_live_");
+        const { data: secretRow, error: secretErr } = await admin
+          .from("stripe_webhook_signing_secrets")
+          .select("signing_secret, webhook_endpoint_id, livemode")
+          .eq("active", true)
+          .eq("livemode", currentLivemode)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (secretErr) throw secretErr;
+        if (!secretRow?.signing_secret) {
+          return badReq("No active signing secret found for current Stripe environment.");
+        }
+
+        const expectedUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stripe-webhook`;
+        const eventId = `evt_admin_test_${Date.now()}`;
+        const nowSec = Math.floor(Date.now() / 1000);
+        const payloadObj = {
+          id: eventId,
+          object: "event",
+          api_version: "2025-08-27.basil",
+          created: nowSec,
+          livemode: currentLivemode,
+          type: "admin.test.ping",
+          pending_webhooks: 0,
+          request: { id: null, idempotency_key: null },
+          data: {
+            object: {
+              id: `admin_test_${nowSec}`,
+              object: "admin_test",
+              note: "Admin-triggered signed webhook test",
+              triggered_by: user.email ?? user.id,
+            },
+          },
+        };
+        const payload = JSON.stringify(payloadObj);
+
+        // Use Stripe SDK to compute a valid v1 signature with the real signing secret.
+        const header = stripe.webhooks.generateTestHeaderString({
+          payload,
+          secret: secretRow.signing_secret,
+          timestamp: nowSec,
+        });
+
+        let deliveryStatus = 0;
+        let deliveryBody = "";
+        let deliveryError: string | null = null;
+        try {
+          const resp = await fetch(expectedUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Stripe-Signature": header,
+            },
+            body: payload,
+          });
+          deliveryStatus = resp.status;
+          deliveryBody = (await resp.text()).slice(0, 500);
+        } catch (e) {
+          deliveryError = e instanceof Error ? e.message : String(e);
+        }
+
+        await logAdminAction(admin, {
+          adminUserId: user.id,
+          adminEmail: user.email,
+          action: "stripe.webhook_test_send",
+          targetType: "webhook_endpoint",
+          targetId: secretRow.webhook_endpoint_id,
+          details: {
+            event_id: eventId,
+            livemode: currentLivemode,
+            delivery_status: deliveryStatus,
+            delivery_error: deliveryError,
+          },
+          req,
+        });
+
+        const ok = deliveryStatus >= 200 && deliveryStatus < 300;
+        return json({
+          ok,
+          event_id: eventId,
+          livemode: currentLivemode,
+          delivery_status: deliveryStatus,
+          delivery_body: deliveryBody,
+          delivery_error: deliveryError,
+          message: ok
+            ? "Signed test event delivered to stripe-webhook and verified."
+            : "Test event was not accepted by stripe-webhook.",
+        });
+      }
+
       if (action === "log-load-failure") {
         const { attempts, error_message, error_code, status, endpoint, occurred_at } = body || {};
         await logAdminAction(admin, {
