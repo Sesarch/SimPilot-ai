@@ -129,6 +129,11 @@ const MfaChallengePage = () => {
           : msg === "too_many_attempts" ? "Too many attempts"
           : msg
       );
+      // Clear the stale code so the user can type the new one without backspacing.
+      if (msg === "no_active_code" || msg === "too_many_attempts" || msg === "incorrect_code") {
+        setCode("");
+        setRecovery("");
+      }
     } finally {
       setBusy(false);
     }
