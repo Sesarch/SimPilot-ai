@@ -151,6 +151,24 @@ export default function StripeWebhookStatusPanel() {
     }
   }, [callApi, load]);
 
+  const sendTestWebhook = useCallback(async () => {
+    setSendingTest(true);
+    setError(null);
+    try {
+      const result = await callApi("action=send-test-webhook", { method: "POST", body: JSON.stringify({}) });
+      if (result.ok) {
+        toast.success(`Signed test event verified (HTTP ${result.delivery_status}).`);
+      } else {
+        toast.error(`Test delivery failed: HTTP ${result.delivery_status} ${result.delivery_error ?? ""}`.trim());
+      }
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSendingTest(false);
+    }
+  }, [callApi, load]);
+
   useEffect(() => { load(); }, [load]);
 
   return (
