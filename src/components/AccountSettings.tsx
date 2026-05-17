@@ -309,7 +309,7 @@ const AccountSettings = () => {
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled) setProfilePublic((data as any)?.profile_public ?? true);
+        if (!cancelled) setProfilePublic((data as any)?.profile_public ?? false);
       });
     return () => { cancelled = true; };
   }, [user]);
@@ -710,18 +710,18 @@ const AccountSettings = () => {
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-6">
         <div className="flex items-start justify-between gap-4 mb-1">
           <h3 className="font-display text-sm text-foreground flex items-center gap-2">
-            <Globe className="w-4 h-4 text-primary" /> Public Profile
+            <Globe className="w-4 h-4 text-primary" /> Show my profile in the SimPilot pilot directory
           </h3>
           <Switch
-            checked={profilePublic ?? true}
+            checked={profilePublic ?? false}
             onCheckedChange={handleTogglePrivacy}
             disabled={savingPrivacy || profilePublic === null}
-            aria-label="Toggle public profile visibility"
+            aria-label="Show my profile in the SimPilot pilot directory"
           />
         </div>
         <p className="text-xs text-muted-foreground mb-4">
-          When on, anyone with your link can see your callsign, certificate, flight hours, and earned badges.
-          When off, your <code className="text-foreground">/pilot/{user?.id?.slice(0, 8)}…</code> page shows a "Private Profile" message.
+          When enabled, your display name, certificate type, aircraft, region, and bio are visible to anyone at{" "}
+          <code className="text-foreground">simpilot.ai/pilot/{user?.id?.slice(0, 8)}…</code>. Your subscription, training data, and contact info are never shown.
         </p>
         {profilePublic && publicProfileUrl && (
           <div className="flex items-center gap-2 rounded-md border border-border bg-background/40 px-3 py-2">
