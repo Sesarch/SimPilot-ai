@@ -39,6 +39,10 @@ const TermsPage = () => {
           <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
         </p>
 
+        <DraftReviewBanner
+          body="This pricing and T&C have not been reviewed by legal counsel. Do not promote to production until reviewed."
+        />
+
         <TermsContent />
       </div>
       <Footer />
