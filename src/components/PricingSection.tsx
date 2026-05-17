@@ -1,448 +1,230 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, GraduationCap, User, Plane, ShieldCheck, RefreshCcw, CreditCard, Crown, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Check, Loader2, Sparkles, Plane, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import PlanComparisonTable from "./PlanComparisonTable";
-import PlanQuickCompare from "./PlanQuickCompare";
 import PricingFAQ from "./PricingFAQ";
-import ForSchoolsSection from "./ForSchoolsSection";
+import DraftReviewBanner from "./DraftReviewBanner";
 import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 
-const plans = [
+// Stripe price IDs — created via Stripe MCP on 2026-05-17.
+// Hardcoded here (not env-driven) so the UI is deterministic and easy to audit.
+const PRICE_IDS = {
+  pilot_monthly: "price_1TXw2MRusIXFsWjcPRHlBeUe",   // $39/mo
+  pilot_annual: "price_1TXw3SRusIXFsWjcMTjhLNn0",    // $299/yr
+  checkride_lifetime: "price_1TXw5IRusIXFsWjcHvUOrDHH", // $399 one-time
+} as const;
+
+type PlanKey = keyof typeof PRICE_IDS;
+
+interface Tier {
+  key: PlanKey;
+  name: string;
+  icon: typeof Plane;
+  headlinePrice: string;
+  priceSuffix: string;
+  subPrice?: string;        // small text under price (e.g. "$24.92/mo equivalent")
+  badge?: string;           // e.g. "MOST POPULAR"
+  saveLine?: string;        // e.g. "Save $169/yr vs Monthly"
+  billing: string;
+  trial: string;
+  conversationCap: string;
+  supportSla: string;
+  guarantee: boolean;
+  cta: string;
+  highlighted: boolean;
+  /**
+   * Stripe checkout mode. "subscription" = recurring, "payment" = one-time.
+   * Checkride Lifetime is the only one-off plan.
+   */
+  checkoutMode: "subscription" | "payment";
+}
+
+const TIERS: Tier[] = [
   {
+    key: "pilot_monthly",
+    name: "Pilot Monthly",
     icon: Plane,
-    name: "Student",
-    monthly: 29,
-    annual: 23,
-    description: "Everything you need to pass your checkride",
-    priceSuffix: "/mo",
-    features: [
-      "19 Ground One-on-One modules (FAA ACS)",
-      "Oral Exam simulator",
-      "ATC communication trainer",
-      "Live Flight Tracker & Weather",
-      "Performance tracking dashboard",
-      "Session history (30 days)",
-      "Community access",
-    ],
-    cta: "Start Free Trial",
+    headlinePrice: "$39",
+    priceSuffix: "/month",
+    billing: "Monthly, cancel anytime",
+    trial: "7-day free trial",
+    conversationCap: "500 AI conversations / month",
+    supportSla: "Email support — 48 hr response",
+    guarantee: false,
+    cta: "Start free trial",
     highlighted: false,
+    checkoutMode: "subscription",
   },
   {
-    icon: User,
-    name: "Pro Pilot",
-    monthly: 59,
-    annual: 47,
-    description: "Advanced tools for serious pilots and CFIs",
-    priceSuffix: "/mo",
-    features: [
-      "Everything in Student",
-      "Unlimited AI coaching sessions",
-      "POH upload & aircraft-specific coaching",
-      "VFR/IFR chart image analysis",
-      "Sim debrief (.FLT file upload)",
-      "Instrument procedure drills",
-      "Unlimited session history",
-      "Priority AI response",
-    ],
-    cta: "Go Pro",
+    key: "pilot_annual",
+    name: "Pilot Annual",
+    icon: Sparkles,
+    headlinePrice: "$299",
+    priceSuffix: "/year",
+    subPrice: "≈ $24.92 / month equivalent",
+    badge: "MOST POPULAR",
+    saveLine: "Save $169 / yr vs Monthly",
+    billing: "Annual, auto-renews",
+    trial: "7-day free trial",
+    conversationCap: "1,000 AI conversations / month",
+    supportSla: "Email support — 24 hr response",
+    guarantee: true,
+    cta: "Start free trial",
     highlighted: true,
-    checkoutPlan: "pro" as const,
+    checkoutMode: "subscription",
   },
   {
+    key: "checkride_lifetime",
+    name: "Checkride Lifetime",
     icon: Crown,
-    name: "Gold Seal CFI",
-    monthly: 99,
-    annual: 79,
-    description: "The ultimate AI flight training experience",
-    priceSuffix: "/mo",
-    features: [
-      "Everything in Pro Pilot",
-      "Unlimited AI coaching sessions",
-      "Custom training scenarios & curricula",
-      "1-on-1 priority support (24/7)",
-      "Advanced checkride readiness analytics",
-      "Multi-aircraft POH library",
-      "Early access to new features",
-      "Personalized study plan generation",
-    ],
-    cta: "Go Gold Seal",
+    headlinePrice: "$399",
+    priceSuffix: "one-time",
+    subPrice: "No recurring charge",
+    billing: "Until you pass target rating + 90 days (max 24 months)",
+    trial: "No trial — one-time purchase",
+    conversationCap: "1,500 AI conversations / month",
+    supportSla: "Email support — 24 hr response",
+    guarantee: true,
+    cta: "Buy Lifetime",
     highlighted: false,
-    checkoutPlan: "ultra" as const,
-  },
-  {
-    icon: GraduationCap,
-    name: "Flight School",
-    monthly: 39,
-    annual: 31,
-    description: "Train your entire program under one roof",
-    priceSuffix: "/seat/mo",
-    features: [
-      "Everything in Pro Pilot",
-      "10-seat minimum",
-      "Instructor admin dashboard",
-      "Batch student analytics",
-      "Curriculum integration API",
-      "Custom training scenarios",
-      "Dedicated account manager",
-      "White-label option",
-    ],
-    cta: "Contact Sales",
-    highlighted: false,
+    checkoutMode: "payment",
   },
 ];
 
-const TIER_TO_PLAN_NAME: Record<string, string> = {
-  student: "Student",
-  pro: "Pro Pilot",
-  ultra: "Gold Seal CFI",
-};
-const ACTIVE_STATUSES = new Set(["active", "trialing", "past_due"]);
+const SHARED_FEATURES: string[] = [
+  "Multi-brain AI tutor (Claude + GPT-4o + Gemini routing)",
+  "DPE oral exam simulator with scoring and debrief",
+  "Live weather briefings (METAR / TAF integration)",
+  "Live flight tracking (OpenSky / FlightAware)",
+  "POH-grounded answers (upload your aircraft's POH)",
+  "Vision-based chart & sectional analysis",
+  "MSFS / X-Plane desktop bridge integration",
+  "FAR/AIM & ACS citation on every answer",
+  "Independent AI safety review on safety-critical answers",
+  "Session history & progress tracking",
+  "PWA mobile support",
+];
 
 const PricingSection = () => {
-  const [annual, setAnnual] = useState(false);
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
-  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
+  const [loadingKey, setLoadingKey] = useState<PlanKey | null>(null);
   const navigate = useNavigate();
 
+  // Confirm signed-in state once on mount; not blocking.
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData.session?.user.id;
-      if (!userId) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("subscription_tier, subscription_status")
-        .eq("user_id", userId)
-        .maybeSingle();
-      if (cancelled || !data) return;
-      const tier = (data.subscription_tier ?? "").toLowerCase();
-      const status = (data.subscription_status ?? "").toLowerCase();
-      if (tier && ACTIVE_STATUSES.has(status) && TIER_TO_PLAN_NAME[tier]) {
-        setCurrentPlanName(TIER_TO_PLAN_NAME[tier]);
-        setCurrentStatus(status);
-      }
-    })();
-    return () => { cancelled = true; };
+    supabase.auth.getSession();
   }, []);
 
-  // Visual QA mode — toggle with Alt+Shift+Q (or ?qa=1 in URL).
-  // Renders z-index labels on each card, outlines the badge, and lets you
-  // force-hover and reduced-motion to inspect layering interactions.
-  const [qaMode, setQaMode] = useState(false);
-  const [qaForceHover, setQaForceHover] = useState(false);
-  const [qaReducedMotion, setQaReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (new URLSearchParams(window.location.search).get("qa") === "1") {
-      setQaMode(true);
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.altKey && e.shiftKey && (e.key === "Q" || e.key === "q")) {
-        e.preventDefault();
-        setQaMode((v) => !v);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const handleCtaClick = async (plan: typeof plans[number], opts?: { isRetry?: boolean }) => {
-    if (loadingPlan) return;
-
-    if (plan.name === "Flight School") {
-      navigate("/for-schools");
-      return;
-    }
-
-    if (!plan.checkoutPlan) {
-      navigate("/auth");
-      return;
-    }
-
-    setLoadingPlan(plan.name);
+  const handleCta = async (tier: Tier) => {
+    if (loadingKey) return;
+    setLoadingKey(tier.key);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
-        toast.info("Please sign in to start your subscription.");
-        navigate(`/auth?redirect=/dashboard&plan=${plan.checkoutPlan}`);
+        toast.info("Please sign in to continue to checkout.");
+        navigate(`/auth?redirect=/pricing&plan=${tier.key}`);
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { plan: plan.checkoutPlan },
+      const fnName =
+        tier.checkoutMode === "payment" ? "create-checkout-onetime" : "create-checkout";
+
+      const { data, error } = await supabase.functions.invoke(fnName, {
+        body: {
+          plan: tier.key,
+          price_id: PRICE_IDS[tier.key],
+        },
       });
       if (error) throw error;
       if (data?.url) {
         window.open(data.url, "_blank");
-        if (opts?.isRetry) toast.success("Checkout reopened.");
       } else {
         throw new Error("No checkout URL returned");
       }
     } catch (err) {
       console.error("[PricingSection] checkout error", err);
       const message =
-        err instanceof Error && err.message
-          ? err.message
-          : "Could not start checkout.";
-      const subject = `Checkout error — ${plan.name} plan`;
-      const body = [
-        `Hi SimPilot support,`,
-        ``,
-        `I hit an error trying to start checkout for the ${plan.name} plan.`,
-        ``,
-        `Error: ${message}`,
-        `Plan: ${plan.name}`,
-        `Price ID: ${(plan as { checkoutPlan?: { price_id?: string } }).checkoutPlan?.price_id ?? "n/a"}`,
-        `Page: ${typeof window !== "undefined" ? window.location.href : ""}`,
-        `Time: ${new Date().toISOString()}`,
-        ``,
-        `Thanks!`,
-      ].join("\n");
+        err instanceof Error && err.message ? err.message : "Could not start checkout.";
       const mailto = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
-        subject
-      )}&body=${encodeURIComponent(body)}`;
-      toast.error(`Couldn't open ${plan.name} checkout`, {
+        `Checkout error — ${tier.name}`
+      )}&body=${encodeURIComponent(
+        `Error: ${message}\nPlan: ${tier.name}\nPrice ID: ${PRICE_IDS[tier.key]}`
+      )}`;
+      toast.error(`Couldn't open ${tier.name} checkout`, {
         description: `${message} Please try again.`,
         action: {
-          label: "Retry",
-          onClick: () => {
-            // Defer so the toast can dismiss before re-entering loading state.
-            setTimeout(() => handleCtaClick(plan, { isRetry: true }), 0);
-          },
-        },
-        cancel: {
           label: "Contact support",
-          onClick: () => {
-            window.open(mailto, "_blank", "noopener,noreferrer");
-          },
+          onClick: () => window.open(mailto, "_blank", "noopener,noreferrer"),
         },
-        duration: 10000,
+        duration: 8000,
       });
     } finally {
-      setLoadingPlan(null);
+      setLoadingKey(null);
     }
   };
 
   return (
-    <section
-      id="pricing"
-      data-qa-mode={qaMode || undefined}
-      data-qa-force-hover={qaForceHover || undefined}
-      data-qa-reduced-motion={qaReducedMotion || undefined}
-      className={`py-24 relative bg-gradient-hero scroll-mt-20 ${
-        qaReducedMotion ? "[&_*]:!transition-none [&_*]:!animate-none" : ""
-      } ${qaForceHover ? "[&_[data-qa-card]]:!border-primary/40" : ""}`}
-    >
+    <section id="pricing" className="py-24 relative bg-gradient-hero scroll-mt-20">
       <div className="absolute top-0 left-0 right-0 hud-line" />
-      {qaMode && (
-        <div className="fixed top-4 right-4 z-[100] w-64 rounded-lg border border-primary/40 bg-background/95 backdrop-blur p-3 shadow-2xl text-xs font-mono">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-display tracking-widest uppercase text-[10px] text-primary">
-              QA Mode
-            </span>
-            <button
-              type="button"
-              onClick={() => setQaMode(false)}
-              className="text-muted-foreground hover:text-foreground text-[10px]"
-              aria-label="Close QA panel"
-            >
-              ✕
-            </button>
-          </div>
-          <label className="flex items-center gap-2 mb-1.5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={qaForceHover}
-              onChange={(e) => setQaForceHover(e.target.checked)}
-            />
-            <span>Force hover state</span>
-          </label>
-          <label className="flex items-center gap-2 mb-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={qaReducedMotion}
-              onChange={(e) => setQaReducedMotion(e.target.checked)}
-            />
-            <span>Reduced motion</span>
-          </label>
-          <p className="text-[10px] text-muted-foreground leading-snug">
-            Alt+Shift+Q to toggle. Cards show z-index; badge has dashed outline.
-          </p>
-        </div>
-      )}
       <div className="container mx-auto px-6">
+        <div className="max-w-6xl mx-auto">
+          <DraftReviewBanner
+            body="This pricing and T&C have not yet been reviewed by legal counsel. Do not promote to production until reviewed. Items to flag for attorney:"
+            flagItems={[
+              "Section 10.3 — liability cap amount",
+              "Section 16.1 — governing law jurisdiction",
+              "Section 16.2 — arbitration venue",
+              "Enforceability of class action waiver in target jurisdictions",
+            ]}
+          />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
           <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">
             Pricing
           </p>
           <h2 className="font-display text-3xl md:text-5xl text-foreground">
-            Choose Your <span className="text-primary text-glow-cyan">Flight Plan</span>
+            Choose your <span className="text-primary text-glow-cyan">flight plan</span>
           </h2>
           <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
-            Transparent pricing for every level of aviator. Start free, upgrade when you're ready.
+            Three plans. Same full feature set. Pick the billing rhythm that matches your training.
           </p>
-          <p className="mt-3 font-display text-sm tracking-wide text-primary">
-            ✦ 7-Day Free Trial · No Credit Card Required
-          </p>
-
-          {/* Billing toggle */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
-            <div
-              role="tablist"
-              aria-label="Billing interval"
-              className="relative inline-flex items-center p-1.5 sm:p-2 rounded-full border-2 border-primary/50 bg-card/70 backdrop-blur-sm shadow-[0_0_40px_-8px_hsl(var(--primary)/0.6)] ring-1 ring-primary/20 w-[min(92vw,22rem)] sm:w-auto"
-            >
-              <motion.div
-                className="absolute top-1.5 bottom-1.5 sm:top-2 sm:bottom-2 w-[calc(50%-0.375rem)] sm:w-[calc(50%-0.5rem)] rounded-full bg-primary shadow-[0_0_28px_hsl(var(--primary)/0.7)]"
-                animate={{ left: annual ? "50%" : "0.375rem" }}
-                transition={{ type: "spring", stiffness: 500, damping: 32 }}
-              />
-              <button
-                role="tab"
-                aria-selected={!annual}
-                onClick={() => setAnnual(false)}
-                className={`relative z-10 flex-1 sm:flex-none px-6 sm:px-10 py-2.5 sm:py-3.5 rounded-full font-display text-sm sm:text-lg tracking-[0.18em] sm:tracking-[0.2em] uppercase font-bold transition-colors whitespace-nowrap ${
-                  !annual ? "text-background" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                role="tab"
-                aria-selected={annual}
-                onClick={() => setAnnual(true)}
-                className={`relative z-10 flex-1 sm:flex-none px-6 sm:px-10 py-2.5 sm:py-3.5 rounded-full font-display text-sm sm:text-lg tracking-[0.18em] sm:tracking-[0.2em] uppercase font-bold transition-colors whitespace-nowrap ${
-                  annual ? "text-background" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Annual
-              </button>
-            </div>
-            <AnimatePresence>
-              {annual && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.7, x: -12 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.7, x: -12 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                  className="relative"
-                >
-                  {/* Pulsing glow ring */}
-                  <motion.span
-                    aria-hidden
-                    className="absolute inset-0 rounded-full bg-emerald-400/40 blur-md"
-                    animate={{ opacity: [0.4, 0.85, 0.4], scale: [1, 1.15, 1] }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <span className="relative inline-flex items-center gap-1.5 text-xs md:text-sm font-display font-extrabold tracking-[0.18em] uppercase px-3.5 py-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 text-background border border-emerald-300/70 shadow-[0_0_24px_-2px_hsl(152_70%_50%/0.85)]">
-                    <span className="text-sm md:text-base leading-none">✦</span>
-                    Save 20%+
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Pricing breakdown */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mt-6 mx-auto max-w-3xl rounded-xl border border-border/60 bg-card/40 backdrop-blur-sm px-4 py-4 sm:px-6"
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {plans.map((p) => {
-                const monthlyTotal = p.monthly * 12;
-                const annualTotal = p.annual * 12;
-                const savings = monthlyTotal - annualTotal;
-                const active = annual ? "annual" : "monthly";
-                return (
-                  <div key={p.name} className="text-left">
-                    <div className="font-display text-[10px] tracking-[0.18em] uppercase text-muted-foreground truncate">
-                      {p.name}
-                    </div>
-                    <div className="mt-1 flex items-baseline gap-1">
-                      <span
-                        className={`font-display text-lg ${
-                          active === "monthly" ? "text-primary text-glow-cyan" : "text-foreground/70"
-                        }`}
-                      >
-                        ${p.monthly}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">/mo</span>
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <span
-                        className={`font-display text-lg ${
-                          active === "annual" ? "text-primary text-glow-cyan" : "text-foreground/70"
-                        }`}
-                      >
-                        ${p.annual}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">/mo billed yearly</span>
-                    </div>
-                    <div className="mt-1 text-[10px] text-muted-foreground">
-                      <span className="font-display tracking-wider">${annualTotal}/yr</span>
-                      <span className="text-emerald-400/90"> · save ${savings}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="mt-3 text-[10px] text-center text-muted-foreground tracking-wide">
-              All plans include a 7-day free trial. Cancel anytime.
-            </p>
-          </motion.div>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-6xl mx-auto items-stretch pt-12 px-1 overflow-visible">
-          {plans.map((plan, i) => {
-            const price = annual ? plan.annual : plan.monthly;
-            const isCurrent = currentPlanName === plan.name;
+        {/* 3-column on desktop, stacked on mobile */}
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch pt-10 overflow-visible">
+          {TIERS.map((tier, i) => {
+            const Icon = tier.icon;
+            const isLoading = loadingKey === tier.key;
             return (
               <motion.div
-                key={plan.name}
-                data-qa-card
-                initial={qaReducedMotion ? false : { opacity: 0, y: 30 }}
-                whileInView={qaReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                key={tier.key}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: qaReducedMotion ? 0 : i * 0.12 }}
-                className={`relative flex flex-col rounded-xl px-6 pt-10 pb-6 border transition-all duration-500 overflow-visible isolate ${
-                  plan.highlighted
-                    ? "border-primary/50 border-glow-cyan bg-gradient-card scale-[1.02] z-20"
-                    : "border-border bg-gradient-card hover:border-primary/20 z-10"
-                } ${qaMode ? "outline outline-1 outline-dashed outline-accent/60" : ""}`}
+                transition={{ delay: i * 0.1 }}
+                className={`relative flex flex-col rounded-xl px-6 pt-10 pb-6 border bg-gradient-card transition-all duration-500 overflow-visible isolate ${
+                  tier.highlighted
+                    ? "border-primary/60 border-glow-cyan scale-[1.02] z-20"
+                    : "border-border hover:border-primary/20 z-10"
+                }`}
               >
-                {qaMode && (
-                  <span className="absolute top-1 right-1 z-40 px-1.5 py-0.5 rounded bg-accent text-accent-foreground text-[9px] font-mono pointer-events-none">
-                    z:{plan.highlighted ? 20 : 10}
-                  </span>
-                )}
-                {plan.highlighted && (
+                {tier.badge && (
                   <div
-                    className={`absolute left-1/2 z-30 pointer-events-none w-max max-w-[calc(100%-2rem)] flex justify-center ${
-                      qaMode ? "outline outline-1 outline-dashed outline-primary" : ""
-                    }`}
-                    style={{ top: 0, transform: "translate(-50%, -100%) translateY(8px)" }}
+                    className="absolute left-1/2 z-30 pointer-events-none w-max"
+                    style={{
+                      top: 0,
+                      transform: "translate(-50%, -100%) translateY(8px)",
+                    }}
                   >
-                    {qaMode && (
-                      <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-primary text-primary-foreground text-[9px] font-mono whitespace-nowrap">
-                        badge z:30
-                      </span>
-                    )}
-                    <span className="block whitespace-nowrap font-display text-[9px] xs:text-[10px] leading-[1] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-primary text-primary-foreground shadow-lg ring-1 ring-background/40">
-                      Most Popular
+                    <span className="block whitespace-nowrap font-display text-[10px] leading-[1] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-primary text-primary-foreground shadow-lg ring-1 ring-background/40">
+                      ✦ {tier.badge}
                     </span>
                   </div>
                 )}
@@ -450,173 +232,127 @@ const PricingSection = () => {
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      plan.highlighted ? "bg-primary/20" : "bg-accent/10"
+                      tier.highlighted ? "bg-primary/20" : "bg-accent/10"
                     }`}
                   >
-                    <plan.icon
-                      className={`w-5 h-5 ${plan.highlighted ? "text-primary" : "text-accent"}`}
+                    <Icon
+                      className={`w-5 h-5 ${tier.highlighted ? "text-primary" : "text-accent"}`}
                     />
                   </div>
                   <h3 className="font-display text-sm tracking-wider uppercase text-foreground">
-                    {plan.name}
+                    {tier.name}
                   </h3>
-                  {isCurrent && (
-                    <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-display tracking-widest uppercase px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
-                      <Check className="w-3 h-3" />
-                      {currentStatus === "trialing" ? "On Trial" : "Current"}
-                    </span>
-                  )}
                 </div>
 
                 <div className="mb-1 flex items-baseline gap-1">
-                  <motion.span
-                    key={price}
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="font-display text-4xl text-foreground"
-                  >
-                    ${price}
-                  </motion.span>
-                  <span className="text-muted-foreground text-sm">{plan.priceSuffix}</span>
-                  {annual && (
-                    <span className="text-muted-foreground text-xs line-through ml-1">
-                      ${plan.monthly}
-                    </span>
-                  )}
+                  <span className="font-display text-4xl text-foreground">
+                    {tier.headlinePrice}
+                  </span>
+                  <span className="text-muted-foreground text-sm">{tier.priceSuffix}</span>
                 </div>
-                <p className={`text-[11px] text-muted-foreground mb-1 min-h-[16px] ${annual ? "" : "invisible"}`}>
-                  {annual ? (
-                    <>
-                      Billed ${price * 12}/year
-                      {plan.name === "Flight School" && " per seat"}
-                    </>
-                  ) : (
-                    "placeholder"
-                  )}
-                </p>
-                <span className="inline-block text-[10px] font-display tracking-widest uppercase px-3 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/25 mb-4 w-fit">
-                  7-Day Free Trial
-                </span>
+                {tier.subPrice && (
+                  <p className="text-[11px] text-muted-foreground mb-1">{tier.subPrice}</p>
+                )}
+                {tier.saveLine && (
+                  <p className="text-[11px] font-display tracking-wide text-emerald-400 mb-1">
+                    {tier.saveLine}
+                  </p>
+                )}
 
-                <p className="text-sm text-muted-foreground mb-6 min-h-[40px]">{plan.description}</p>
+                <p className="text-[11px] text-muted-foreground/80 mt-1 mb-4">{tier.billing}</p>
 
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm">
-                      <Check
-                        className={`w-4 h-4 shrink-0 mt-0.5 ${
-                          plan.highlighted ? "text-primary" : "text-accent"
-                        }`}
-                      />
-                      <span className="text-secondary-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                {/* Plan-specific summary chips */}
+                <div className="space-y-1.5 mb-5 text-xs">
+                  <div className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                    <span className="text-secondary-foreground">{tier.trial}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                    <span className="text-secondary-foreground">{tier.conversationCap}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                    <span className="text-secondary-foreground">{tier.supportSla}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    {tier.guarantee ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                        <span className="text-secondary-foreground">
+                          Pass-the-checkride guarantee
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-3.5 h-3.5 shrink-0 mt-0.5 text-muted-foreground/40">
+                          —
+                        </span>
+                        <span className="text-muted-foreground/60 line-through">
+                          Pass-the-checkride guarantee
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Shared full feature list */}
+                <div className="border-t border-border/50 pt-4 mb-6 flex-1">
+                  <p className="font-display text-[10px] tracking-widest uppercase text-muted-foreground mb-3">
+                    Everything included
+                  </p>
+                  <ul className="space-y-2">
+                    {SHARED_FEATURES.map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-xs">
+                        <Check
+                          className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${
+                            tier.highlighted ? "text-primary" : "text-accent"
+                          }`}
+                        />
+                        <span className="text-secondary-foreground">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 <button
                   type="button"
-                  onClick={() => handleCtaClick(plan)}
-                  disabled={loadingPlan === plan.name || isCurrent}
-                  aria-busy={loadingPlan === plan.name}
-                  aria-disabled={isCurrent || undefined}
+                  onClick={() => handleCta(tier)}
+                  disabled={isLoading}
+                  aria-busy={isLoading}
                   className={`inline-flex items-center justify-center gap-2 h-12 w-full px-6 rounded font-display text-xs tracking-widest uppercase transition-all duration-300 disabled:cursor-not-allowed ${
-                    isCurrent
-                      ? "bg-primary/15 text-primary border border-primary/40 disabled:opacity-100"
-                      : plan.highlighted
+                    tier.highlighted
                       ? "bg-primary text-primary-foreground hover:shadow-[0_0_25px_hsl(var(--cyan-glow)/0.4)] disabled:opacity-80"
                       : "border border-muted-foreground/30 text-foreground hover:border-primary/50 hover:text-primary disabled:opacity-80"
                   }`}
                 >
-                  {isCurrent ? (
+                  {isLoading ? (
                     <>
-                      <Check className="w-4 h-4" aria-hidden="true" />
-                      <span>Your Current Plan</span>
-                    </>
-                  ) : loadingPlan === plan.name ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Opening checkout…</span>
                     </>
                   ) : (
-                    <span>{plan.cta}</span>
+                    <span>{tier.cta}</span>
                   )}
                 </button>
-
-                {/* Trust badges */}
-                <div className="mt-4 flex flex-col items-center gap-1.5">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                    <ShieldCheck className="w-3.5 h-3.5 text-accent" />
-                    <span>14-Day Money-Back Guarantee</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                    <CreditCard className="w-3.5 h-3.5 text-accent" />
-                    <span>No Credit Card for Trial</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                    <RefreshCcw className="w-3.5 h-3.5 text-accent" />
-                    <span>Cancel Anytime</span>
-                  </div>
-                </div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Value Comparison Callout */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-3xl mx-auto mt-16 mb-12 rounded-xl border border-primary/30 border-glow-cyan bg-gradient-card p-8"
-        >
-          <h3 className="font-display text-lg md:text-xl text-foreground text-center mb-6">
-            How SimPilot.AI Compares to Traditional Training
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6 items-center">
-            <div className="text-center p-6 rounded-lg bg-destructive/10 border border-destructive/20">
-              <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
-                Ground One-on-One + CFI Tutoring
-              </p>
-              <p className="font-display text-4xl md:text-5xl text-destructive">$2,500+</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Sporty's $299 + King Schools $349 + CFI tutoring hours
-              </p>
-            </div>
-            <div className="text-center p-6 rounded-lg bg-primary/10 border border-primary/30">
-              <p className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-2">
-                SimPilot.AI Pro Pilot Plan
-              </p>
-              <p className="font-display text-4xl md:text-5xl text-primary text-glow-cyan">$59/mo</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Unlimited AI coaching · Oral Exam prep · Chart analysis · 24/7
-              </p>
-            </div>
-          </div>
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            <span className="text-accent ">Traditional ground school alone costs $300–$600</span> — SimPilot.AI adds unlimited AI tutoring, exam prep, and sim debriefs for just $59/month.
-          </p>
-        </motion.div>
-
-        <PlanQuickCompare
-          selectedPlanName={currentPlanName}
-          loadingPlanName={loadingPlan}
-          onSelect={(planName) => {
-            const target = plans.find((p) => p.name === planName);
-            if (!target) return;
-            // Scroll the matching plan card into view so the user sees the
-            // pre-selected tier before checkout opens.
-            if (typeof document !== "undefined") {
-              const grid = document.querySelector('#pricing [data-qa-card]')?.parentElement;
-              const card = grid?.querySelectorAll('[data-qa-card]')[plans.indexOf(target)] as HTMLElement | undefined;
-              card?.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-            handleCtaClick(target);
-          }}
-        />
-        <PlanComparisonTable />
-        <ForSchoolsSection />
-        <PricingFAQ />
+        {/* Flight school link */}
+        <p className="text-center text-sm text-muted-foreground mt-12">
+          Flight school or training organization?{" "}
+          <a
+            href="mailto:sales@simpilot.ai"
+            className="text-primary hover:underline font-display tracking-wide"
+          >
+            Contact sales →
+          </a>
+        </p>
       </div>
+
+      <PricingFAQ />
     </section>
   );
 };
