@@ -1181,6 +1181,12 @@ export type Database = {
           live_tools_enabled: boolean
           maintenance_mode: boolean
           signup_enabled: boolean
+          social_facebook_url: string
+          social_instagram_url: string
+          social_linkedin_url: string
+          social_tiktok_url: string
+          social_x_url: string
+          social_youtube_url: string
           updated_at: string
           weather_enabled: boolean
         }
@@ -1198,6 +1204,12 @@ export type Database = {
           live_tools_enabled?: boolean
           maintenance_mode?: boolean
           signup_enabled?: boolean
+          social_facebook_url?: string
+          social_instagram_url?: string
+          social_linkedin_url?: string
+          social_tiktok_url?: string
+          social_x_url?: string
+          social_youtube_url?: string
           updated_at?: string
           weather_enabled?: boolean
         }
@@ -1215,6 +1227,12 @@ export type Database = {
           live_tools_enabled?: boolean
           maintenance_mode?: boolean
           signup_enabled?: boolean
+          social_facebook_url?: string
+          social_instagram_url?: string
+          social_linkedin_url?: string
+          social_tiktok_url?: string
+          social_x_url?: string
+          social_youtube_url?: string
           updated_at?: string
           weather_enabled?: boolean
         }

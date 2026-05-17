@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Bell, Wrench, Globe, Loader2, Download } from "lucide-react";
+import { Settings, Bell, Wrench, Globe, Loader2, Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -23,6 +23,12 @@ const AdminSiteSettings = () => {
   const [atcLiveFreqEnabled, setAtcLiveFreqEnabled] = useState(true);
   const [atcGuidedScenariosEnabled, setAtcGuidedScenariosEnabled] = useState(true);
   const [bridgeDirectDownload, setBridgeDirectDownload] = useState(false);
+  const [socialFacebook, setSocialFacebook] = useState("");
+  const [socialInstagram, setSocialInstagram] = useState("");
+  const [socialYoutube, setSocialYoutube] = useState("");
+  const [socialX, setSocialX] = useState("");
+  const [socialLinkedin, setSocialLinkedin] = useState("");
+  const [socialTiktok, setSocialTiktok] = useState("");
 
   const handleBridgeDirectDownloadChange = (next: boolean) => {
     setBridgeDirectDownload(next);
@@ -52,6 +58,12 @@ const AdminSiteSettings = () => {
         setAtcLiveFreqEnabled(d.atc_live_frequency_enabled === undefined ? true : Boolean(d.atc_live_frequency_enabled));
         setAtcGuidedScenariosEnabled(d.atc_guided_scenarios_enabled === undefined ? true : Boolean(d.atc_guided_scenarios_enabled));
         setBridgeDirectDownload(Boolean((data as { bridge_direct_download_enabled?: boolean }).bridge_direct_download_enabled));
+        setSocialFacebook(typeof d.social_facebook_url === "string" ? d.social_facebook_url : "");
+        setSocialInstagram(typeof d.social_instagram_url === "string" ? d.social_instagram_url : "");
+        setSocialYoutube(typeof d.social_youtube_url === "string" ? d.social_youtube_url : "");
+        setSocialX(typeof d.social_x_url === "string" ? d.social_x_url : "");
+        setSocialLinkedin(typeof d.social_linkedin_url === "string" ? d.social_linkedin_url : "");
+        setSocialTiktok(typeof d.social_tiktok_url === "string" ? d.social_tiktok_url : "");
       }
       setLoading(false);
     };
@@ -71,6 +83,12 @@ const AdminSiteSettings = () => {
       atc_live_frequency_enabled: atcLiveFreqEnabled,
       atc_guided_scenarios_enabled: atcGuidedScenariosEnabled,
       bridge_direct_download_enabled: bridgeDirectDownload,
+      social_facebook_url: socialFacebook.trim(),
+      social_instagram_url: socialInstagram.trim(),
+      social_youtube_url: socialYoutube.trim(),
+      social_x_url: socialX.trim(),
+      social_linkedin_url: socialLinkedin.trim(),
+      social_tiktok_url: socialTiktok.trim(),
     };
     const { error } = await supabase
       .from("site_settings")
@@ -173,6 +191,39 @@ const AdminSiteSettings = () => {
               </div>
             </div>
             <Switch checked={bridgeDirectDownload} onCheckedChange={handleBridgeDirectDownloadChange} />
+          </div>
+        </div>
+
+        {/* Social Links */}
+        <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <Share2 className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-sm text-foreground">Social Links</p>
+              <p className="text-xs text-muted-foreground">
+                Add full URLs. Leave blank to hide that icon from the footer.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { label: "Facebook", value: socialFacebook, set: setSocialFacebook, placeholder: "https://facebook.com/..." },
+              { label: "Instagram", value: socialInstagram, set: setSocialInstagram, placeholder: "https://instagram.com/..." },
+              { label: "YouTube", value: socialYoutube, set: setSocialYoutube, placeholder: "https://youtube.com/@..." },
+              { label: "X (Twitter)", value: socialX, set: setSocialX, placeholder: "https://x.com/..." },
+              { label: "LinkedIn", value: socialLinkedin, set: setSocialLinkedin, placeholder: "https://linkedin.com/company/..." },
+              { label: "TikTok", value: socialTiktok, set: setSocialTiktok, placeholder: "https://tiktok.com/@..." },
+            ].map((f) => (
+              <div key={f.label} className="space-y-1">
+                <label className="text-xs text-muted-foreground">{f.label}</label>
+                <Input
+                  type="url"
+                  placeholder={f.placeholder}
+                  value={f.value}
+                  onChange={(e) => f.set(e.target.value)}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
