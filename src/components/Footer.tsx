@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Facebook, Instagram, Youtube, Twitter, Linkedin, Music2 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const FooterLink = ({ to, title, children }: { to: string; title: string; children: React.ReactNode }) => {
   const navigate = useNavigate();
@@ -84,21 +85,28 @@ const Footer = () => {
           </p>
           <div className="flex flex-col items-center gap-3 order-1 md:order-2 md:flex-row md:gap-4">
             {socials.length > 0 && (
-              <div className="flex items-center gap-3">
-                {socials.map(({ url, Icon, label }) => (
-                  <a
-                    key={label}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={`Follow SimPilot.AI on ${label}`}
-                    aria-label={`Follow SimPilot.AI on ${label}`}
-                    className="group relative inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-full bg-card/60 border border-border text-muted-foreground hover:text-primary hover:border-primary/70 hover:bg-primary/10 hover:-translate-y-0.5 hover:shadow-[0_0_18px_hsl(var(--cyan-glow)/0.4)] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  >
-                    <Icon className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" strokeWidth={1.75} aria-hidden="true" />
-                  </a>
-                ))}
-              </div>
+              <TooltipProvider delayDuration={150}>
+                <div className="flex items-center gap-3">
+                  {socials.map(({ url, Icon, label }) => (
+                    <Tooltip key={label}>
+                      <TooltipTrigger asChild>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Follow SimPilot.AI on ${label}`}
+                          className="group relative inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-full bg-card/60 border border-border text-muted-foreground hover:text-primary hover:border-primary/70 hover:bg-primary/10 hover:-translate-y-0.5 hover:shadow-[0_0_18px_hsl(var(--cyan-glow)/0.4)] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        >
+                          <Icon className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" strokeWidth={1.75} aria-hidden="true" />
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" sideOffset={8} className="text-xs font-medium tracking-wide">
+                        {label}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </TooltipProvider>
             )}
             <p className="text-xs text-muted-foreground tracking-wide">
               Built for pilots, powered by AI
