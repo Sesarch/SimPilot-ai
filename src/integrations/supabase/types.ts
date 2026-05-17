@@ -1711,6 +1711,15 @@ export type Database = {
       }
     }
     Functions: {
+      award_achievement: {
+        Args: {
+          _exam_score_id?: string
+          _exam_type: string
+          _percentile_hint?: number
+          _tier: string
+        }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
