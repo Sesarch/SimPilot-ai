@@ -1,79 +1,126 @@
-## Goal
-Rebuild the ATC Communication Engine to enforce strict FAA/ICAO phraseology, frequency-correct personas, real ATIS data, progressive flight state, and a release-to-transmit PTT.
+# SimPilot.AI — Pricing + T&C Overhaul (Staged)
 
-## Current state
-- All logic lives in **`src/components/ATCTrainer.tsx`** (~4,700 lines). There is no `useATC` hook or `ChatLogic` component yet.
-- Frequencies are defined in **`src/data/atcFrequencies.ts`** (already a lookup table — good base).
-- ATIS is currently synthesized client-side (random values).
-- PTT uses a click-to-toggle pattern.
-- `TestModePage.tsx` imports `FAA_PROMPT` from `ATCTrainer.tsx`, so we must preserve that export.
+## Scope confirmation needed before I build
 
-## Plan
+This spec is large and touches several systems that are currently wired differently than the spec assumes. I want to lock the approach before writing code so we don't waste a cycle. Two important callouts up front:
 
-### 1. Extract a real `useATC` hook
-Create **`src/hooks/useATC.ts`** that owns:
-- `flightState` ('PRE_TAXI' | 'TAXI' | 'RUN_UP' | 'DEPARTURE' | 'CRUISE')
-- `tunedFrequency`, `currentAirport`, `currentAtis` (letter + raw METAR)
-- `validateTransmission(text)` returning `{ ok, correction }` (callsign / ATIS / readback rules)
-- `resolveFacility(freq, airport)` returning the facility or `null` (→ STATIC)
-- `advanceFlightState(controllerInstruction)` (e.g. when Ground issues taxi → state becomes TAXI)
-- `generateRandomTwist()` (hold position / extend downwind / give way)
+### A. Stripe products: how to create them
+The current pricing UI is **driven dynamically** by Stripe via `list-plans` edge function + `useStripePlans` hook (Student / Pro Pilot / Gold Seal / Flight School are real Stripe products today). The spec says "create new price IDs `price_pilot_monthly_39` etc." — Stripe does not let us name price IDs; it auto-generates `price_xxx`. I will:
 
-### 2. Strict validation layer (the "No-No filter")
-Implement in the hook, run **before** the LLM call:
-- **Callsign**: regex `\b[NCG]\d{1,5}[A-Z]{0,2}\b` (covers N123AB, plus military-style). If absent → return canned *"Station calling [Facility], say again with your callsign."*
-- **ATIS on initial contact**: if `firstContactOnFreq && !/with (alpha|bravo|...|zulu)/i` → *"Verify you have Information [letter]."*
-- **Readback on taxi clearance**: track last controller message; if it contained "taxi to" / "hold short", next pilot transmission must include the runway and "hold short" tokens, else → *"[Callsign], read back taxi instructions."*
+1. Create three new Stripe **products** (Pilot Monthly, Pilot Annual, Checkride Lifetime) + a 4th product for the **$9 / 250 conversations overage credit** using the `stripe--create_stripe_product_and_price` tool.
+2. Tag them with metadata (`plan_key=pilot_monthly | pilot_annual | checkride_lifetime | overage_250`) so the new pricing page selects them by `plan_key`, not by Stripe-generated ID.
+3. Leave the existing Student / Pro / Gold / School products in Stripe untouched (archiving them is a separate decision — confirm if you want them archived).
 
-These are deterministic responses — no LLM round-trip.
+### B. Conversation caps + overage billing (Stage 2)
+The spec includes:
+- 500 / 1,000 / 1,500 monthly conversation caps
+- An overage modal at cap
+- $9 / 250 extra conversations purchase flow
+- Checkride Lifetime "until target rating + 90 days, max 24 months" access window
+- Pass-the-checkride guarantee refund workflow (4 conditions, FAA doc upload)
 
-### 3. Frequency-correct persona / STATIC
-- Lookup `(airport, freq)` in `atcFrequencies.ts`. If unmatched for the selected airport → return `[STATIC / NO RESPONSE]` UI bubble, no audio.
-- If matched but the request mismatches the facility (e.g. taxi request on Tower, takeoff request on Ground), the controller corrects: *"Cessna 3AB, contact Ground 121.7."*
-- Inject the resolved facility name + role into the system prompt so the LLM stays in character.
+These are **substantial backend features** (new tables, cap-enforcement middleware in `ai-orchestrator` call path, a new Stripe checkout flow for one-off credits, an admin refund-review queue). The spec also says "do not modify the AI orchestrator." Those two constraints conflict — cap enforcement needs *some* hook in the chat call path.
 
-### 4. Real ATIS via METAR
-- Replace the random ATIS generator with a fetch to the existing weather edge function (already used by `useWeatherBriefing` against aviationweather.gov).
-- Parse METAR → wind, vis, ceiling, alt, current Information letter (rotates hourly using UTC hour → letter A–Z).
-- Store the ATIS string and the letter on the hook.
+**My recommendation:** ship Stage 1 now (content, schema, UI, signup gating, draft banners, Stripe products), and ship Stage 2 (cap enforcement + overage + guarantee workflow) as a follow-up so we can scope/design it properly. Stage 1 alone is what the attorney needs to review.
 
-### 5. Phonetic TTS expansion
-- Add a small util `expandPhonetic(text)` that replaces standalone letters/digits with NATO words and "niner" / "tree" / "fife" before sending to TTS (does **not** alter the on-screen transcript).
-- Also expand runway numbers ("28R" → "two eight right") and frequencies ("121.7" → "one two one point seven").
+If you want Stage 2 in this same loop, say so and I'll expand.
 
-### 6. Progressive flight logic
-- After Ground issues taxi → `flightState = 'TAXI'`, controller produces a complex multi-taxiway clearance (random pick from realistic taxiway templates per airport).
-- Only ask destination if user requested *Flight Following* or filed *IFR* (detect keywords).
-- Advance state on relevant clearances (run-up complete → DEPARTURE, etc.).
+---
 
-### 7. PTT overhaul
-- Replace the current toggle button with a **press-and-hold** button (`onMouseDown` / `onTouchStart` / Space `keydown` to start, `onMouseUp` / `onTouchEnd` / `keyup` to stop).
-- On release → automatically run STT, then validation, then controller response.
-- Visual: button shows "TRANSMITTING" while held; brief tick on release.
+## Stage 1 — What I will ship now
 
-### 8. Random scenario generator
-- 20 % chance per controller turn (when in-flight or taxi) to inject one of:
-  - "Hold position for traffic on the Alpha taxiway."
-  - "Extend downwind, I'll call your base."
-  - "Give way to the Cessna on Hotel."
-  - "Line up and wait, traffic on a two-mile final."
-- Pulled from a typed `RANDOM_TWISTS` array; respects current `flightState`.
+### 1. Stripe products (via tool)
+Create 4 products with metadata `plan_key`:
+- Pilot Monthly — $39/mo recurring → `plan_key=pilot_monthly`
+- Pilot Annual — $299/yr recurring → `plan_key=pilot_annual`
+- Checkride Lifetime — $399 one-time → `plan_key=checkride_lifetime`
+- Conversation Overage — $9 one-time → `plan_key=overage_250`
 
-### 9. Refactor `ATCTrainer.tsx`
-- Slim the component to UI + wiring only; move all business logic into `useATC`.
-- Keep `FAA_PROMPT` exported (TestModePage depends on it) but rebuild it to reflect the new rules.
+### 2. Database migration
+```text
+ALTER TABLE profiles
+  ADD COLUMN terms_accepted_at timestamptz,
+  ADD COLUMN terms_accepted_ip text,
+  ADD COLUMN terms_version text,
+  ADD COLUMN target_rating text,             -- for Checkride Lifetime
+  ADD COLUMN lifetime_access_started_at timestamptz,
+  ADD COLUMN lifetime_target_passed_at timestamptz;
+```
+Keep existing `terms_agreed_at` column for backward compat; new column is the source of truth going forward. `terms_version` constant = `"2026-05-17"`.
 
-## Files
-- **new** `src/hooks/useATC.ts` — state machine, validators, ATIS, twists
-- **new** `src/lib/phonetic.ts` — NATO/number expansion for TTS
-- **new** `src/lib/atisFromMetar.ts` — METAR → ATIS string + letter
-- **edit** `src/components/ATCTrainer.tsx` — consume hook, press-and-hold PTT, STATIC bubble, slimmed
-- **edit** `src/data/atcFrequencies.ts` — add taxiway templates per airport (KMYF, KSAN, KSEE, etc.) so taxi clearances are realistic
-- **edit** `src/pages/TestModePage.tsx` — only if `FAA_PROMPT` shape changes
+### 3. Pricing page rewrite
+- Replace `PricingSection.tsx` plan array + `PlanComparisonTable` + `PlanQuickCompare` with a **new 3-tier layout** keyed by `plan_key` returned from `list-plans`.
+- Annual column: teal border + "MOST POPULAR" ribbon, `$24.92/mo equiv` small text, "Save $169/yr" badge.
+- Identical 11-item feature list per plan (multi-brain AI, DPE sim, weather, tracking, POH, vision, sim bridge, FAR/AIM citations, safety review, history, PWA).
+- Mobile: stacked cards.
+- New `PricingFAQ` content with the 6 questions from spec.
+- Remove `ForSchoolsSection` from pricing page; replace with one-line link: "Flight school or training organization? [Contact sales →](mailto:sales@simpilot.ai)".
+- Admin-only yellow draft banner at top (uses existing `useAuth` + `has_role('admin')` check).
 
-## Out of scope (confirm if you want these too)
-- Adding new airports beyond what's already in `atcFrequencies.ts`
-- Multi-controller handoffs across sectors (Approach → Center)
-- Voice-character switching per controller (different TTS voice per facility)
+### 4. T&C page rewrite
+- Preserve verbatim: red CRITICAL DISCLAIMER box + Sections 1–7 + final acknowledgment shell.
+- Replace Sections 8, 9, 10, 11.
+- Add Sections 12, 13, 14.
+- Renumber old Section 12 (Changes) → 15, old Section 13 (Governing Law) → 16.
+- Add Section 17 (Contact).
+- Update final acknowledgment box with the 5 new bullets (a–e).
+- Update "Last updated" date to today.
+- Admin-only yellow draft banner at top with the 4 attorney-flag items.
+- Bump `terms_version` constant to `"2026-05-17"`.
 
-Reply **go** to proceed, or tell me what to adjust (e.g. keep click-to-talk as a fallback, narrow scope to just validation + ATIS, etc.).
+### 5. Signup flow update
+- Replace `TermsAgreement.tsx` component to render the **full T&C body** in a scrollable container (not just a summary). Existing scroll-to-bottom gate is preserved and re-used.
+- On signup submit: capture `terms_accepted_at = now()`, `terms_version`, and `terms_accepted_ip` (fetched via a tiny `/whoami-ip` edge function or from request headers in an existing function — I'll add a 20-line `get-client-ip` edge function returning `req.headers['x-forwarded-for']`).
+- For Checkride Lifetime purchases specifically: post-checkout onboarding screen requires a second checkbox + target rating dropdown (9 options) before chat access unlocks. Save to `profiles.target_rating` + `lifetime_access_started_at`.
+
+### 6. Admin draft banner component
+New `<DraftReviewBanner items={[...]} />` shown only when `useAuth().isAdmin === true`. Used on `/pricing` and `/terms`.
+
+---
+
+## Files touched
+
+**New**
+- `src/components/DraftReviewBanner.tsx`
+- `src/components/pricing/PricingTiersV2.tsx` (3-tier layout)
+- `src/components/pricing/CheckrideTargetRatingPicker.tsx`
+- `src/lib/termsVersion.ts` (single source of truth)
+- `supabase/functions/get-client-ip/index.ts`
+- Migration: add 6 columns to `profiles`
+
+**Modified**
+- `src/components/PricingSection.tsx` — swap to new tiers, drop For Schools
+- `src/components/PricingFAQ.tsx` — replace with 6 new Q&A
+- `src/pages/TermsPage.tsx` — sections 8–17 + final ack + draft banner
+- `src/components/TermsAgreement.tsx` — render full T&C, persist version/IP
+- `src/components/auth/SignUpForm.tsx` — pass version/IP through to insert
+- `src/hooks/useAuth.tsx` — write `terms_accepted_at` / `terms_version` / `terms_accepted_ip` on signup
+
+**Not touched** (per spec)
+- `supabase/functions/stripe-webhook`, `ai-orchestrator`, `admin-payments`, signing-secret table, admin dashboard
+- T&C Sections 1–7 and CRITICAL DISCLAIMER box
+
+---
+
+## Explicitly deferred to Stage 2 (need your go-ahead)
+
+- Live conversation-cap counter + cap-reached modal
+- Overage purchase Stripe Checkout flow + credit ledger
+- Checkride Lifetime 24-month expiry job + "rating passed" admin action
+- Pass-the-checkride guarantee refund intake form + admin review queue
+- Archiving the old Stripe products (Student / Pro / Gold / School)
+
+---
+
+## Acceptance check (Stage 1 only)
+
+1. Four new Stripe prices created — IDs reported to you
+2. `/pricing` shows 3 tiers, FAQ, sales link, admin-only banner
+3. `/terms` shows preserved 1–7, new 8–17, admin-only banner, updated ack
+4. Signup captures `terms_accepted_at`, `terms_version`, `terms_accepted_ip`
+5. `profiles` has the 6 new columns
+6. Nothing deploys to production — preview URL only (Lovable preview is already non-prod)
+
+---
+
+**Reply "go stage 1"** to ship the above, or **"go stage 1+2"** if you want cap enforcement + overage + guarantee workflow in this loop (≈2–3× the change surface).
