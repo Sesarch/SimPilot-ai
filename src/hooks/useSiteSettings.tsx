@@ -71,6 +71,12 @@ export const SiteSettingsProvider = ({ children }: { children: ReactNode }) => {
         google_site_verification: typeof data.google_site_verification === "string" ? data.google_site_verification : "",
         bing_site_verification: typeof data.bing_site_verification === "string" ? data.bing_site_verification : "",
         google_search_console_property_url: typeof data.google_search_console_property_url === "string" ? data.google_search_console_property_url : "",
+        social_facebook_url: typeof data.social_facebook_url === "string" ? data.social_facebook_url : "",
+        social_instagram_url: typeof data.social_instagram_url === "string" ? data.social_instagram_url : "",
+        social_youtube_url: typeof data.social_youtube_url === "string" ? data.social_youtube_url : "",
+        social_x_url: typeof data.social_x_url === "string" ? data.social_x_url : "",
+        social_linkedin_url: typeof data.social_linkedin_url === "string" ? data.social_linkedin_url : "",
+        social_tiktok_url: typeof data.social_tiktok_url === "string" ? data.social_tiktok_url : "",
       });
     };
 
