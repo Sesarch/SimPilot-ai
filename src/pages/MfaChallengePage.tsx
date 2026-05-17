@@ -77,6 +77,7 @@ const MfaChallengePage = () => {
     try {
       await mfaApi.sendEmailCode(emailPurpose);
       setEmailSent(true);
+      setCodeExpired(false);
       toast.success("Code sent — check your email");
     } catch (e: any) {
       toast.error(e?.message === "rate_limited" ? "Too many requests. Wait a minute." : "Failed to send code");
