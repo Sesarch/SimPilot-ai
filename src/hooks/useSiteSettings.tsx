@@ -37,6 +37,12 @@ const defaults: SiteSettings = {
   google_site_verification: "",
   bing_site_verification: "",
   google_search_console_property_url: "",
+  social_facebook_url: "",
+  social_instagram_url: "",
+  social_youtube_url: "",
+  social_x_url: "",
+  social_linkedin_url: "",
+  social_tiktok_url: "",
 };
 
 type Ctx = { settings: SiteSettings; loading: boolean };
