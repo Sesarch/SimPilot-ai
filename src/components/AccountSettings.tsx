@@ -309,7 +309,7 @@ const AccountSettings = () => {
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled) setProfilePublic((data as any)?.profile_public ?? true);
+        if (!cancelled) setProfilePublic((data as any)?.profile_public ?? false);
       });
     return () => { cancelled = true; };
   }, [user]);
