@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import PricingFAQ from "./PricingFAQ";
-import DraftReviewBanner from "./DraftReviewBanner";
+
 import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
