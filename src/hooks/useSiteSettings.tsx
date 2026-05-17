@@ -15,6 +15,12 @@ export type SiteSettings = {
   google_site_verification: string;
   bing_site_verification: string;
   google_search_console_property_url: string;
+  social_facebook_url: string;
+  social_instagram_url: string;
+  social_youtube_url: string;
+  social_x_url: string;
+  social_linkedin_url: string;
+  social_tiktok_url: string;
 };
 
 const defaults: SiteSettings = {
