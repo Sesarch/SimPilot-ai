@@ -1655,13 +1655,12 @@ ${transcript}`;
           .eq("tier", t.tier)
           .maybeSingle();
         if (existing) continue;
-        const { error: achErr } = await supabase.from("user_achievements").insert({
-          user_id: user.id,
-          tier: t.tier,
-          exam_type: "atc_phraseology",
-          exam_score_id: inserted?.id ?? null,
-          percentile: pct,
-        });
+        const { error: achErr } = await supabase.rpc("award_achievement" as never, {
+          _tier: t.tier,
+          _exam_type: "atc_phraseology",
+          _exam_score_id: inserted?.id ?? null,
+          _percentile_hint: pct,
+        } as never);
         if (!achErr) {
           setTimeout(() => {
             toast.success(t.title, { description: t.description, duration: 6500 });

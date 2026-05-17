@@ -161,13 +161,13 @@ export const CheckrideReadinessReport = ({ report, onClose, onRetry }: Props) =>
         .maybeSingle();
       if (existing) return;
 
-      // Insert; UNIQUE (user_id, tier) protects against double-fires across tabs/devices.
-      const { error } = await supabase.from("user_achievements").insert({
-        user_id: user.id,
-        tier,
-        exam_type: report.exam_type_id,
-        percentile: percentile.percentile,
-      });
+      // Insert via SECURITY DEFINER award_achievement which validates server-side.
+      const { error } = await supabase.rpc("award_achievement" as never, {
+        _tier: tier,
+        _exam_type: report.exam_type_id,
+        _exam_score_id: null,
+        _percentile_hint: percentile.percentile,
+      } as never);
       if (error) {
         // Likely unique-violation (already earned on another device) — skip celebration.
         return;
