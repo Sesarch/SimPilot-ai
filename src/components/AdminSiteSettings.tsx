@@ -23,6 +23,12 @@ const AdminSiteSettings = () => {
   const [atcLiveFreqEnabled, setAtcLiveFreqEnabled] = useState(true);
   const [atcGuidedScenariosEnabled, setAtcGuidedScenariosEnabled] = useState(true);
   const [bridgeDirectDownload, setBridgeDirectDownload] = useState(false);
+  const [socialFacebook, setSocialFacebook] = useState("");
+  const [socialInstagram, setSocialInstagram] = useState("");
+  const [socialYoutube, setSocialYoutube] = useState("");
+  const [socialX, setSocialX] = useState("");
+  const [socialLinkedin, setSocialLinkedin] = useState("");
+  const [socialTiktok, setSocialTiktok] = useState("");
 
   const handleBridgeDirectDownloadChange = (next: boolean) => {
     setBridgeDirectDownload(next);
