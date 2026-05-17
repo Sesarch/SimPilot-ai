@@ -136,6 +136,9 @@ const MfaChallengePage = () => {
         setCode("");
         setRecovery("");
       }
+      if (msg === "no_active_code" || msg === "too_many_attempts") {
+        setCodeExpired(true);
+      }
     } finally {
       setBusy(false);
     }
