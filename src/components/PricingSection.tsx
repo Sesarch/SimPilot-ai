@@ -168,18 +168,6 @@ const PricingSection = () => {
     <section id="pricing" className="py-24 relative bg-gradient-hero scroll-mt-20">
       <div className="absolute top-0 left-0 right-0 hud-line" />
       <div className="container mx-auto px-6">
-        <div className="max-w-6xl mx-auto">
-          <DraftReviewBanner
-            body="This pricing and T&C have not yet been reviewed by legal counsel. Do not promote to production until reviewed. Items to flag for attorney:"
-            flagItems={[
-              "Section 10.3 — liability cap amount",
-              "Section 16.1 — governing law jurisdiction",
-              "Section 16.2 — arbitration venue",
-              "Enforceability of class action waiver in target jurisdictions",
-            ]}
-          />
-        </div>
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

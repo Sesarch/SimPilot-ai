@@ -30,16 +30,6 @@ const TermsPage = () => {
       <Navbar />
 
       <div className="container mx-auto px-6 py-12 pt-24 max-w-3xl">
-        <DraftReviewBanner
-          body="This pricing and T&C have not yet been reviewed by legal counsel. Do not promote to production until reviewed. Specific items to flag for the attorney:"
-          flagItems={[
-            "Section 10.3 — liability cap amount",
-            "Section 16.1 — governing law jurisdiction",
-            "Section 16.2 — arbitration venue",
-            "Enforceability of class action waiver (Section 12) in target jurisdictions",
-          ]}
-        />
-
         <h1 className="font-display text-3xl text-foreground mb-2">Terms & Conditions</h1>
         <p className="text-sm text-muted-foreground mb-1">
           Last updated: {TERMS_LAST_UPDATED_LABEL}
