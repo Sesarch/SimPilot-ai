@@ -235,10 +235,6 @@ const PricingSection = () => {
     <section id="pricing" className="py-24 relative bg-gradient-hero scroll-mt-20">
       <div className="absolute top-0 left-0 right-0 hud-line" />
       <div className="container mx-auto px-6">
-        <DraftReviewBanner
-          body="This pricing and T&C have not been reviewed by legal counsel. Do not promote to production until reviewed."
-        />
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
