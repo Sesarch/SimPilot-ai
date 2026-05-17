@@ -95,7 +95,7 @@ const Footer = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`Follow SimPilot.AI on ${label}`}
-                          className="group relative inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-full bg-card/60 border border-border text-muted-foreground hover:text-primary hover:border-primary/70 hover:bg-primary/10 hover:-translate-y-0.5 hover:shadow-[0_0_18px_hsl(var(--cyan-glow)/0.4)] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          className="group relative inline-flex shrink-0 items-center justify-center w-9 h-9 rounded-full bg-foreground/10 dark:bg-foreground/15 border border-foreground/20 dark:border-foreground/25 text-foreground hover:text-primary hover:border-primary/70 hover:bg-primary/10 hover:-translate-y-0.5 hover:shadow-[0_0_18px_hsl(var(--cyan-glow)/0.4)] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
                           <Icon className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" strokeWidth={1.75} aria-hidden="true" />
                         </a>
