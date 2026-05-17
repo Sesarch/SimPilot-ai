@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Facebook } from "lucide-react";
+import { Facebook, Instagram, Youtube, Twitter, Linkedin, Music2 } from "lucide-react";
 import Logo from "@/components/Logo";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const FooterLink = ({ to, title, children }: { to: string; title: string; children: React.ReactNode }) => {
   const navigate = useNavigate();
