@@ -100,7 +100,11 @@ const Footer = () => {
                           <Icon className="w-4 h-4 transition-transform duration-300 ease-out group-hover:scale-110" strokeWidth={1.75} aria-hidden="true" />
                         </a>
                       </TooltipTrigger>
-                      <TooltipContent side="top" sideOffset={8} className="text-xs font-medium tracking-wide">
+                      <TooltipContent
+                        side="top"
+                        sideOffset={8}
+                        className="border-border/80 bg-popover/95 text-popover-foreground shadow-lg backdrop-blur-sm px-2.5 py-1 text-xs font-medium tracking-wide"
+                      >
                         {label}
                       </TooltipContent>
                     </Tooltip>
