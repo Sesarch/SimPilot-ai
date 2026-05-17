@@ -56,9 +56,13 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
           return;
         }
 
+        // Key the per-session MFA flag on user.id, NOT on the access token.
+        // Supabase refreshes access tokens roughly hourly, so a token-slice
+        // key would silently invalidate the flag and bounce the admin into
+        // a /admin ↔ /mfa redirect loop (gate stuck on "Loading…").
+        const flagKey = `mfa-verified:${user.id}`;
+
         if (mustEnforce && !status.enrolled) {
-          const { data: { session } } = await supabase.auth.getSession();
-          const flagKey = `mfa-verified:${session?.access_token?.slice(-12) ?? ""}`;
           navigate("/mfa", {
             state: { redirectTo: location.pathname, sessionFlag: flagKey, enrollEmail: true },
             replace: true,
@@ -67,8 +71,6 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
         }
 
         if (mustEnforce && status.enrolled && !status.totp_enrolled && status.email_otp_enabled) {
-          const { data: { session } } = await supabase.auth.getSession();
-          const flagKey = `mfa-verified:${session?.access_token?.slice(-12) ?? ""}`;
           if (!sessionStorage.getItem(flagKey)) {
             navigate("/mfa", { state: { redirectTo: location.pathname, sessionFlag: flagKey }, replace: true });
             return;

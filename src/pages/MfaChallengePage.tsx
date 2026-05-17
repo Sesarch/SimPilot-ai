@@ -30,7 +30,8 @@ const MfaChallengePage = () => {
   const [codeExpired, setCodeExpired] = useState(false);
   const sentOnce = useRef(false);
   const emailPurpose = enrollEmail ? "enroll" : "login";
-  const sendLockKey = `mfa-email-sent:${session?.access_token?.slice(-12) ?? user?.id ?? "pending"}:${emailPurpose}`;
+  // Key on user.id so it survives Supabase access-token refreshes.
+  const sendLockKey = `mfa-email-sent:${user?.id ?? "pending"}:${emailPurpose}`;
 
   useEffect(() => {
     if (authLoading) return;
