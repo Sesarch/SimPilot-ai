@@ -27,6 +27,7 @@ const MfaChallengePage = () => {
   const [recovery, setRecovery] = useState("");
   const [busy, setBusy] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [codeExpired, setCodeExpired] = useState(false);
   const sentOnce = useRef(false);
   const emailPurpose = enrollEmail ? "enroll" : "login";
   const sendLockKey = `mfa-email-sent:${session?.access_token?.slice(-12) ?? user?.id ?? "pending"}:${emailPurpose}`;
