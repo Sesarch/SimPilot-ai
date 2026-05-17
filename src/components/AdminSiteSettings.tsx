@@ -83,6 +83,12 @@ const AdminSiteSettings = () => {
       atc_live_frequency_enabled: atcLiveFreqEnabled,
       atc_guided_scenarios_enabled: atcGuidedScenariosEnabled,
       bridge_direct_download_enabled: bridgeDirectDownload,
+      social_facebook_url: socialFacebook.trim(),
+      social_instagram_url: socialInstagram.trim(),
+      social_youtube_url: socialYoutube.trim(),
+      social_x_url: socialX.trim(),
+      social_linkedin_url: socialLinkedin.trim(),
+      social_tiktok_url: socialTiktok.trim(),
     };
     const { error } = await supabase
       .from("site_settings")
