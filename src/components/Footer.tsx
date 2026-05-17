@@ -83,16 +83,23 @@ const Footer = () => {
             © {new Date().getFullYear()} SimPilot.ai — All rights reserved.
           </p>
           <div className="flex flex-col items-center gap-3 order-1 md:order-2 md:flex-row md:gap-4">
-            <a
-              href="https://www.facebook.com/profile.php?id=61570682398248"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Follow SimPilot.AI on Facebook"
-              aria-label="Follow SimPilot.AI on Facebook"
-              className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center justify-center w-11 h-11 rounded-full border border-border/60 hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              <Facebook className="w-4 h-4" />
-            </a>
+            {socials.length > 0 && (
+              <div className="flex items-center gap-2">
+                {socials.map(({ url, Icon, label }) => (
+                  <a
+                    key={label}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Follow SimPilot.AI on ${label}`}
+                    aria-label={`Follow SimPilot.AI on ${label}`}
+                    className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center justify-center w-11 h-11 rounded-full border border-border/60 hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                ))}
+              </div>
+            )}
             <p className="text-xs text-muted-foreground tracking-wide">
               Built for pilots, powered by AI
             </p>
