@@ -921,6 +921,8 @@ export type Database = {
           flight_hours: number | null
           id: string
           license_level: string | null
+          lifetime_access_started_at: string | null
+          lifetime_target_passed_at: string | null
           onboarding_completed_at: string | null
           profile_public: boolean
           quiz_history_limit: number
@@ -936,7 +938,11 @@ export type Database = {
           subscription_status: string | null
           subscription_tier: string | null
           tail_number: string | null
+          target_rating: string | null
+          terms_accepted_at: string | null
+          terms_accepted_ip: string | null
           terms_agreed_at: string | null
+          terms_version: string | null
           training_progress: Json
           trial_ends_at: string | null
           trial_started_at: string | null
@@ -953,6 +959,8 @@ export type Database = {
           flight_hours?: number | null
           id?: string
           license_level?: string | null
+          lifetime_access_started_at?: string | null
+          lifetime_target_passed_at?: string | null
           onboarding_completed_at?: string | null
           profile_public?: boolean
           quiz_history_limit?: number
@@ -968,7 +976,11 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: string | null
           tail_number?: string | null
+          target_rating?: string | null
+          terms_accepted_at?: string | null
+          terms_accepted_ip?: string | null
           terms_agreed_at?: string | null
+          terms_version?: string | null
           training_progress?: Json
           trial_ends_at?: string | null
           trial_started_at?: string | null
@@ -985,6 +997,8 @@ export type Database = {
           flight_hours?: number | null
           id?: string
           license_level?: string | null
+          lifetime_access_started_at?: string | null
+          lifetime_target_passed_at?: string | null
           onboarding_completed_at?: string | null
           profile_public?: boolean
           quiz_history_limit?: number
@@ -1000,7 +1014,11 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: string | null
           tail_number?: string | null
+          target_rating?: string | null
+          terms_accepted_at?: string | null
+          terms_accepted_ip?: string | null
           terms_agreed_at?: string | null
+          terms_version?: string | null
           training_progress?: Json
           trial_ends_at?: string | null
           trial_started_at?: string | null
