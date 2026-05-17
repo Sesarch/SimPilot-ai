@@ -58,6 +58,12 @@ const AdminSiteSettings = () => {
         setAtcLiveFreqEnabled(d.atc_live_frequency_enabled === undefined ? true : Boolean(d.atc_live_frequency_enabled));
         setAtcGuidedScenariosEnabled(d.atc_guided_scenarios_enabled === undefined ? true : Boolean(d.atc_guided_scenarios_enabled));
         setBridgeDirectDownload(Boolean((data as { bridge_direct_download_enabled?: boolean }).bridge_direct_download_enabled));
+        setSocialFacebook(typeof d.social_facebook_url === "string" ? d.social_facebook_url : "");
+        setSocialInstagram(typeof d.social_instagram_url === "string" ? d.social_instagram_url : "");
+        setSocialYoutube(typeof d.social_youtube_url === "string" ? d.social_youtube_url : "");
+        setSocialX(typeof d.social_x_url === "string" ? d.social_x_url : "");
+        setSocialLinkedin(typeof d.social_linkedin_url === "string" ? d.social_linkedin_url : "");
+        setSocialTiktok(typeof d.social_tiktok_url === "string" ? d.social_tiktok_url : "");
       }
       setLoading(false);
     };
