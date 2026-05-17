@@ -22,6 +22,15 @@ const FooterLink = ({ to, title, children }: { to: string; title: string; childr
 };
 
 const Footer = () => {
+  const { settings } = useSiteSettings();
+  const socials = [
+    { url: settings.social_facebook_url, Icon: Facebook, label: "Facebook" },
+    { url: settings.social_instagram_url, Icon: Instagram, label: "Instagram" },
+    { url: settings.social_youtube_url, Icon: Youtube, label: "YouTube" },
+    { url: settings.social_x_url, Icon: Twitter, label: "X" },
+    { url: settings.social_linkedin_url, Icon: Linkedin, label: "LinkedIn" },
+    { url: settings.social_tiktok_url, Icon: Music2, label: "TikTok" },
+  ].filter((s) => s.url && s.url.trim().length > 0);
   return (
     <footer className="py-16 border-t border-border bg-background">
       <div className="mx-auto px-6 md:px-0" style={{ maxWidth: "70%" }}>
