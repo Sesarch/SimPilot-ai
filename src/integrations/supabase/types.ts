@@ -939,6 +939,7 @@ export type Database = {
           subscription_tier: string | null
           tail_number: string | null
           target_rating: string | null
+          target_rating_selected_at: string | null
           terms_accepted_at: string | null
           terms_accepted_ip: string | null
           terms_agreed_at: string | null
@@ -977,6 +978,7 @@ export type Database = {
           subscription_tier?: string | null
           tail_number?: string | null
           target_rating?: string | null
+          target_rating_selected_at?: string | null
           terms_accepted_at?: string | null
           terms_accepted_ip?: string | null
           terms_agreed_at?: string | null
@@ -1015,6 +1017,7 @@ export type Database = {
           subscription_tier?: string | null
           tail_number?: string | null
           target_rating?: string | null
+          target_rating_selected_at?: string | null
           terms_accepted_at?: string | null
           terms_accepted_ip?: string | null
           terms_agreed_at?: string | null

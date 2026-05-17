@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS target_rating_selected_at TIMESTAMPTZ;
