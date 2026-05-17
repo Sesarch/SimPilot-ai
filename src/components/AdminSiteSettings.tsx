@@ -194,6 +194,39 @@ const AdminSiteSettings = () => {
           </div>
         </div>
 
+        {/* Social Links */}
+        <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <Share2 className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-sm text-foreground">Social Links</p>
+              <p className="text-xs text-muted-foreground">
+                Add full URLs. Leave blank to hide that icon from the footer.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { label: "Facebook", value: socialFacebook, set: setSocialFacebook, placeholder: "https://facebook.com/..." },
+              { label: "Instagram", value: socialInstagram, set: setSocialInstagram, placeholder: "https://instagram.com/..." },
+              { label: "YouTube", value: socialYoutube, set: setSocialYoutube, placeholder: "https://youtube.com/@..." },
+              { label: "X (Twitter)", value: socialX, set: setSocialX, placeholder: "https://x.com/..." },
+              { label: "LinkedIn", value: socialLinkedin, set: setSocialLinkedin, placeholder: "https://linkedin.com/company/..." },
+              { label: "TikTok", value: socialTiktok, set: setSocialTiktok, placeholder: "https://tiktok.com/@..." },
+            ].map((f) => (
+              <div key={f.label} className="space-y-1">
+                <label className="text-xs text-muted-foreground">{f.label}</label>
+                <Input
+                  type="url"
+                  placeholder={f.placeholder}
+                  value={f.value}
+                  onChange={(e) => f.set(e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
         <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
           {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : "Save Settings"}
         </Button>
