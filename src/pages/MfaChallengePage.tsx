@@ -27,6 +27,7 @@ const MfaChallengePage = () => {
   const [recovery, setRecovery] = useState("");
   const [busy, setBusy] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [codeExpired, setCodeExpired] = useState(false);
   const sentOnce = useRef(false);
   const emailPurpose = enrollEmail ? "enroll" : "login";
   const sendLockKey = `mfa-email-sent:${session?.access_token?.slice(-12) ?? user?.id ?? "pending"}:${emailPurpose}`;
@@ -76,6 +77,7 @@ const MfaChallengePage = () => {
     try {
       await mfaApi.sendEmailCode(emailPurpose);
       setEmailSent(true);
+      setCodeExpired(false);
       toast.success("Code sent — check your email");
     } catch (e: any) {
       toast.error(e?.message === "rate_limited" ? "Too many requests. Wait a minute." : "Failed to send code");
@@ -133,6 +135,9 @@ const MfaChallengePage = () => {
       if (msg === "no_active_code" || msg === "too_many_attempts" || msg === "incorrect_code") {
         setCode("");
         setRecovery("");
+      }
+      if (msg === "no_active_code" || msg === "too_many_attempts") {
+        setCodeExpired(true);
       }
     } finally {
       setBusy(false);
@@ -222,13 +227,26 @@ const MfaChallengePage = () => {
           </form>
 
           {mode === "email" && (
-            <button
-              onClick={() => { sentOnce.current = false; sessionStorage.removeItem(sendLockKey); sendEmail(); }}
-              disabled={busy}
-              className="mt-4 text-xs text-primary hover:underline w-full text-center"
-            >
-              Resend code
-            </button>
+            codeExpired ? (
+              <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-center">
+                <p className="text-xs text-destructive mb-2">Your code has expired.</p>
+                <button
+                  onClick={() => { sentOnce.current = false; sessionStorage.removeItem(sendLockKey); sendEmail(); }}
+                  disabled={busy}
+                  className="px-4 py-2 rounded bg-primary text-primary-foreground font-display text-xs tracking-widest uppercase disabled:opacity-50"
+                >
+                  {busy ? "Sending…" : "Send new code"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { sentOnce.current = false; sessionStorage.removeItem(sendLockKey); sendEmail(); }}
+                disabled={busy}
+                className="mt-4 text-xs text-primary hover:underline w-full text-center"
+              >
+                Resend code
+              </button>
+            )
           )}
 
           <button
