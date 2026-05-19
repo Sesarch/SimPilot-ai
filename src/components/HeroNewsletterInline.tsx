@@ -45,11 +45,11 @@ const HeroNewsletterInline = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.55 }}
-      className="max-w-xl mx-auto mb-8"
+      className="w-full max-w-xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0"
     >
-      <div className="relative px-4 sm:px-5 py-3">
+      <div className="relative py-2 sm:py-3">
 
-        <div className="flex items-center gap-1.5 mb-2 justify-center sm:justify-start">
+        <div className="flex items-center gap-1.5 mb-3 justify-center sm:justify-start">
           <Sparkles className="w-3 h-3 text-primary" />
           <span className="font-display text-[10px] tracking-[0.3em] uppercase text-primary">
             Pilot Briefings — Free Monthly Newsletter
