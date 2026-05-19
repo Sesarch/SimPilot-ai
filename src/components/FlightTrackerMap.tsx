@@ -952,13 +952,16 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
   </>
 );
 
-const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory, flightStatus }: {
+const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, longitude, vsFpm, positionHistory, flightStatus }: {
   aircraft: Aircraft;
   altFt: number;
   spdKts: number;
+  heading: number;
+  latitude: number;
+  longitude: number;
   vsFpm: number;
   positionHistory: PositionRecord[];
-  flightStatus?: { isLive: boolean; start: number | null; end: number | null } | null;
+  flightStatus?: FlightStatus | null;
 }) => {
   // Format the "last seen" timestamp for completed flights. Trace timestamps
   // come from the upstream provider in seconds since epoch.
@@ -1011,7 +1014,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
       </div>
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">HDG</div>
-        <div className="text-sm text-foreground">{Math.round(aircraft.heading)}°</div>
+        <div className="text-sm text-foreground">{heading}°</div>
         <div className="text-[10px] text-muted-foreground">mag</div>
       </div>
     </div>
@@ -1020,7 +1023,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
       <div className="space-y-0">
         <DetailRow icon={Mountain} label="Altitude" value={`${altFt.toLocaleString()} ft`} />
         <DetailRow icon={Gauge} label="Ground Speed" value={`${spdKts} kts`} />
-        <DetailRow icon={Compass} label="Heading" value={`${Math.round(aircraft.heading)}°`} />
+        <DetailRow icon={Compass} label="Heading" value={`${heading}°`} />
         <div className="flex items-center justify-between py-1.5 border-b border-border/50">
           <div className="flex items-center gap-2 text-muted-foreground">
             {verticalRateArrow(vsFpm)}
@@ -1036,8 +1039,8 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
       <div className="mt-3">
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Position</div>
         <div className="bg-muted/50 rounded-lg p-2 font-mono text-xs text-foreground space-y-0.5">
-          <div>LAT: {aircraft.latitude.toFixed(4)}°</div>
-          <div>LON: {aircraft.longitude.toFixed(4)}°</div>
+          <div>LAT: {latitude.toFixed(4)}°</div>
+          <div>LON: {longitude.toFixed(4)}°</div>
         </div>
       </div>
       {positionHistory.length > 1 && (
