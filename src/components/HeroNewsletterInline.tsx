@@ -56,6 +56,10 @@ const HeroNewsletterInline = () => {
           </span>
         </div>
 
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent mb-3" />
+
+
+
         {subscribed ? (
           <div className="flex items-center justify-center gap-2 py-1.5 text-primary font-display text-sm tracking-wider text-glow-cyan">
             <CheckCircle2 className="w-4 h-4" />
