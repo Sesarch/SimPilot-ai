@@ -80,6 +80,9 @@ const HeroSection = () => {
           ATC phraseology. Try it right now, no signup needed.
         </motion.p>
 
+        {/* Inline newsletter signup */}
+        <HeroNewsletterInline />
+
         {/* Embedded AI Chat */}
         <HeroChatBoxBoundary>
           <HeroChatBox />
