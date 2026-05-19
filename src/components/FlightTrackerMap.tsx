@@ -149,6 +149,21 @@ interface PositionRecord {
   time: Date;
 }
 
+type FlightStatus = {
+  isLive: boolean;
+  start: number | null;
+  end: number | null;
+  lastPosition?: {
+    t: number;
+    lat: number;
+    lon: number;
+    alt: number | null;
+    gs: number | null;
+    track: number | null;
+    ground: boolean;
+  } | null;
+};
+
 const verticalRateArrow = (vr: number) => {
   if (vr > 100) return <ArrowUp className="h-3 w-3 text-green-500" />;
   if (vr < -100) return <ArrowDown className="h-3 w-3 text-red-500" />;
@@ -205,7 +220,7 @@ const FlightTrackerMap = () => {
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
-  const [flightStatus, setFlightStatus] = useState<{ isLive: boolean; start: number | null; end: number | null } | null>(null);
+  const [flightStatus, setFlightStatus] = useState<FlightStatus | null>(null);
   const traceAbortRef = useRef<AbortController | null>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -323,6 +338,7 @@ const FlightTrackerMap = () => {
           is_live?: boolean;
           flight_start?: number | null;
           flight_end?: number | null;
+          last_position?: FlightStatus["lastPosition"];
         };
         const pts = (data.points ?? [])
           .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon))
@@ -333,6 +349,7 @@ const FlightTrackerMap = () => {
             isLive: !!data.is_live,
             start: data.flight_start ?? null,
             end: data.flight_end ?? null,
+            lastPosition: data.last_position ?? null,
           });
         }
       } catch {
@@ -413,6 +430,11 @@ const FlightTrackerMap = () => {
   const altFt = selectedAircraft ? Math.round(selectedAircraft.altitude * 3.281) : 0;
   const spdKts = selectedAircraft ? Math.round(selectedAircraft.velocity * 1.944) : 0;
   const vsFpm = selectedAircraft ? Math.round(selectedAircraft.verticalRate * 196.85) : 0;
+  const displayAltFt = flightStatus?.lastPosition?.alt != null ? Math.round(flightStatus.lastPosition.alt) : altFt;
+  const displaySpdKts = flightStatus?.lastPosition?.gs != null ? Math.round(flightStatus.lastPosition.gs) : spdKts;
+  const displayHeading = flightStatus?.lastPosition?.track != null ? Math.round(flightStatus.lastPosition.track) : Math.round(selectedAircraft?.heading ?? 0);
+  const displayLatitude = flightStatus?.lastPosition?.lat ?? selectedAircraft?.latitude ?? 0;
+  const displayLongitude = flightStatus?.lastPosition?.lon ?? selectedAircraft?.longitude ?? 0;
 
   // Search results
   const searchResults = useMemo(() => {
@@ -818,7 +840,7 @@ const FlightTrackerMap = () => {
                 </DrawerTitle>
               </DrawerHeader>
               <div className="overflow-y-auto px-4 pb-6">
-                <AircraftPanelContent aircraft={selectedAircraft} altFt={altFt} spdKts={spdKts} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
+                <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
               </div>
             </DrawerContent>
           </Drawer>
@@ -832,7 +854,7 @@ const FlightTrackerMap = () => {
               <Button size="icon" variant="ghost" onClick={handleClose} className="h-7 w-7"><X className="h-4 w-4" /></Button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <AircraftPanelContent aircraft={selectedAircraft} altFt={altFt} spdKts={spdKts} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
+              <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
             </div>
           </div>
         )
@@ -930,13 +952,16 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
   </>
 );
 
-const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory, flightStatus }: {
+const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, longitude, vsFpm, positionHistory, flightStatus }: {
   aircraft: Aircraft;
   altFt: number;
   spdKts: number;
+  heading: number;
+  latitude: number;
+  longitude: number;
   vsFpm: number;
   positionHistory: PositionRecord[];
-  flightStatus?: { isLive: boolean; start: number | null; end: number | null } | null;
+  flightStatus?: FlightStatus | null;
 }) => {
   // Format the "last seen" timestamp for completed flights. Trace timestamps
   // come from the upstream provider in seconds since epoch.
@@ -989,7 +1014,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
       </div>
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">HDG</div>
-        <div className="text-sm text-foreground">{Math.round(aircraft.heading)}°</div>
+        <div className="text-sm text-foreground">{heading}°</div>
         <div className="text-[10px] text-muted-foreground">mag</div>
       </div>
     </div>
@@ -998,7 +1023,7 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
       <div className="space-y-0">
         <DetailRow icon={Mountain} label="Altitude" value={`${altFt.toLocaleString()} ft`} />
         <DetailRow icon={Gauge} label="Ground Speed" value={`${spdKts} kts`} />
-        <DetailRow icon={Compass} label="Heading" value={`${Math.round(aircraft.heading)}°`} />
+        <DetailRow icon={Compass} label="Heading" value={`${heading}°`} />
         <div className="flex items-center justify-between py-1.5 border-b border-border/50">
           <div className="flex items-center gap-2 text-muted-foreground">
             {verticalRateArrow(vsFpm)}
@@ -1014,8 +1039,8 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, vsFpm, positionHistory,
       <div className="mt-3">
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Position</div>
         <div className="bg-muted/50 rounded-lg p-2 font-mono text-xs text-foreground space-y-0.5">
-          <div>LAT: {aircraft.latitude.toFixed(4)}°</div>
-          <div>LON: {aircraft.longitude.toFixed(4)}°</div>
+          <div>LAT: {latitude.toFixed(4)}°</div>
+          <div>LON: {longitude.toFixed(4)}°</div>
         </div>
       </div>
       {positionHistory.length > 1 && (
