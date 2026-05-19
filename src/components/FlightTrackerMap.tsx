@@ -6,6 +6,7 @@ import { useFlightTracker, Aircraft } from "@/hooks/useFlightTracker";
 import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
+import { nearestAirport } from "@/lib/nearestAirport";
 import { useAirportWeather } from "@/hooks/useAirportWeather";
 import { useAirportWeatherBatch, FlightCategory } from "@/hooks/useAirportWeatherBatch";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -387,6 +388,19 @@ const FlightTrackerMap = () => {
     for (const p of trailPositions) combined.push(p);
     return combined;
   }, [historicalTrack, trailPositions]);
+
+  // Infer From -> To (last known) by reverse-geocoding the first and last
+  // ADS-B trace points against our static airport DB. Returns null if no
+  // major airport is within 50 km (avoids mislabeling random fixes).
+  const routeEndpoints = useMemo(() => {
+    if (historicalTrack.length < 2) return null;
+    const first = historicalTrack[0];
+    const last = historicalTrack[historicalTrack.length - 1];
+    const from = nearestAirport(first[0], first[1]);
+    const to = nearestAirport(last[0], last[1]);
+    if (!from && !to) return null;
+    return { from, to };
+  }, [historicalTrack]);
 
   const filteredAircraft = useMemo(() => {
     // When the user picks a specific aircraft from the search dropdown,
@@ -840,7 +854,7 @@ const FlightTrackerMap = () => {
                 </DrawerTitle>
               </DrawerHeader>
               <div className="overflow-y-auto px-4 pb-6">
-                <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
+                <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} routeEndpoints={routeEndpoints} />
               </div>
             </DrawerContent>
           </Drawer>
@@ -854,7 +868,7 @@ const FlightTrackerMap = () => {
               <Button size="icon" variant="ghost" onClick={handleClose} className="h-7 w-7"><X className="h-4 w-4" /></Button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
+              <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} routeEndpoints={routeEndpoints} />
             </div>
           </div>
         )
@@ -952,7 +966,7 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
   </>
 );
 
-const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, longitude, vsFpm, positionHistory, flightStatus }: {
+const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, longitude, vsFpm, positionHistory, flightStatus, routeEndpoints }: {
   aircraft: Aircraft;
   altFt: number;
   spdKts: number;
@@ -962,6 +976,10 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, long
   vsFpm: number;
   positionHistory: PositionRecord[];
   flightStatus?: FlightStatus | null;
+  routeEndpoints?: {
+    from: { airport: MajorAirport; distanceKm: number } | null;
+    to: { airport: MajorAirport; distanceKm: number } | null;
+  } | null;
 }) => {
   // Format the "last seen" timestamp for completed flights. Trace timestamps
   // come from the upstream provider in seconds since epoch.
@@ -1001,6 +1019,35 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, long
       )}
       <span className="text-[10px] text-muted-foreground">{aircraft.originCountry}</span>
     </div>
+    {routeEndpoints && (routeEndpoints.from || routeEndpoints.to) && (
+      <div className="mb-2 rounded-md border border-border bg-muted/40 px-2.5 py-2">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <MapPin className="h-3 w-3" /> Route (inferred)
+        </div>
+        <div className="flex items-center gap-2 text-xs text-foreground">
+          <div className="flex-1 min-w-0">
+            <div className="font-mono text-foreground">{routeEndpoints.from?.airport.icao ?? "—"}</div>
+            <div className="text-[10px] text-muted-foreground truncate">
+              {routeEndpoints.from
+                ? `${routeEndpoints.from.airport.name} · ~${Math.round(routeEndpoints.from.distanceKm)} km`
+                : "Unknown origin"}
+            </div>
+          </div>
+          <ArrowUp className="h-3 w-3 rotate-90 text-muted-foreground shrink-0" />
+          <div className="flex-1 min-w-0 text-right">
+            <div className="font-mono text-foreground">{routeEndpoints.to?.airport.icao ?? "—"}</div>
+            <div className="text-[10px] text-muted-foreground truncate">
+              {routeEndpoints.to
+                ? `${routeEndpoints.to.airport.name} · ~${Math.round(routeEndpoints.to.distanceKm)} km`
+                : flightStatus?.isLive ? "In flight" : "Unknown"}
+            </div>
+          </div>
+        </div>
+        <div className="text-[9px] text-muted-foreground mt-1.5 leading-tight">
+          Based on first &amp; last ADS-B points within 50 km of a known airport.
+        </div>
+      </div>
+    )}
     <div className="grid grid-cols-3 gap-2 py-2">
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">ALT</div>
