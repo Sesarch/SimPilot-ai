@@ -103,6 +103,7 @@ const HeroNewsletterInline = () => {
               <div className="relative flex-1 group w-full">
                 <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${fieldError ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"}`} />
                 <input
+                  ref={inputRef}
                   type="email"
                   inputMode="email"
                   autoComplete="email"
