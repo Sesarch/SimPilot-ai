@@ -6,7 +6,7 @@ import { useFlightTracker, Aircraft } from "@/hooks/useFlightTracker";
 import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
-import { nearestAirport } from "@/lib/nearestAirport";
+import { nearestAirport, haversineKm } from "@/lib/nearestAirport";
 import { useAirportWeather } from "@/hooks/useAirportWeather";
 import { useAirportWeatherBatch, FlightCategory } from "@/hooks/useAirportWeatherBatch";
 import { useIsMobile } from "@/hooks/use-mobile";
