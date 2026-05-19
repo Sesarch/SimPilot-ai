@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Send, CheckCircle2, Sparkles, AlertCircle } from "lucide-react";
 import { z } from "zod";
