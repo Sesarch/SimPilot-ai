@@ -854,7 +854,7 @@ const FlightTrackerMap = () => {
                 </DrawerTitle>
               </DrawerHeader>
               <div className="overflow-y-auto px-4 pb-6">
-                <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
+                <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} routeEndpoints={routeEndpoints} />
               </div>
             </DrawerContent>
           </Drawer>
