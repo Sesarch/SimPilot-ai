@@ -47,7 +47,7 @@ const HeroNewsletterInline = () => {
       transition={{ duration: 0.7, delay: 0.55 }}
       className="max-w-xl mx-auto mb-8"
     >
-      <div className="relative rounded-xl border border-primary/30 bg-background/40 backdrop-blur-md px-4 sm:px-5 py-3 shadow-[0_10px_40px_-15px_hsl(var(--primary)/0.5)]">
+      <div className="relative rounded-xl border border-primary/30 px-4 sm:px-5 py-3">
         {/* Corner brackets */}
         <span className="absolute top-1.5 left-1.5 w-2 h-2 border-l border-t border-primary/60" />
         <span className="absolute top-1.5 right-1.5 w-2 h-2 border-r border-t border-primary/60" />
