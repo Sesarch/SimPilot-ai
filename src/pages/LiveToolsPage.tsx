@@ -88,7 +88,7 @@ const LiveToolsPage = () => {
                     Real-time global traffic and AI ATC radio drills.
                   </p>
                 </div>
-                {activeTab === "tracker" && <FlightAwareTestButton />}
+                </div>
               </div>
             </div>
 
