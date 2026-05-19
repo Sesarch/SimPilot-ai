@@ -6,7 +6,7 @@ import { useFlightTracker, Aircraft } from "@/hooks/useFlightTracker";
 import { Loader2, RefreshCw, Plane, X, ArrowUp, ArrowDown, Minus, Compass, Gauge, Mountain, Flag, Radio, MapPin, ToggleLeft, ToggleRight, Search, SlidersHorizontal, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { majorAirports, MajorAirport } from "@/data/majorAirports";
-import { nearestAirport } from "@/lib/nearestAirport";
+import { nearestAirport, haversineKm } from "@/lib/nearestAirport";
 import { useAirportWeather } from "@/hooks/useAirportWeather";
 import { useAirportWeatherBatch, FlightCategory } from "@/hooks/useAirportWeatherBatch";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -1043,6 +1043,33 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, long
             </div>
           </div>
         </div>
+        {(() => {
+          const from = routeEndpoints.from?.airport;
+          const to = routeEndpoints.to?.airport;
+          const distKm = from && to
+            ? haversineKm({ lat: from.lat, lon: from.lng }, { lat: to.lat, lon: to.lng })
+            : null;
+          const distNm = distKm != null ? Math.round(distKm * 0.539957) : null;
+          const start = flightStatus?.start;
+          const end = flightStatus?.end ?? (flightStatus?.isLive ? Math.floor(Date.now() / 1000) : null);
+          const durMin = start && end && end > start ? Math.round((end - start) / 60) : null;
+          const durLabel = durMin == null
+            ? null
+            : durMin < 60
+              ? `${durMin} min`
+              : `${Math.floor(durMin / 60)}h ${durMin % 60}m`;
+          if (distNm == null && durLabel == null) return null;
+          return (
+            <div className="mt-1.5 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50 pt-1.5">
+              {distNm != null ? (
+                <span>Distance: <span className="text-foreground font-mono">{distNm} nm</span> ({Math.round(distKm!)} km)</span>
+              ) : <span />}
+              {durLabel != null && (
+                <span>Track time: <span className="text-foreground font-mono">{durLabel}</span></span>
+              )}
+            </div>
+          );
+        })()}
         <div className="text-[9px] text-muted-foreground mt-1.5 leading-tight">
           Based on first &amp; last ADS-B points within 50 km of a known airport.
         </div>
