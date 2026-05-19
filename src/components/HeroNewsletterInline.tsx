@@ -1,18 +1,39 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Send, CheckCircle2, Sparkles } from "lucide-react";
+import { Mail, Send, CheckCircle2, Sparkles, AlertCircle } from "lucide-react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const emailSchema = z
+  .string()
+  .trim()
+  .min(1, { message: "Please enter your email address." })
+  .max(255, { message: "Email must be 255 characters or fewer." })
+  .email({ message: "That doesn't look like a valid email address." });
 
 const HeroNewsletterInline = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [fieldError, setFieldError] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (fieldError) setFieldError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = email.trim();
-    if (!trimmed) return;
+
+    const parsed = emailSchema.safeParse(email);
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message ?? "Invalid email.";
+      setFieldError(msg);
+      toast.error(msg);
+      return;
+    }
+    const trimmed = parsed.data;
 
     setLoading(true);
     const { error } = await supabase
@@ -22,14 +43,17 @@ const HeroNewsletterInline = () => {
 
     if (error) {
       if (error.code === "23505") {
+        setFieldError("This email is already subscribed.");
         toast.info("You're already subscribed!");
         setSubscribed(true);
       } else {
+        setFieldError("We couldn't subscribe you right now. Please try again.");
         toast.error("Something went wrong. Please try again.");
       }
       return;
     }
 
+    setFieldError(null);
     setSubscribed(true);
     toast.success("You're subscribed! Welcome aboard ✈️");
 
@@ -39,6 +63,7 @@ const HeroNewsletterInline = () => {
       })
       .catch((err) => console.warn("Omnisend sync failed:", err));
   };
+
 
   return (
     <motion.div
