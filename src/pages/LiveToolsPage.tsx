@@ -3,8 +3,7 @@ import { useLocation } from "react-router-dom";
 import FlightTrackerMap from "@/components/FlightTrackerMap";
 import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary";
 import ATCTrainer from "@/components/ATCTrainer";
-import FlightAwareTestButton from "@/components/FlightAwareTestButton";
-import FlightProviderStatusPanel from "@/components/FlightProviderStatusPanel";
+
 
 import { Radar, Radio, Cloud, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -89,7 +88,6 @@ const LiveToolsPage = () => {
                     Real-time global traffic and AI ATC radio drills.
                   </p>
                 </div>
-                {activeTab === "tracker" && <FlightAwareTestButton />}
               </div>
             </div>
 
@@ -149,13 +147,11 @@ const LiveToolsPage = () => {
             {/* Content */}
             {activeTab === "tracker" ? (
               <FlightTrackerErrorBoundary>
-                <div className="mb-3">
-                  <FlightProviderStatusPanel />
-                </div>
                 <div className="h-[calc(100vh-300px)] sm:h-[600px] md:h-[700px] rounded-lg overflow-hidden border border-border">
                   <FlightTrackerMap />
                 </div>
               </FlightTrackerErrorBoundary>
+
             ) : (
               <ATCTrainer />
             )}

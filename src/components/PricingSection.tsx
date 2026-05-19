@@ -127,7 +127,7 @@ const SHARED_FEATURES: string[] = [
   "Multi-brain AI tutor (Claude + GPT-4o + Gemini routing)",
   "DPE oral exam simulator with scoring and debrief",
   "Live weather briefings (METAR / TAF integration)",
-  "Live flight tracking (OpenSky / FlightAware)",
+  "Live flight tracking (OpenSky)",
   "POH-grounded answers (upload your aircraft's POH)",
   "Vision-based chart & sectional analysis",
   "MSFS / X-Plane desktop bridge integration",

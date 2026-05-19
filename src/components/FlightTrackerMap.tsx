@@ -705,16 +705,8 @@ const FlightTrackerMap = () => {
           </div>
         )}
 
-        {/* Premium provider badge */}
-        {provider === "flightaware" && !loading && (
-          <div className="absolute top-3 right-3 z-[1000] bg-accent/90 backdrop-blur-sm text-accent-foreground rounded-md px-2.5 py-1 text-[10px] font-display tracking-widest uppercase shadow-lg border border-accent/50 flex items-center gap-1.5">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-current" />
-            </span>
-            FlightAware Premium
-          </div>
-        )}
+
+
 
         {/* Weather Legend */}
         {showAirports && (
