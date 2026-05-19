@@ -163,6 +163,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         ident,
+        ident_kind: identKind,
+        resolved_registration: firstReg,
         is_live: !!live,
         live_flight: live
           ? {
@@ -177,7 +179,7 @@ serve(async (req) => {
         photo,
         recent_flights: recent,
         sources: {
-          flightaware: !!aircraftInfo || flights.length > 0,
+          flightaware: !!aircraftInfo || flightsRaw.length > 0,
           planespotters: !!photo,
         },
       }),
