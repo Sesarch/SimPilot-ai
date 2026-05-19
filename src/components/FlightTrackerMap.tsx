@@ -389,6 +389,19 @@ const FlightTrackerMap = () => {
     return combined;
   }, [historicalTrack, trailPositions]);
 
+  // Infer From -> To (last known) by reverse-geocoding the first and last
+  // ADS-B trace points against our static airport DB. Returns null if no
+  // major airport is within 50 km (avoids mislabeling random fixes).
+  const routeEndpoints = useMemo(() => {
+    if (historicalTrack.length < 2) return null;
+    const first = historicalTrack[0];
+    const last = historicalTrack[historicalTrack.length - 1];
+    const from = nearestAirport(first[0], first[1]);
+    const to = nearestAirport(last[0], last[1]);
+    if (!from && !to) return null;
+    return { from, to };
+  }, [historicalTrack]);
+
   const filteredAircraft = useMemo(() => {
     // When the user picks a specific aircraft from the search dropdown,
     // isolate it: show ONLY that aircraft (plus its historical trail).
