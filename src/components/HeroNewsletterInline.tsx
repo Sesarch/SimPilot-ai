@@ -47,12 +47,7 @@ const HeroNewsletterInline = () => {
       transition={{ duration: 0.7, delay: 0.55 }}
       className="max-w-xl mx-auto mb-8"
     >
-      <div className="relative rounded-xl border border-primary/30 px-4 sm:px-5 py-3">
-        {/* Corner brackets */}
-        <span className="absolute top-1.5 left-1.5 w-2 h-2 border-l border-t border-primary/60" />
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 border-r border-t border-primary/60" />
-        <span className="absolute bottom-1.5 left-1.5 w-2 h-2 border-l border-b border-primary/60" />
-        <span className="absolute bottom-1.5 right-1.5 w-2 h-2 border-r border-b border-primary/60" />
+      <div className="relative px-4 sm:px-5 py-3">
 
         <div className="flex items-center gap-1.5 mb-2 justify-center sm:justify-start">
           <Sparkles className="w-3 h-3 text-primary" />
