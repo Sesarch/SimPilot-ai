@@ -3,8 +3,7 @@ import { useLocation } from "react-router-dom";
 import FlightTrackerMap from "@/components/FlightTrackerMap";
 import FlightTrackerErrorBoundary from "@/components/FlightTrackerErrorBoundary";
 import ATCTrainer from "@/components/ATCTrainer";
-import FlightAwareTestButton from "@/components/FlightAwareTestButton";
-import FlightProviderStatusPanel from "@/components/FlightProviderStatusPanel";
+
 
 import { Radar, Radio, Cloud, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
