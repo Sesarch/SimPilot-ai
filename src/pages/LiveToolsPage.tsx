@@ -147,13 +147,11 @@ const LiveToolsPage = () => {
             {/* Content */}
             {activeTab === "tracker" ? (
               <FlightTrackerErrorBoundary>
-                <div className="mb-3">
-                  <FlightProviderStatusPanel />
-                </div>
                 <div className="h-[calc(100vh-300px)] sm:h-[600px] md:h-[700px] rounded-lg overflow-hidden border border-border">
                   <FlightTrackerMap />
                 </div>
               </FlightTrackerErrorBoundary>
+
             ) : (
               <ATCTrainer />
             )}
