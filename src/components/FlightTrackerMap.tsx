@@ -149,6 +149,21 @@ interface PositionRecord {
   time: Date;
 }
 
+type FlightStatus = {
+  isLive: boolean;
+  start: number | null;
+  end: number | null;
+  lastPosition?: {
+    t: number;
+    lat: number;
+    lon: number;
+    alt: number | null;
+    gs: number | null;
+    track: number | null;
+    ground: boolean;
+  } | null;
+};
+
 const verticalRateArrow = (vr: number) => {
   if (vr > 100) return <ArrowUp className="h-3 w-3 text-green-500" />;
   if (vr < -100) return <ArrowDown className="h-3 w-3 text-red-500" />;
