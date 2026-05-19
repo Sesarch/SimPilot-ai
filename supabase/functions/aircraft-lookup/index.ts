@@ -81,36 +81,72 @@ serve(async (req) => {
     // 1) Aircraft owner/type info (registration redacted by FA for privacy)
     const aircraftInfo = await faGet(`/aircraft/${encodeURIComponent(ident)}`, apiKey);
 
-    // 2) Recent flights (last 14 days). Limit to 10.
+    // 2) Recent flights (last 14 days). Limit to 12.
     const flightsResp = await faGet(`/flights/${encodeURIComponent(ident)}?max_pages=1`, apiKey);
-    const flights = Array.isArray(flightsResp?.flights) ? flightsResp.flights.slice(0, 10) : [];
+    const flightsRaw = Array.isArray(flightsResp?.flights) ? flightsResp.flights.slice(0, 12) : [];
+
+    // Sort by best-known timestamp desc (most recent / next-upcoming first)
+    const tsOf = (f: any) =>
+      new Date(f.actual_off || f.actual_out || f.scheduled_off || f.scheduled_out || 0).getTime();
+    flightsRaw.sort((a: any, b: any) => tsOf(b) - tsOf(a));
 
     // 3) Live status — is the aircraft currently airborne?
-    const live = flights.find((f: any) => f?.actual_off && !f?.actual_on);
+    const live = flightsRaw.find((f: any) => f?.actual_off && !f?.actual_on);
 
-    // 4) Photo from Planespotters (treat ident as registration; gracefully null if not found)
-    const photo = await planespotterPhoto(ident);
+    // Detect whether ident behaves like a tail (single registration across rows)
+    // vs a callsign/flight-number (multiple registrations).
+    const registrations = new Set<string>();
+    for (const f of flightsRaw) {
+      if (f?.registration) registrations.add(String(f.registration).toUpperCase());
+    }
+    const isTail = registrations.size === 1 || (registrations.size === 0 && /^N[0-9]/.test(ident));
+    const identKind: "tail" | "callsign" | "unknown" =
+      registrations.size > 1 ? "callsign" : isTail ? "tail" : "unknown";
 
-    const recent = flights.map((f: any) => ({
-      ident: f.ident || f.ident_iata || null,
-      operator: f.operator_iata || f.operator || null,
-      origin: f?.origin?.code_iata || f?.origin?.code || null,
-      origin_name: f?.origin?.name || null,
-      destination: f?.destination?.code_iata || f?.destination?.code || null,
-      destination_name: f?.destination?.name || null,
-      scheduled_out: f.scheduled_out || null,
-      actual_out: f.actual_out || null,
-      actual_off: f.actual_off || null,
-      actual_on: f.actual_on || null,
-      actual_in: f.actual_in || null,
-      status: f.status || null,
-      progress_percent: f.progress_percent ?? null,
-    }));
+    // 4) Photo from Planespotters — try ident first, then any detected registration
+    let photo = await planespotterPhoto(ident);
+    if (!photo && registrations.size === 1) {
+      photo = await planespotterPhoto([...registrations][0]);
+    }
+
+    const recent = flightsRaw.map((f: any) => {
+      const off = f.actual_off || null;
+      const on = f.actual_on || null;
+      let duration_min: number | null = null;
+      if (off && on) {
+        duration_min = Math.max(0, Math.round((new Date(on).getTime() - new Date(off).getTime()) / 60000));
+      }
+      const phase: "completed" | "in_air" | "scheduled" =
+        off && on ? "completed" : off && !on ? "in_air" : "scheduled";
+      return {
+        ident: f.ident || f.ident_iata || null,
+        operator: f.operator_iata || f.operator || null,
+        registration: f.registration || null,
+        aircraft_type: f.aircraft_type || null,
+        origin: f?.origin?.code_iata || f?.origin?.code || null,
+        origin_name: f?.origin?.name || null,
+        destination: f?.destination?.code_iata || f?.destination?.code || null,
+        destination_name: f?.destination?.name || null,
+        scheduled_out: f.scheduled_out || null,
+        actual_out: f.actual_out || null,
+        actual_off: f.actual_off || null,
+        actual_on: f.actual_on || null,
+        actual_in: f.actual_in || null,
+        status: f.status || null,
+        progress_percent: f.progress_percent ?? null,
+        duration_min,
+        phase,
+      };
+    });
+
+    // Fallback type derivation from flight rows when /aircraft/{ident} is empty
+    const firstType = flightsRaw.find((f: any) => f.aircraft_type)?.aircraft_type || null;
+    const firstReg = registrations.size === 1 ? [...registrations][0] : null;
 
     const aircraft = aircraftInfo
       ? {
           ident: aircraftInfo.ident || ident,
-          type: aircraftInfo.type || aircraftInfo.aircraft_type || null,
+          type: aircraftInfo.type || aircraftInfo.aircraft_type || firstType,
           description: aircraftInfo.description || null,
           manufacturer: aircraftInfo.manufacturer || null,
           model: aircraftInfo.model || null,
@@ -118,7 +154,11 @@ serve(async (req) => {
           engine_count: aircraftInfo.engine_count ?? null,
           engine_type: aircraftInfo.engine_type || null,
         }
-      : { ident, type: null, description: null };
+      : {
+          ident: firstReg || ident,
+          type: firstType,
+          description: firstType ? `Aircraft type ${firstType}` : null,
+        };
 
     return new Response(
       JSON.stringify({
