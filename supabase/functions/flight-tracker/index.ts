@@ -482,51 +482,31 @@ serve(async (req) => {
     if (action === "trace") {
       return await lookupTrace(url.searchParams.get("hex") || "");
     }
-    if (action === "status") {
-      // Reflect env presence even if this isolate hasn't tried FA yet
-      const hasKey = !!Deno.env.get("FLIGHTAWARE_API_KEY");
-      const diag = { ...FA_DIAG.last, configured: FA_DIAG.last.checkedAt ? FA_DIAG.last.configured : hasKey };
-      return new Response(JSON.stringify({ flightaware: diag }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const lamin = url.searchParams.get("lamin") || "25";
     const lamax = url.searchParams.get("lamax") || "50";
     const lomin = url.searchParams.get("lomin") || "-130";
     const lomax = url.searchParams.get("lomax") || "-60";
 
-    const params = new URLSearchParams();
-    params.set("lamin", lamin);
-    params.set("lamax", lamax);
-    params.set("lomin", lomin);
-    params.set("lomax", lomax);
-
     const respond = (payload: any) =>
-      new Response(JSON.stringify({ ...payload, _flightaware: FA_DIAG.last }), {
+      new Response(JSON.stringify(payload), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
-    // Strategy 0 (PREMIUM): FlightAware AeroAPI — tried first whenever the key is configured.
-    const faData = await tryFlightAware(lamin, lamax, lomin, lomax);
-    if (faData) {
-      console.log(`FlightAware returned ${faData.states?.length || 0} aircraft (premium)`);
-      return respond(faData);
-    }
-
-    // Strategy 1: Try adsb.lol live feed (no key required)
+    // Strategy 1 (PRIMARY): adsb.lol live feed (no key required)
     const adsbLolData = await tryAdsbLol(lamin, lamax, lomin, lomax);
     if (adsbLolData) {
       console.log(`adsb.lol returned ${adsbLolData.states?.length || 0} aircraft`);
       return respond(adsbLolData);
     }
 
-    // Strategy 2: Try ADS-B Exchange via RapidAPI
+    // Strategy 2: ADS-B Exchange via RapidAPI (fallback)
     const adsbData = await tryADSBExchange(lamin, lamax, lomin, lomax);
     if (adsbData) {
       console.log(`ADS-B Exchange returned ${adsbData.states?.length || 0} aircraft`);
       return respond(adsbData);
     }
+
 
     // Strategy 3: Fallback to mock data
     console.log("All live sources unavailable, returning mock flight data");
