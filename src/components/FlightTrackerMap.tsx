@@ -868,7 +868,7 @@ const FlightTrackerMap = () => {
               <Button size="icon" variant="ghost" onClick={handleClose} className="h-7 w-7"><X className="h-4 w-4" /></Button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
+              <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} routeEndpoints={routeEndpoints} />
             </div>
           </div>
         )
