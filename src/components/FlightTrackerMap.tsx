@@ -430,6 +430,11 @@ const FlightTrackerMap = () => {
   const altFt = selectedAircraft ? Math.round(selectedAircraft.altitude * 3.281) : 0;
   const spdKts = selectedAircraft ? Math.round(selectedAircraft.velocity * 1.944) : 0;
   const vsFpm = selectedAircraft ? Math.round(selectedAircraft.verticalRate * 196.85) : 0;
+  const displayAltFt = flightStatus?.lastPosition?.alt != null ? Math.round(flightStatus.lastPosition.alt) : altFt;
+  const displaySpdKts = flightStatus?.lastPosition?.gs != null ? Math.round(flightStatus.lastPosition.gs) : spdKts;
+  const displayHeading = flightStatus?.lastPosition?.track != null ? Math.round(flightStatus.lastPosition.track) : Math.round(selectedAircraft?.heading ?? 0);
+  const displayLatitude = flightStatus?.lastPosition?.lat ?? selectedAircraft?.latitude ?? 0;
+  const displayLongitude = flightStatus?.lastPosition?.lon ?? selectedAircraft?.longitude ?? 0;
 
   // Search results
   const searchResults = useMemo(() => {
@@ -835,7 +840,7 @@ const FlightTrackerMap = () => {
                 </DrawerTitle>
               </DrawerHeader>
               <div className="overflow-y-auto px-4 pb-6">
-                <AircraftPanelContent aircraft={selectedAircraft} altFt={altFt} spdKts={spdKts} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
+                <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
               </div>
             </DrawerContent>
           </Drawer>
@@ -849,7 +854,7 @@ const FlightTrackerMap = () => {
               <Button size="icon" variant="ghost" onClick={handleClose} className="h-7 w-7"><X className="h-4 w-4" /></Button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <AircraftPanelContent aircraft={selectedAircraft} altFt={altFt} spdKts={spdKts} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
+              <AircraftPanelContent aircraft={selectedAircraft} altFt={displayAltFt} spdKts={displaySpdKts} heading={displayHeading} latitude={displayLatitude} longitude={displayLongitude} vsFpm={vsFpm} positionHistory={positionHistory} flightStatus={flightStatus} />
             </div>
           </div>
         )
