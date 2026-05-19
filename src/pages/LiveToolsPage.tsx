@@ -88,7 +88,6 @@ const LiveToolsPage = () => {
                     Real-time global traffic and AI ATC radio drills.
                   </p>
                 </div>
-                </div>
               </div>
             </div>
 
