@@ -17,6 +17,11 @@ const HeroNewsletterInline = () => {
   const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [fieldError, setFieldError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const focusInput = () => {
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -31,6 +36,7 @@ const HeroNewsletterInline = () => {
       const msg = parsed.error.issues[0]?.message ?? "Invalid email.";
       setFieldError(msg);
       toast.error(msg);
+      focusInput();
       return;
     }
     const trimmed = parsed.data;
@@ -49,11 +55,13 @@ const HeroNewsletterInline = () => {
       } else {
         setFieldError("We couldn't subscribe you right now. Please try again.");
         toast.error("Something went wrong. Please try again.");
+        focusInput();
       }
       return;
     }
 
     setFieldError(null);
+    setEmail("");
     setSubscribed(true);
     toast.success("You're subscribed! Welcome aboard ✈️");
 
@@ -63,6 +71,7 @@ const HeroNewsletterInline = () => {
       })
       .catch((err) => console.warn("Omnisend sync failed:", err));
   };
+
 
 
   return (
