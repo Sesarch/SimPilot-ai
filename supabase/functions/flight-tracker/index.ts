@@ -147,46 +147,49 @@ async function lookupTrace(hex: string): Promise<Response> {
     const GROUND_BREAK_SEC = 10 * 60;
     const GAP_BREAK_SEC = 30 * 60;
 
-    let lastSegmentStart = 0;
-    let groundRunStart: number | null = null; // index of first ground point in current run
-    for (let i = 0; i < all.length; i++) {
+    const segments: Array<{ start: number; end: number }> = [];
+    let segmentStart = 0;
+    let groundRunStart: number | null = all[0]?.ground ? 0 : null; // index of first ground point in current run
+    for (let i = 1; i < all.length; i++) {
       const cur = all[i];
-      const prev = i > 0 ? all[i - 1] : null;
+      const prev = all[i - 1];
+      let startNewSegment = false;
 
       // Telemetry gap break.
-      if (prev && cur.t - prev.t >= GAP_BREAK_SEC) {
-        lastSegmentStart = i;
+      if (cur.t - prev.t >= GAP_BREAK_SEC) {
+        startNewSegment = true;
+      } else if (!cur.ground && groundRunStart !== null) {
+        const runLen = prev.t - all[groundRunStart].t;
+        if (runLen >= GROUND_BREAK_SEC) startNewSegment = true;
+      }
+
+      if (startNewSegment) {
+        segments.push({ start: segmentStart, end: i - 1 });
+        segmentStart = i;
         groundRunStart = cur.ground ? i : null;
         continue;
       }
 
       if (cur.ground) {
         if (groundRunStart === null) groundRunStart = i;
-        const runLen = cur.t - all[groundRunStart].t;
-        // If this ground run is long enough, the *next* airborne point starts a new flight.
-        if (runLen >= GROUND_BREAK_SEC) {
-          // Mark: we'll move the segment start to the next non-ground sample we see.
-          // Use a sentinel via groundRunStart; handled below.
-        }
       } else {
-        // Airborne: if we just exited a long ground run, this is a new flight.
-        if (groundRunStart !== null) {
-          const runLen = all[i - 1].t - all[groundRunStart].t;
-          if (runLen >= GROUND_BREAK_SEC) {
-            lastSegmentStart = i;
-          }
-        }
         groundRunStart = null;
       }
     }
+    if (all.length > 0) segments.push({ start: segmentStart, end: all.length - 1 });
+
+    const selectedSegment = [...segments].reverse().find(({ start, end }) =>
+      all.slice(start, end + 1).some(p => !p.ground),
+    ) ?? segments[segments.length - 1];
 
     // Trim leading ground taxi from the chosen segment so the polyline starts
     // at takeoff (first airborne point of that flight).
-    let segStart = lastSegmentStart;
+    let segStart = selectedSegment?.start ?? 0;
+    const segEnd = selectedSegment?.end ?? all.length - 1;
     while (segStart < all.length && all[segStart].ground) segStart++;
-    if (segStart >= all.length) segStart = lastSegmentStart;
+    if (segStart > segEnd) segStart = selectedSegment?.start ?? 0;
 
-    let segment = all.slice(segStart);
+    let segment = all.slice(segStart, segEnd + 1);
 
     // Trim trailing taxi after the last landing so the line ends at touchdown
     // (only when the aircraft is no longer airborne).
