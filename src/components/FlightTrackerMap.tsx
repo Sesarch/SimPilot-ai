@@ -1019,6 +1019,35 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, long
       )}
       <span className="text-[10px] text-muted-foreground">{aircraft.originCountry}</span>
     </div>
+    {routeEndpoints && (routeEndpoints.from || routeEndpoints.to) && (
+      <div className="mb-2 rounded-md border border-border bg-muted/40 px-2.5 py-2">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+          <MapPin className="h-3 w-3" /> Route (inferred)
+        </div>
+        <div className="flex items-center gap-2 text-xs text-foreground">
+          <div className="flex-1 min-w-0">
+            <div className="font-mono text-foreground">{routeEndpoints.from?.airport.icao ?? "—"}</div>
+            <div className="text-[10px] text-muted-foreground truncate">
+              {routeEndpoints.from
+                ? `${routeEndpoints.from.airport.name} · ~${Math.round(routeEndpoints.from.distanceKm)} km`
+                : "Unknown origin"}
+            </div>
+          </div>
+          <ArrowUp className="h-3 w-3 rotate-90 text-muted-foreground shrink-0" />
+          <div className="flex-1 min-w-0 text-right">
+            <div className="font-mono text-foreground">{routeEndpoints.to?.airport.icao ?? "—"}</div>
+            <div className="text-[10px] text-muted-foreground truncate">
+              {routeEndpoints.to
+                ? `${routeEndpoints.to.airport.name} · ~${Math.round(routeEndpoints.to.distanceKm)} km`
+                : flightStatus?.isLive ? "In flight" : "Unknown"}
+            </div>
+          </div>
+        </div>
+        <div className="text-[9px] text-muted-foreground mt-1.5 leading-tight">
+          Based on first &amp; last ADS-B points within 50 km of a known airport.
+        </div>
+      </div>
+    )}
     <div className="grid grid-cols-3 gap-2 py-2">
       <div className="bg-muted/50 rounded-lg p-2 text-center">
         <div className="text-[10px] text-muted-foreground mb-0.5">ALT</div>
