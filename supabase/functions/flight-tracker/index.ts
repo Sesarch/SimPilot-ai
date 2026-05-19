@@ -215,6 +215,7 @@ async function lookupTrace(hex: string): Promise<Response> {
     const flightStartTs = segment.length > 0 ? segment[0].t : baseTs;
     const flightEndTs = segment.length > 0 ? segment[segment.length - 1].t : baseTs;
     const isLive = segment.length > 0 && !segment[segment.length - 1].ground;
+    const lastPoint = segment.length > 0 ? segment[segment.length - 1] : null;
 
     return new Response(
       JSON.stringify({
@@ -227,6 +228,15 @@ async function lookupTrace(hex: string): Promise<Response> {
         flight_start: flightStartTs,
         flight_end: flightEndTs,
         is_live: isLive,
+        last_position: lastPoint ? {
+          t: lastPoint.t,
+          lat: lastPoint.lat,
+          lon: lastPoint.lon,
+          alt: lastPoint.alt,
+          gs: lastPoint.gs,
+          track: lastPoint.track,
+          ground: lastPoint.ground,
+        } : null,
         points,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
