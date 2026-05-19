@@ -631,7 +631,10 @@ serve(async (req) => {
       return await lookupTrace(url.searchParams.get("hex") || "");
     }
     if (action === "status") {
-      return new Response(JSON.stringify({ flightaware: FA_DIAG.last }), {
+      // Reflect env presence even if this isolate hasn't tried FA yet
+      const hasKey = !!Deno.env.get("FLIGHTAWARE_API_KEY");
+      const diag = { ...FA_DIAG.last, configured: FA_DIAG.last.checkedAt ? FA_DIAG.last.configured : hasKey };
+      return new Response(JSON.stringify({ flightaware: diag }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
