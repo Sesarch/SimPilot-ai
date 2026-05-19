@@ -7,6 +7,7 @@ import heroCockpitMorning from "@/assets/hero-cockpit-morning.jpg";
 import heroCockpitMorningWebp from "@/assets/hero-cockpit-morning.webp";
 import HeroChatBox from "@/components/HeroChatBox";
 import HeroChatBoxBoundary from "@/components/HeroChatBoxBoundary";
+import HeroNewsletterInline from "@/components/HeroNewsletterInline";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
