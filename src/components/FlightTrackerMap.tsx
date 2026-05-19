@@ -205,6 +205,23 @@ const createAirportIcon = (category?: FlightCategory) => {
   });
 };
 
+// Endpoint markers (DEP / ARR) for the historical trace polyline.
+const makeEndpointIcon = (label: "DEP" | "ARR", color: string) =>
+  L.divIcon({
+    className: "route-endpoint-marker",
+    html: `<div style="
+      display:flex;align-items:center;justify-content:center;
+      width:28px;height:28px;border-radius:9999px;
+      background:${color};color:#0a0a0a;
+      font-family:'Orbitron',ui-sans-serif,system-ui;
+      font-size:9px;font-weight:700;letter-spacing:0.5px;
+      border:2px solid rgba(10,10,10,0.85);
+      box-shadow:0 0 8px ${color},0 0 2px rgba(0,0,0,0.8);
+      cursor:pointer;">${label}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+
 const FlightTrackerMap = () => {
   const [bounds, setBounds] = useState({ north: 50, south: 25, east: -65, west: -125 });
   const [selectedAircraft, setSelectedAircraft] = useState<Aircraft | null>(null);
