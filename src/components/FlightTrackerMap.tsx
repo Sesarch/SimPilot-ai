@@ -205,6 +205,23 @@ const createAirportIcon = (category?: FlightCategory) => {
   });
 };
 
+// Endpoint markers (DEP / ARR) for the historical trace polyline.
+const makeEndpointIcon = (label: "DEP" | "ARR", color: string) =>
+  L.divIcon({
+    className: "route-endpoint-marker",
+    html: `<div style="
+      display:flex;align-items:center;justify-content:center;
+      width:28px;height:28px;border-radius:9999px;
+      background:${color};color:#0a0a0a;
+      font-family:'Orbitron',ui-sans-serif,system-ui;
+      font-size:9px;font-weight:700;letter-spacing:0.5px;
+      border:2px solid rgba(10,10,10,0.85);
+      box-shadow:0 0 8px ${color},0 0 2px rgba(0,0,0,0.8);
+      cursor:pointer;">${label}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+
 const FlightTrackerMap = () => {
   const [bounds, setBounds] = useState({ north: 50, south: 25, east: -65, west: -125 });
   const [selectedAircraft, setSelectedAircraft] = useState<Aircraft | null>(null);
@@ -803,6 +820,58 @@ const FlightTrackerMap = () => {
           {fullTrack.length > 1 && (
             <Polyline positions={fullTrack} pathOptions={{ color: "#f59e0b", weight: 2, opacity: 0.8 }} />
           )}
+          {historicalTrack.length > 1 && (() => {
+            const first = historicalTrack[0];
+            const last = historicalTrack[historicalTrack.length - 1];
+            const depAp = routeEndpoints?.from ?? null;
+            const arrAp = routeEndpoints?.to ?? null;
+            return (
+              <>
+                <Marker position={first} icon={makeEndpointIcon("DEP", "#22c55e")}>
+                  <Popup>
+                    <div className="text-xs">
+                      <div className="font-semibold text-foreground mb-0.5">Departure (inferred)</div>
+                      {depAp ? (
+                        <>
+                          <div className="font-mono">{depAp.airport.icao} · {depAp.airport.iata}</div>
+                          <div className="text-muted-foreground">{depAp.airport.name}</div>
+                          <div className="text-muted-foreground">~{Math.round(depAp.distanceKm)} km from first ADS-B point</div>
+                        </>
+                      ) : (
+                        <div className="text-muted-foreground">No known airport within 50 km</div>
+                      )}
+                      <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+                        {first[0].toFixed(4)}°, {first[1].toFixed(4)}°
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+                <Marker position={last} icon={makeEndpointIcon("ARR", "#ef4444")}>
+                  <Popup>
+                    <div className="text-xs">
+                      <div className="font-semibold text-foreground mb-0.5">
+                        {flightStatus?.isLive ? "Last Known Position" : "Arrival (inferred)"}
+                      </div>
+                      {arrAp ? (
+                        <>
+                          <div className="font-mono">{arrAp.airport.icao} · {arrAp.airport.iata}</div>
+                          <div className="text-muted-foreground">{arrAp.airport.name}</div>
+                          <div className="text-muted-foreground">~{Math.round(arrAp.distanceKm)} km from last ADS-B point</div>
+                        </>
+                      ) : (
+                        <div className="text-muted-foreground">
+                          {flightStatus?.isLive ? "Currently in flight" : "No known airport within 50 km"}
+                        </div>
+                      )}
+                      <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+                        {last[0].toFixed(4)}°, {last[1].toFixed(4)}°
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              </>
+            );
+          })()}
         </MapContainer>
       </div>
 
