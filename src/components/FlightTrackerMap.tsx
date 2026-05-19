@@ -220,7 +220,7 @@ const FlightTrackerMap = () => {
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useIsMobile();
   const [historicalTrack, setHistoricalTrack] = useState<[number, number][]>([]);
-  const [flightStatus, setFlightStatus] = useState<{ isLive: boolean; start: number | null; end: number | null } | null>(null);
+  const [flightStatus, setFlightStatus] = useState<FlightStatus | null>(null);
   const traceAbortRef = useRef<AbortController | null>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -338,6 +338,7 @@ const FlightTrackerMap = () => {
           is_live?: boolean;
           flight_start?: number | null;
           flight_end?: number | null;
+          last_position?: FlightStatus["lastPosition"];
         };
         const pts = (data.points ?? [])
           .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon))
@@ -348,6 +349,7 @@ const FlightTrackerMap = () => {
             isLive: !!data.is_live,
             start: data.flight_start ?? null,
             end: data.flight_end ?? null,
+            lastPosition: data.last_position ?? null,
           });
         }
       } catch {
