@@ -51,13 +51,13 @@ const HeroNewsletterInline = () => {
 
         <div className="flex items-center gap-1.5 mb-3 justify-center sm:justify-start">
           <Sparkles className="w-3 h-3 text-primary" />
-          <span className="font-display text-[10px] tracking-[0.3em] uppercase text-primary">
+          <span className="font-display text-xs md:text-sm tracking-[0.3em] uppercase text-primary text-glow-cyan">
             Pilot Briefings — Free Monthly Newsletter
           </span>
         </div>
 
         {subscribed ? (
-          <div className="flex items-center justify-center gap-2 py-1.5 text-primary font-display text-xs tracking-wider">
+          <div className="flex items-center justify-center gap-2 py-1.5 text-primary font-display text-sm tracking-wider text-glow-cyan">
             <CheckCircle2 className="w-4 h-4" />
             <span>Cleared for takeoff — you're on the list!</span>
           </div>
@@ -72,7 +72,7 @@ const HeroNewsletterInline = () => {
                 placeholder="Enter your email for aviation tips & updates"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-10 rounded-md border border-primary/30 bg-background/70 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-all"
+                className="w-full h-10 rounded-md border border-primary/30 bg-background/70 pl-9 pr-3 font-sans text-base md:text-lg text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-all"
               />
             </div>
             <button
