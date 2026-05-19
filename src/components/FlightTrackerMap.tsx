@@ -966,7 +966,7 @@ const AirportPanelContent = ({ airport, metar, weatherLoading, weatherError }: {
   </>
 );
 
-const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, longitude, vsFpm, positionHistory, flightStatus }: {
+const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, longitude, vsFpm, positionHistory, flightStatus, routeEndpoints }: {
   aircraft: Aircraft;
   altFt: number;
   spdKts: number;
@@ -976,6 +976,10 @@ const AircraftPanelContent = ({ aircraft, altFt, spdKts, heading, latitude, long
   vsFpm: number;
   positionHistory: PositionRecord[];
   flightStatus?: FlightStatus | null;
+  routeEndpoints?: {
+    from: { airport: MajorAirport; distanceKm: number } | null;
+    to: { airport: MajorAirport; distanceKm: number } | null;
+  } | null;
 }) => {
   // Format the "last seen" timestamp for completed flights. Trace timestamps
   // come from the upstream provider in seconds since epoch.
