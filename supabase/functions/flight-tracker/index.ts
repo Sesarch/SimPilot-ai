@@ -118,7 +118,7 @@ async function lookupTrace(hex: string): Promise<Response> {
     const trace = Array.isArray(data?.trace) ? data.trace : [];
 
     // Parse raw trace into typed points (no down-sample yet).
-    type Pt = { t: number; lat: number; lon: number; alt: number | null; gs: number | null; ground: boolean };
+    type Pt = { t: number; lat: number; lon: number; alt: number | null; gs: number | null; track: number | null; ground: boolean };
     const all: Pt[] = [];
     for (const p of trace) {
       if (!p || p.length < 3) continue;
@@ -132,6 +132,7 @@ async function lookupTrace(hex: string): Promise<Response> {
         lat, lon,
         alt: ground ? 0 : (typeof altRaw === "number" ? altRaw : null),
         gs: typeof p[4] === "number" ? p[4] : null,
+        track: typeof p[5] === "number" ? p[5] : null,
         ground,
       });
     }
@@ -197,17 +198,17 @@ async function lookupTrace(hex: string): Promise<Response> {
 
     // Down-sample for polyline performance.
     const stride = segment.length > 1500 ? Math.ceil(segment.length / 1500) : 1;
-    const points = [] as Array<{ t: number; lat: number; lon: number; alt: number | null; gs: number | null }>;
+    const points = [] as Array<{ t: number; lat: number; lon: number; alt: number | null; gs: number | null; track: number | null }>;
     for (let i = 0; i < segment.length; i += stride) {
       const s = segment[i];
-      points.push({ t: s.t, lat: s.lat, lon: s.lon, alt: s.alt, gs: s.gs });
+      points.push({ t: s.t, lat: s.lat, lon: s.lon, alt: s.alt, gs: s.gs, track: s.track });
     }
     // Always include the final point.
     if (segment.length > 0) {
       const last = segment[segment.length - 1];
       const tail = points[points.length - 1];
       if (!tail || tail.t !== last.t) {
-        points.push({ t: last.t, lat: last.lat, lon: last.lon, alt: last.alt, gs: last.gs });
+        points.push({ t: last.t, lat: last.lat, lon: last.lon, alt: last.alt, gs: last.gs, track: last.track });
       }
     }
 
