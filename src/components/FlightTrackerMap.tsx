@@ -803,6 +803,58 @@ const FlightTrackerMap = () => {
           {fullTrack.length > 1 && (
             <Polyline positions={fullTrack} pathOptions={{ color: "#f59e0b", weight: 2, opacity: 0.8 }} />
           )}
+          {historicalTrack.length > 1 && (() => {
+            const first = historicalTrack[0];
+            const last = historicalTrack[historicalTrack.length - 1];
+            const depAp = routeEndpoints?.from ?? null;
+            const arrAp = routeEndpoints?.to ?? null;
+            return (
+              <>
+                <Marker position={first} icon={makeEndpointIcon("DEP", "#22c55e")}>
+                  <Popup>
+                    <div className="text-xs">
+                      <div className="font-semibold text-foreground mb-0.5">Departure (inferred)</div>
+                      {depAp ? (
+                        <>
+                          <div className="font-mono">{depAp.airport.icao} · {depAp.airport.iata}</div>
+                          <div className="text-muted-foreground">{depAp.airport.name}</div>
+                          <div className="text-muted-foreground">~{Math.round(depAp.distanceKm)} km from first ADS-B point</div>
+                        </>
+                      ) : (
+                        <div className="text-muted-foreground">No known airport within 50 km</div>
+                      )}
+                      <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+                        {first[0].toFixed(4)}°, {first[1].toFixed(4)}°
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+                <Marker position={last} icon={makeEndpointIcon("ARR", "#ef4444")}>
+                  <Popup>
+                    <div className="text-xs">
+                      <div className="font-semibold text-foreground mb-0.5">
+                        {flightStatus?.isLive ? "Last Known Position" : "Arrival (inferred)"}
+                      </div>
+                      {arrAp ? (
+                        <>
+                          <div className="font-mono">{arrAp.airport.icao} · {arrAp.airport.iata}</div>
+                          <div className="text-muted-foreground">{arrAp.airport.name}</div>
+                          <div className="text-muted-foreground">~{Math.round(arrAp.distanceKm)} km from last ADS-B point</div>
+                        </>
+                      ) : (
+                        <div className="text-muted-foreground">
+                          {flightStatus?.isLive ? "Currently in flight" : "No known airport within 50 km"}
+                        </div>
+                      )}
+                      <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+                        {last[0].toFixed(4)}°, {last[1].toFixed(4)}°
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              </>
+            );
+          })()}
         </MapContainer>
       </div>
 
