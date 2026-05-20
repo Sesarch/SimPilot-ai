@@ -38,9 +38,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start text-center md:text-left">
           {/* Brand */}
           <div className="flex flex-col gap-3 items-center md:items-start">
-            <Link to="/" className="inline-flex" title="SimPilot.AI — AI-Powered Pilot Training Platform">
+            <a href="https://simpilot.ai" className="inline-flex" title="SimPilot.AI — AI-Powered Pilot Training Platform">
               <Logo height={28} />
-            </Link>
+            </a>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
               AI-powered supplemental training for student pilots.
               Not FAA-affiliated — for study use only. AI may produce errors; verify everything against current FAA publications and your POH/AFM.
