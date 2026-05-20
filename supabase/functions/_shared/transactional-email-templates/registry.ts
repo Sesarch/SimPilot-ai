@@ -10,6 +10,7 @@ export interface TemplateEntry {
 }
 
 import { template as contactConfirmation } from './contact-confirmation.tsx'
+import { template as contactTeamNotification } from './contact-team-notification.tsx'
 import { template as newsletterConfirmation } from './newsletter-confirmation.tsx'
 import { template as welcomeSignup } from './welcome-signup.tsx'
 import { template as intakeConfirmation } from './intake-confirmation.tsx'
@@ -19,6 +20,7 @@ import { template as mfaCode } from './mfa-code.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-confirmation': contactConfirmation,
+  'contact-team-notification': contactTeamNotification,
   'newsletter-confirmation': newsletterConfirmation,
   'welcome-signup': welcomeSignup,
   'intake-confirmation': intakeConfirmation,
