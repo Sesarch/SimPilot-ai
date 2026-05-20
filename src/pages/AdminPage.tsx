@@ -195,11 +195,7 @@ const AdminPage = () => {
     }, 8000);
 
     supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle()
+      .rpc("has_role", { _user_id: user.id, _role: "admin" })
       .then(({ data, error }) => {
         if (cancelled) return;
         clearTimeout(safety);
@@ -210,7 +206,7 @@ const AdminPage = () => {
           toast.error("Could not verify admin access: " + error.message);
           return;
         }
-        if (data) {
+        if (data === true) {
           setIsAdmin(true);
         } else {
           setIsAdmin(false);

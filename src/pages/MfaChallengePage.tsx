@@ -20,6 +20,7 @@ const MfaChallengePage = () => {
       : "/dashboard";
   const sessionFlag: string | undefined = (location.state as any)?.sessionFlag;
   const enrollEmail = (location.state as any)?.enrollEmail === true;
+  const forceMfa = (location.state as any)?.forceMfa === true;
 
   const [status, setStatus] = useState<Awaited<ReturnType<typeof mfaApi.status>> | null>(null);
   const [mode, setMode] = useState<Mode>("email");
@@ -49,13 +50,14 @@ const MfaChallengePage = () => {
         // If an admin has not enrolled MFA yet, enroll email verification here
         // so they stay in the Super Admin access flow instead of landing in Account.
       const aal = await getAalGap();
+      const mustVerify = forceMfa || s.required;
         if (s.required && !s.enrolled && enrollEmail) {
           setMode("email");
           return;
         }
 
         // If a TOTP factor exists in Supabase but AAL is already met, no challenge needed
-      if (!s.required && !s.enrolled) {
+      if (!mustVerify && !s.enrolled) {
         // Not enrolled and not required — straight through
         navigate(redirectTo, { replace: true });
         return;
@@ -65,7 +67,7 @@ const MfaChallengePage = () => {
         navigate(redirectTo, { replace: true });
       }
     })();
-  }, [user, authLoading, navigate, redirectTo]);
+  }, [user, authLoading, navigate, redirectTo, forceMfa, enrollEmail]);
 
   const sendEmail = async () => {
     if (sentOnce.current || sessionStorage.getItem(sendLockKey)) {
@@ -163,7 +165,7 @@ const MfaChallengePage = () => {
             <h1 className="font-display text-xl tracking-wide">Two-factor verification</h1>
           </div>
           <p className="text-sm text-muted-foreground mb-6">
-            {status.required ? "Required for admin access. " : ""}
+            {forceMfa || status.required ? "Required for admin access. " : ""}
             Enter the 6-digit code sent to {user?.email ?? "your email"}.
           </p>
 
