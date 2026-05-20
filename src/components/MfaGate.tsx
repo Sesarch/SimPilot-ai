@@ -52,7 +52,7 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
         const aal = await withTimeout(getAalGap(), 4000, "getAalGap");
         if (cancelled) return;
         if (status.totp_enrolled && aal.gap) {
-          navigate("/mfa", { state: { redirectTo: location.pathname }, replace: true });
+          navigate("/mfa", { state: { redirectTo: location.pathname, forceMfa: requireMfa }, replace: true });
           return;
         }
 
@@ -64,7 +64,7 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
 
         if (mustEnforce && !status.enrolled) {
           navigate("/mfa", {
-            state: { redirectTo: location.pathname, sessionFlag: flagKey, enrollEmail: true },
+            state: { redirectTo: location.pathname, sessionFlag: flagKey, enrollEmail: true, forceMfa: requireMfa },
             replace: true,
           });
           return;
@@ -72,7 +72,7 @@ const MfaGate = ({ children, requireMfa = false }: { children: ReactNode; requir
 
         if (mustEnforce && status.enrolled && !status.totp_enrolled && status.email_otp_enabled) {
           if (!sessionStorage.getItem(flagKey)) {
-            navigate("/mfa", { state: { redirectTo: location.pathname, sessionFlag: flagKey }, replace: true });
+            navigate("/mfa", { state: { redirectTo: location.pathname, sessionFlag: flagKey, forceMfa: requireMfa }, replace: true });
             return;
           }
         }
