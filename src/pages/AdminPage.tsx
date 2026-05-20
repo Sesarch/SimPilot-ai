@@ -176,25 +176,60 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return;
+    if (!user) {
       navigate("/auth", { state: { redirectTo: "/admin" } });
       return;
     }
-    if (!user) return;
+
+    let cancelled = false;
+    // Safety net: never let the admin role check spin forever. If Supabase
+    // hangs (cold start, RLS hiccup, network drop), release the gate so the
+    // page can render its own error UI instead of an infinite loader.
+    const safety = setTimeout(() => {
+      if (cancelled) return;
+      console.warn("AdminPage: role check timed out — releasing gate");
+      setIsAdmin(false);
+      navigate("/dashboard");
+      toast.error("Admin check timed out. Please try again.");
+    }, 8000);
+
     supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle()
-      .then(({ data }) => {
-        if (data) setIsAdmin(true);
-        else {
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        clearTimeout(safety);
+        if (error) {
+          console.error("AdminPage: role check failed", error);
+          setIsAdmin(false);
+          navigate("/dashboard");
+          toast.error("Could not verify admin access: " + error.message);
+          return;
+        }
+        if (data) {
+          setIsAdmin(true);
+        } else {
           setIsAdmin(false);
           navigate("/dashboard");
           toast.error("Access denied: admin privileges required");
         }
+      }, (err) => {
+        if (cancelled) return;
+        clearTimeout(safety);
+        console.error("AdminPage: role check threw", err);
+        setIsAdmin(false);
+        navigate("/dashboard");
+        toast.error("Could not verify admin access");
       });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(safety);
+    };
   }, [user, loading, navigate]);
 
   const fetchUsers = useCallback(async () => {
