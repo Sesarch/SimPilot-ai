@@ -1,14 +1,13 @@
-import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
 
 const AuthBrand = () => (
-  <Link
-    to="/"
+  <a
+    href="https://simpilot.ai"
     title="SimPilot.AI — AI-Powered Pilot Training Home"
     className="flex items-center justify-center mb-8"
   >
     <Logo height={40} />
-  </Link>
+  </a>
 );
 
 export default AuthBrand;

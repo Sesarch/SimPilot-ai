@@ -70,9 +70,9 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center" title="SimPilot.AI — AI-Powered Pilot Training Home" aria-label="Go to SimPilot.AI homepage">
+        <a href="https://simpilot.ai" className="flex items-center" title="SimPilot.AI — AI-Powered Pilot Training Home" aria-label="Go to SimPilot.AI homepage">
           <Logo height={32} />
-        </Link>
+        </a>
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
