@@ -628,10 +628,45 @@ const AdminInbox = () => {
                       rows={3}
                       className="resize-none"
                     />
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center flex-wrap">
                       <Button size="sm" onClick={sendReply} disabled={sending || !reply.trim()}>
                         <Send className="h-3.5 w-3.5 mr-1.5" /> {sending ? "Sending..." : "Send reply"}
                       </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            <Zap className="h-3.5 w-3.5 mr-1.5" /> Quick reply
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-72 max-h-96 overflow-y-auto">
+                          {Object.entries(
+                            templates.filter(t => t.enabled).reduce<Record<string, ReplyTemplate[]>>((acc, t) => {
+                              (acc[t.category] = acc[t.category] || []).push(t);
+                              return acc;
+                            }, {})
+                          ).map(([cat, list]) => (
+                            <div key={cat}>
+                              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">{cat}</DropdownMenuLabel>
+                              {list.map(tpl => (
+                                <DropdownMenuItem key={tpl.id} onClick={() => insertTemplate(tpl)} className="flex flex-col items-start gap-0.5">
+                                  <div className="flex items-center gap-2 w-full">
+                                    <span className="text-sm font-medium">{tpl.title}</span>
+                                    {tpl.shortcut && <code className="ml-auto text-[10px] text-muted-foreground">{tpl.shortcut}</code>}
+                                  </div>
+                                  <span className="text-[11px] text-muted-foreground line-clamp-1">{tpl.body.split("\n").find(l => l.trim())}</span>
+                                </DropdownMenuItem>
+                              ))}
+                              <DropdownMenuSeparator />
+                            </div>
+                          ))}
+                          {templates.filter(t => t.enabled).length === 0 && (
+                            <div className="px-2 py-3 text-xs text-muted-foreground text-center">No templates yet.</div>
+                          )}
+                          <DropdownMenuItem onClick={() => setTemplatesOpen(true)} className="text-primary">
+                            <Pencil className="h-3.5 w-3.5 mr-2" /> Manage templates
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </>
                 ) : (
