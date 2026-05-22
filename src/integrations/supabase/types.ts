@@ -581,6 +581,160 @@ export type Database = {
         }
         Relationships: []
       }
+      inbox_messages: {
+        Row: {
+          attachments: Json
+          bcc: string | null
+          body_html: string | null
+          body_text: string | null
+          cc: string | null
+          created_at: string
+          delivery_error: string | null
+          delivery_status: string | null
+          direction: string
+          email_message_id: string | null
+          email_references: string | null
+          from_email: string | null
+          from_name: string | null
+          id: string
+          in_reply_to: string | null
+          sent_by: string | null
+          thread_id: string
+          to_email: string | null
+        }
+        Insert: {
+          attachments?: Json
+          bcc?: string | null
+          body_html?: string | null
+          body_text?: string | null
+          cc?: string | null
+          created_at?: string
+          delivery_error?: string | null
+          delivery_status?: string | null
+          direction: string
+          email_message_id?: string | null
+          email_references?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          in_reply_to?: string | null
+          sent_by?: string | null
+          thread_id: string
+          to_email?: string | null
+        }
+        Update: {
+          attachments?: Json
+          bcc?: string | null
+          body_html?: string | null
+          body_text?: string | null
+          cc?: string | null
+          created_at?: string
+          delivery_error?: string | null
+          delivery_status?: string | null
+          direction?: string
+          email_message_id?: string | null
+          email_references?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          in_reply_to?: string | null
+          sent_by?: string | null
+          thread_id?: string
+          to_email?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbox_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "inbox_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inbox_notes: {
+        Row: {
+          admin_user_id: string
+          body: string
+          created_at: string
+          id: string
+          thread_id: string
+        }
+        Insert: {
+          admin_user_id: string
+          body: string
+          created_at?: string
+          id?: string
+          thread_id: string
+        }
+        Update: {
+          admin_user_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbox_notes_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "inbox_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inbox_threads: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          from_email: string | null
+          from_name: string | null
+          id: string
+          last_message_at: string
+          priority: string
+          source: string
+          source_id: string | null
+          status: string
+          subject: string
+          tags: string[]
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          last_message_at?: string
+          priority?: string
+          source: string
+          source_id?: string | null
+          status?: string
+          subject?: string
+          tags?: string[]
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          last_message_at?: string
+          priority?: string
+          source?: string
+          source_id?: string | null
+          status?: string
+          subject?: string
+          tags?: string[]
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       intakes: {
         Row: {
           aircraft_type: string | null
