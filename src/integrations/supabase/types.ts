@@ -581,6 +581,48 @@ export type Database = {
         }
         Relationships: []
       }
+      inbox_mailboxes: {
+        Row: {
+          color: string
+          created_at: string
+          default_assignee: string | null
+          description: string | null
+          enabled: boolean
+          forward_to_email: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          default_assignee?: string | null
+          description?: string | null
+          enabled?: boolean
+          forward_to_email?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          default_assignee?: string | null
+          description?: string | null
+          enabled?: boolean
+          forward_to_email?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inbox_messages: {
         Row: {
           attachments: Json
@@ -684,6 +726,62 @@ export type Database = {
           },
         ]
       }
+      inbox_routing_rules: {
+        Row: {
+          add_tags: string[]
+          created_at: string
+          enabled: boolean
+          id: string
+          match_from_domain: string | null
+          match_keywords: string[]
+          match_source: string | null
+          name: string
+          priority: number
+          set_assignee: string | null
+          set_mailbox: string | null
+          set_priority: string | null
+          updated_at: string
+        }
+        Insert: {
+          add_tags?: string[]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          match_from_domain?: string | null
+          match_keywords?: string[]
+          match_source?: string | null
+          name: string
+          priority?: number
+          set_assignee?: string | null
+          set_mailbox?: string | null
+          set_priority?: string | null
+          updated_at?: string
+        }
+        Update: {
+          add_tags?: string[]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          match_from_domain?: string | null
+          match_keywords?: string[]
+          match_source?: string | null
+          name?: string
+          priority?: number
+          set_assignee?: string | null
+          set_mailbox?: string | null
+          set_priority?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbox_routing_rules_set_mailbox_fkey"
+            columns: ["set_mailbox"]
+            isOneToOne: false
+            referencedRelation: "inbox_mailboxes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inbox_threads: {
         Row: {
           assigned_to: string | null
@@ -692,6 +790,7 @@ export type Database = {
           from_name: string | null
           id: string
           last_message_at: string
+          mailbox_id: string | null
           priority: string
           source: string
           source_id: string | null
@@ -708,6 +807,7 @@ export type Database = {
           from_name?: string | null
           id?: string
           last_message_at?: string
+          mailbox_id?: string | null
           priority?: string
           source: string
           source_id?: string | null
@@ -724,6 +824,7 @@ export type Database = {
           from_name?: string | null
           id?: string
           last_message_at?: string
+          mailbox_id?: string | null
           priority?: string
           source?: string
           source_id?: string | null
@@ -733,7 +834,15 @@ export type Database = {
           unread_count?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inbox_threads_mailbox_id_fkey"
+            columns: ["mailbox_id"]
+            isOneToOne: false
+            referencedRelation: "inbox_mailboxes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       intakes: {
         Row: {
@@ -1921,6 +2030,7 @@ export type Database = {
         Returns: boolean
       }
       inbox_bump_unread: { Args: { _thread_id: string }; Returns: undefined }
+      inbox_route_thread: { Args: { p_thread_id: string }; Returns: undefined }
       log_missing_acs_code: { Args: { _code: string }; Returns: undefined }
       match_kb_chunks: {
         Args: {
