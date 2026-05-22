@@ -726,6 +726,45 @@ export type Database = {
           },
         ]
       }
+      inbox_reply_templates: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          id: string
+          shortcut: string | null
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          shortcut?: string | null
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          shortcut?: string | null
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inbox_routing_rules: {
         Row: {
           add_tags: string[]
