@@ -48,6 +48,13 @@ const Navbar = () => {
   const studyTrack = toTrackLabel(pilotCtx.certificate_type);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const location = useLocation();
+
+  // Auto-close mobile menu on any route change (handles hash-anchor
+  // same-page navigation where individual onClick handlers are skipped)
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location]);
 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
