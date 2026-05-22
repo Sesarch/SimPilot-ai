@@ -91,7 +91,7 @@ const LeadCaptureSection = () => {
 
   return (
     <section id="get-in-touch" className="py-20 bg-background">
-      <div className="container mx-auto px-6 max-w-5xl">
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
         <div className="text-center mb-10">
           <h2 className="font-orbitron text-3xl md:text-4xl text-foreground mb-3">
             Talk to SimPilot.AI

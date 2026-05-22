@@ -96,7 +96,7 @@ const SessionHistoryPage = () => {
       />
       {/* Nav */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link to="/" title="SimPilot.AI — AI-Powered Pilot Training Home" className="flex items-center">
             <Logo height={28} />
           </Link>
@@ -111,7 +111,7 @@ const SessionHistoryPage = () => {
         </div>
       </nav>
 
-      <div className="container mx-auto px-6 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 sm:px-6 py-8 max-w-4xl">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
             <Clock className="w-6 h-6 text-primary" />

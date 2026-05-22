@@ -26,7 +26,7 @@ const PrivacyPolicyPage = () => {
       />
       <Navbar />
 
-      <div className="container mx-auto px-6 py-12 pt-24 max-w-3xl">
+      <div className="container mx-auto px-4 sm:px-6 py-12 pt-24 max-w-3xl">
         <h1 className="font-display text-3xl text-foreground mb-2">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground mb-8">Last updated: March 27, 2026</p>
 

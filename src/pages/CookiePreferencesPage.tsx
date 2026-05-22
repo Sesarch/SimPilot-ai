@@ -97,7 +97,7 @@ const CookiePreferencesPage = () => {
         keywords="cookie preferences, SimPilot.AI cookies, privacy settings, cookie management, analytics cookies"
         canonical="/cookie-preferences"
       />
-      <div className="container mx-auto px-6 py-12 pt-24 max-w-2xl">
+      <div className="container mx-auto px-4 sm:px-6 py-12 pt-24 max-w-2xl">
         <Link
           to="/"
           title="Return to SimPilot.AI homepage — AI-powered pilot training"

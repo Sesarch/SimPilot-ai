@@ -229,7 +229,7 @@ const IntakePage = () => {
       <Navbar />
 
       <main className="flex-1 pt-28 pb-16">
-        <div className="container mx-auto px-6 max-w-3xl">
+        <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
           <div className="mb-8 text-center">
             <p className="font-display text-xs tracking-[0.3em] uppercase text-accent mb-3">Intake</p>
             <h1 className="font-display text-3xl md:text-4xl text-foreground">
