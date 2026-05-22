@@ -699,6 +699,12 @@ const AdminInbox = () => {
         mailboxes={mailboxes}
         onChanged={fetchMailboxes}
       />
+      <TemplatesDialog
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        templates={templates}
+        onChanged={fetchTemplates}
+      />
     </div>
   );
 };
