@@ -436,12 +436,18 @@ const AdminInbox = () => {
                     {t.subject}
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
+                    {t.mailbox_id && mailboxById[t.mailbox_id] && (
+                      <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4" style={{ borderColor: mailboxById[t.mailbox_id].color + "80", color: mailboxById[t.mailbox_id].color }}>
+                        {mailboxById[t.mailbox_id].name}
+                      </Badge>
+                    )}
                     <Badge variant="outline" className={cn("text-[10px] py-0 px-1.5 h-4", meta.color)}>
                       <Icon className="h-2.5 w-2.5 mr-1" /> {meta.label}
                     </Badge>
                     <Badge variant="outline" className={cn("text-[10px] py-0 px-1.5 h-4", STATUS_COLOR[t.status])}>
                       {t.status}
                     </Badge>
+
                     {t.priority === "high" && (
                       <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 bg-red-500/15 text-red-400 border-red-500/30">
                         <AlertCircle className="h-2.5 w-2.5 mr-0.5" /> High
