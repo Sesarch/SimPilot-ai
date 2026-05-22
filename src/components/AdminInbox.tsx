@@ -33,7 +33,19 @@ interface Thread {
   last_message_at: string;
   created_at: string;
   tags: string[];
+  mailbox_id: string | null;
 }
+
+interface Mailbox {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  forward_to_email: string | null;
+  sort_order: number;
+  enabled: boolean;
+}
+
 
 interface Message {
   id: string;
