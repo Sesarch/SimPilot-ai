@@ -173,11 +173,16 @@ const AdminInbox = () => {
     return threads.filter(t => {
       if (statusFilter !== "all" && t.status !== statusFilter) return false;
       if (sourceFilter !== "all" && t.source !== sourceFilter) return false;
+      if (mailboxFilter !== "all") {
+        if (mailboxFilter === "unassigned" && t.mailbox_id) return false;
+        if (mailboxFilter !== "unassigned" && t.mailbox_id !== mailboxFilter) return false;
+      }
       if (q) {
         const hay = `${t.subject} ${t.from_email ?? ""} ${t.from_name ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
+
     });
   }, [threads, statusFilter, sourceFilter, search]);
 
