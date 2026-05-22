@@ -9,11 +9,16 @@ import { toast } from "sonner";
 import {
   Inbox, Mail, MessageCircle, GraduationCap, Sparkles, RefreshCw, Send,
   StickyNote, Archive, CheckCircle2, Circle, AlertCircle, ChevronLeft,
-  Forward, Settings, Plus, Trash2, Save,
+  Forward, Settings, Plus, Trash2, Save, Zap, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 
 
 
@@ -68,6 +73,27 @@ interface Note {
   created_at: string;
 }
 
+interface ReplyTemplate {
+  id: string;
+  title: string;
+  category: string;
+  body: string;
+  shortcut: string | null;
+  sort_order: number;
+  enabled: boolean;
+}
+
+const applyTemplateVars = (body: string, thread: Thread | null): string => {
+  if (!thread) return body;
+  const name = thread.from_name || "";
+  const first = name.trim().split(/\s+/)[0] || "there";
+  return body
+    .split("{{first_name}}").join(first)
+    .split("{{name}}").join(name || "there")
+    .split("{{email}}").join(thread.from_email || "")
+    .split("{{subject}}").join(thread.subject || "");
+};
+
 const SOURCE_META: Record<ThreadSource, { label: string; Icon: typeof Mail; color: string }> = {
   contact_form: { label: "Contact", Icon: Mail, color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
   support_chat: { label: "Support chat", Icon: MessageCircle, color: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
@@ -110,6 +136,23 @@ const AdminInbox = () => {
   const [savingNote, setSavingNote] = useState(false);
   const [forwarding, setForwarding] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [templates, setTemplates] = useState<ReplyTemplate[]>([]);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+
+  const fetchTemplates = useCallback(async () => {
+    const { data } = await supabase
+      .from("inbox_reply_templates" as any)
+      .select("*")
+      .order("category", { ascending: true })
+      .order("sort_order", { ascending: true });
+    setTemplates((data as any) || []);
+  }, []);
+  useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
+
+  const insertTemplate = (tpl: ReplyTemplate) => {
+    const rendered = applyTemplateVars(tpl.body, selected);
+    setReply(prev => prev ? `${prev}\n\n${rendered}` : rendered);
+  };
 
   const fetchMailboxes = useCallback(async () => {
     const { data } = await supabase
@@ -317,6 +360,9 @@ const AdminInbox = () => {
           )}
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setTemplatesOpen(true)}>
+            <Zap className="h-4 w-4 mr-2" /> Templates
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
             <Settings className="h-4 w-4 mr-2" /> Routing
           </Button>
@@ -585,10 +631,45 @@ const AdminInbox = () => {
                       rows={3}
                       className="resize-none"
                     />
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center flex-wrap">
                       <Button size="sm" onClick={sendReply} disabled={sending || !reply.trim()}>
                         <Send className="h-3.5 w-3.5 mr-1.5" /> {sending ? "Sending..." : "Send reply"}
                       </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            <Zap className="h-3.5 w-3.5 mr-1.5" /> Quick reply
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-72 max-h-96 overflow-y-auto">
+                          {Object.entries(
+                            templates.filter(t => t.enabled).reduce<Record<string, ReplyTemplate[]>>((acc, t) => {
+                              (acc[t.category] = acc[t.category] || []).push(t);
+                              return acc;
+                            }, {})
+                          ).map(([cat, list]) => (
+                            <div key={cat}>
+                              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">{cat}</DropdownMenuLabel>
+                              {list.map(tpl => (
+                                <DropdownMenuItem key={tpl.id} onClick={() => insertTemplate(tpl)} className="flex flex-col items-start gap-0.5">
+                                  <div className="flex items-center gap-2 w-full">
+                                    <span className="text-sm font-medium">{tpl.title}</span>
+                                    {tpl.shortcut && <code className="ml-auto text-[10px] text-muted-foreground">{tpl.shortcut}</code>}
+                                  </div>
+                                  <span className="text-[11px] text-muted-foreground line-clamp-1">{tpl.body.split("\n").find(l => l.trim())}</span>
+                                </DropdownMenuItem>
+                              ))}
+                              <DropdownMenuSeparator />
+                            </div>
+                          ))}
+                          {templates.filter(t => t.enabled).length === 0 && (
+                            <div className="px-2 py-3 text-xs text-muted-foreground text-center">No templates yet.</div>
+                          )}
+                          <DropdownMenuItem onClick={() => setTemplatesOpen(true)} className="text-primary">
+                            <Pencil className="h-3.5 w-3.5 mr-2" /> Manage templates
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </>
                 ) : (
@@ -617,6 +698,12 @@ const AdminInbox = () => {
         onOpenChange={setSettingsOpen}
         mailboxes={mailboxes}
         onChanged={fetchMailboxes}
+      />
+      <TemplatesDialog
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        templates={templates}
+        onChanged={fetchTemplates}
       />
     </div>
   );
@@ -855,5 +942,153 @@ const RoutingSettingsDialog = ({
   );
 };
 
+// =================== Templates Dialog ===================
+const TemplatesDialog = ({
+  open, onOpenChange, templates, onChanged,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  templates: ReplyTemplate[];
+  onChanged: () => void;
+}) => {
+  const [editing, setEditing] = useState<Partial<ReplyTemplate> | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const startNew = () => setEditing({
+    title: "", category: "general", body: "", shortcut: "", sort_order: 100, enabled: true,
+  });
+
+  const save = async () => {
+    if (!editing || !editing.title?.trim() || !editing.body?.trim()) {
+      return toast.error("Title and body are required");
+    }
+    setSaving(true);
+    const payload: any = {
+      title: editing.title.trim(),
+      category: (editing.category || "general").trim().toLowerCase(),
+      body: editing.body,
+      shortcut: editing.shortcut?.trim() || null,
+      sort_order: editing.sort_order ?? 100,
+      enabled: editing.enabled ?? true,
+    };
+    const { error } = editing.id
+      ? await supabase.from("inbox_reply_templates" as any).update(payload).eq("id", editing.id)
+      : await supabase.from("inbox_reply_templates" as any).insert(payload);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Saved");
+    setEditing(null);
+    onChanged();
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this template?")) return;
+    const { error } = await supabase.from("inbox_reply_templates" as any).delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Deleted");
+    onChanged();
+  };
+
+  const toggleEnabled = async (t: ReplyTemplate) => {
+    const { error } = await supabase.from("inbox_reply_templates" as any).update({ enabled: !t.enabled }).eq("id", t.id);
+    if (error) return toast.error(error.message);
+    onChanged();
+  };
+
+  const grouped = templates.reduce<Record<string, ReplyTemplate[]>>((acc, t) => {
+    (acc[t.category] = acc[t.category] || []).push(t);
+    return acc;
+  }, {});
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-orbitron flex items-center gap-2">
+            <Zap className="h-4 w-4 text-primary" /> Quick reply templates
+          </DialogTitle>
+          <DialogDescription>
+            Editable canned responses. Use <code>{"{{first_name}}"}</code>, <code>{"{{name}}"}</code>, <code>{"{{email}}"}</code>, <code>{"{{subject}}"}</code> as placeholders.
+          </DialogDescription>
+        </DialogHeader>
+
+        {editing ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-12 gap-2">
+              <div className="col-span-6">
+                <Label className="text-xs">Title</Label>
+                <Input value={editing.title || ""} onChange={e => setEditing(p => ({ ...p!, title: e.target.value }))} />
+              </div>
+              <div className="col-span-3">
+                <Label className="text-xs">Category</Label>
+                <Input value={editing.category || ""} onChange={e => setEditing(p => ({ ...p!, category: e.target.value }))} />
+              </div>
+              <div className="col-span-3">
+                <Label className="text-xs">Shortcut</Label>
+                <Input placeholder="/ack" value={editing.shortcut || ""} onChange={e => setEditing(p => ({ ...p!, shortcut: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Body</Label>
+              <Textarea
+                rows={10}
+                value={editing.body || ""}
+                onChange={e => setEditing(p => ({ ...p!, body: e.target.value }))}
+                className="font-mono text-sm"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+              <Button onClick={save} disabled={saving}>
+                <Save className="h-4 w-4 mr-2" /> {saving ? "Saving..." : "Save template"}
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Button size="sm" onClick={startNew}>
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> New template
+              </Button>
+            </div>
+            {Object.entries(grouped).map(([cat, list]) => (
+              <section key={cat} className="space-y-2">
+                <h4 className="text-xs uppercase tracking-wider text-muted-foreground">{cat}</h4>
+                {list.map(t => (
+                  <div key={t.id} className={cn(
+                    "p-2.5 border rounded-md flex items-start gap-3",
+                    t.enabled ? "border-border bg-card/40" : "border-border/40 bg-muted/30 opacity-60",
+                  )}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium">{t.title}</span>
+                        {t.shortcut && <code className="text-[10px] text-muted-foreground">{t.shortcut}</code>}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1 line-clamp-2 whitespace-pre-wrap">{t.body}</div>
+                    </div>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleEnabled(t)}>
+                      {t.enabled ? "Disable" : "Enable"}
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-7" onClick={() => setEditing(t)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-destructive" onClick={() => remove(t.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </section>
+            ))}
+            {templates.length === 0 && (
+              <div className="text-xs text-muted-foreground text-center py-6">No templates yet. Create your first quick reply.</div>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default AdminInbox;
+
 
