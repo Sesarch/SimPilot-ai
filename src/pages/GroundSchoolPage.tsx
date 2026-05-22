@@ -171,7 +171,7 @@ const GroundSchoolPage = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/75 to-background" />
           </div>
-          <div className="container mx-auto px-6 py-8 max-w-3xl relative z-10">
+          <div className="container mx-auto px-4 sm:px-6 py-8 max-w-3xl relative z-10">
             <div className="mb-6">
               <h1 className="font-display text-2xl text-foreground mb-2">
                 Ground One-on-One Lessons

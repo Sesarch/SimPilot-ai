@@ -258,7 +258,7 @@ const OralExamPage = () => {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-6 py-8 max-w-3xl">
+          <div className="container mx-auto px-4 sm:px-6 py-8 max-w-3xl">
             <div className="mb-8">
               <h1 className="font-display text-2xl text-foreground mb-2">
                 Oral Exam Prep

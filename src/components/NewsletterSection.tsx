@@ -49,7 +49,7 @@ const NewsletterSection = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[680px] h-[680px] -z-10 rounded-full bg-primary/10 blur-[140px]" />
       <div className="absolute top-0 left-0 right-0 hud-line opacity-30" />
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

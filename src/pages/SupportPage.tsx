@@ -112,7 +112,7 @@ const SupportPage = () => {
       <Navbar />
 
       <main className="pt-32 pb-20">
-        <div className="container mx-auto px-6 max-w-5xl">
+        <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"

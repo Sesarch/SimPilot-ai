@@ -29,7 +29,7 @@ const audiences = [
 const AudiencesSection = () => {
   return (
     <section id="audiences" className="py-24 relative">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Image side */}
           <motion.div

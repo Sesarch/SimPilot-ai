@@ -46,7 +46,7 @@ const HeroSection = () => {
       <div className="absolute top-3/4 left-0 right-0 hud-line opacity-20" />
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 text-center pt-20 pb-12">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center pt-20 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}

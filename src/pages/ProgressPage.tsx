@@ -152,7 +152,7 @@ const ProgressPage = () => {
         ogImage="/og-progress.jpg"
         noIndex
       />
-      <div className="container mx-auto px-6 pt-4 max-w-3xl">
+      <div className="container mx-auto px-4 sm:px-6 pt-4 max-w-3xl">
         <div className="flex items-center gap-2">
           <span className="font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
             Logbook & Analytics
@@ -161,7 +161,7 @@ const ProgressPage = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-12 max-w-3xl space-y-10">
+      <div className="container mx-auto px-4 sm:px-6 py-12 max-w-3xl space-y-10">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">

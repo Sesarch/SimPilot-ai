@@ -556,7 +556,7 @@ const AdminPage = () => {
 
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b-2 border-primary/50 bg-background shadow-[0_4px_20px_-6px_hsl(var(--primary)/0.4)]">
-        <div className="container mx-auto px-6 py-7 flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 py-7 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" title="Return to your SimPilot.AI pilot training dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-5 h-5" />
@@ -577,7 +577,7 @@ const AdminPage = () => {
         </div>
       </nav>
 
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 sm:px-6 py-8 max-w-6xl">
         <Tabs
           value={activeTab}
           onValueChange={handleTabChange}
