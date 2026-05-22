@@ -88,10 +88,10 @@ const applyTemplateVars = (body: string, thread: Thread | null): string => {
   const name = thread.from_name || "";
   const first = name.trim().split(/\s+/)[0] || "there";
   return body
-    .replaceAll("{{first_name}}", first)
-    .replaceAll("{{name}}", name || "there")
-    .replaceAll("{{email}}", thread.from_email || "")
-    .replaceAll("{{subject}}", thread.subject || "");
+    .split("{{first_name}}").join(first)
+    .split("{{name}}").join(name || "there")
+    .split("{{email}}").join(thread.from_email || "")
+    .split("{{subject}}").join(thread.subject || "");
 };
 
 const SOURCE_META: Record<ThreadSource, { label: string; Icon: typeof Mail; color: string }> = {
