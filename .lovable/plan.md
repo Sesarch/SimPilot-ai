@@ -1,126 +1,132 @@
-# SimPilot.AI — Pricing + T&C Overhaul (Staged)
 
-## Scope confirmation needed before I build
+# Support Inbox Dashboard
 
-This spec is large and touches several systems that are currently wired differently than the spec assumes. I want to lock the approach before writing code so we don't waste a cycle. Two important callouts up front:
-
-### A. Stripe products: how to create them
-The current pricing UI is **driven dynamically** by Stripe via `list-plans` edge function + `useStripePlans` hook (Student / Pro Pilot / Gold Seal / Flight School are real Stripe products today). The spec says "create new price IDs `price_pilot_monthly_39` etc." — Stripe does not let us name price IDs; it auto-generates `price_xxx`. I will:
-
-1. Create three new Stripe **products** (Pilot Monthly, Pilot Annual, Checkride Lifetime) + a 4th product for the **$9 / 250 conversations overage credit** using the `stripe--create_stripe_product_and_price` tool.
-2. Tag them with metadata (`plan_key=pilot_monthly | pilot_annual | checkride_lifetime | overage_250`) so the new pricing page selects them by `plan_key`, not by Stripe-generated ID.
-3. Leave the existing Student / Pro / Gold / School products in Stripe untouched (archiving them is a separate decision — confirm if you want them archived).
-
-### B. Conversation caps + overage billing (Stage 2)
-The spec includes:
-- 500 / 1,000 / 1,500 monthly conversation caps
-- An overage modal at cap
-- $9 / 250 extra conversations purchase flow
-- Checkride Lifetime "until target rating + 90 days, max 24 months" access window
-- Pass-the-checkride guarantee refund workflow (4 conditions, FAA doc upload)
-
-These are **substantial backend features** (new tables, cap-enforcement middleware in `ai-orchestrator` call path, a new Stripe checkout flow for one-off credits, an admin refund-review queue). The spec also says "do not modify the AI orchestrator." Those two constraints conflict — cap enforcement needs *some* hook in the chat call path.
-
-**My recommendation:** ship Stage 1 now (content, schema, UI, signup gating, draft banners, Stripe products), and ship Stage 2 (cap enforcement + overage + guarantee workflow) as a follow-up so we can scope/design it properly. Stage 1 alone is what the attorney needs to review.
-
-If you want Stage 2 in this same loop, say so and I'll expand.
+A unified inbox at **/admin/inbox** (admin-only) that merges every customer touchpoint into one queue, lets you reply via email from the dashboard, and threads inbound replies back into the same conversation.
 
 ---
 
-## Stage 1 — What I will ship now
+## 1. Data model (new migration)
 
-### 1. Stripe products (via tool)
-Create 4 products with metadata `plan_key`:
-- Pilot Monthly — $39/mo recurring → `plan_key=pilot_monthly`
-- Pilot Annual — $299/yr recurring → `plan_key=pilot_annual`
-- Checkride Lifetime — $399 one-time → `plan_key=checkride_lifetime`
-- Conversation Overage — $9 one-time → `plan_key=overage_250`
+### `inbox_threads`
+One row per conversation, regardless of origin source.
+- `source` — `contact_form` | `support_chat` | `school_inquiry` | `lead_email` | `inbound_email`
+- `source_id` — FK to the originating row (uuid)
+- `subject`, `from_email`, `from_name`
+- `status` — `new` | `open` | `pending` | `resolved` | `archived` (default `new`)
+- `assigned_to` — admin user_id (nullable)
+- `priority` — `low` | `normal` | `high`
+- `last_message_at`, `unread_count`
+- `tags` — text[]
 
-### 2. Database migration
-```text
-ALTER TABLE profiles
-  ADD COLUMN terms_accepted_at timestamptz,
-  ADD COLUMN terms_accepted_ip text,
-  ADD COLUMN terms_version text,
-  ADD COLUMN target_rating text,             -- for Checkride Lifetime
-  ADD COLUMN lifetime_access_started_at timestamptz,
-  ADD COLUMN lifetime_target_passed_at timestamptz;
-```
-Keep existing `terms_agreed_at` column for backward compat; new column is the source of truth going forward. `terms_version` constant = `"2026-05-17"`.
+### `inbox_messages`
+Every inbound + outbound message in a thread.
+- `thread_id` → `inbox_threads`
+- `direction` — `inbound` | `outbound` | `note`
+- `body_text`, `body_html`
+- `from_email`, `to_email`, `cc`, `bcc`
+- `email_message_id` (RFC Message-ID for threading), `in_reply_to`, `references`
+- `delivery_status` — `pending` | `sent` | `failed` (for outbound)
+- `attachments` jsonb
 
-### 3. Pricing page rewrite
-- Replace `PricingSection.tsx` plan array + `PlanComparisonTable` + `PlanQuickCompare` with a **new 3-tier layout** keyed by `plan_key` returned from `list-plans`.
-- Annual column: teal border + "MOST POPULAR" ribbon, `$24.92/mo equiv` small text, "Save $169/yr" badge.
-- Identical 11-item feature list per plan (multi-brain AI, DPE sim, weather, tracking, POH, vision, sim bridge, FAR/AIM citations, safety review, history, PWA).
-- Mobile: stacked cards.
-- New `PricingFAQ` content with the 6 questions from spec.
-- Remove `ForSchoolsSection` from pricing page; replace with one-line link: "Flight school or training organization? [Contact sales →](mailto:sales@simpilot.ai)".
-- Admin-only yellow draft banner at top (uses existing `useAuth` + `has_role('admin')` check).
+### `inbox_notes`
+Internal admin-only notes attached to a thread.
+- `thread_id`, `admin_user_id`, `body`
 
-### 4. T&C page rewrite
-- Preserve verbatim: red CRITICAL DISCLAIMER box + Sections 1–7 + final acknowledgment shell.
-- Replace Sections 8, 9, 10, 11.
-- Add Sections 12, 13, 14.
-- Renumber old Section 12 (Changes) → 15, old Section 13 (Governing Law) → 16.
-- Add Section 17 (Contact).
-- Update final acknowledgment box with the 5 new bullets (a–e).
-- Update "Last updated" date to today.
-- Admin-only yellow draft banner at top with the 4 attorney-flag items.
-- Bump `terms_version` constant to `"2026-05-17"`.
+### Auto-seeding via triggers
+Triggers on `contact_submissions`, `support_chats`, `school_inquiries`, `lead_emails` automatically create an `inbox_threads` row + first `inbox_messages` row on insert. **Existing rows are backfilled by the migration.**
 
-### 5. Signup flow update
-- Replace `TermsAgreement.tsx` component to render the **full T&C body** in a scrollable container (not just a summary). Existing scroll-to-bottom gate is preserved and re-used.
-- On signup submit: capture `terms_accepted_at = now()`, `terms_version`, and `terms_accepted_ip` (fetched via a tiny `/whoami-ip` edge function or from request headers in an existing function — I'll add a 20-line `get-client-ip` edge function returning `req.headers['x-forwarded-for']`).
-- For Checkride Lifetime purchases specifically: post-checkout onboarding screen requires a second checkbox + target rating dropdown (9 options) before chat access unlocks. Save to `profiles.target_rating` + `lifetime_access_started_at`.
-
-### 6. Admin draft banner component
-New `<DraftReviewBanner items={[...]} />` shown only when `useAuth().isAdmin === true`. Used on `/pricing` and `/terms`.
+### RLS
+Admin-only (`has_role(auth.uid(), 'admin')`) for all 3 new tables, plus service-role writes for the inbound webhook.
 
 ---
 
-## Files touched
+## 2. Outbound reply (Lovable Emails)
 
-**New**
-- `src/components/DraftReviewBanner.tsx`
-- `src/components/pricing/PricingTiersV2.tsx` (3-tier layout)
-- `src/components/pricing/CheckrideTargetRatingPicker.tsx`
-- `src/lib/termsVersion.ts` (single source of truth)
-- `supabase/functions/get-client-ip/index.ts`
-- Migration: add 6 columns to `profiles`
-
-**Modified**
-- `src/components/PricingSection.tsx` — swap to new tiers, drop For Schools
-- `src/components/PricingFAQ.tsx` — replace with 6 new Q&A
-- `src/pages/TermsPage.tsx` — sections 8–17 + final ack + draft banner
-- `src/components/TermsAgreement.tsx` — render full T&C, persist version/IP
-- `src/components/auth/SignUpForm.tsx` — pass version/IP through to insert
-- `src/hooks/useAuth.tsx` — write `terms_accepted_at` / `terms_version` / `terms_accepted_ip` on signup
-
-**Not touched** (per spec)
-- `supabase/functions/stripe-webhook`, `ai-orchestrator`, `admin-payments`, signing-secret table, admin dashboard
-- T&C Sections 1–7 and CRITICAL DISCLAIMER box
+New edge function `inbox-send-reply`:
+- Auth: verifies caller is admin
+- Sends via existing `send-transactional-email` infra from `support@notify.simpilot.ai`
+- Sets `Reply-To: support@simpilot.ai` so customer replies land in the inbound webhook
+- Records the sent message in `inbox_messages` with `direction=outbound`
+- Sets RFC `Message-ID`, `In-Reply-To`, `References` headers for proper threading
+- Updates thread `status` → `pending` (waiting on customer)
 
 ---
 
-## Explicitly deferred to Stage 2 (need your go-ahead)
+## 3. Inbound email webhook
 
-- Live conversation-cap counter + cap-reached modal
-- Overage purchase Stripe Checkout flow + credit ledger
-- Checkride Lifetime 24-month expiry job + "rating passed" admin action
-- Pass-the-checkride guarantee refund intake form + admin review queue
-- Archiving the old Stripe products (Student / Pro / Gold / School)
+New edge function `inbox-inbound-webhook` (public, HMAC-verified):
+- Parses inbound payload (provider-agnostic shape — works with CloudMailin or Postmark Inbound)
+- Looks up thread by `In-Reply-To` / `References` headers, else by sender email
+- Creates new `inbox_messages` row with `direction=inbound`
+- Bumps thread `status` → `open`, increments `unread_count`, updates `last_message_at`
 
----
+**⚠️ Your action required (one-time setup):** Migadu doesn't expose inbound webhooks. You'll need to pick a provider and set MX/forwarding:
 
-## Acceptance check (Stage 1 only)
+- **Option A — CloudMailin** ($9/mo, easiest): give me the webhook URL after deploy → you point an address like `support-in@simpilot.ai` MX to CloudMailin, then set up a Migadu forward from `support@` to it.
+- **Option B — Postmark Inbound** (free up to 100/mo, then paid): same idea.
+- **Option C — defer**: ship everything except inbound now; add the webhook later.
 
-1. Four new Stripe prices created — IDs reported to you
-2. `/pricing` shows 3 tiers, FAQ, sales link, admin-only banner
-3. `/terms` shows preserved 1–7, new 8–17, admin-only banner, updated ack
-4. Signup captures `terms_accepted_at`, `terms_version`, `terms_accepted_ip`
-5. `profiles` has the 6 new columns
-6. Nothing deploys to production — preview URL only (Lovable preview is already non-prod)
+I'll build the webhook receiver in a provider-agnostic way so you can switch later.
 
 ---
 
-**Reply "go stage 1"** to ship the above, or **"go stage 1+2"** if you want cap enforcement + overage + guarantee workflow in this loop (≈2–3× the change surface).
+## 4. Frontend — `/admin/inbox`
+
+Layout: **3-pane** (Gmail/Front style)
+- **Left rail**: filters — All / New / Open / Pending / Resolved / Archived, by source (chips), by assignee, search
+- **Middle list**: thread list with sender, subject preview, source badge, time, unread dot, priority flag
+- **Right pane** (selected thread):
+  - Header: subject, from, status dropdown, assignee picker, priority, tags, source link
+  - Message timeline (inbound vs outbound visually distinct, internal notes pinned with yellow background)
+  - Reply composer (rich text → plain+HTML), "Send" button
+  - Internal note composer (yellow, admin-only, never emailed)
+  - Right sidebar: customer context — subscription tier, trial status, prior threads count, link to profile
+
+Cockpit aesthetic: Orbitron headings, teal accents, dark theme. Mobile: collapses to single-pane drill-down.
+
+Realtime: subscribe to `inbox_threads` + `inbox_messages` via Supabase Realtime so new mail/replies appear without refresh.
+
+---
+
+## 5. Admin nav
+
+Add **Inbox** tab to existing `/admin` shell with an unread-count badge (red dot showing total `new` threads across all sources).
+
+---
+
+## Files
+
+**New:**
+- `supabase/migrations/<ts>_inbox.sql` — tables, triggers, backfill, RLS, realtime publication
+- `supabase/functions/inbox-send-reply/index.ts`
+- `supabase/functions/inbox-inbound-webhook/index.ts`
+- `src/pages/admin/Inbox.tsx`
+- `src/components/admin/inbox/ThreadList.tsx`
+- `src/components/admin/inbox/ThreadView.tsx`
+- `src/components/admin/inbox/ReplyComposer.tsx`
+- `src/components/admin/inbox/NoteComposer.tsx`
+- `src/components/admin/inbox/InboxFilters.tsx`
+- `src/components/admin/inbox/CustomerContext.tsx`
+- `src/hooks/useInboxThreads.ts`
+- `src/hooks/useInboxThread.ts`
+
+**Edited:**
+- `src/App.tsx` — add `/admin/inbox` route
+- `src/components/admin/AdminNav.tsx` (or equivalent) — add Inbox link + badge
+
+---
+
+## Build order (so you see progress fast)
+
+1. Migration (tables + triggers + backfill + RLS + realtime)
+2. `/admin/inbox` UI reading existing data — already useful from minute one
+3. Status workflow + notes + filters
+4. `inbox-send-reply` edge function + composer wired up
+5. `inbox-inbound-webhook` edge function (you can deploy without an inbound provider, then connect one whenever)
+
+---
+
+## Reply with one of:
+- ✅ **Go** — I'll build everything in the order above
+- 🔧 **Skip inbound for now** — ship 1–4 only, add webhook later
+- ✏️ Any changes (different layout, drop a source, etc.)
