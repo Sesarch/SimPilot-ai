@@ -133,8 +133,41 @@ Deno.serve(async (req) => {
   // Bump unread_count via raw increment
   await admin.rpc('inbox_bump_unread' as any, { _thread_id: threadId }).catch(() => {})
 
+  // Auto-forward to mailbox forward_to_email (routing trigger has already set mailbox_id)
+  try {
+    const { data: thread } = await admin
+      .from('inbox_threads')
+      .select('mailbox_id, subject, from_email, from_name')
+      .eq('id', threadId)
+      .maybeSingle()
+    if (thread?.mailbox_id) {
+      const { data: mailbox } = await admin
+        .from('inbox_mailboxes')
+        .select('name, forward_to_email')
+        .eq('id', thread.mailbox_id)
+        .maybeSingle()
+      if (mailbox?.forward_to_email) {
+        await admin.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'contact-team-notification',
+            recipientEmail: mailbox.forward_to_email,
+            templateData: {
+              name: thread.from_name || parsed.fromName || parsed.fromEmail,
+              email: thread.from_email || parsed.fromEmail,
+              subject: `[${mailbox.name}] ${thread.subject || parsed.subject || '(no subject)'}`,
+              message: parsed.bodyText,
+            },
+          },
+        })
+      }
+    }
+  } catch (e) {
+    console.error('forward failed', e)
+  }
+
   return json({ success: true, thread_id: threadId }, 200)
 })
+
 
 interface Parsed {
   fromEmail: string
