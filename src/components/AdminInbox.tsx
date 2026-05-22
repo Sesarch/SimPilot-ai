@@ -611,8 +611,249 @@ const AdminInbox = () => {
           )}
         </div>
       </div>
+
+      <RoutingSettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        mailboxes={mailboxes}
+        onChanged={fetchMailboxes}
+      />
     </div>
   );
 };
 
+// =================== Routing Settings Dialog ===================
+interface RoutingRule {
+  id: string;
+  name: string;
+  priority: number;
+  enabled: boolean;
+  match_source: string | null;
+  match_from_domain: string | null;
+  match_keywords: string[];
+  set_mailbox: string | null;
+  set_priority: string | null;
+  add_tags: string[];
+}
+
+const RoutingSettingsDialog = ({
+  open, onOpenChange, mailboxes, onChanged,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  mailboxes: Mailbox[];
+  onChanged: () => void;
+}) => {
+  const [rules, setRules] = useState<RoutingRule[]>([]);
+  const [mbDrafts, setMbDrafts] = useState<Record<string, Partial<Mailbox>>>({});
+  const [loading, setLoading] = useState(false);
+  const [newMb, setNewMb] = useState({ name: "", slug: "", color: "#009199", forward_to_email: "" });
+
+  const loadRules = useCallback(async () => {
+    const { data } = await supabase
+      .from("inbox_routing_rules" as any)
+      .select("*")
+      .order("priority", { ascending: true });
+    setRules((data as any) || []);
+  }, []);
+
+  useEffect(() => { if (open) loadRules(); }, [open, loadRules]);
+
+  const saveMailbox = async (mb: Mailbox) => {
+    const draft = mbDrafts[mb.id] || {};
+    if (Object.keys(draft).length === 0) return;
+    setLoading(true);
+    const { error } = await supabase
+      .from("inbox_mailboxes" as any)
+      .update(draft)
+      .eq("id", mb.id);
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Saved ${mb.name}`);
+    setMbDrafts(prev => { const { [mb.id]: _, ...rest } = prev; return rest; });
+    onChanged();
+  };
+
+  const addMailbox = async () => {
+    if (!newMb.name.trim() || !newMb.slug.trim()) return toast.error("Name and slug required");
+    setLoading(true);
+    const { error } = await supabase.from("inbox_mailboxes" as any).insert({
+      name: newMb.name.trim(),
+      slug: newMb.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+      color: newMb.color,
+      forward_to_email: newMb.forward_to_email.trim() || null,
+    });
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Mailbox added");
+    setNewMb({ name: "", slug: "", color: "#009199", forward_to_email: "" });
+    onChanged();
+  };
+
+  const deleteMailbox = async (id: string, name: string) => {
+    if (!confirm(`Delete mailbox "${name}"? Threads will become unassigned.`)) return;
+    const { error } = await supabase.from("inbox_mailboxes" as any).delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Deleted");
+    onChanged();
+  };
+
+  const toggleRule = async (id: string, enabled: boolean) => {
+    const { error } = await supabase.from("inbox_routing_rules" as any).update({ enabled }).eq("id", id);
+    if (error) return toast.error(error.message);
+    loadRules();
+  };
+
+  const deleteRule = async (id: string) => {
+    if (!confirm("Delete this routing rule?")) return;
+    const { error } = await supabase.from("inbox_routing_rules" as any).delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    loadRules();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-orbitron">Routing &amp; Forwarding</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Mailboxes */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold">Mailboxes</h3>
+            <p className="text-xs text-muted-foreground">
+              Each mailbox represents a team. Set a forward address to auto-forward incoming emails to a real inbox.
+            </p>
+            <div className="space-y-2">
+              {mailboxes.map(mb => {
+                const draft = mbDrafts[mb.id] || {};
+                const merged = { ...mb, ...draft };
+                return (
+                  <div key={mb.id} className="grid grid-cols-12 gap-2 items-center p-2 border border-border rounded-md bg-card/50">
+                    <Input
+                      className="col-span-3 h-8 text-xs"
+                      value={merged.name}
+                      onChange={e => setMbDrafts(p => ({ ...p, [mb.id]: { ...p[mb.id], name: e.target.value } }))}
+                    />
+                    <Input
+                      className="col-span-4 h-8 text-xs"
+                      placeholder="forward-to@example.com"
+                      value={merged.forward_to_email ?? ""}
+                      onChange={e => setMbDrafts(p => ({ ...p, [mb.id]: { ...p[mb.id], forward_to_email: e.target.value || null } }))}
+                    />
+                    <Input
+                      type="color"
+                      className="col-span-1 h-8 p-1"
+                      value={merged.color}
+                      onChange={e => setMbDrafts(p => ({ ...p, [mb.id]: { ...p[mb.id], color: e.target.value } }))}
+                    />
+                    <div className="col-span-4 flex gap-1 justify-end">
+                      <Button size="sm" variant="outline" className="h-8" onClick={() => saveMailbox(mb)} disabled={loading || !mbDrafts[mb.id]}>
+                        <Save className="h-3.5 w-3.5 mr-1" /> Save
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-8 text-destructive" onClick={() => deleteMailbox(mb.id, mb.name)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-12 gap-2 items-center p-2 border border-dashed border-border rounded-md">
+              <Input
+                className="col-span-3 h-8 text-xs"
+                placeholder="Mailbox name"
+                value={newMb.name}
+                onChange={e => setNewMb(p => ({ ...p, name: e.target.value, slug: p.slug || e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") }))}
+              />
+              <Input
+                className="col-span-2 h-8 text-xs"
+                placeholder="slug"
+                value={newMb.slug}
+                onChange={e => setNewMb(p => ({ ...p, slug: e.target.value }))}
+              />
+              <Input
+                className="col-span-4 h-8 text-xs"
+                placeholder="forward-to@example.com"
+                value={newMb.forward_to_email}
+                onChange={e => setNewMb(p => ({ ...p, forward_to_email: e.target.value }))}
+              />
+              <Input
+                type="color"
+                className="col-span-1 h-8 p-1"
+                value={newMb.color}
+                onChange={e => setNewMb(p => ({ ...p, color: e.target.value }))}
+              />
+              <Button size="sm" className="col-span-2 h-8" onClick={addMailbox} disabled={loading}>
+                <Plus className="h-3.5 w-3.5 mr-1" /> Add
+              </Button>
+            </div>
+          </section>
+
+          {/* Rules */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Routing rules</h3>
+              <span className="text-[11px] text-muted-foreground">Evaluated in priority order (lowest first)</span>
+            </div>
+            <div className="space-y-2">
+              {rules.map(r => {
+                const mb = r.set_mailbox ? mailboxes.find(m => m.id === r.set_mailbox) : null;
+                return (
+                  <div key={r.id} className={cn(
+                    "p-2.5 border rounded-md flex items-start gap-3",
+                    r.enabled ? "border-border bg-card/40" : "border-border/40 bg-muted/30 opacity-60",
+                  )}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-medium">{r.name}</span>
+                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4">prio {r.priority}</Badge>
+                        {mb && (
+                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4" style={{ borderColor: mb.color + "80", color: mb.color }}>
+                            → {mb.name}
+                          </Badge>
+                        )}
+                        {r.set_priority && (
+                          <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4">priority: {r.set_priority}</Badge>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">
+                        {r.match_source && <span className="mr-2">source = <code>{r.match_source}</code></span>}
+                        {r.match_from_domain && <span className="mr-2">domain = <code>{r.match_from_domain}</code></span>}
+                        {r.match_keywords.length > 0 && <span>keywords: {r.match_keywords.join(", ")}</span>}
+                        {!r.match_source && !r.match_from_domain && r.match_keywords.length === 0 && (
+                          <span className="italic">matches all</span>
+                        )}
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleRule(r.id, !r.enabled)}>
+                      {r.enabled ? "Disable" : "Enable"}
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-destructive" onClick={() => deleteRule(r.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                );
+              })}
+              {rules.length === 0 && (
+                <div className="text-xs text-muted-foreground text-center py-4">No rules yet. Threads will stay unassigned.</div>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              To add or edit rules, use the database. Default rules cover source-based routing and common keywords (billing, spam).
+            </p>
+          </section>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default AdminInbox;
+
