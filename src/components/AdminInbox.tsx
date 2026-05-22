@@ -95,9 +95,11 @@ const STATUS_COLOR: Record<ThreadStatus, string> = {
 
 const AdminInbox = () => {
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<ThreadStatus | "all">("all");
   const [sourceFilter, setSourceFilter] = useState<ThreadSource | "all">("all");
+  const [mailboxFilter, setMailboxFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -106,6 +108,18 @@ const AdminInbox = () => {
   const [noteText, setNoteText] = useState("");
   const [sending, setSending] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
+  const [forwarding, setForwarding] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const fetchMailboxes = useCallback(async () => {
+    const { data } = await supabase
+      .from("inbox_mailboxes" as any)
+      .select("*")
+      .order("sort_order", { ascending: true });
+    setMailboxes((data as any) || []);
+  }, []);
+  useEffect(() => { fetchMailboxes(); }, [fetchMailboxes]);
+
 
   const fetchThreads = useCallback(async () => {
     setLoading(true);
