@@ -73,6 +73,27 @@ interface Note {
   created_at: string;
 }
 
+interface ReplyTemplate {
+  id: string;
+  title: string;
+  category: string;
+  body: string;
+  shortcut: string | null;
+  sort_order: number;
+  enabled: boolean;
+}
+
+const applyTemplateVars = (body: string, thread: Thread | null): string => {
+  if (!thread) return body;
+  const name = thread.from_name || "";
+  const first = name.trim().split(/\s+/)[0] || "there";
+  return body
+    .replaceAll("{{first_name}}", first)
+    .replaceAll("{{name}}", name || "there")
+    .replaceAll("{{email}}", thread.from_email || "")
+    .replaceAll("{{subject}}", thread.subject || "");
+};
+
 const SOURCE_META: Record<ThreadSource, { label: string; Icon: typeof Mail; color: string }> = {
   contact_form: { label: "Contact", Icon: Mail, color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
   support_chat: { label: "Support chat", Icon: MessageCircle, color: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
