@@ -1920,6 +1920,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      inbox_bump_unread: { Args: { _thread_id: string }; Returns: undefined }
       log_missing_acs_code: { Args: { _code: string }; Returns: undefined }
       match_kb_chunks: {
         Args: {
