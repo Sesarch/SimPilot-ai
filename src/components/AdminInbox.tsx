@@ -501,6 +501,21 @@ const AdminInbox = () => {
                       <SelectItem value="high">High</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Select
+                    value={selected.mailbox_id ?? "__none"}
+                    onValueChange={(v) => reassignMailbox(v === "__none" ? null : v)}
+                  >
+                    <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="Mailbox" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Unassigned</SelectItem>
+                      {mailboxes.map(mb => (
+                        <SelectItem key={mb.id} value={mb.id}>{mb.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button size="sm" variant="outline" className="h-8 text-xs" onClick={forwardThread} disabled={forwarding}>
+                    <Forward className="h-3.5 w-3.5 mr-1" /> {forwarding ? "Forwarding…" : "Forward"}
+                  </Button>
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => updateStatus("resolved")}>
                     <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Resolve
                   </Button>
@@ -509,6 +524,7 @@ const AdminInbox = () => {
                   </Button>
                 </div>
               </div>
+
 
               {/* Timeline */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[500px]">
