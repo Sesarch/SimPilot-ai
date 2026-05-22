@@ -9,9 +9,13 @@ import { toast } from "sonner";
 import {
   Inbox, Mail, MessageCircle, GraduationCap, Sparkles, RefreshCw, Send,
   StickyNote, Archive, CheckCircle2, Circle, AlertCircle, ChevronLeft,
+  Forward, Settings, Plus, Trash2, Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+
 
 type ThreadStatus = "new" | "open" | "pending" | "resolved" | "archived";
 type ThreadSource = "contact_form" | "support_chat" | "school_inquiry" | "lead_email" | "inbound_email";
