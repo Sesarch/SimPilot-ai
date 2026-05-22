@@ -136,6 +136,23 @@ const AdminInbox = () => {
   const [savingNote, setSavingNote] = useState(false);
   const [forwarding, setForwarding] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [templates, setTemplates] = useState<ReplyTemplate[]>([]);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+
+  const fetchTemplates = useCallback(async () => {
+    const { data } = await supabase
+      .from("inbox_reply_templates" as any)
+      .select("*")
+      .order("category", { ascending: true })
+      .order("sort_order", { ascending: true });
+    setTemplates((data as any) || []);
+  }, []);
+  useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
+
+  const insertTemplate = (tpl: ReplyTemplate) => {
+    const rendered = applyTemplateVars(tpl.body, selected);
+    setReply(prev => prev ? `${prev}\n\n${rendered}` : rendered);
+  };
 
   const fetchMailboxes = useCallback(async () => {
     const { data } = await supabase
