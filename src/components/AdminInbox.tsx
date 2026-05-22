@@ -184,7 +184,49 @@ const AdminInbox = () => {
       return true;
 
     });
-  }, [threads, statusFilter, sourceFilter, search]);
+  }, [threads, statusFilter, sourceFilter, mailboxFilter, search]);
+
+  const mailboxById = useMemo(() => {
+    const m: Record<string, Mailbox> = {};
+    mailboxes.forEach(mb => { m[mb.id] = mb; });
+    return m;
+  }, [mailboxes]);
+
+  const reassignMailbox = async (mailboxId: string | null) => {
+    if (!selected) return;
+    const { error } = await supabase
+      .from("inbox_threads" as any)
+      .update({ mailbox_id: mailboxId })
+      .eq("id", selected.id);
+    if (error) return toast.error(error.message);
+    setThreads(prev => prev.map(t => t.id === selected.id ? { ...t, mailbox_id: mailboxId } : t));
+    toast.success(mailboxId ? `Moved to ${mailboxById[mailboxId]?.name}` : "Unassigned");
+  };
+
+  const forwardThread = async () => {
+    if (!selected) return;
+    setForwarding(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/inbox-forward-thread`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.session?.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ thread_id: selected.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Forward failed");
+      toast.success(`Forwarded to ${data.forwarded_to}`);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to forward");
+    } finally {
+      setForwarding(false);
+    }
+  };
+
 
   const selected = useMemo(() => threads.find(t => t.id === selectedId) || null, [threads, selectedId]);
   const unreadTotal = useMemo(() => threads.filter(t => t.status === "new").length, [threads]);
