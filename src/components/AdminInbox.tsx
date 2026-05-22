@@ -316,10 +316,41 @@ const AdminInbox = () => {
             <Badge variant="destructive" className="ml-1">{unreadTotal} new</Badge>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={fetchThreads} disabled={loading}>
-          <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} /> Refresh
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+            <Settings className="h-4 w-4 mr-2" /> Routing
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchThreads} disabled={loading}>
+            <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} /> Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Mailbox filter row */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-muted-foreground mr-1">Mailbox:</span>
+        <Button size="sm" variant={mailboxFilter === "all" ? "default" : "outline"} onClick={() => setMailboxFilter("all")}>
+          All
+        </Button>
+        {mailboxes.map(mb => {
+          const count = threads.filter(t => t.mailbox_id === mb.id).length;
+          return (
+            <Button
+              key={mb.id}
+              size="sm"
+              variant={mailboxFilter === mb.id ? "default" : "outline"}
+              onClick={() => setMailboxFilter(mb.id)}
+            >
+              <span className="h-2 w-2 rounded-full mr-1.5" style={{ background: mb.color }} />
+              {mb.name} ({count})
+            </Button>
+          );
+        })}
+        <Button size="sm" variant={mailboxFilter === "unassigned" ? "default" : "outline"} onClick={() => setMailboxFilter("unassigned")}>
+          Unassigned ({threads.filter(t => !t.mailbox_id).length})
         </Button>
       </div>
+
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
