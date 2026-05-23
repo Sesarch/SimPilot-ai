@@ -437,7 +437,7 @@ const AdminInbox = () => {
       </div>
 
       {/* Layout: list + detail */}
-      <div className="grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-4 min-h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-3 sm:gap-4 min-h-[600px]">
         {/* List */}
         <div className={cn(
           "border border-border rounded-lg bg-card/50 overflow-hidden",
