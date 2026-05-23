@@ -98,8 +98,9 @@ Deno.serve(async (req) => {
     })
     if (insErr) return json({ error: 'db_error', detail: insErr.message }, 500)
 
-    // Send via the project's transactional email infrastructure
-    const sendRes = await userClient.functions.invoke('send-transactional-email', {
+    // Send via the project's app email infrastructure using the service client;
+    // send-transactional-email is service-role only to prevent public email abuse.
+    const sendRes = await admin.functions.invoke('send-transactional-email', {
       body: {
         templateName: 'mfa-code',
         recipientEmail: email,
