@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 
 type Audience = "pilot" | "school";
 
