@@ -633,10 +633,42 @@
       min-height: 44px;
     }
 
-    /* Tame oversized display headings on phones */
-    h1 { font-size: clamp(1.75rem, 7vw, 2.25rem); line-height: 1.15; }
-    h2 { font-size: clamp(1.375rem, 5.5vw, 1.75rem); line-height: 1.2; }
-    h3 { font-size: clamp(1.125rem, 4.5vw, 1.375rem); line-height: 1.25; }
+    /* Tame oversized display headings on phones + tighten optical tracking */
+    h1 {
+      font-size: clamp(1.875rem, 7.5vw, 2.375rem);
+      line-height: 1.1;
+      letter-spacing: -0.015em;
+    }
+    h2 {
+      font-size: clamp(1.5rem, 5.8vw, 1.875rem);
+      line-height: 1.18;
+      letter-spacing: -0.01em;
+    }
+    h3 {
+      font-size: clamp(1.125rem, 4.4vw, 1.375rem);
+      line-height: 1.25;
+      letter-spacing: -0.005em;
+    }
+    h4, h5, h6 { line-height: 1.3; }
+
+    /* Body rhythm: comfortable reading size + leading */
+    body { font-size: 15px; line-height: 1.55; }
+    p { line-height: 1.6; }
+    p + p { margin-top: 0.75rem; }
+    li { line-height: 1.55; }
+
+    /* Tame oversized utility text classes on phones */
+    .text-7xl { font-size: 2.75rem !important; line-height: 1.05 !important; }
+    .text-6xl { font-size: 2.5rem !important; line-height: 1.05 !important; }
+    .text-5xl { font-size: 2.25rem !important; line-height: 1.1 !important; }
+    .text-4xl { font-size: 1.875rem !important; line-height: 1.15 !important; }
+    .text-3xl { font-size: 1.625rem !important; line-height: 1.2 !important; }
+    .text-2xl { font-size: 1.375rem !important; line-height: 1.3 !important; }
+    .text-xl  { font-size: 1.125rem !important; line-height: 1.4 !important; }
+
+    /* Loosen ultra-tight uppercase eyebrow tracking on small screens */
+    .tracking-\[0\.3em\] { letter-spacing: 0.22em !important; }
+    .tracking-widest { letter-spacing: 0.12em !important; }
 
     /* Long words / URLs shouldn't blow out the layout */
     p, li, a, span { overflow-wrap: anywhere; }
