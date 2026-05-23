@@ -53,7 +53,14 @@ function parseMetar(raw: string): MetarData {
   }
 
   // Flight category estimation
-  const visNum = visMatch ? eval(visMatch[1]) : 10;
+  const visNum = visMatch
+    ? (() => {
+        const parts = visMatch[1].split("/");
+        return parts.length === 2
+          ? Number(parts[0]) / Number(parts[1])
+          : Number(parts[0]);
+      })()
+    : 10;
   const ceilAlt = ceilingMatch ? parseInt(ceilingMatch[2]) * 100 : 99999;
   if (visNum < 1 || ceilAlt < 500) data.flightCategory = "LIFR";
   else if (visNum < 3 || ceilAlt < 1000) data.flightCategory = "IFR";
