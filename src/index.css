@@ -749,6 +749,58 @@
     a.group, button.group, [role="button"].group {
       min-height: 44px !important;
     }
+
+    /* ========== MOBILE OVERFLOW HARDENING ========== */
+    /* Prevent any element from forcing horizontal page scroll */
+    html, body { overflow-x: hidden; max-width: 100vw; }
+
+    /* Constrain media + embeds to viewport */
+    img, video, canvas, svg, iframe {
+      max-width: 100% !important;
+      height: auto;
+    }
+
+    /* Long unbroken strings (URLs, emails, tokens, IDs) shouldn't blow layout */
+    p, li, a, span, td, th, dd, dt, label, figcaption, blockquote,
+    h1, h2, h3, h4, h5, h6 {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    pre, code { white-space: pre-wrap; word-break: break-word; }
+
+    /* Tables: scroll horizontally inside their container instead of overflowing page */
+    table { display: block; width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-responsive, [data-responsive-table] {
+      width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+
+    /* Chip / badge / pill rows: wrap to next line instead of overflowing */
+    .chip-row, .badge-row, [data-chip-row] {
+      flex-wrap: wrap !important;
+    }
+
+    /* Allow nowrap labels to wrap on mobile, except buttons/tabs/badges */
+    .whitespace-nowrap:not(button):not([role="button"]):not([role="tab"]):not(.badge):not([data-keep-nowrap]) {
+      white-space: normal !important;
+    }
+
+    /* Tab strips overflow horizontally with momentum scroll */
+    [role="tablist"] {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      flex-wrap: nowrap;
+    }
+    [role="tablist"]::-webkit-scrollbar { display: none; }
+
+    /* Flex/grid children: allow shrinking so siblings can't push them offscreen */
+    .flex > *, .grid > * { min-width: 0; }
+
+    /* Top-level containers stay inside the viewport */
+    .container, main, section, article, header, footer { max-width: 100%; }
+
+    /* Opt-in single-line truncation utility */
+    .truncate-mobile { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   }
 }
 
