@@ -573,15 +573,15 @@ const AdminInbox = () => {
 
 
               {/* Timeline */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[500px]">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 sm:space-y-3 max-h-[500px]">
                 {messages.map(m => (
                   <div
                     key={m.id}
                     className={cn(
                       "rounded-lg p-3 border",
                       m.direction === "inbound"
-                        ? "bg-muted/40 border-border mr-8"
-                        : "bg-primary/10 border-primary/30 ml-8",
+                        ? "bg-muted/40 border-border mr-4 sm:mr-8"
+                        : "bg-primary/10 border-primary/30 ml-4 sm:ml-8",
                     )}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5 text-xs">
