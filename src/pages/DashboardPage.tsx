@@ -127,19 +127,19 @@ const DashboardPage = () => {
       </nav>
 
       {/* Content */}
-      <div className="container mx-auto px-4 sm:px-6 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
         {/* Branded post-checkout landing (shows when ?subscribed=1 or ?checkout=cancelled) */}
         <PostCheckoutBrandBanner />
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center border border-primary/20">
-            <User className="w-7 h-7 text-primary" />
+        <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center border border-primary/20 shrink-0">
+            <User className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
           </div>
-          <div>
-            <h1 className="font-display text-2xl text-foreground">
+          <div className="min-w-0">
+            <h1 className="font-display text-xl sm:text-2xl text-foreground truncate">
               Welcome{profile?.display_name ? `, ${profile.display_name}` : ""}
             </h1>
-            <p className="text-sm text-muted-foreground">Your training command center</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Your training command center</p>
           </div>
         </div>
 
@@ -149,24 +149,25 @@ const DashboardPage = () => {
         </div>
 
         {/* Training Modules Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 mb-8">
           {trainingModules.map((m) => (
             <Link
               key={m.to}
               to={m.to}
-              className="group flex items-center gap-3 p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
+              className="group flex items-center gap-3 p-3.5 sm:p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all min-h-[64px]"
             >
               <div className={`w-10 h-10 rounded-lg ${m.bg} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}>
                 <m.icon className={`w-5 h-5 ${m.color}`} />
               </div>
-              <div className="min-w-0">
-                <h3 className="font-display text-sm text-foreground truncate">{m.label}</h3>
-                <p className="text-[11px] text-muted-foreground truncate">{m.desc}</p>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-display text-sm text-foreground truncate leading-tight">{m.label}</h3>
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5">{m.desc}</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground/50 ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground/50 ml-auto shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
             </Link>
           ))}
         </div>
+
 
         {/* Tabs: Profile | Account Settings */}
         <Tabs value={activeTab} onValueChange={(v) => setSearchParams({ tab: v }, { replace: true })} className="w-full">
