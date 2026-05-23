@@ -459,7 +459,7 @@ const AdminInbox = () => {
                   key={t.id}
                   onClick={() => selectThread(t.id)}
                   className={cn(
-                    "w-full text-left p-3 hover:bg-muted/50 transition-colors",
+                    "w-full text-left p-3.5 hover:bg-muted/50 transition-colors",
                     isSelected && "bg-muted",
                   )}
                 >
