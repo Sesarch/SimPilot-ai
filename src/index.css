@@ -672,6 +672,33 @@
 
     /* Long words / URLs shouldn't blow out the layout */
     p, li, a, span { overflow-wrap: anywhere; }
+
+    /* Standardize vertical section padding on phones */
+    section[class*="py-24"] { padding-top: 3.5rem !important; padding-bottom: 3.5rem !important; }
+    section[class*="py-20"] { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+    section[class*="py-16"] { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+    section[class*="py-12"] { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+
+    /* Tighten oversized header bottom margins inside sections */
+    section .mb-16 { margin-bottom: 2.25rem !important; }
+    section .mb-12 { margin-bottom: 1.75rem !important; }
+    section .mb-10 { margin-bottom: 1.5rem !important; }
+
+    /* Compact vertical rhythm between stacked children */
+    .space-y-12 > * + * { margin-top: 2rem !important; }
+    .space-y-10 > * + * { margin-top: 1.75rem !important; }
+    .space-y-8  > * + * { margin-top: 1.5rem !important; }
+    .space-y-6  > * + * { margin-top: 1.125rem !important; }
+
+    /* Tighten generous grid/flex gaps */
+    .gap-16 { gap: 2.5rem !important; }
+    .gap-12 { gap: 2rem !important; }
+    .gap-10 { gap: 1.5rem !important; }
+    .gap-8  { gap: 1.25rem !important; }
+
+    /* Card inner padding: keep breathing room but reclaim edges */
+    .p-8 { padding: 1.25rem !important; }
+    .p-7 { padding: 1.125rem !important; }
   }
 }
 
