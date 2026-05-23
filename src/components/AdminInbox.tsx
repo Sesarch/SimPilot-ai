@@ -437,7 +437,7 @@ const AdminInbox = () => {
       </div>
 
       {/* Layout: list + detail */}
-      <div className="grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-4 min-h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-3 sm:gap-4 min-h-[600px]">
         {/* List */}
         <div className={cn(
           "border border-border rounded-lg bg-card/50 overflow-hidden",
@@ -459,7 +459,7 @@ const AdminInbox = () => {
                   key={t.id}
                   onClick={() => selectThread(t.id)}
                   className={cn(
-                    "w-full text-left p-3 hover:bg-muted/50 transition-colors",
+                    "w-full text-left p-3.5 hover:bg-muted/50 transition-colors",
                     isSelected && "bg-muted",
                   )}
                 >
@@ -573,15 +573,15 @@ const AdminInbox = () => {
 
 
               {/* Timeline */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[500px]">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 sm:space-y-3 max-h-[500px]">
                 {messages.map(m => (
                   <div
                     key={m.id}
                     className={cn(
                       "rounded-lg p-3 border",
                       m.direction === "inbound"
-                        ? "bg-muted/40 border-border mr-8"
-                        : "bg-primary/10 border-primary/30 ml-8",
+                        ? "bg-muted/40 border-border mr-4 sm:mr-8"
+                        : "bg-primary/10 border-primary/30 ml-4 sm:ml-8",
                     )}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5 text-xs">
