@@ -8,6 +8,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const PRICE_IDS: Record<string, string> = {
+  checkride_lifetime: "price_1TXw5IRusIXFsWjcHvUOrDHH", // SimPilot Checkride Lifetime $399
+};
+
+const ALLOWED_PRICES = new Set(Object.values(PRICE_IDS));
+
 /**
  * Stripe Checkout in `payment` (one-time) mode.
  * Used for Checkride Lifetime ($399) and conversation overage credits ($9/250).
@@ -18,8 +24,18 @@ serve(async (req) => {
 
   try {
     const { plan, price_id } = await req.json().catch(() => ({}));
-    if (!price_id) {
-      return new Response(JSON.stringify({ error: "Missing 'price_id'." }), {
+    const requestedPlan = typeof plan === "string" ? plan : null;
+    const requestedPrice = typeof price_id === "string" ? price_id : null;
+    const resolvedPrice = requestedPrice || (requestedPlan ? PRICE_IDS[requestedPlan] : null);
+    if (!resolvedPrice) {
+      return new Response(JSON.stringify({ error: "Missing 'plan' or 'price_id'." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!ALLOWED_PRICES.has(resolvedPrice)) {
+      return new Response(JSON.stringify({ error: "Invalid checkout price." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -54,18 +70,18 @@ serve(async (req) => {
     const origin =
       ALLOWED_ORIGINS.includes(rawOrigin) || isLovablePreview ? rawOrigin : "https://simpilot.ai";
 
-    const planParam = encodeURIComponent(plan ?? "onetime");
-    const priceParam = encodeURIComponent(price_id);
+    const planParam = encodeURIComponent(requestedPlan ?? "onetime");
+    const priceParam = encodeURIComponent(resolvedPrice);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [{ price: price_id, quantity: 1 }],
+      line_items: [{ price: resolvedPrice, quantity: 1 }],
       mode: "payment",
       payment_method_types: ["card"],
       success_url: `${origin}/dashboard?purchased=1&plan=${planParam}&price=${priceParam}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?checkout=cancelled&plan=${planParam}`,
-      metadata: { plan: plan ?? "onetime", price_id, user_id: user.id },
+      metadata: { plan: requestedPlan ?? "onetime", price_id: resolvedPrice, user_id: user.id },
       client_reference_id: user.id,
     });
 

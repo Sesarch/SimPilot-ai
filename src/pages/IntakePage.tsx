@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import { SUPPORT_EMAIL } from "@/lib/supportEmail";
 
 type Audience = "pilot" | "school";
 
@@ -166,44 +165,8 @@ const IntakePage = () => {
         }
       }
 
-      // Send confirmation email (fire-and-forget; don't block UX on errors)
-      supabase.functions
-        .invoke("send-transactional-email", {
-          body: {
-            templateName: "intake-confirmation",
-            recipientEmail: form.contact_email.trim().toLowerCase(),
-            idempotencyKey: `intake-confirm-${id}`,
-            templateData: {
-              name: form.contact_name.trim().split(" ")[0],
-              audience: form.audience,
-              schoolName: isSchool ? form.school_name.trim() : undefined,
-            },
-          },
-        })
-        .catch(() => {
-          // Non-blocking
-        });
-
-      // Notify the SimPilot team
-      supabase.functions
-        .invoke("send-transactional-email", {
-          body: {
-            templateName: "intake-team-notification",
-            recipientEmail: SUPPORT_EMAIL,
-            idempotencyKey: `intake-notify-${id}`,
-            templateData: {
-              audience: form.audience,
-              contactName: form.contact_name.trim(),
-              contactEmail: form.contact_email.trim().toLowerCase(),
-              schoolName: isSchool ? form.school_name.trim() : undefined,
-              trainingGoals: form.training_goals.trim() || undefined,
-              source: "intake-page",
-            },
-          },
-        })
-        .catch(() => {
-          // Non-blocking
-        });
+      // Email sending is handled by secured backend workflows; never invoke
+      // the app email sender directly from the browser.
 
       setDone(true);
     } catch (err) {

@@ -12,16 +12,29 @@ const PRICE_IDS: Record<string, string> = {
   student: "price_1TNf5ZRusIXFsWjchdY05u0R", // SimPilot Student $29/mo
   pro: "price_1TQhYjRusIXFsWjc3wGvpiqS",     // SimPilot Pro $59/mo
   ultra: "price_1TQhZBRusIXFsWjc2jrUeFEi",   // SimPilot Ultra $99/mo
+  pilot_monthly: "price_1TXw2MRusIXFsWjcPRHlBeUe", // SimPilot Pilot Monthly $39/mo
+  pilot_annual: "price_1TXw3SRusIXFsWjcMTjhLNn0",  // SimPilot Pilot Annual $299/yr
 };
+
+const ALLOWED_PRICES = new Set(Object.values(PRICE_IDS));
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { plan, price_id } = await req.json().catch(() => ({}));
-    const resolvedPrice = price_id || (plan ? PRICE_IDS[plan] : null);
+    const requestedPlan = typeof plan === "string" ? plan : null;
+    const requestedPrice = typeof price_id === "string" ? price_id : null;
+    const resolvedPrice = requestedPrice || (requestedPlan ? PRICE_IDS[requestedPlan] : null);
     if (!resolvedPrice) {
       return new Response(JSON.stringify({ error: "Missing 'plan' or 'price_id'." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!ALLOWED_PRICES.has(resolvedPrice)) {
+      return new Response(JSON.stringify({ error: "Invalid checkout price." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -60,7 +73,7 @@ serve(async (req) => {
     const origin = ALLOWED_ORIGINS.includes(rawOrigin) || isLovablePreview
       ? rawOrigin
       : "https://simpilot.ai";
-    const planParam = encodeURIComponent(plan ?? "custom");
+    const planParam = encodeURIComponent(requestedPlan ?? "custom");
     const priceParam = encodeURIComponent(resolvedPrice);
     // Encode plan + price + session id into the redirect URLs so the landing
     // page can recover the selected plan after a refresh or shared link.
@@ -75,7 +88,7 @@ serve(async (req) => {
       payment_method_types: ["card"],
       success_url: `${origin}/dashboard?subscribed=1&plan=${planParam}&price=${priceParam}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard?checkout=cancelled&plan=${planParam}&price=${priceParam}`,
-      metadata: { plan: plan ?? "custom", price_id: resolvedPrice, user_id: user.id },
+      metadata: { plan: requestedPlan ?? "custom", price_id: resolvedPrice, user_id: user.id },
       client_reference_id: user.id,
     });
 

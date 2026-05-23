@@ -88,30 +88,8 @@ const ContactPage = () => {
 
       if (error) throw error;
 
-      // Send confirmation email to the submitter
-      await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "contact-confirmation",
-          recipientEmail: form.email.trim(),
-          idempotencyKey: `contact-confirm-${id}`,
-          templateData: { name: form.name.trim() },
-        },
-      });
-
-      // Notify the SimPilot team
-      await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "contact-team-notification",
-          recipientEmail: "support@simpilot.ai",
-          idempotencyKey: `contact-team-${id}`,
-          templateData: {
-            name: form.name.trim(),
-            email: form.email.trim(),
-            subject: form.subject.trim(),
-            message: form.message.trim(),
-          },
-        },
-      });
+      // Email sending is handled by secured backend workflows; never invoke
+      // the app email sender directly from the browser.
 
       toast.success("Message sent! We'll get back to you soon.");
       setForm({ name: "", email: "", subject: "", message: "" });

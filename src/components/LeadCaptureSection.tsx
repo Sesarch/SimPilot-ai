@@ -57,24 +57,8 @@ const LeadCaptureSection = () => {
       });
       if (error) throw error;
 
-      // Notify the SimPilot team (fire-and-forget)
-      supabase.functions
-        .invoke("send-transactional-email", {
-          body: {
-            templateName: "intake-team-notification",
-            recipientEmail: SUPPORT_EMAIL,
-            idempotencyKey: `intake-notify-${id}`,
-            templateData: {
-              audience,
-              contactName: form.contact_name.trim(),
-              contactEmail: form.contact_email.trim().toLowerCase(),
-              schoolName: isSchool ? form.school_name.trim() : undefined,
-              trainingGoals: form.training_goals.trim(),
-              source: "homepage-lead",
-            },
-          },
-        })
-        .catch(() => undefined);
+      // Email sending is handled by secured backend workflows; never invoke
+      // the app email sender directly from the browser.
 
       setDone(true);
     } catch (err) {
