@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, XCircle, ExternalLink, RefreshCw, Save, Search, FileCode, Bot } from "lucide-react";
 import { z } from "zod";
+import AdminSeoMonitoring from "./AdminSeoMonitoring";
 
 /**
  * SEO admin tab — one-click view of robots.txt / sitemap.xml health on the
@@ -168,6 +169,7 @@ const AdminSeo = () => {
 
   return (
     <div className="space-y-6">
+      <AdminSeoMonitoring />
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>
