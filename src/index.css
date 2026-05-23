@@ -699,6 +699,56 @@
     /* Card inner padding: keep breathing room but reclaim edges */
     .p-8 { padding: 1.25rem !important; }
     .p-7 { padding: 1.125rem !important; }
+
+    /* ========== MOBILE TAP TARGET SIZING ========== */
+    /* Ensure all buttons meet 44px minimum tap target */
+    button, [role="button"] {
+      min-height: 44px !important;
+      min-width: 44px !important;
+    }
+    /* Override for inline text links that shouldn't be 44px wide */
+    a[role="button"] { min-width: auto !important; }
+
+    /* Icon-only buttons frequently ship smaller than 44px */
+    button[size="icon"], [role="button"][size="icon"] {
+      min-height: 44px !important;
+      min-width: 44px !important;
+    }
+
+    /* Navigation / menu items need comfortable vertical hit area */
+    nav a, [role="menuitem"], [role="tab"], .dropdown-menu-item {
+      min-height: 44px !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+
+    /* List rows (settings, inbox, history, etc.) */
+    li > a, li > button, [role="listitem"] > a, [role="listitem"] > button {
+      min-height: 44px !important;
+    }
+
+    /* Form controls */
+    input, select, textarea {
+      min-height: 44px !important;
+    }
+
+    /* Toggle / switch controls */
+    [role="switch"] {
+      min-height: 44px !important;
+      min-width: 44px !important;
+    }
+
+    /* Tabs in tab lists */
+    [role="tablist"] [role="tab"] {
+      min-height: 44px !important;
+      padding-left: 0.875rem !important;
+      padding-right: 0.875rem !important;
+    }
+
+    /* Cards that act as clickable rows */
+    a.group, button.group, [role="button"].group {
+      min-height: 44px !important;
+    }
   }
 }
 
