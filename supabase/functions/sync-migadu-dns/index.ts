@@ -102,6 +102,7 @@ Deno.serve(async (req) => {
       if (rec.type === 'MX') return e.priority === rec.priority;
       if (rec.type === 'CNAME') return true;
       if (rec.type === 'SRV') return true;
+      if (rec.type === 'NS') return (e.content || '').replace(/\.$/, '') === rec.content;
       return false;
     });
 
