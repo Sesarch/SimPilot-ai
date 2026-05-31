@@ -60,15 +60,25 @@ export function useMessageLimit() {
       return true;
     }
 
-    // Signed-in free user (TODO: check subscription status later)
-    if (dailyCount >= FREE_DAILY_LIMIT) {
+    // Signed-in: expired 7-day trial AND no active subscription → hard paywall.
+    // No free daily messages — every AI call burns tokens, so the user must
+    // upgrade or stay as a website-only viewer.
+    if (!trial.loading && trial.trialExpired && !trial.subscribed) {
+      setGateStatus("paywall");
+      setShowGate(true);
+      return false;
+    }
+
+    // Signed-in user inside trial (or subscribed): apply 20/day soft cap to
+    // protect token budget. Subscribed paid users are excluded from the cap.
+    if (!trial.subscribed && dailyCount >= FREE_DAILY_LIMIT) {
       setGateStatus("paywall");
       setShowGate(true);
       return false;
     }
 
     return true;
-  }, [user, dailyCount]);
+  }, [user, dailyCount, trial.loading, trial.trialExpired, trial.subscribed]);
 
   const recordUsage = useCallback(async () => {
     if (!user) {
