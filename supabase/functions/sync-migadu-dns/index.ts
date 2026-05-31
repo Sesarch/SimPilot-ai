@@ -29,6 +29,8 @@ const records: Record[] = [
   { type: 'SRV', name: '_submissions._tcp.simpilot.ai', data: { priority: 0, weight: 1, port: 465, target: 'smtp.migadu.com' }, comment: 'migadu' },
   { type: 'SRV', name: '_imaps._tcp.simpilot.ai', data: { priority: 0, weight: 1, port: 993, target: 'imap.migadu.com' }, comment: 'migadu' },
   { type: 'SRV', name: '_pop3s._tcp.simpilot.ai', data: { priority: 0, weight: 1, port: 995, target: 'pop.migadu.com' }, comment: 'migadu' },
+  { type: 'NS', name: 'notify.simpilot.ai', content: 'ns3.lovable.cloud', comment: 'lovable-email' },
+  { type: 'NS', name: 'notify.simpilot.ai', content: 'ns4.lovable.cloud', comment: 'lovable-email' },
 ];
 
 async function cf(path: string, init?: RequestInit) {
