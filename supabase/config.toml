@@ -21,3 +21,5 @@ project_id = "fzlugoeiozjknbltqyhm"
     verify_jwt = false
   [functions.sync-migadu-dns]
     verify_jwt = false
+  [functions.sync-migadu-dns-debug]
+    verify_jwt = false
