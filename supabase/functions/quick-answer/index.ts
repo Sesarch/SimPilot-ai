@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { checkAiAccess, trialExpiredResponse } from "../_shared/checkAiAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
