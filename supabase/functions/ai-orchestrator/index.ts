@@ -186,6 +186,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const access = await checkAiAccess(req);
+    if (!access.allowed) return trialExpiredResponse(corsHeaders);
+
     const body = (await req.json()) as OrchestratorRequest;
     if (!body?.messages?.length)
       return new Response(JSON.stringify({ error: "messages required" }), {
