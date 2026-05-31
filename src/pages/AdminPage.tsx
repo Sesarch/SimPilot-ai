@@ -43,6 +43,7 @@ import AdminReports from "@/components/AdminReports";
 import AdminAuditLog from "@/components/AdminAuditLog";
 import AdminErrorEvents from "@/components/AdminErrorEvents";
 import AdminSeo from "@/components/AdminSeo";
+import AdminUsageDashboard from "@/components/AdminUsageDashboard";
 
 type AdminUser = {
   id: string;
