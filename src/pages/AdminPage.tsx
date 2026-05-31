@@ -637,6 +637,7 @@ const AdminPage = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="usage"><AdminUsageDashboard /></TabsContent>
           <TabsContent value="payments"><AdminPayments /></TabsContent>
           <TabsContent value="reports"><AdminReports /></TabsContent>
           <TabsContent value="audit"><AdminAuditLog /></TabsContent>
