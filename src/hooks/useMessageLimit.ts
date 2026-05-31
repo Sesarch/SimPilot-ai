@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
 
 const ANON_KEY = "simpilot_anon_msgs";
 const ANON_LIMIT = 5;
@@ -26,6 +27,7 @@ function incrementAnonCount(): number {
 
 export function useMessageLimit() {
   const { user } = useAuth();
+  const trial = useTrialStatus();
   const [dailyCount, setDailyCount] = useState<number>(0);
   const [gateStatus, setGateStatus] = useState<GateStatus>("allowed");
   const [showGate, setShowGate] = useState(false);
@@ -58,15 +60,25 @@ export function useMessageLimit() {
       return true;
     }
 
-    // Signed-in free user (TODO: check subscription status later)
-    if (dailyCount >= FREE_DAILY_LIMIT) {
+    // Signed-in: expired 7-day trial AND no active subscription → hard paywall.
+    // No free daily messages — every AI call burns tokens, so the user must
+    // upgrade or stay as a website-only viewer.
+    if (!trial.loading && trial.trialExpired && !trial.subscribed) {
+      setGateStatus("paywall");
+      setShowGate(true);
+      return false;
+    }
+
+    // Signed-in user inside trial (or subscribed): apply 20/day soft cap to
+    // protect token budget. Subscribed paid users are excluded from the cap.
+    if (!trial.subscribed && dailyCount >= FREE_DAILY_LIMIT) {
       setGateStatus("paywall");
       setShowGate(true);
       return false;
     }
 
     return true;
-  }, [user, dailyCount]);
+  }, [user, dailyCount, trial.loading, trial.trialExpired, trial.subscribed]);
 
   const recordUsage = useCallback(async () => {
     if (!user) {

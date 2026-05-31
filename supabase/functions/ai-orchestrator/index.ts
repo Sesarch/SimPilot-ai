@@ -3,6 +3,7 @@
 // | Google Gemini (vision) and enqueues Shadow Audit by OpenAI o1.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkAiAccess, trialExpiredResponse } from "../_shared/checkAiAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -185,6 +186,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const access = await checkAiAccess(req);
+    if (!access.allowed) return trialExpiredResponse(corsHeaders);
+
     const body = (await req.json()) as OrchestratorRequest;
     if (!body?.messages?.length)
       return new Response(JSON.stringify({ error: "messages required" }), {
