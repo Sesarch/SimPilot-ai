@@ -27,6 +27,7 @@ function incrementAnonCount(): number {
 
 export function useMessageLimit() {
   const { user } = useAuth();
+  const trial = useTrialStatus();
   const [dailyCount, setDailyCount] = useState<number>(0);
   const [gateStatus, setGateStatus] = useState<GateStatus>("allowed");
   const [showGate, setShowGate] = useState(false);
