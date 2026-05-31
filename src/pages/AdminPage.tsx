@@ -131,7 +131,7 @@ const AdminPage = () => {
   const [leads, setLeads] = useState<LeadEmail[]>([]);
   const [leadsFetching, setLeadsFetching] = useState(false);
 
-  const validTabs = ["overview","payments","reports","users","audit","leads","schools","emails","models","kb","seo","settings"];
+  const validTabs = ["overview","usage","payments","reports","users","audit","errors","leads","schools","emails","models","kb","seo","settings"];
   const getInitialTab = () => {
     if (typeof window === "undefined") return "overview";
     const params = new URLSearchParams(window.location.search);
