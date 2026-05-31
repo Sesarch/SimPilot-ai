@@ -169,7 +169,7 @@ const AdminUsageDashboard = () => {
       filtered = filtered.filter((r) => getStatusLabel(r) === statusFilter);
     }
 
-    if (dateRange !== "all" && dateRange !== "all") {
+    if (dateRange !== "all") {
       const msMap: Record<Exclude<DateRangeFilter, "all">, number> = {
         "7d": 7 * 86400000,
         "30d": 30 * 86400000,
