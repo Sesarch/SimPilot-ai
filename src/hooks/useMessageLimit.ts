@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
 
 const ANON_KEY = "simpilot_anon_msgs";
 const ANON_LIMIT = 5;
