@@ -133,7 +133,7 @@ export function AdminTabsStrip() {
             // Small screens: inline-flex strip wider than viewport, scrolls.
             "inline-flex w-max",
             // Desktop: full-width 13-column grid.
-            "lg:grid lg:w-full lg:grid-cols-13",
+            "lg:grid lg:w-full lg:grid-cols-14",
           )}
         >
           {TABS.map(({ value, label, Icon }) => (
