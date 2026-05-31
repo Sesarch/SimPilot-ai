@@ -1,12 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, RefreshCw, Search } from "lucide-react";
+import { Activity, Download, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
+import { downloadCSV, toCSV, csvDateStamp } from "@/lib/csv";
 
 type UsageRow = {
   user_id: string;
@@ -23,42 +36,56 @@ type UsageRow = {
   trial_ends_at: string | null;
 };
 
+type PlanCategory = "all" | "paid" | "trial" | "free";
+type StatusFilter = "all" | "active" | "trialing" | "canceled" | "past_due" | "none";
+type DateRangeFilter = "all" | "7d" | "30d" | "90d";
+
 const fmtDate = (s: string | null) =>
   s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—";
+
+function getPlanCategory(r: UsageRow): PlanCategory {
+  const subscribed =
+    r.subscription_status === "active" || r.subscription_status === "trialing";
+  if (subscribed) return "paid";
+  if (r.trial_ends_at && new Date(r.trial_ends_at) > new Date()) return "trial";
+  return "free";
+}
+
+function getStatusLabel(r: UsageRow): string {
+  if (r.subscription_status) return r.subscription_status;
+  if (r.trial_ends_at && new Date(r.trial_ends_at) > new Date()) return "trialing";
+  return "none";
+}
 
 const AdminUsageDashboard = () => {
   const [rows, setRows] = useState<UsageRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"total" | "30d" | "7d" | "today">("total");
+  const [planFilter, setPlanFilter] = useState<PlanCategory>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [dateRange, setDateRange] = useState<DateRangeFilter>("all");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const since7 = new Date(Date.now() - 7 * 86400000);
       const since30 = new Date(Date.now() - 30 * 86400000);
 
-      // Pull authoritative counts directly from the database. We aggregate
-      // chat_messages joined to chat_sessions so the count matches what users
-      // actually sent (single source of truth, no retyping).
       const [profilesRes, sessionsRes, messagesRes] = await Promise.all([
         supabase
           .from("profiles")
           .select("user_id, display_name, subscription_tier, subscription_status, trial_ends_at"),
-        supabase
-          .from("chat_sessions")
-          .select("id, user_id, updated_at"),
-        supabase
-          .from("chat_messages")
-          .select("session_id, role, created_at"),
+        supabase.from("chat_sessions").select("id, user_id, updated_at"),
+        supabase.from("chat_messages").select("session_id, role, created_at"),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
       if (sessionsRes.error) throw sessionsRes.error;
       if (messagesRes.error) throw messagesRes.error;
 
-      // Map session -> user
       const sessionUser = new Map<string, string>();
       const sessionsByUser = new Map<string, number>();
       const lastActive = new Map<string, string>();
@@ -71,7 +98,6 @@ const AdminUsageDashboard = () => {
         }
       });
 
-      // Count user messages only (role = "user") so we measure prompts sent.
       const total = new Map<string, number>();
       const todayC = new Map<string, number>();
       const c7 = new Map<string, number>();
@@ -87,7 +113,6 @@ const AdminUsageDashboard = () => {
         if (created >= since30) c30.set(uid, (c30.get(uid) || 0) + 1);
       });
 
-      // Fetch emails via admin-users edge function (we already use this elsewhere)
       const session = (await supabase.auth.getSession()).data.session;
       const usersRes = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?action=list`,
@@ -124,13 +149,39 @@ const AdminUsageDashboard = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const filteredSorted = useMemo(() => {
     const q = search.toLowerCase();
-    const filtered = rows.filter((r) =>
-      !q || r.email.toLowerCase().includes(q) || (r.display_name || "").toLowerCase().includes(q),
+    let filtered = rows.filter((r) =>
+      !q ||
+      r.email.toLowerCase().includes(q) ||
+      (r.display_name || "").toLowerCase().includes(q),
     );
+
+    if (planFilter !== "all") {
+      filtered = filtered.filter((r) => getPlanCategory(r) === planFilter);
+    }
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((r) => getStatusLabel(r) === statusFilter);
+    }
+
+    if (dateRange !== "all" && dateRange !== "all") {
+      const msMap: Record<Exclude<DateRangeFilter, "all">, number> = {
+        "7d": 7 * 86400000,
+        "30d": 30 * 86400000,
+        "90d": 90 * 86400000,
+      };
+      const cutoff = Date.now() - msMap[dateRange];
+      filtered = filtered.filter((r) => {
+        if (!r.last_active) return false;
+        return new Date(r.last_active).getTime() >= cutoff;
+      });
+    }
+
     const key: Record<typeof sort, keyof UsageRow> = {
       total: "total_messages",
       "30d": "last_30d_messages",
@@ -138,15 +189,35 @@ const AdminUsageDashboard = () => {
       today: "today_messages",
     };
     return [...filtered].sort((a, b) => (b[key[sort]] as number) - (a[key[sort]] as number));
-  }, [rows, search, sort]);
+  }, [rows, search, sort, planFilter, statusFilter, dateRange]);
 
-  const totals = useMemo(() => ({
-    users: rows.length,
-    total: rows.reduce((s, r) => s + r.total_messages, 0),
-    d30: rows.reduce((s, r) => s + r.last_30d_messages, 0),
-    d7: rows.reduce((s, r) => s + r.last_7d_messages, 0),
-    today: rows.reduce((s, r) => s + r.today_messages, 0),
-  }), [rows]);
+  const totals = useMemo(() => {
+    const visible = filteredSorted;
+    return {
+      users: visible.length,
+      total: visible.reduce((s, r) => s + r.total_messages, 0),
+      d30: visible.reduce((s, r) => s + r.last_30d_messages, 0),
+      d7: visible.reduce((s, r) => s + r.last_7d_messages, 0),
+      today: visible.reduce((s, r) => s + r.today_messages, 0),
+    };
+  }, [filteredSorted]);
+
+  const handleExportCSV = useCallback(() => {
+    const data = filteredSorted.map((r) => ({
+      User: r.display_name || "—",
+      Email: r.email,
+      "Total Messages": r.total_messages,
+      "Last 30d": r.last_30d_messages,
+      "Last 7d": r.last_7d_messages,
+      Today: r.today_messages,
+      Sessions: r.sessions,
+      Status: getStatusLabel(r),
+      Plan: getPlanCategory(r),
+      "Last Active": fmtDate(r.last_active),
+    }));
+    const csv = toCSV(data);
+    downloadCSV(`simpilot-usage-${csvDateStamp()}.csv`, csv);
+  }, [filteredSorted]);
 
   return (
     <div className="space-y-6">
@@ -154,10 +225,21 @@ const AdminUsageDashboard = () => {
         <h2 className="font-display text-lg text-foreground flex items-center gap-2">
           <Activity className="w-5 h-5 text-primary" /> Live Usage (Source of Truth)
         </h2>
-        <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            disabled={loading || filteredSorted.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -168,8 +250,13 @@ const AdminUsageDashboard = () => {
           { label: "Last 7d", value: totals.d7 },
           { label: "Today", value: totals.today },
         ].map((c) => (
-          <div key={c.label} className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-4">
-            <p className="text-2xl font-display text-foreground">{c.value.toLocaleString()}</p>
+          <div
+            key={c.label}
+            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border p-4"
+          >
+            <p className="text-2xl font-display text-foreground">
+              {c.value.toLocaleString()}
+            </p>
             <p className="text-xs text-muted-foreground">{c.label}</p>
           </div>
         ))}
@@ -185,18 +272,66 @@ const AdminUsageDashboard = () => {
             className="pl-9"
           />
         </div>
-        <div className="flex gap-1">
-          {(["total", "30d", "7d", "today"] as const).map((k) => (
-            <Button
-              key={k}
-              size="sm"
-              variant={sort === k ? "default" : "outline"}
-              onClick={() => setSort(k)}
-            >
-              Sort: {k}
-            </Button>
-          ))}
-        </div>
+
+        <Select
+          value={planFilter}
+          onValueChange={(v) => setPlanFilter(v as PlanCategory)}
+        >
+          <SelectTrigger className="w-[140px] h-9">
+            <SelectValue placeholder="Plan" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Plans</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="trial">Trial</SelectItem>
+            <SelectItem value="free">Free</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+        >
+          <SelectTrigger className="w-[150px] h-9">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="trialing">Trialing</SelectItem>
+            <SelectItem value="canceled">Canceled</SelectItem>
+            <SelectItem value="past_due">Past Due</SelectItem>
+            <SelectItem value="none">None</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={dateRange}
+          onValueChange={(v) => setDateRange(v as DateRangeFilter)}
+        >
+          <SelectTrigger className="w-[150px] h-9">
+            <SelectValue placeholder="Date Range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Time</SelectItem>
+            <SelectItem value="7d">Last 7 Days</SelectItem>
+            <SelectItem value="30d">Last 30 Days</SelectItem>
+            <SelectItem value="90d">Last 90 Days</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex gap-1 flex-wrap">
+        {(["total", "30d", "7d", "today"] as const).map((k) => (
+          <Button
+            key={k}
+            size="sm"
+            variant={sort === k ? "default" : "outline"}
+            onClick={() => setSort(k)}
+          >
+            Sort: {k}
+          </Button>
+        ))}
       </div>
 
       <div className="bg-card/50 backdrop-blur-sm rounded-xl border border-border overflow-hidden">
@@ -215,34 +350,67 @@ const AdminUsageDashboard = () => {
           </TableHeader>
           <TableBody>
             {loading && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>
+              <TableRow>
+                <TableCell
+                  colSpan={8}
+                  className="text-center text-muted-foreground py-8"
+                >
+                  Loading…
+                </TableCell>
+              </TableRow>
             )}
             {!loading && filteredSorted.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No users.</TableCell></TableRow>
-            )}
-            {!loading && filteredSorted.map((r) => (
-              <TableRow key={r.user_id}>
-                <TableCell>
-                  <div className="font-medium text-foreground">{r.display_name || "—"}</div>
-                  <div className="text-xs text-muted-foreground">{r.email}</div>
+              <TableRow>
+                <TableCell
+                  colSpan={8}
+                  className="text-center text-muted-foreground py-8"
+                >
+                  No users match your filters.
                 </TableCell>
-                <TableCell className="text-right font-mono">{r.total_messages}</TableCell>
-                <TableCell className="text-right font-mono">{r.last_30d_messages}</TableCell>
-                <TableCell className="text-right font-mono">{r.last_7d_messages}</TableCell>
-                <TableCell className="text-right font-mono">{r.today_messages}</TableCell>
-                <TableCell className="text-right font-mono">{r.sessions}</TableCell>
-                <TableCell>
-                  {r.subscription_status === "active" ? (
-                    <Badge variant="default">{r.subscription_tier || "active"}</Badge>
-                  ) : r.trial_ends_at && new Date(r.trial_ends_at) > new Date() ? (
-                    <Badge variant="secondary">trial</Badge>
-                  ) : (
-                    <Badge variant="outline">free</Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{fmtDate(r.last_active)}</TableCell>
               </TableRow>
-            ))}
+            )}
+            {!loading &&
+              filteredSorted.map((r) => (
+                <TableRow key={r.user_id}>
+                  <TableCell>
+                    <div className="font-medium text-foreground">
+                      {r.display_name || "—"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {r.email}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {r.total_messages}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {r.last_30d_messages}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {r.last_7d_messages}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {r.today_messages}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {r.sessions}
+                  </TableCell>
+                  <TableCell>
+                    {r.subscription_status === "active" ? (
+                      <Badge variant="default">
+                        {r.subscription_tier || "active"}
+                      </Badge>
+                    ) : r.trial_ends_at && new Date(r.trial_ends_at) > new Date() ? (
+                      <Badge variant="secondary">trial</Badge>
+                    ) : (
+                      <Badge variant="outline">free</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {fmtDate(r.last_active)}
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </div>
