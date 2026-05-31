@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   LayoutDashboard, CreditCard, FileBarChart, Users, ScrollText, AlertTriangle,
-  Sparkles, GraduationCap, Mail, Brain, BookOpen, Globe, Settings,
+  Sparkles, GraduationCap, Mail, Brain, BookOpen, Globe, Settings, Activity,
   ChevronLeft, ChevronRight,
   type LucideIcon,
 } from "lucide-react";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 const TABS: Array<{ value: string; label: string; Icon: LucideIcon }> = [
   { value: "overview", label: "Overview", Icon: LayoutDashboard },
+  { value: "usage", label: "Usage", Icon: Activity },
   { value: "payments", label: "Payments", Icon: CreditCard },
   { value: "reports", label: "Reports", Icon: FileBarChart },
   { value: "users", label: "Users", Icon: Users },
@@ -132,7 +133,7 @@ export function AdminTabsStrip() {
             // Small screens: inline-flex strip wider than viewport, scrolls.
             "inline-flex w-max",
             // Desktop: full-width 13-column grid.
-            "lg:grid lg:w-full lg:grid-cols-13",
+            "lg:grid lg:w-full lg:grid-cols-[repeat(14,minmax(0,1fr))]",
           )}
         >
           {TABS.map(({ value, label, Icon }) => (

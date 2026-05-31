@@ -43,6 +43,7 @@ import AdminReports from "@/components/AdminReports";
 import AdminAuditLog from "@/components/AdminAuditLog";
 import AdminErrorEvents from "@/components/AdminErrorEvents";
 import AdminSeo from "@/components/AdminSeo";
+import AdminUsageDashboard from "@/components/AdminUsageDashboard";
 
 type AdminUser = {
   id: string;
@@ -131,7 +132,7 @@ const AdminPage = () => {
   const [leads, setLeads] = useState<LeadEmail[]>([]);
   const [leadsFetching, setLeadsFetching] = useState(false);
 
-  const validTabs = ["overview","payments","reports","users","audit","leads","schools","emails","models","kb","seo","settings"];
+  const validTabs = ["overview","usage","payments","reports","users","audit","errors","leads","schools","emails","models","kb","seo","settings"];
   const getInitialTab = () => {
     if (typeof window === "undefined") return "overview";
     const params = new URLSearchParams(window.location.search);
@@ -636,6 +637,7 @@ const AdminPage = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="usage"><AdminUsageDashboard /></TabsContent>
           <TabsContent value="payments"><AdminPayments /></TabsContent>
           <TabsContent value="reports"><AdminReports /></TabsContent>
           <TabsContent value="audit"><AdminAuditLog /></TabsContent>
