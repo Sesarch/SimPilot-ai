@@ -75,13 +75,19 @@ Deno.serve(async (req) => {
   }
 
   const token = authHeader.slice('Bearer '.length).trim()
+  // Accept either: (a) a JWT with role=service_role (legacy keys), or
+  // (b) a token that matches SUPABASE_SERVICE_ROLE_KEY exactly (new
+  // sb_secret_... keys that are not JWTs).
   const claims = parseJwtClaims(token)
-  if (claims?.role !== 'service_role') {
+  const isServiceRoleJwt = claims?.role === 'service_role'
+  const isServiceRoleSecret = token === supabaseServiceKey
+  if (!isServiceRoleJwt && !isServiceRoleSecret) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
+
 
   // Parse request body
   let templateName: string
