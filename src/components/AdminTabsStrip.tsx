@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   LayoutDashboard, CreditCard, FileBarChart, Users, ScrollText, AlertTriangle,
-  Sparkles, GraduationCap, Mail, Brain, BookOpen, Globe, Settings,
+  Sparkles, GraduationCap, Mail, Brain, BookOpen, Globe, Settings, Activity,
   ChevronLeft, ChevronRight,
   type LucideIcon,
 } from "lucide-react";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 const TABS: Array<{ value: string; label: string; Icon: LucideIcon }> = [
   { value: "overview", label: "Overview", Icon: LayoutDashboard },
+  { value: "usage", label: "Usage", Icon: Activity },
   { value: "payments", label: "Payments", Icon: CreditCard },
   { value: "reports", label: "Reports", Icon: FileBarChart },
   { value: "users", label: "Users", Icon: Users },
