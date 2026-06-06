@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Lock, Radio, Tower, Plane, Globe2, Radar, AlertTriangle, type LucideIcon } from "lucide-react";
+import { Lock, Radio, RadioTower, Plane, Globe2, Radar, AlertTriangle, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import ATCMasteryRing from "./ATCMasteryRing";
@@ -7,7 +7,7 @@ import type { ATCCategory } from "@/hooks/useATCData";
 
 const ICONS: Record<string, LucideIcon> = {
   "ground-operations": Radio,
-  "tower-operations": Tower,
+  "tower-operations": RadioTower,
   "approach-departure": Plane,
   "center-control": Radar,
   "ctaf-uncontrolled": Globe2,
