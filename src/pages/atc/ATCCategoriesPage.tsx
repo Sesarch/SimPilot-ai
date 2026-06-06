@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useATCCategories, useATCDrills, useATCMastery, isIFREligible } from "@/hooks/useATCData";
+import { useATCCategories, useATCMastery, isIFREligible } from "@/hooks/useATCData";
 import { usePilotContext } from "@/hooks/usePilotContext";
 import ATCCategoryCard from "@/components/atc/ATCCategoryCard";
 import { supabase } from "@/integrations/supabase/client";
