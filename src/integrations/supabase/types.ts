@@ -160,6 +160,228 @@ export type Database = {
           },
         ]
       }
+      atc_categories: {
+        Row: {
+          certificate_level: string
+          created_at: string
+          description: string | null
+          display_order: number
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          certificate_level?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          certificate_level?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      atc_drill_attempts: {
+        Row: {
+          correct_version: string | null
+          created_at: string
+          drill_id: string
+          elements_hit: Json
+          elements_missed: Json
+          feedback: string | null
+          id: string
+          score: number
+          student_response: string
+          user_id: string
+        }
+        Insert: {
+          correct_version?: string | null
+          created_at?: string
+          drill_id: string
+          elements_hit?: Json
+          elements_missed?: Json
+          feedback?: string | null
+          id?: string
+          score?: number
+          student_response: string
+          user_id: string
+        }
+        Update: {
+          correct_version?: string | null
+          created_at?: string
+          drill_id?: string
+          elements_hit?: Json
+          elements_missed?: Json
+          feedback?: string | null
+          id?: string
+          score?: number
+          student_response?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atc_drill_attempts_drill_id_fkey"
+            columns: ["drill_id"]
+            isOneToOne: false
+            referencedRelation: "atc_drills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atc_drills: {
+        Row: {
+          category_id: string | null
+          certificate_level: string
+          controller_transmission: string | null
+          created_at: string
+          difficulty: string
+          display_order: number
+          expected_phraseology: string
+          id: string
+          key_elements: Json
+          lesson_id: string | null
+          situation: string
+          title: string
+        }
+        Insert: {
+          category_id?: string | null
+          certificate_level?: string
+          controller_transmission?: string | null
+          created_at?: string
+          difficulty?: string
+          display_order?: number
+          expected_phraseology: string
+          id?: string
+          key_elements?: Json
+          lesson_id?: string | null
+          situation: string
+          title: string
+        }
+        Update: {
+          category_id?: string | null
+          certificate_level?: string
+          controller_transmission?: string | null
+          created_at?: string
+          difficulty?: string
+          display_order?: number
+          expected_phraseology?: string
+          id?: string
+          key_elements?: Json
+          lesson_id?: string | null
+          situation?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atc_drills_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "atc_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atc_drills_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "atc_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atc_lessons: {
+        Row: {
+          category_id: string | null
+          certificate_level: string
+          content_markdown: string
+          created_at: string
+          display_order: number
+          example_response: string | null
+          example_transmission: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          category_id?: string | null
+          certificate_level?: string
+          content_markdown: string
+          created_at?: string
+          display_order?: number
+          example_response?: string | null
+          example_transmission?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          category_id?: string | null
+          certificate_level?: string
+          content_markdown?: string
+          created_at?: string
+          display_order?: number
+          example_response?: string | null
+          example_transmission?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atc_lessons_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "atc_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atc_mastery: {
+        Row: {
+          category_id: string
+          drills_attempted: number
+          drills_passed: number
+          id: string
+          mastery_score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          drills_attempted?: number
+          drills_passed?: number
+          id?: string
+          mastery_score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          drills_attempted?: number
+          drills_passed?: number
+          id?: string
+          mastery_score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atc_mastery_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "atc_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
