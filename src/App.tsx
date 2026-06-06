@@ -43,6 +43,9 @@ import ForSchoolsPage from "./pages/ForSchoolsPage.tsx";
 import ForSchoolsSuccessPage from "./pages/ForSchoolsSuccessPage.tsx";
 import IntakePage from "./pages/IntakePage.tsx";
 import TestModePage from "./pages/TestModePage.tsx";
+import ATCCategoriesPage from "./pages/atc/ATCCategoriesPage.tsx";
+import ATCCategoryDetailPage from "./pages/atc/ATCCategoryDetailPage.tsx";
+import ATCDrillPage from "./pages/atc/ATCDrillPage.tsx";
 import ThemeQAPage from "./pages/ThemeQAPage.tsx";
 import CheckoutRedirectPage from "./pages/CheckoutRedirectPage.tsx";
 import OnboardingPlanPage from "./pages/OnboardingPlanPage.tsx";
@@ -93,6 +96,9 @@ const App = () => (
                 <Route path="/progress" element={<ProgressPage />} />
                 <Route path="/logbook" element={<LogbookPage />} />
                 <Route path="/test-mode" element={<TestModePage />} />
+                <Route path="/atc" element={<ATCCategoriesPage />} />
+                <Route path="/atc/category/:slug" element={<ATCCategoryDetailPage />} />
+                <Route path="/atc/category/:slug/drill/:id" element={<ATCDrillPage />} />
               </Route>
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
