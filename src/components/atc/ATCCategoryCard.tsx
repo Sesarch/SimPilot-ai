@@ -39,7 +39,7 @@ const ATCCategoryCard = ({ category, masteryScore, drillsAttempted, totalDrills,
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-accent/15 text-accent shrink-0">
             <Icon className="h-4.5 w-4.5" />
           </span>
-          <h3 className="font-display text-sm sm:text-base uppercase tracking-wider text-foreground truncate">
+          <h3 className="font-display text-sm sm:text-base uppercase tracking-wider text-foreground leading-tight break-words">
             {category.name}
           </h3>
         </div>
