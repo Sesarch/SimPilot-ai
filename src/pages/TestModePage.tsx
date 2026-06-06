@@ -8,7 +8,7 @@ import { detectAtisIntent, toAtisPhonetic } from "@/lib/atisIntent";
 import { detectCallsignIntent } from "@/lib/callsignIntent";
 import { formatATISForAudio } from "@/lib/atisSpeech";
 import { supabase } from "@/integrations/supabase/client";
-import { FAA_PROMPT } from "@/components/ATCTrainer";
+import { FAA_PROMPT } from "@/lib/atcPrompts";
 
 type Expect =
   | "callsign_missing"

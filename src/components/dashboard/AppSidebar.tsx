@@ -25,7 +25,7 @@ const navItems = [
   { title: "Quick Answer", url: "/quick-answer", icon: Zap },
   { title: "Ground One-on-One", url: "/ground-school", icon: BookOpen },
   { title: "Oral Exam Sim", url: "/oral-exam", icon: Mic },
-  { title: "ATC Training", url: "/live-tools?tab=atc", icon: Radio },
+  { title: "ATC Training", url: "/atc", icon: Radio },
   { title: "Flight Tracking", url: "/live-tools?tab=tracker", icon: Radar },
   { title: "Weather Briefing", url: "/weather-briefing", icon: Cloud },
   { title: "Logbook", url: "/logbook", icon: ClipboardList },
