@@ -15,9 +15,14 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { query, top_k = 6, threshold = 0.05 } = await req.json();
-    if (!query || typeof query !== "string" || query.trim().length < 2) {
-      return new Response(JSON.stringify({ matches: [] }), {
+    // Require an authenticated user — KB lookups should not be open to the
+    // internet. Server-to-server callers (pilot-chat) invoke this with the
+    // service-role key, which auth.getUser accepts.
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Unauthorized", matches: [] }), {
+        status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -25,6 +30,26 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, serviceRoleKey);
+
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const isServiceCall = token === serviceKey;
+    if (!isServiceCall) {
+      const { data: userData } = await sb.auth.getUser(token);
+      if (!userData?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized", matches: [] }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    const { query, top_k = 6, threshold = 0.05 } = await req.json();
+    if (!query || typeof query !== "string" || query.trim().length < 2) {
+      return new Response(JSON.stringify({ matches: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
 
     const vec = embedText(query);
     const { data, error } = await sb.rpc("match_kb_chunks", {

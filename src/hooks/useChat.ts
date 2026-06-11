@@ -17,6 +17,8 @@ export function getTextContent(content: MessageContent): string {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pilot-chat`;
 
+import { supabase } from "@/integrations/supabase/client";
+
 async function streamChat({
   messages,
   mode,
@@ -36,11 +38,18 @@ async function streamChat({
   onDone: () => void;
   onError: (msg: string) => void;
 }) {
+  // Prefer the authenticated user's access token so the edge function can
+  // enforce subscription/trial gating server-side. Fall back to anon key for
+  // unauthenticated/demo usage (anon limits handled separately).
+  const { data: { session } } = await supabase.auth.getSession();
+  const bearer = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${bearer}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     },
     body: JSON.stringify({ messages, mode, pilotContext, pohFilePath, stressMode }),
   });

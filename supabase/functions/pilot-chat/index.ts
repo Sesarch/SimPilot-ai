@@ -442,16 +442,29 @@ The goal is to simulate the worst-case stressful checkride so they're over-prepa
       systemPrompt += `\n\nSTUDENT PROFILE:\n${pilotContext}\nAdapt your language, examples, and references to match this student's certificate level, aircraft type, rating focus, and region. Use region-specific regulations (e.g., FAA for US, Transport Canada for Canada, EASA for Europe).`;
     }
 
-    // Fetch POH file content from storage if a path was provided
+    // Fetch POH file content from storage if a path was provided.
+    // SECURITY: Only allow downloading files inside the authenticated caller's
+    // own folder (`<userId>/...`). Reject path traversal and any access by
+    // anonymous callers (no userId resolved by checkAiAccess).
     if (pohFilePath && typeof pohFilePath === "string" && pohFilePath.trim()) {
-      try {
+      const cleanPath = pohFilePath.trim();
+      const isSafe =
+        !!access.userId &&
+        !cleanPath.includes("..") &&
+        !cleanPath.startsWith("/") &&
+        cleanPath.startsWith(`${access.userId}/`);
+
+      if (!isSafe) {
+        console.warn("Rejected POH path access:", { userId: access.userId, pohFilePath: cleanPath });
+      } else try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const sb = createClient(supabaseUrl, serviceRoleKey);
 
         const { data: fileData, error: fileError } = await sb.storage
           .from("poh-files")
-          .download(pohFilePath);
+          .download(cleanPath);
+
 
         if (!fileError && fileData) {
           // Extract text content — works for text-based files directly
