@@ -63,8 +63,35 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const body = await req.json().catch(() => ({}));
+    const rawMessages = (body as { messages?: unknown }).messages;
+
+    // Validate: array, max 20 entries, each entry has role user|assistant and
+    // content string <= 1000 chars. Reject system messages — system prompt is
+    // controlled entirely by this function.
+    if (!Array.isArray(rawMessages) || rawMessages.length === 0 || rawMessages.length > 20) {
+      return new Response(JSON.stringify({ error: "Invalid messages array (1-20 required)" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const messages = [] as Array<{ role: "user" | "assistant"; content: string }>;
+    for (const m of rawMessages) {
+      if (!m || typeof m !== "object") {
+        return new Response(JSON.stringify({ error: "Invalid message" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const role = (m as { role?: unknown }).role;
+      const content = (m as { content?: unknown }).content;
+      if ((role !== "user" && role !== "assistant") || typeof content !== "string" || content.length === 0 || content.length > 1000) {
+        return new Response(JSON.stringify({ error: "Invalid role or content (max 1000 chars)" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      messages.push({ role, content });
+    }
+
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
