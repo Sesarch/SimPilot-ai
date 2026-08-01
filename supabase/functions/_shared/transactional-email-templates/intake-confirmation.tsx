@@ -38,7 +38,7 @@ const IntakeConfirmationEmail = ({ name, audience, schoolName }: IntakeConfirmat
         <Container style={container}>
           <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
             <Img
-              src={`${SITE_URL}/logo.svg`}
+              src={`${SITE_URL}/email-logo.png`}
               alt={`${SITE_NAME} logo`}
               width="220"
               style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }}
