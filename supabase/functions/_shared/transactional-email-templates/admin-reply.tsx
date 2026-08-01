@@ -25,7 +25,7 @@ const AdminReplyEmail = ({ name, subject, body, agent_name }: Props) => {
       <Body style={main}>
         <Container style={container}>
           <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
-            <Img src={`${SITE_URL}/logo.svg`} alt={`${SITE_NAME} logo`} width="200" style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }} />
+            <Img src={`${SITE_URL}/email-logo.png`} alt={`${SITE_NAME} logo`} width="200" style={{ display: 'inline-block', maxWidth: '100%', height: 'auto' }} />
           </Section>
           <Heading style={h1}>{name ? `Hi ${name},` : 'Hello,'}</Heading>
           {paragraphs.map((p, i) => (

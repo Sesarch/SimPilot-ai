@@ -9,6 +9,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
   Text,
 } from 'npm:@react-email/components@0.0.22'
@@ -27,6 +28,12 @@ export const MagicLinkEmail = ({
     <Preview>Your login link for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Img
+          src="https://simpilot.ai/email-logo.png"
+          alt="SimPilot.AI"
+          width="200"
+          style={{ display: 'block', maxWidth: '100%', height: 'auto', margin: '0 0 24px' }}
+        />
         <Heading style={h1}>Your login link</Heading>
         <Text style={text}>
           Click the button below to log in to {siteName}. This link will expire

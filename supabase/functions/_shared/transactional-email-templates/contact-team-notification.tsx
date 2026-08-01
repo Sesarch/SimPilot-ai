@@ -8,6 +8,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
   Section,
   Text,
@@ -42,6 +43,12 @@ const ContactTeamNotificationEmail = ({
     <Preview>New contact form message — {name ?? email ?? 'unknown'}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Img
+          src="https://simpilot.ai/email-logo.png"
+          alt="SimPilot.AI"
+          width="200"
+          style={{ display: 'block', maxWidth: '100%', height: 'auto', margin: '0 0 24px' }}
+        />
         <Heading style={h1}>New contact form message</Heading>
         <Text style={text}>Someone just submitted the contact form on {SITE_NAME}.</Text>
         <Section style={card}>

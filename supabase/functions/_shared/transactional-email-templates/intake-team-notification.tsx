@@ -8,6 +8,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
   Section,
   Text,
@@ -48,6 +49,12 @@ const IntakeTeamNotificationEmail = ({
       <Preview>New {audienceLabel} lead — {contactName ?? contactEmail ?? 'unknown'}</Preview>
       <Body style={main}>
         <Container style={container}>
+        <Img
+          src="https://simpilot.ai/email-logo.png"
+          alt="SimPilot.AI"
+          width="200"
+          style={{ display: 'block', maxWidth: '100%', height: 'auto', margin: '0 0 24px' }}
+        />
           <Heading style={h1}>New {audienceLabel} lead</Heading>
           <Text style={text}>A new lead just submitted the intake form on {SITE_NAME}.</Text>
           <Section style={card}>
