@@ -9,6 +9,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
   Text,
 } from 'npm:@react-email/components@0.0.22'
@@ -27,6 +28,12 @@ export const RecoveryEmail = ({
     <Preview>Reset your password for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Img
+          src="https://simpilot.ai/email-logo.png"
+          alt="SimPilot.AI"
+          width="200"
+          style={{ display: 'block', maxWidth: '100%', height: 'auto', margin: '0 0 24px' }}
+        />
         <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
           We received a request to reset your password for {siteName}. Click

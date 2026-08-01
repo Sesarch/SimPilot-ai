@@ -9,6 +9,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Text,
@@ -32,6 +33,12 @@ export const SignupEmail = ({
     <Preview>Confirm your email for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Img
+          src="https://simpilot.ai/email-logo.png"
+          alt="SimPilot.AI"
+          width="200"
+          style={{ display: 'block', maxWidth: '100%', height: 'auto', margin: '0 0 24px' }}
+        />
         <Heading style={h1}>Confirm your email</Heading>
         <Text style={text}>
           Thanks for signing up for{' '}
